@@ -1,0 +1,17 @@
+# Secrets. Never commit these.
+.env
+.env.*
+!.env.example
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+
+# Front end (added when the React app lands)
+node_modules/
+dist/
+.vite/
+
+# OS
+.DS_Store
+Thumbs.db

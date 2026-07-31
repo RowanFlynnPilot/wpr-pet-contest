@@ -1,0 +1,4 @@
+# Keep line endings consistent regardless of contributor OS. Without this, a
+# Windows checkout commits CRLF back and every file shows as entirely rewritten
+# in the next diff, which buries real changes.
+* text=auto eol=lf

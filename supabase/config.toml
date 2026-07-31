@@ -1,0 +1,61 @@
+project_id = "wpr-pet-contest"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+# Match this to the Postgres version of the linked project.
+major_version = 15
+
+[db.pooler]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+
+# Catches outbound mail locally so receipt testing never emails a real person.
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+# The `pets` bucket is created in migrations/0004_storage.sql, not here.
+# Declaring it in both places would let local and production drift apart.
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+jwt_expiry = 3600
+# Admins are added by invite. Nobody signs themselves up for a moderation queue.
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+
+[edge_runtime]
+enabled = true
+policy = "oneshot"
+
+# All three functions are called by parties that do not hold a Supabase JWT:
+# anonymous visitors and Stripe. Each does its own authentication instead —
+# submit-entry validates input, create-checkout validates against the DB, and
+# stripe-webhook verifies the Stripe signature. Leaving verify_jwt on here is
+# the single most common reason a webhook silently 401s in production.
+[functions.submit-entry]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
