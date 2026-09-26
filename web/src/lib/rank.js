@@ -1,0 +1,49 @@
+// Standings, computed with the same tiebreaks the database uses so the page
+// never shows a pet "ahead" that close_round would rank behind.
+//   Open round: most votes, then earliest submission.
+//   Bracket:    most votes, then better (lower) seed.
+
+const ts = (e) => new Date(e.created_at).getTime()
+
+export function rankOpenRound(entries, totals) {
+  return entries
+    .map((entry) => ({ entry, votes: totals.get(entry.id)?.votes || 0 }))
+    .sort((a, b) => b.votes - a.votes || ts(a.entry) - ts(b.entry))
+    .map((row, i) => ({ ...row, rank: i + 1 }))
+}
+
+// Votes `me` needs to move ahead of `target` in the open round.
+export function votesToPass(me, target) {
+  const earlier = ts(me.entry) < ts(target.entry)
+  return Math.max(0, target.votes - me.votes + (earlier ? 0 : 1))
+}
+
+// Where a pet stands against the qualifying line (the top `size` advance).
+export function cutline(ranked, entryId, size) {
+  const i = ranked.findIndex((r) => r.entry.id === entryId)
+  if (i < 0) return null
+  const me = ranked[i]
+  if (ranked.length <= size) return { rank: me.rank, qualifying: true, margin: null, total: ranked.length }
+  if (me.rank <= size) {
+    const chaser = ranked[size]
+    return { rank: me.rank, qualifying: true, margin: votesToPass(chaser, me), total: ranked.length }
+  }
+  return { rank: me.rank, qualifying: false, needed: votesToPass(me, ranked[size - 1]), total: ranked.length }
+}
+
+// Head-to-head: who leads, and by how much the trailer needs to take it.
+export function matchupStanding(matchup, totals, entriesById) {
+  const side = (id) => {
+    const entry = entriesById.get(id) || null
+    return { id, entry, votes: totals.get(id)?.votes || 0, seed: entry?.seed ?? null }
+  }
+  const a = side(matchup.entry_a_id)
+  const b = side(matchup.entry_b_id)
+  const seedOf = (s) => s.seed ?? Number.POSITIVE_INFINITY
+  const aLeads = a.votes > b.votes || (a.votes === b.votes && seedOf(a) < seedOf(b))
+  const leader = aLeads ? 'a' : 'b'
+  const lead = aLeads ? a : b
+  const trail = aLeads ? b : a
+  const toTake = lead.votes - trail.votes + (seedOf(trail) < seedOf(lead) ? 0 : 1)
+  return { a, b, leader, tied: a.votes === b.votes, toTake: Math.max(0, toTake), winner: matchup.winner_entry_id || null }
+}

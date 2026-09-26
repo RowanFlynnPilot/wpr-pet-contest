@@ -1,0 +1,338 @@
+import { useEffect, useRef, useState } from 'react'
+import PetPhoto from '../components/PetPhoto.jsx'
+import { stamp } from '../lib/datetime.js'
+import { admin, callAdmin, q, SessionError } from './adminClient.js'
+import { ErrorNote, useAsync, useDesk } from './shared.jsx'
+
+export const REJECT_PRESETS = [
+  'Photo is not a pet',
+  'Photo quality too low',
+  'Duplicate entry',
+  'Inappropriate content',
+  "Not the entrant's own photo",
+]
+
+const SPECIES = ['dog', 'cat', 'other']
+const TEXTY = new Set(['text', 'email', 'search', 'number', 'password', 'url', 'tel', 'datetime-local'])
+// Shortcuts stay out of the way while someone is typing, but not while a
+// radio button or checkbox merely has focus.
+const typing = (el) =>
+  el && ((el.tagName === 'INPUT' && TEXTY.has(el.type)) || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)
+
+function ReasonPicker({ pet, busy, onSubmit, onCancel }) {
+  const [pick, setPick] = useState(null)
+  const [other, setOther] = useState('')
+  const reason = pick === 'other' ? other.trim() : pick
+  const first = useRef(null)
+
+  useEffect(() => {
+    first.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    const on = (e) => {
+      if (e.key === 'Escape') return onCancel()
+      if (e.key === 'Enter' && reason && !busy) {
+        e.preventDefault()
+        return onSubmit(reason)
+      }
+      if (typing(e.target)) return
+      const n = Number(e.key)
+      if (n >= 1 && n <= REJECT_PRESETS.length) setPick(REJECT_PRESETS[n - 1])
+      else if (e.key === String(REJECT_PRESETS.length + 1)) {
+        e.preventDefault()
+        setPick('other')
+        setTimeout(() => document.getElementById('reject-other')?.focus(), 0)
+      }
+    }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [reason, busy, onSubmit, onCancel])
+
+  return (
+    <form
+      className="confirm"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (reason && !busy) onSubmit(reason)
+      }}
+      aria-label={`Reject ${pet}`}
+    >
+      <h3>Reject {pet}?</h3>
+      <p className="small muted" style={{ margin: '0 0 8px' }}>
+        The reason goes to the entrant. The photo is deleted from the public bucket.
+      </p>
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="sr-only">Reason</legend>
+        {REJECT_PRESETS.map((r, i) => (
+          <label key={r} className="check" style={{ marginBottom: 6 }}>
+            <input type="radio" name="reason" ref={i === 0 ? first : undefined} checked={pick === r} onChange={() => setPick(r)} />
+            <span>
+              <kbd>{i + 1}</kbd> {r}
+            </span>
+          </label>
+        ))}
+        <label className="check" style={{ marginBottom: 6 }}>
+          <input type="radio" name="reason" checked={pick === 'other'} onChange={() => setPick('other')} />
+          <span>
+            <kbd>{REJECT_PRESETS.length + 1}</kbd> Other
+          </span>
+        </label>
+        {pick === 'other' && (
+          <input id="reject-other" type="text" maxLength={200} value={other} onChange={(e) => setOther(e.target.value)} placeholder="Reason the entrant will see" aria-label="Other reason" />
+        )}
+      </fieldset>
+      <div className="tool-row" style={{ marginTop: 12 }}>
+        <button type="submit" className="btn btn-danger" disabled={!reason || busy}>
+          {busy ? 'Rejecting…' : 'Reject and delete photo'}
+        </button>
+        <button type="button" className="btn btn-quiet" onClick={onCancel} disabled={busy}>
+          Cancel <kbd>Esc</kbd>
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function Details({ entry, onSaved }) {
+  const [edit, setEdit] = useState(false)
+  const [draft, setDraft] = useState({ pet_name: entry.pet_name, town: entry.town, species: entry.species })
+  const [err, setErr] = useState(null)
+  async function save(e) {
+    e.preventDefault()
+    try {
+      await q(admin.from('entries').update({ pet_name: draft.pet_name.trim(), town: draft.town.trim(), species: draft.species }).eq('id', entry.id))
+      setEdit(false)
+      onSaved()
+    } catch (x) {
+      setErr(x)
+    }
+  }
+  if (edit) {
+    return (
+      <form onSubmit={save} className="stack-sm">
+        <ErrorNote error={err} />
+        <label className="field">
+          <span className="label">Pet name</span>
+          <input type="text" maxLength={40} value={draft.pet_name} onChange={(e) => setDraft({ ...draft, pet_name: e.target.value })} />
+        </label>
+        <label className="field">
+          <span className="label">Town</span>
+          <input type="text" maxLength={60} value={draft.town} onChange={(e) => setDraft({ ...draft, town: e.target.value })} />
+        </label>
+        <label className="field">
+          <span className="label">Species</span>
+          <select value={draft.species} onChange={(e) => setDraft({ ...draft, species: e.target.value })}>
+            {SPECIES.map((s) => (
+              <option key={s}>{s}</option>
+            ))}
+          </select>
+        </label>
+        <div className="tool-row">
+          <button className="btn btn-primary btn-sm" type="submit">
+            Save
+          </button>
+          <button className="btn btn-quiet btn-sm" type="button" onClick={() => setEdit(false)}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    )
+  }
+  return (
+    <>
+      <dl className="facts">
+        <dt>Pet</dt>
+        <dd>
+          <strong style={{ fontSize: 20, fontFamily: 'var(--display)' }}>{entry.pet_name}</strong> · {entry.species}
+        </dd>
+        <dt>Town</dt>
+        <dd>{entry.town}</dd>
+        <dt>Caption</dt>
+        <dd>{entry.caption ? <q>{entry.caption}</q> : <span className="muted">none</span>}</dd>
+        <dt>Owner</dt>
+        <dd>
+          {entry.owner_name} · <a href={`mailto:${entry.owner_email}`}>{entry.owner_email}</a>
+        </dd>
+        <dt>Newsletter</dt>
+        <dd>{entry.newsletter_opt_in ? 'Opted in' : 'No'}</dd>
+        <dt>Submitted</dt>
+        <dd>{stamp(entry.created_at)}</dd>
+        <dt>Release</dt>
+        <dd>{entry.rights_accepted_at ? `Accepted ${stamp(entry.rights_accepted_at)}` : <span className="bad">Missing</span>}</dd>
+        {entry.shelter_id && (
+          <>
+            <dt>Wildcard</dt>
+            <dd>Adoptable shelter pet</dd>
+          </>
+        )}
+      </dl>
+      <button type="button" className="link-btn small" onClick={() => setEdit(true)}>
+        Fix a typo in name, town or species
+      </button>
+    </>
+  )
+}
+
+export default function Moderation() {
+  const { contest, say, onSessionLost } = useDesk()
+  const cid = contest.id
+  const pending = useAsync(() => q(admin.from('entries').select('*').eq('contest_id', cid).eq('status', 'pending').order('created_at')), [cid])
+  const approved = useAsync(() => q(admin.from('entries').select('*').eq('contest_id', cid).eq('status', 'approved').order('moderated_at', { ascending: false })), [cid])
+  const rejected = useAsync(
+    () => q(admin.from('entries').select('id, pet_name, owner_email, rejection_reason, moderated_at').eq('contest_id', cid).eq('status', 'rejected').order('moderated_at', { ascending: false }).limit(50)),
+    [cid],
+  )
+  const [index, setIndex] = useState(0)
+  const [rejecting, setRejecting] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const queue = pending.data || []
+  const current = queue[Math.min(index, Math.max(0, queue.length - 1))] || null
+  const fieldOpen = contest.status === 'draft' || contest.status === 'submissions_open'
+
+  useEffect(() => {
+    const n = queue.length
+    document.title = `${n ? `(${n}) ` : ''}Moderation — Pet contest desk`
+    return () => {
+      document.title = 'Pet contest desk — Wausau Pilot & Review'
+    }
+  }, [queue.length])
+
+  async function decide(entry, decision, reason) {
+    setBusy(true)
+    setError(null)
+    try {
+      const res = await callAdmin('moderate', { entry_id: entry.id, decision, reason })
+      if (decision === 'reject' && res.photo_deleted === false) {
+        say(`${entry.pet_name} rejected, but the photo was NOT deleted. Check the Health tab.`)
+      } else {
+        say(`${entry.pet_name} ${decision === 'approve' ? 'approved' : 'rejected'}${res.notified ? ' · email sent' : ''}.`)
+      }
+      setRejecting(null)
+      await Promise.all([pending.reload(), approved.reload(), rejected.reload()])
+    } catch (err) {
+      if (err instanceof SessionError) onSessionLost(err.message)
+      else setError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    const on = (e) => {
+      if (rejecting || busy || typing(e.target) || e.metaKey || e.ctrlKey || e.altKey || !current) return
+      if (e.key === 'a') {
+        e.preventDefault()
+        decide(current, 'approve')
+      } else if (e.key === 'r') {
+        e.preventDefault()
+        setRejecting(current)
+      } else if (e.key === 'j' || e.key === 'ArrowRight') setIndex((i) => Math.min(i + 1, queue.length - 1))
+      else if (e.key === 'k' || e.key === 'ArrowLeft') setIndex((i) => Math.max(0, i - 1))
+    }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  })
+
+  return (
+    <div className="stack">
+      <ErrorNote error={error || pending.error} />
+      <section>
+        <div className="panel-head">
+          <h2>
+            Pending <span className="count-pill">{queue.length}</span>
+          </h2>
+          <span className="small muted">
+            <kbd>A</kbd> approve · <kbd>R</kbd> reject · <kbd>J</kbd>/<kbd>K</kbd> next/previous
+          </span>
+        </div>
+        {pending.loading && !pending.data ? (
+          <p className="muted">Loading the queue…</p>
+        ) : !current ? (
+          <div className="all-clear">The queue is clear. Nothing waiting.</div>
+        ) : (
+          <div className="mod-card">
+            <div className="mod-photo">
+              <PetPhoto entry={current} width={1200} contain eager />
+            </div>
+            <div className="mod-info">
+              <p className="small muted" style={{ margin: 0 }}>
+                {Math.min(index, queue.length - 1) + 1} of {queue.length}
+              </p>
+              <Details key={current.id} entry={current} onSaved={pending.reload} />
+              {rejecting?.id === current.id ? (
+                <ReasonPicker pet={current.pet_name} busy={busy} onCancel={() => setRejecting(null)} onSubmit={(reason) => decide(current, 'reject', reason)} />
+              ) : (
+                <div className="tool-row" style={{ marginTop: 16 }}>
+                  <button type="button" className="btn btn-primary" onClick={() => decide(current, 'approve')} disabled={busy}>
+                    Approve <kbd>A</kbd>
+                  </button>
+                  <button type="button" className="btn btn-quiet" onClick={() => setRejecting(current)} disabled={busy}>
+                    Reject <kbd>R</kbd>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {queue.length > 1 && (
+          <div className="thumbs" aria-label="Queue">
+            {queue.map((e, i) => (
+              <button key={e.id} type="button" className={`thumb${e.id === current?.id ? ' on' : ''}`} onClick={() => setIndex(i)} aria-label={`${e.pet_name}, ${i + 1} of ${queue.length}`}>
+                <PetPhoto entry={e} width={160} square alt="" />
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <div className="panel-head">
+          <h2>
+            Approved <span className="count-pill">{approved.data?.length ?? '…'}</span>
+          </h2>
+          <span className="small muted">{fieldOpen ? 'A bad approval can still be rejected until voting starts.' : 'Voting has started: the field is set.'}</span>
+        </div>
+        {rejecting && rejecting.status === 'approved' && (
+          <ReasonPicker pet={rejecting.pet_name} busy={busy} onCancel={() => setRejecting(null)} onSubmit={(reason) => decide(rejecting, 'reject', reason)} />
+        )}
+        <div className="mini-grid">
+          {(approved.data || []).map((e) => (
+            <div className="mini" key={e.id}>
+              <PetPhoto entry={e} width={300} square alt="" />
+              <div className="mini-body">
+                <strong>{e.pet_name}</strong>
+                <span className="small muted">
+                  {e.town} · {e.owner_email}
+                </span>
+                {fieldOpen && (
+                  <button type="button" className="link-btn small" onClick={() => setRejecting(e)} disabled={busy}>
+                    Reject
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="panel-head">
+          <h2>Recently rejected</h2>
+        </div>
+        {(rejected.data || []).length === 0 ? (
+          <p className="muted small">None.</p>
+        ) : (
+          <ul className="plain-list">
+            {rejected.data.map((e) => (
+              <li key={e.id}>
+                <strong>{e.pet_name}</strong> · {e.rejection_reason} · <span className="muted">{stamp(e.moderated_at)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  )
+}
