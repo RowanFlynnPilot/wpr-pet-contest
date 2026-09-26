@@ -1,0 +1,68 @@
+name: pages
+
+# The front end, plus one static share page per approved pet (web/scripts/
+# build-share-pages.mjs). Those pages exist for link previews: a Facebook share
+# of a pet shows that pet's photo, which a share of the WordPress page cannot.
+#
+# Rebuilt on every push to main, every 30 minutes while a contest is live (so a
+# newly approved pet gets its page without anyone deploying), and on demand
+# from the Actions tab after a moderation push.
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/pages.yml']
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # GitHub Pages needs a public repo on the free plan. Until it is enabled,
+    # set nothing and this workflow does nothing, rather than failing every 30
+    # minutes and teaching everyone to ignore red checks.
+    if: vars.PAGES_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          # All public by design: the anon key and the Stripe publishable key
+          # are meant for browsers. Row level security is the boundary.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_PUBLIC_URL: ${{ vars.VITE_PUBLIC_URL }}
+          VITE_IMAGE_TRANSFORMS: ${{ vars.VITE_IMAGE_TRANSFORMS }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
