@@ -23,10 +23,10 @@ jobs:
           # suite locally.
           version: 2.111.0
 
-      # Boots the full local stack, applies every migration in order, then runs
-      # the pgTAP suite. A broken migration fails here, not in production the
-      # morning the contest opens.
-      - run: supabase start
+      # Boots the local stack, applies every migration in order, then runs the
+      # pgTAP suite. A broken migration fails here, not in production the
+      # morning the contest opens. Services the tests never touch are skipped.
+      - run: supabase start -x studio,logflare,vector,realtime,imgproxy,postgres-meta,supavisor,mailpit
       - run: supabase test db
 
   functions:
@@ -57,8 +57,60 @@ jobs:
       # No env: proves the build succeeds (and skips share pages) without secrets.
       - run: npm run build
 
+  # The whole system running together: a real browser against the real edge
+  # functions and database. Stripe is the one thing simulated, with properly
+  # signed webhook events and placeholder keys.
+  end-to-end:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: supabase start -x studio,logflare,vector,realtime,imgproxy,postgres-meta,supavisor,mailpit
+      - name: Serve the edge functions
+        run: nohup supabase functions serve --env-file supabase/tests/integration/functions.env > /tmp/functions.log 2>&1 &
+      - name: Wait for the edge functions
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:54321/functions/v1/notify -d '{}')
+            [ "$code" = "401" ] && exit 0
+            sleep 3
+          done
+          cat /tmp/functions.log
+          exit 1
+
+      - run: npm ci
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Browser tests
+        run: npm run e2e
+        working-directory: web
+
+      # The browser tests moderated the queue and opened round 1; the API
+      # suite starts from the seed again.
+      - run: supabase db reset
+      - name: Edge function integration tests
+        run: node --test --test-reporter=spec supabase/tests/integration/functions.test.mjs
+
+      - if: failure()
+        run: cat /tmp/functions.log
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: web/test-results
+          retention-days: 7
+
   deploy:
-    needs: [database, functions, web]
+    needs: [database, functions, web, end-to-end]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
@@ -76,7 +128,7 @@ jobs:
       # Every function, explicitly. A new function that is not listed here is
       # a function that silently never ships.
       - run: |
-          for fn in submit-entry create-checkout stripe-webhook moderate notify; do
+          for fn in submit-entry create-checkout stripe-webhook moderate notify health disqualify; do
             supabase functions deploy "$fn"
           done
 

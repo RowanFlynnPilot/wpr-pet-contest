@@ -1,0 +1,147 @@
+// One contest, front to back, the way people will actually use it. Serial:
+// each step depends on the one before (the entry made in step one is the pet
+// that receives a vote in step three).
+import { expect, test } from '@playwright/test'
+import { fixturePath, functionsEnv, jpegSize, sendPaidWebhook, serviceRest, stackEnv } from './stack.js'
+
+test.describe.configure({ mode: 'serial' })
+
+const stack = stackEnv()
+const rest = serviceRest(stack)
+const WHSEC = functionsEnv().STRIPE_WEBHOOK_SECRET
+const ROUND1 = '00000000-0000-0000-0000-00000000d001'
+const PET = 'Playwright Pup'
+
+const object = async (path) => {
+  const r = await fetch(`${stack.API_URL}/storage/v1/object/public/pets/${path}`)
+  return Buffer.from(await r.arrayBuffer())
+}
+
+test('a reader enters a pet from a phone photo', async ({ page }) => {
+  await page.goto('/#/enter')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+
+  // 400×300 with EXIF orientation 6 (a portrait phone shot) and GPS.
+  await page.locator('input[type=file]').first().setInputFiles(fixturePath('gps.jpg'))
+  await page.getByLabel("Pet's name").fill(PET)
+  await page.locator('.chips label', { hasText: 'Dog' }).click()
+  await page.locator('select#town').selectOption('Wausau')
+  await page.getByLabel('Your name').fill('E2E Tester')
+  await page.getByLabel('Your email').fill('e2e@example.com')
+  await page.getByLabel('I agree to the photo release below.').check()
+  await page.getByRole('button', { name: 'Enter my pet' }).click()
+
+  await expect(page.getByRole('heading', { name: `${PET} is entered!` })).toBeVisible()
+
+  const [row] = (await rest(`entries?select=status,photo_path,thumb_path&pet_name=eq.${encodeURIComponent(PET)}`)).body
+  expect(row.status).toBe('pending')
+  expect(row.thumb_path, 'the browser made and sent a thumbnail').toMatch(/\.thumb\.jpg$/)
+
+  const photo = await object(row.photo_path)
+  const thumb = await object(row.thumb_path)
+  for (const bytes of [photo, thumb]) {
+    expect(bytes.includes('SECRET-LOCATION-MARKER'), 'no EXIF text survives').toBe(false)
+    expect(bytes.includes('IntegrationCam')).toBe(false)
+  }
+  // The canvas baked the rotation into the pixels: portrait now, not landscape.
+  expect(jpegSize(photo)).toEqual({ width: 300, height: 400 })
+})
+
+test('staff work the moderation queue and open voting', async ({ page }) => {
+  await page.goto('/#/admin')
+  await page.getByLabel('Email').fill(process.env.E2E_ADMIN_EMAIL)
+  await page.getByLabel('Password').fill(process.env.E2E_ADMIN_PASSWORD)
+  await page.getByLabel('Password').press('Enter')
+
+  // Approve everything waiting, our new entry included: one at a time, each
+  // confirmed by the pending count dropping.
+  const pending = page.getByRole('heading', { name: /^Pending/ })
+  const clear = page.getByText('The queue is clear. Nothing waiting.')
+  await expect(pending).toBeVisible()
+  await expect(pending).not.toHaveText(/…/)
+  for (let i = 0; i < 10 && !(await clear.isVisible()); i++) {
+    const before = await pending.innerText()
+    await page.getByRole('button', { name: /^Approve/ }).first().click()
+    await expect(pending).not.toHaveText(before)
+  }
+  await expect(clear).toBeVisible()
+
+  await page.goto('/#/admin/rounds')
+  await page.getByRole('button', { name: 'Open…' }).click()
+  const confirm = page.getByRole('dialog')
+  await confirm.getByLabel('Type OPEN to confirm').fill('OPEN')
+  await confirm.locator('button[type=submit]').click()
+  await expect(page.getByText('voting', { exact: true })).toBeVisible()
+})
+
+test('a paid vote appears on the pet page without a reload', async ({ page }) => {
+  const [pet] = (await rest(`entries?select=id&pet_name=eq.${encodeURIComponent(PET)}`)).body
+  await page.goto(`/#/pet/${pet.id}`)
+  await expect(page.getByRole('heading', { name: PET })).toBeVisible()
+
+  // Stripe's side, simulated: a pending vote from checkout, then the signed
+  // success event. The page must pick it up by polling.
+  await rest('votes', {
+    method: 'POST',
+    body: JSON.stringify({
+      round_id: ROUND1, entry_id: pet.id, quantity: 25, amount_cents: 2000,
+      buyer_email: 'e2e-buyer@example.com', stripe_payment_intent_id: 'pi_e2e_1', pack_slug: 'fan',
+    }),
+  })
+  expect(await sendPaidWebhook(stack, WHSEC, 'pi_e2e_1', ROUND1)).toBe(200)
+
+  await expect(page.locator('main')).toContainText(/25\s+votes/, { timeout: 45_000 })
+})
+
+test('an owner can make share images in every format', async ({ page }, testInfo) => {
+  const [pet] = (await rest(`entries?select=id&pet_name=eq.${encodeURIComponent(PET)}`)).body
+  await page.goto(`/#/pet/${pet.id}`)
+  await page.getByRole('button', { name: 'Make a share image' }).click()
+
+  const sizes = { Story: [1080, 1920], Square: [1080, 1080], Flyer: [1275, 1650] }
+  for (const [label, [width, height]] of Object.entries(sizes)) {
+    await page.getByRole('group', { name: 'Image size' }).getByRole('button', { name: label }).click()
+    const download = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Download PNG' }).click()
+    const file = testInfo.outputPath(`${label.toLowerCase()}.png`)
+    await (await download).saveAs(file)
+    const png = (await import('node:fs')).readFileSync(file)
+    // PNG header: width and height are the first two fields of IHDR.
+    expect(png.subarray(1, 4).toString()).toBe('PNG')
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)], `${label} is exactly ${width}×${height}`).toEqual([width, height])
+  }
+})
+
+test('checkout offers the database packs and never calls it a donation', async ({ page }) => {
+  const [pet] = (await rest(`entries?select=id&pet_name=eq.${encodeURIComponent(PET)}`)).body
+  await page.goto(`/#/pet/${pet.id}`)
+  await page.getByRole('button', { name: `Vote for ${PET}` }).first().click()
+
+  const dialog = page.getByRole('dialog')
+  for (const price of ['$5', '$20', '$50', '$100', '$250']) {
+    await expect(dialog.getByText(price, { exact: true })).toBeVisible()
+  }
+  // Legal, not style: buying votes is not a tax-deductible donation. The
+  // disclaimer must be there, and "donation" may only appear negated.
+  const text = (await dialog.innerText()).toLowerCase().replace(/[’']/g, "'")
+  expect(text).toContain('not tax-deductible')
+  expect(text.replace(/(isn't|not)( a| tax-deductible)? donations?/g, '')).not.toMatch(/donat/)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+})
+
+test('the public pages render without script errors', async ({ page }) => {
+  const errors = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  page.on('console', (m) => {
+    // Seed entries point at photos that do not exist locally; a missing image
+    // is not a script error.
+    if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text())
+  })
+  for (const route of ['/#/', '/#/gallery', '/#/bracket', '/#/rules', '/#/shelters', '/#/sponsors']) {
+    await page.goto(route)
+    await expect(page.locator('main')).toBeVisible()
+    await page.waitForTimeout(500)
+  }
+  expect(errors).toEqual([])
+})

@@ -7,10 +7,14 @@
 supabase/.temp/
 supabase/.branches/
 
-# Front end (added when the React app lands)
+# Front end
 node_modules/
 dist/
 .vite/
+# Playwright output
+test-results/
+playwright-report/
+blob-report/
 
 # OS
 .DS_Store
