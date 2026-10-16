@@ -6,7 +6,7 @@ import { submitEntry } from '../lib/api.js'
 import { track } from '../lib/analytics.js'
 import { apDate, apDateTime, period } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
-import { ACCEPTED_TYPES, MAX_BYTES, reencodeImage } from '../lib/image.js'
+import { ACCEPTED_TYPES, MAX_BYTES, prepareUpload } from '../lib/image.js'
 import { OTHER_TOWN, TOWNS } from '../lib/towns.js'
 import { EMPTY_ENTRY as EMPTY, LIMITS, validateEntry } from '../lib/entryForm.js'
 
@@ -162,6 +162,7 @@ export default function Enter() {
   const c = useContest()
   const [v, setV] = useState(EMPTY)
   const [photo, setPhoto] = useState(null)
+  const [thumb, setThumb] = useState(null)
   const [preparing, setPreparing] = useState(false)
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState(null)
@@ -182,7 +183,7 @@ export default function Enter() {
       return
     }
     setPreparing(true)
-    const ready = await reencodeImage(file)
+    const { photo: ready, thumb: small } = await prepareUpload(file)
     setPreparing(false)
     if (ready.size > MAX_BYTES) {
       setErrors((e) => ({ ...e, photo: 'That photo is over 10 MB. Please choose a smaller one.' }))
@@ -190,6 +191,7 @@ export default function Enter() {
     }
     setErrors((e) => ({ ...e, photo: undefined }))
     setPhoto(ready)
+    setThumb(small)
   }
 
   async function submit(e) {
@@ -206,6 +208,7 @@ export default function Enter() {
     }
     const form = new FormData()
     form.append('photo', photo, photo.name || 'photo.jpg')
+    if (thumb) form.append('thumb', thumb, thumb.name || 'photo.thumb.jpg')
     form.append('pet_name', v.pet_name.trim())
     form.append('species', v.species)
     form.append('owner_name', v.owner_name.trim())
@@ -248,6 +251,7 @@ export default function Enter() {
             setDone(null)
             setV((prev) => ({ ...EMPTY, owner_name: prev.owner_name, owner_email: prev.owner_email }))
             setPhoto(null)
+            setThumb(null)
           }}
         />
       </div>

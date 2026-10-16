@@ -9,7 +9,7 @@ import { SUPABASE_URL } from './env.js'
 const CONTEST_COLS =
   'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at, bracket_size, bracket_round_hours'
 const CONTEST_BASE_COLS = 'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at'
-const ENTRY_COLS = 'id, contest_id, pet_name, species, town, caption, photo_path, shelter_id, seed, created_at'
+const ENTRY_COLS = 'id, contest_id, pet_name, species, town, caption, photo_path, thumb_path, shelter_id, seed, created_at'
 const ENTRY_BASE_COLS = 'id, contest_id, pet_name, species, town, photo_path, shelter_id, seed, created_at'
 const ROUND_COLS = 'id, contest_id, seq, kind, status, opens_at, closes_at, resolved_at'
 const MATCHUP_COLS = 'id, round_id, slot, entry_a_id, entry_b_id, winner_entry_id'

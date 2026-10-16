@@ -11,6 +11,7 @@ import Money from './Money.jsx'
 import Packs from './Packs.jsx'
 import Email from './Email.jsx'
 import Newsletter from './Newsletter.jsx'
+import Social from './Social.jsx'
 import './admin.css'
 
 const TABS = [
@@ -21,6 +22,7 @@ const TABS = [
   ['packs', 'Packs & bonuses', Packs],
   ['email', 'Email', Email],
   ['newsletter', 'Newsletter', Newsletter],
+  ['social', 'Social', Social],
 ]
 
 // Staff see drafts too. Prefer the contest that is live, then a draft being

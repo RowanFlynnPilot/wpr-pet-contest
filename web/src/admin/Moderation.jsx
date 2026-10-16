@@ -13,6 +13,53 @@ export const REJECT_PRESETS = [
 ]
 
 const SPECIES = ['dog', 'cat', 'other']
+
+// Removing a pet after voting has started. Everything bought for it is
+// refunded and its opponent advances, so this asks for a reason and a typed
+// confirmation, like closing a round.
+function DisqualifyForm({ entry, busy, onSubmit, onCancel }) {
+  const [reason, setReason] = useState('')
+  const [typed, setTyped] = useState('')
+  const ok = reason.trim().length > 0 && typed.trim().toUpperCase() === 'DISQUALIFY'
+  return (
+    <form
+      className="confirm"
+      role="dialog"
+      aria-modal="false"
+      aria-label={`Disqualify ${entry.pet_name}`}
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (ok && !busy) onSubmit(reason.trim())
+      }}
+    >
+      <h3 style={{ marginTop: 0 }}>Disqualify {entry.pet_name}?</h3>
+      <ul className="small" style={{ margin: '0 0 12px', paddingLeft: 18 }}>
+        <li>Every vote pack bought for {entry.pet_name}, in every round, is refunded through Stripe.</li>
+        <li>If it is in a matchup, its opponent advances whatever the count.</li>
+        <li>It leaves the public site and its photo is deleted.</li>
+        <li>This cannot be undone.</li>
+      </ul>
+      <label className="field" style={{ marginBottom: 10 }}>
+        <span className="label">Reason (kept with the entry)</span>
+        <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} autoFocus />
+      </label>
+      <label className="field" style={{ marginBottom: 10 }}>
+        <span className="label">
+          Type <strong>DISQUALIFY</strong> to confirm
+        </span>
+        <input type="text" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" spellCheck={false} />
+      </label>
+      <div className="tool-row">
+        <button type="submit" className="btn btn-danger" disabled={!ok || busy}>
+          {busy ? 'Disqualifying…' : 'Disqualify and refund'}
+        </button>
+        <button type="button" className="btn btn-quiet" onClick={onCancel} disabled={busy}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
 const TEXTY = new Set(['text', 'email', 'search', 'number', 'password', 'url', 'tel', 'datetime-local'])
 // Shortcuts stay out of the way while someone is typing, but not while a
 // radio button or checkbox merely has focus.
@@ -183,13 +230,19 @@ export default function Moderation() {
     () => q(admin.from('entries').select('id, pet_name, owner_email, rejection_reason, moderated_at').eq('contest_id', cid).eq('status', 'rejected').order('moderated_at', { ascending: false }).limit(50)),
     [cid],
   )
+  const disqualified = useAsync(
+    () => q(admin.from('entries').select('id, pet_name, owner_email, disqualification_reason, disqualified_at').eq('contest_id', cid).eq('status', 'disqualified').order('disqualified_at', { ascending: false })),
+    [cid],
+  )
   const [index, setIndex] = useState(0)
   const [rejecting, setRejecting] = useState(null)
+  const [disqualifying, setDisqualifying] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const queue = pending.data || []
   const current = queue[Math.min(index, Math.max(0, queue.length - 1))] || null
   const fieldOpen = contest.status === 'draft' || contest.status === 'submissions_open'
+  const voting = contest.status === 'voting'
 
   useEffect(() => {
     const n = queue.length
@@ -219,9 +272,30 @@ export default function Moderation() {
     }
   }
 
+  async function disqualify(entry, reason) {
+    setBusy(true)
+    setError(null)
+    try {
+      const res = await callAdmin('disqualify', { entry_id: entry.id, reason })
+      const failed = res.refunds_failed?.length || 0
+      say(
+        failed
+          ? `${entry.pet_name} disqualified, but ${failed} refund${failed === 1 ? '' : 's'} did not go through. Use "Retry refunds" below.`
+          : `${entry.pet_name} disqualified · ${res.refunds_requested} refund${res.refunds_requested === 1 ? '' : 's'} requested.`,
+      )
+      setDisqualifying(null)
+      await Promise.all([approved.reload(), disqualified.reload()])
+    } catch (err) {
+      if (err instanceof SessionError) onSessionLost(err.message)
+      else setError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   useEffect(() => {
     const on = (e) => {
-      if (rejecting || busy || typing(e.target) || e.metaKey || e.ctrlKey || e.altKey || !current) return
+      if (rejecting || disqualifying || busy || typing(e.target) || e.metaKey || e.ctrlKey || e.altKey || !current) return
       if (e.key === 'a') {
         e.preventDefault()
         decide(current, 'approve')
@@ -292,8 +366,17 @@ export default function Moderation() {
           <h2>
             Approved <span className="count-pill">{approved.data?.length ?? '…'}</span>
           </h2>
-          <span className="small muted">{fieldOpen ? 'A bad approval can still be rejected until voting starts.' : 'Voting has started: the field is set.'}</span>
+          <span className="small muted">
+            {fieldOpen
+              ? 'A bad approval can still be rejected until voting starts.'
+              : voting
+                ? 'Voting has started: the field is set. A pet that breaks the rules can still be disqualified.'
+                : 'The contest is over.'}
+          </span>
         </div>
+        {disqualifying && (
+          <DisqualifyForm entry={disqualifying} busy={busy} onCancel={() => setDisqualifying(null)} onSubmit={(reason) => disqualify(disqualifying, reason)} />
+        )}
         {rejecting && rejecting.status === 'approved' && (
           <ReasonPicker pet={rejecting.pet_name} busy={busy} onCancel={() => setRejecting(null)} onSubmit={(reason) => decide(rejecting, 'reject', reason)} />
         )}
@@ -311,11 +394,35 @@ export default function Moderation() {
                     Reject
                   </button>
                 )}
+                {voting && (
+                  <button type="button" className="link-btn small" onClick={() => setDisqualifying(e)} disabled={busy}>
+                    Disqualify…
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
       </section>
+
+      {(disqualified.data || []).length > 0 && (
+        <section>
+          <div className="panel-head">
+            <h2>Disqualified</h2>
+            <span className="small muted">Retrying asks Stripe again only for refunds still outstanding.</span>
+          </div>
+          <ul className="plain-list">
+            {disqualified.data.map((e) => (
+              <li key={e.id}>
+                <strong>{e.pet_name}</strong> · {e.disqualification_reason} · <span className="muted">{stamp(e.disqualified_at)}</span>{' '}
+                <button type="button" className="link-btn small" onClick={() => disqualify(e, null)} disabled={busy}>
+                  Retry refunds
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section>
         <div className="panel-head">

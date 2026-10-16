@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { stamp } from '../lib/datetime.js'
 import { fmtMoney } from '../lib/format.js'
 import { admin, callAdmin, SessionError, view } from './adminClient.js'
@@ -15,8 +15,13 @@ export default function Health() {
     ])
     return { late, photos, pending: pending.count ?? 0 }
   }, [cid])
+  // The scheduled alert's own checks, including the Stripe cross-check only
+  // the server can run. Viewing them here notifies nobody.
+  const live = useAsync(() => callAdmin('health', {}), [cid])
   const [purging, setPurging] = useState(null)
   const [error, setError] = useState(null)
+
+  const reloadAll = () => Promise.all([checks.reload(), live.reload()])
 
   async function purge(row) {
     setPurging(row.entry_id)
@@ -42,11 +47,12 @@ export default function Health() {
     <div className="stack">
       <div className="panel-head">
         <h2>Health checks</h2>
-        <button type="button" className="btn btn-quiet btn-sm" onClick={checks.reload} disabled={checks.loading}>
-          {checks.loading ? 'Checking…' : 'Run checks again'}
+        <button type="button" className="btn btn-quiet btn-sm" onClick={reloadAll} disabled={checks.loading || live.loading}>
+          {checks.loading || live.loading ? 'Checking…' : 'Run checks again'}
         </button>
       </div>
       <ErrorNote error={error || checks.error} />
+      <LiveChecks live={live} />
       <div className="stats">
         <Stat label="Late payments" value={d ? late.length : '…'} tone={d ? (late.length ? 'bad' : 'good') : undefined} sub="must be 0" />
         <Stat label="Rejected photos still public" value={d ? photos.length : '…'} tone={d ? (photos.length ? 'bad' : 'good') : undefined} sub="must be 0" />
@@ -93,12 +99,12 @@ export default function Health() {
         {d?.photos.error && <p className="small bad">Could not read: {d.photos.error}</p>}
         <Table
           rows={photos}
-          rowKey={(r) => r.entry_id}
+          rowKey={(r) => r.object_name || r.entry_id}
           empty="None. ✓"
           columns={[
             { key: 'pet_name', label: 'Pet' },
             { key: 'moderated_at', label: 'Rejected', render: (r) => stamp(r.moderated_at) },
-            { key: 'photo_path', label: 'File', render: (r) => <code>{r.photo_path}</code> },
+            { key: 'object_name', label: 'File', render: (r) => <code>{r.object_name || r.photo_path}</code> },
             {
               key: 'act',
               label: '',
@@ -112,5 +118,43 @@ export default function Health() {
         />
       </section>
     </div>
+  )
+}
+
+
+function channelText(channels) {
+  const on = [channels?.email && 'staff email', channels?.webhook && 'the alert webhook'].filter(Boolean)
+  return on.length ? on.join(' and ') : null
+}
+
+function LiveChecks({ live }) {
+  const { onSessionLost } = useDesk()
+  const err = live.error
+  const expired = err instanceof SessionError
+  useEffect(() => {
+    if (expired) onSessionLost(err.message)
+  }, [expired, err, onSessionLost])
+  if (expired) return null
+  const d = live.data
+  const to = channelText(d?.channels)
+  return (
+    <section className="card plain">
+      <h3>Live checks</h3>
+      <p className="small">
+        What the alert schedule checks every ten minutes during a contest, including asking Stripe whether every successful vote-pack payment
+        was credited. A payment that succeeded but was not credited means the webhook is failing: buyers were charged and got no votes.{' '}
+        {d && (to ? <>Problems are sent to {to}.</> : <strong>Alerts are not going anywhere yet: set STAFF_ALERT_EMAILS or ALERT_WEBHOOK_URL on the edge functions (docs/LAUNCH.md).</strong>)}
+      </p>
+      {err && <p className="small bad">Could not run the live checks: {err.message}</p>}
+      {!d && !err && <p className="small muted">Checking…</p>}
+      {d && !d.problems.length && <p className="small">All clear. ✓</p>}
+      {d?.problems.map((p) => (
+        <div key={p.check_name} className={`notice ${p.severity === 'alert' ? 'error' : 'warn'}`} role={p.severity === 'alert' ? 'alert' : undefined} style={{ marginTop: 8 }}>
+          <span>
+            <strong>{p.severity === 'alert' ? 'Urgent' : 'Check'}:</strong> {p.detail}
+          </span>
+        </div>
+      ))}
+    </section>
   )
 }

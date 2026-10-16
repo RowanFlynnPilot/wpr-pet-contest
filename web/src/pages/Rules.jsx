@@ -175,20 +175,28 @@ export default function Rules() {
           <li>Finalized results of a closed round are not reopened.</li>
         </ul>
 
-        <h2>10. Side awards</h2>
+        <h2>10. Disqualification</h2>
+        <p>
+          If an entry is disqualified after voting has begun (for example, because its photo is not the entrant&rsquo;s own or the entrant is
+          not eligible), <strong>every vote pack bought for that pet, in every round, is refunded in full</strong> to the original payment
+          method. The pet is removed from the Contest. If it is in a matchup, its opponent advances regardless of the vote count. Results of
+          rounds already finalized stand. Disqualification is not available once the Contest is complete.
+        </p>
+
+        <h2>11. Side awards</h2>
         <p>
           After the Open Round, the dog, the cat and the other pet with the most Open Round votes are named Best Dog, Best Cat and Best
           Other, using the same tiebreak.
         </p>
 
-        <h2>11. General</h2>
+        <h2>12. General</h2>
         <p>
-          WPR may disqualify an entry or void votes that break these rules or that it reasonably believes were obtained by fraud, and may
+          WPR may disqualify an entry (section 10) or void votes that break these rules or that it reasonably believes were obtained by fraud, and may
           modify or cancel the Contest if it cannot run as planned. Decisions of WPR are final. Adoptable shelter pets may be entered by a
           partner shelter as wildcards and compete under the same rules.
         </p>
 
-        <h2>12. Contact</h2>
+        <h2>13. Contact</h2>
         <p>
           Questions: <a href={`mailto:${RULES.contact}`}>{RULES.contact}</a> or 715-301-5539 ·{' '}
           <a href={WPR_URL} target="_blank" rel="noopener noreferrer">

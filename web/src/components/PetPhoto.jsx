@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { photoUrl } from '../lib/photos.js'
+import { entryPhotoUrl } from '../lib/photos.js'
 import { Paw } from './Icons.jsx'
 
 // Fixed aspect-ratio box, so nothing shifts as photos arrive. `contain` shows
@@ -14,7 +14,7 @@ export default function PetPhoto({
   className = '',
 }) {
   const [failed, setFailed] = useState(false)
-  const src = entry?.photo_path ? photoUrl(entry.photo_path, { width }) : null
+  const src = entryPhotoUrl(entry, { width })
   const label = alt ?? (entry ? `${entry.pet_name}${entry.town ? `, from ${entry.town}` : ''}` : '')
   const show = src && !failed
   return (

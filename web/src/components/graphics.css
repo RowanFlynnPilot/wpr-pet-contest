@@ -1,0 +1,37 @@
+/* Share-image maker and the desk's Social tab. Loaded with their chunk, so
+   readers who never open either never download it. */
+/* The panel sits in the share buttons' flex row and takes a line of its own. */
+.gfx-panel {
+  flex: 1 0 100%; margin-top: 6px; padding: 16px; background: var(--paper);
+  border: 1px solid var(--rule); border-top: 3px solid var(--teal); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.gfx-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.gfx-panel-head h2 { font-size: 22px; outline: none; }
+.gfx-panel-head p { margin: 4px 0 0; }
+.gfx-close {
+  flex: none; width: 40px; height: 40px; margin: -6px -6px 0 0; border: 0; border-radius: 50%;
+  background: transparent; color: var(--ink-2); cursor: pointer; display: grid; place-items: center;
+}
+.gfx-close:hover { background: var(--cream); }
+.gfx-formats { margin-bottom: 12px; }
+.gfx-stage {
+  display: grid; place-items: center; padding: 14px; border-radius: var(--radius);
+  background: var(--cream-deep); border: 1px solid var(--rule);
+}
+.gfx-frame { max-width: 100%; border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); background: var(--cream); }
+.gfx-canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
+.gfx-hint { margin: 8px 0 14px; }
+.gfx-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.gfx-actions .btn { flex: 1 1 160px; }
+
+/* Social tab */
+.gfx-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.gfx-toolbar label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+.gfx-group { border-top: 1px solid var(--rule); padding-top: 14px; }
+.gfx-group-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.gfx-group-head h3 { font-size: 20px; }
+.gfx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.gfx-card { margin: 0; display: flex; flex-direction: column; gap: 8px; background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 10px; }
+.gfx-card .gfx-frame { width: 100%; box-shadow: none; border: 1px solid var(--rule); }
+.gfx-card figcaption { font-size: 13.5px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.gfx-card .btn { align-self: flex-start; }

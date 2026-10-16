@@ -27,7 +27,8 @@ function useSharePage(id) {
   return ok ? petSharePageUrl(APP_BASE, id) : null
 }
 
-export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false }) {
+// `extra` renders after the share buttons (the pet page's image maker).
+export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false, extra = null }) {
   const url = petPublicUrl(PUBLIC_URL, entry.id)
   const crawlerUrl = useSharePage(entry.id) || url
   const text = shareText(entry.pet_name, contestName)
@@ -85,6 +86,7 @@ export default function ShareTools({ entry, contestName, title = 'Share and get 
         <button type="button" className="share-btn" onClick={copy} aria-live="polite">
           <LinkIcon /> {copied ? 'Copied!' : 'Copy link'}
         </button>
+        {extra}
       </div>
       {fallback && (
         <div className="copy-fallback">

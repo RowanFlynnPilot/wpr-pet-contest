@@ -3,6 +3,7 @@ import { useContest } from '../components/ContestContext.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
 import PetCard from '../components/PetCard.jsx'
 import ShareTools from '../components/ShareTools.jsx'
+import ShareImageButton from '../components/ShareImageButton.jsx'
 import VoteButton from '../components/VoteButton.jsx'
 import Countdown from '../components/Countdown.jsx'
 import { fetchEntry } from '../lib/api.js'
@@ -292,7 +293,7 @@ export default function Pet({ route }) {
             </div>
           )}
           {panel}
-          <ShareTools entry={entry} contestName={c.contest?.name} title={`Share ${entry.pet_name} and get more votes`} />
+          <ShareTools entry={entry} contestName={c.contest?.name} title={`Share ${entry.pet_name} and get more votes`} extra={<ShareImageButton entry={entry} />} />
         </div>
       </article>
 

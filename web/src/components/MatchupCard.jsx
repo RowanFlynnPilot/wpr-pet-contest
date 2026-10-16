@@ -3,6 +3,10 @@ import { matchupStanding } from '../lib/rank.js'
 import PetPhoto from './PetPhoto.jsx'
 import VoteButton from './VoteButton.jsx'
 
+// A side that names an entry the public cannot see was disqualified (every
+// approved entry is loaded). "TBD" is only for a slot not yet decided.
+const sideName = (side) => side.entry?.pet_name || (side.id ? 'Removed' : 'TBD')
+
 function Side({ side, cls, share, showVotes, seedOverride }) {
   const e = side.entry
   return (
@@ -11,7 +15,7 @@ function Side({ side, cls, share, showVotes, seedOverride }) {
         {seedOverride ?? side.seed ?? '–'}
       </span>
       <PetPhoto entry={e} width={120} square alt="" />
-      <span className="matchup-name">{e ? <a href={`#/pet/${e.id}`}>{e.pet_name}</a> : 'TBD'}</span>
+      <span className="matchup-name">{e ? <a href={`#/pet/${e.id}`}>{e.pet_name}</a> : sideName(side)}</span>
       {showVotes && (
         <span className="matchup-votes">
           {fmtInt(side.votes)}
@@ -47,11 +51,18 @@ export default function MatchupCard({ matchup, totals, byId, round, live = false
     const id = key === 'a' ? s.a.id : s.b.id
     return `${key} ${s.winner === id ? 'won' : 'lost'}`
   }
-  const names = `${s.a.entry?.pet_name || 'TBD'} versus ${s.b.entry?.pet_name || 'TBD'}`
+  const names = `${sideName(s.a)} versus ${sideName(s.b)}`
+  const walkover = !decided && s.a.id && s.b.id && Boolean(s.a.entry) !== Boolean(s.b.entry)
+  const remaining = s.a.entry || s.b.entry
   return (
     <div className={`matchup${live ? ' is-live' : ''}`} role="group" aria-label={names}>
       <Side side={s.a} cls={cls('a')} share={share(s.a.votes)} showVotes={live || decided} />
       <Side side={s.b} cls={cls('b')} share={share(s.b.votes)} showVotes={live || decided} />
+      {walkover && (
+        <p className="matchup-foot small muted" style={{ margin: 0 }}>
+          {remaining.pet_name} advances: its opponent was disqualified.
+        </p>
+      )}
       {live && s.a.entry && s.b.entry && (
         <div className="matchup-foot">
           <VoteButton entry={s.a.entry} round={round} className="btn btn-primary btn-sm">
