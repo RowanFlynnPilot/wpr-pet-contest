@@ -77,7 +77,28 @@ pet is what sells votes, so this is worth the setup.
 - [ ] GitHub: variable `EMAIL_SWEEP=true`, secrets `NOTIFY_URL` and
       `CRON_SECRET` (same value). The sweep then runs every 15 minutes.
 
-## 6. Partners and sponsors
+## 6. Live-contest alerts (do this before voting opens)
+
+If the Stripe webhook breaks at 9pm, buyers are charged and get no votes, and
+the first anyone hears of it is a Facebook post. The `health` function checks
+every ten minutes, including asking Stripe directly whether every successful
+payment was credited, and tells staff when a problem starts, every two hours
+while it lasts, and when it clears.
+
+- [ ] Choose where alerts go (either or both), as edge function secrets:
+      `STAFF_ALERT_EMAILS=a@wausaupilotandreview.com,b@...` (needs email, section 5)
+      and/or `ALERT_WEBHOOK_URL=<Slack, Discord or Teams incoming webhook>`.
+- [ ] `CRON_SECRET` set on the edge functions (shared with the email sweep).
+- [ ] GitHub: variable `HEALTH_CHECKS=true`; secrets `HEALTH_URL`
+      (`https://<project>.supabase.co/functions/v1/health`) and `CRON_SECRET`.
+      With no alert channel set, the workflow fails instead and GitHub emails
+      the repository owner.
+- [ ] Open the admin desk's Health tab: "Live checks" should read "All clear"
+      and name where problems are sent.
+- [ ] Turn `HEALTH_CHECKS` off between contests. On a private repository the
+      schedule costs about 4,300 Actions minutes a month.
+
+## 7. Partners and sponsors
 
 - [ ] One-page MOU per shelter: promotion, split, logo use, term.
 - [ ] Shelter rows inserted with logos.
@@ -89,7 +110,7 @@ pet is what sells votes, so this is worth the setup.
       an hour or an evening, named in the banner. Insert them as
       `bonus_windows`; overlapping windows are refused.
 
-## 7. Dry run (do not skip in year one)
+## 8. Dry run (do not skip in year one)
 
 Run a whole contest in Stripe test mode, on the real deploy, with staff as
 entrants. Test cards: `4242 4242 4242 4242` succeeds; `4000 0000 0000 0259`
@@ -99,18 +120,30 @@ succeeds then disputes.
       right way up in the moderation queue.
 - [ ] Approve, reject (photo URL stops loading), and check approval emails.
 - [ ] Buy each pack; buy inside a bonus window (votes doubled).
-- [ ] Start a checkout, close the round, then pay: the payment is refunded
-      automatically and `late_confirmations` empties itself.
+- [ ] Start a checkout, let the round's deadline pass, then pay: the payment
+      is refunded automatically and `late_confirmations` empties itself.
+- [ ] Disable the webhook endpoint in Stripe, buy a pack, and confirm the
+      "payments not credited" alert arrives within twenty minutes. Re-enable
+      it: Stripe redelivers, the votes appear, and a "resolved" alert follows.
 - [ ] Dispute a test payment: the votes leave the leaderboard.
 - [ ] Share a pet to Facebook: the preview shows that pet's photo.
       (developers.facebook.com/tools/debug to re-scrape.)
 - [ ] Play every round through to a champion.
 - [ ] Switch to live keys; delete the dry-run contest's rows.
 
-## 8. Promotion calendar
+## 9. Promotion calendar
 
 The contest earns what it is promoted to earn. The app is built to turn every
 share into votes; the newsroom's job is to create the shares.
+
+The graphics are generated, not designed by hand. Admin desk → **Social** makes
+the leaderboard and "on the bubble" cards, one card per matchup, round results,
+the champion and the raised-for-shelters milestone, in feed (1080×1080) and
+portrait (1080×1350) sizes, from live numbers. Its "sample numbers" preview is
+stamped DO NOT POST. Every pet page has **Make a share image** for owners:
+an Instagram story, a square post, and a printable flyer with a QR code for
+shelter counters and shop windows. Tell entrants about it in the approval email
+and every post.
 
 | When | What |
 | --- | --- |

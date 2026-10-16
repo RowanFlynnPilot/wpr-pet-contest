@@ -63,10 +63,18 @@ These are load-bearing. Do not soften them.
   allowlist AND out of the file input's `accept` attribute — iOS transcodes to
   JPEG automatically when `accept` excludes it, which is what makes iPhone
   submissions work at all.
-- **Rejecting an entry deletes its storage object.** The bucket is public, so a
-  rejected photo stays fetchable at its UUID URL until the object is gone. The
-  `moderate` edge function does both in one request; `rejected_photos_live`
+- **Rejecting an entry deletes its storage objects**, the photo and its
+  thumbnail. The bucket is public, so a rejected photo stays fetchable at its
+  UUID URL until the object is gone. The `moderate` edge function does it in
+  the same request; `rejected_photos_live`
   must be zero rows, and `decision: "purge"` retries a failed delete.
+- **A disqualified pet's buyers are all refunded.** Published policy: every
+  vote pack bought for it, in every round, comes back; in a matchup its
+  opponent advances whatever the count; finished rounds keep their results.
+  Only `disqualify_entry` (via the `disqualify` function, which deletes the
+  photos and asks Stripe for the refunds) can do it, only while voting, and
+  re-running it retries refunds still outstanding. A payment that lands for a
+  disqualified pet afterward is marked `late` and refunded, never credited.
 - **Moderation is audited.** Only `moderate_entry` changes an entry's status,
   run as the moderator (not the service role) so `moderated_by` is the real
   person. The `moderation_recorded` constraint backs it up.
@@ -116,6 +124,11 @@ the buttons call, for when the panel is not an option.
      after that needs a manual refund in Stripe.
    - `select * from rejected_photos_live;` — must be zero rows.
    - Run the email sweep (Email tab) for advancement and elimination notices.
+   While voting is open, keep `HEALTH_CHECKS` on (docs/LAUNCH.md, section 6):
+   it is what tells staff a webhook has broken before readers do.
+   To remove a pet mid-contest (stolen photo, ineligible entrant): Moderation
+   tab → Approved → Disqualify…. It refuses during the Open Round if the field
+   would drop below `bracket_size`.
 7. The final `close_round` returns null and flips the contest to `complete`.
    Side awards (`side_awards`) and the payout figure (`contest_stats.
    shelter_cents`) are ready the moment it does.
@@ -128,11 +141,16 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, lifecycle, moderation
-supabase functions serve --env-file .env
+supabase test db           # pgTAP: access, bracket, health, lifecycle, moderation
+supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
+npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
+supabase db reset && node --test supabase/tests/integration/functions.test.mjs
 cd web && npm run dev
 ```
+
+`supabase start -x studio,logflare,vector,realtime,imgproxy,postgres-meta,supavisor,mailpit`
+starts only what the tests need, about a quarter of the full download.
 
 Migrations use `create function`, not `create or replace`. To change a
 function, add a new numbered migration (which may `create or replace`, or
