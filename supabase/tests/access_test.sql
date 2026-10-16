@@ -66,7 +66,7 @@ select results_eq(
        and has_column_privilege('anon', a.attrelid, a.attnum, 'SELECT')
      order by 1 $$,
   $$ values ('caption'), ('contest_id'), ('created_at'), ('id'), ('pet_name'), ('photo_path'),
-            ('seed'), ('shelter_id'), ('species'), ('status'), ('town') $$,
+            ('seed'), ('shelter_id'), ('species'), ('status'), ('thumb_path'), ('town') $$,
   'anon sees the pet on an entry, never the owner');
 
 select is_empty(
@@ -106,16 +106,17 @@ select results_eq(
 
 select results_eq(
   $$ select name from our_functions where has_function_privilege('authenticated', oid, 'EXECUTE') order by 1 $$,
-  $$ values ('close_round'), ('is_admin'), ('moderate_entry'),
+  $$ values ('close_round'), ('disqualify_entry'), ('is_admin'), ('moderate_entry'),
             ('open_round'), ('open_submissions'), ('round_label') $$,
   'signed-in sessions reach only the admin actions, each of which checks is_admin()');
 
 select results_eq(
   $$ select name from our_functions where has_function_privilege('service_role', oid, 'EXECUTE') order by 1 $$,
-  $$ values ('confirm_vote'), ('create_pending_vote'), ('hit_rate_limit'), ('insert_entry'),
-            ('is_admin'), ('mark_vote_disputed'), ('notification_queue'), ('record_partial_refund'),
-            ('refund_vote'), ('round_label'), ('vote_quote') $$,
-  'the edge functions reach exactly the vote lifecycle, entry insert, rate limiter and mail queue');
+  $$ values ('confirm_vote'), ('contest_health'), ('create_pending_vote'), ('hit_rate_limit'),
+            ('insert_entry'), ('is_admin'), ('mark_vote_disputed'), ('notification_queue'),
+            ('record_health'), ('record_partial_refund'), ('refund_vote'), ('round_label'),
+            ('vote_quote') $$,
+  'the edge functions reach exactly the vote lifecycle, entry insert, rate limiter, mail queue and health checks');
 
 
 -- ------------------------------------------------------------ anon probes --

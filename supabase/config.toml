@@ -76,3 +76,11 @@ verify_jwt = false
 
 [functions.notify]
 verify_jwt = false
+
+# Same arrangement as notify: a staff session, or the scheduled caller's
+# CRON_SECRET.
+[functions.health]
+verify_jwt = false
+
+[functions.disqualify]
+verify_jwt = false

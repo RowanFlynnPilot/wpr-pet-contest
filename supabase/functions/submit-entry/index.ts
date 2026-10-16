@@ -8,11 +8,13 @@
 import { service as db } from "../_shared/db.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { badRequest, serve } from "../_shared/http.ts";
-import { extensionFor, sniffImageType, stripMetadata, UnreadableImage } from "../_shared/image.ts";
+import { extensionFor, type ImageType, sniffImageType, stripMetadata, UnreadableImage } from "../_shared/image.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 import { email, oneOf, optionalText, requiredText } from "../_shared/validate.ts";
 
 const MAX_BYTES = 10 * 1024 * 1024;
+// The browser's 800px copy is ~100 KB. Anything near this is not a thumbnail.
+const MAX_THUMB_BYTES = 1024 * 1024;
 // HEIC is deliberately absent, here and in the bucket allowlist. Browsers cannot
 // display it, and iOS transcodes to JPEG automatically when the file input's
 // accept attribute excludes it. Accepting HEIC means a large share of iPhone
@@ -74,6 +76,11 @@ serve(async (req) => {
     );
   }
 
+  // Optional, and never trusted: checked and stripped like the original. A bad
+  // one is dropped rather than failing the entry; the gallery falls back to
+  // the original photo.
+  const thumb = await readThumbnail(form.get("thumb"));
+
   // Found here only to name the storage folder. Whether submissions are still
   // open is decided again, under a lock, by insert_entry.
   const { data: contest, error: contestError } = await db
@@ -84,15 +91,19 @@ serve(async (req) => {
   if (contestError) throw contestError;
   if (!contest) throw badRequest("Submissions are closed.");
 
-  const path = `${contest.id}/${crypto.randomUUID()}.${extensionFor(type)}`;
-  const upload = await db.storage.from("pets").upload(path, bytes, {
-    contentType: type,
-    // Short on purpose. Without Smart CDN a deleted object keeps being served
-    // from the edge until its cache expires, and a rejected photo must stop
-    // loading soon after rejection, not in a year.
-    cacheControl: "3600",
-  });
+  const id = crypto.randomUUID();
+  const path = `${contest.id}/${id}.${extensionFor(type)}`;
+  const upload = await db.storage.from("pets").upload(path, bytes, UPLOAD_OPTIONS(type));
   if (upload.error) throw upload.error;
+
+  let thumbPath: string | null = null;
+  if (thumb) {
+    const candidate = `${contest.id}/${id}.thumb.${extensionFor(thumb.type)}`;
+    const { error } = await db.storage.from("pets").upload(candidate, thumb.bytes, UPLOAD_OPTIONS(thumb.type));
+    if (error) console.warn("thumbnail upload failed; using the original", error);
+    else thumbPath = candidate;
+  }
+  const uploaded = thumbPath ? [path, thumbPath] : [path];
 
   // Rechecks the window and the per-email cap while holding the contest, so an
   // entry cannot slip in while open_round is setting the field.
@@ -107,11 +118,12 @@ serve(async (req) => {
     p_photo_path: path,
     p_newsletter_opt_in: entry.newsletter_opt_in,
     p_max_per_email: MAX_ENTRIES_PER_EMAIL,
+    p_thumb_path: thumbPath,
   });
   if (insertError) {
-    // The object is already public at its URL but would have no entry row, so
-    // moderation could never find it to delete. Remove it before failing.
-    await db.storage.from("pets").remove([path]);
+    // The objects are already public at their URLs but would have no entry
+    // row, so moderation could never find them to delete. Remove them first.
+    await db.storage.from("pets").remove(uploaded);
     throw insertError;
   }
 
@@ -119,3 +131,23 @@ serve(async (req) => {
   // approves it in the moderation queue.
   return { received: true };
 });
+
+
+// Short cache on purpose. Without Smart CDN a deleted object keeps being served
+// from the edge until its cache expires, and a rejected photo must stop
+// loading soon after rejection, not in a year.
+function UPLOAD_OPTIONS(type: ImageType) {
+  return { contentType: type, cacheControl: "3600" };
+}
+
+async function readThumbnail(value: FormDataEntryValue | null): Promise<{ bytes: Uint8Array; type: ImageType } | null> {
+  if (!(value instanceof File) || value.size === 0 || value.size > MAX_THUMB_BYTES) return null;
+  const raw = new Uint8Array(await value.arrayBuffer());
+  const type = sniffImageType(raw);
+  if (!type) return null;
+  try {
+    return { bytes: stripMetadata(raw, type), type };
+  } catch {
+    return null;
+  }
+}
