@@ -31,6 +31,8 @@ describe('money and numbers', () => {
   it('formats cents', () => {
     expect(fmtMoney(2000)).toBe('$20')
     expect(fmtMoney(2050)).toBe('$20.50')
+    expect(fmtMoney(2000, { exact: true })).toBe('$20.00')
+    expect(fmtMoney(123456, { exact: true })).toBe('$1,234.56')
     expect(fmtMoney(123456789)).toBe('$1,234,567.89')
     expect(fmtMoney(123456789, { whole: true })).toBe('$1,234,568')
     expect(fmtMoney(0)).toBe('$0')

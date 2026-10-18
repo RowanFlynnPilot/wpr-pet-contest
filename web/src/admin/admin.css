@@ -80,3 +80,19 @@ code { font-family: var(--mono); font-size: 12.5px; background: var(--cream); pa
 .window-form label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
 .window-form .label { font-weight: 700; }
 .window-form input, .window-form select { min-height: 38px; font-size: 14px; }
+
+/* Payout statement: a real document when printed, nothing else on the page. */
+.statement { width: 100%; max-width: 560px; border-collapse: collapse; margin: 12px 0; }
+.statement th, .statement td { padding: 6px 0; border-bottom: 1px solid var(--rule, #e3ddd0); text-align: left; font-weight: 400; }
+.statement td { text-align: right; }
+.statement tr.total th, .statement tr.total td { font-weight: 700; border-top: 2px solid currentColor; }
+.signatures { display: none; }
+
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; box-shadow: none; padding: 0; }
+  .no-print { display: none !important; }
+  .signatures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 64px; }
+  .signatures span { border-top: 1px solid #000; padding-top: 6px; font-size: 12px; }
+}

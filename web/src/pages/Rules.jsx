@@ -196,7 +196,14 @@ export default function Rules() {
           partner shelter as wildcards and compete under the same rules.
         </p>
 
-        <h2>13. Contact</h2>
+        <h2>13. Privacy</h2>
+        <p>
+          Entrants&rsquo; names and email addresses, and buyers&rsquo; email addresses, are used only to run the Contest: moderation, receipts,
+          contest notices and, for those who opt in, WPR&rsquo;s newsletter. They are never published or sold. They are erased 12 months after
+          the Contest ends. Pet names, towns, photos and results are kept as part of WPR&rsquo;s coverage.
+        </p>
+
+        <h2>14. Contact</h2>
         <p>
           Questions: <a href={`mailto:${RULES.contact}`}>{RULES.contact}</a> or 715-301-5539 ·{' '}
           <a href={WPR_URL} target="_blank" rel="noopener noreferrer">

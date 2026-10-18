@@ -6,9 +6,11 @@ export const TIME_ZONE = 'America/Chicago'
 const intFmt = new Intl.NumberFormat('en-US')
 export const fmtInt = (n) => intFmt.format(Math.round(n || 0))
 
-export function fmtMoney(cents, { whole = false } = {}) {
+// `exact` always shows cents: statements and receipts, where $20 and $20.00
+// must not look like different kinds of number.
+export function fmtMoney(cents, { whole = false, exact = false } = {}) {
   const dollars = (cents || 0) / 100
-  if (whole || Number.isInteger(dollars)) {
+  if (!exact && (whole || Number.isInteger(dollars))) {
     return `$${intFmt.format(Math.round(dollars))}`
   }
   return `$${dollars.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`

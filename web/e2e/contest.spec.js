@@ -12,6 +12,14 @@ const WHSEC = functionsEnv().STRIPE_WEBHOOK_SECRET
 const ROUND1 = '00000000-0000-0000-0000-00000000d001'
 const PET = 'Playwright Pup'
 
+async function signIn(page, route) {
+  await page.goto(route)
+  await page.getByLabel('Email').fill(process.env.E2E_ADMIN_EMAIL)
+  await page.getByLabel('Password').fill(process.env.E2E_ADMIN_PASSWORD)
+  await page.getByLabel('Password').press('Enter')
+  await expect(page.getByRole('navigation', { name: 'Desk sections' })).toBeVisible()
+}
+
 const object = async (path) => {
   const r = await fetch(`${stack.API_URL}/storage/v1/object/public/pets/${path}`)
   return Buffer.from(await r.arrayBuffer())
@@ -48,10 +56,7 @@ test('a reader enters a pet from a phone photo', async ({ page }) => {
 })
 
 test('staff work the moderation queue and open voting', async ({ page }) => {
-  await page.goto('/#/admin')
-  await page.getByLabel('Email').fill(process.env.E2E_ADMIN_EMAIL)
-  await page.getByLabel('Password').fill(process.env.E2E_ADMIN_PASSWORD)
-  await page.getByLabel('Password').press('Enter')
+  await signIn(page, '/#/admin/moderation')
 
   // Approve everything waiting, our new entry included: one at a time, each
   // confirmed by the pending count dropping.
@@ -128,6 +133,43 @@ test('checkout offers the database packs and never calls it a donation', async (
   expect(text.replace(/(isn't|not)( a| tax-deductible)? donations?/g, '')).not.toMatch(/donat/)
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
+})
+
+test('staff read the payout statement and set up next year from the desk', async ({ page }) => {
+  await signIn(page, '/#/admin/wrapup')
+  // The one $20 pack bought earlier, 30% to the shelters.
+  const statement = page.locator('.print-area')
+  await expect(statement).toContainText('Shelter payout statement')
+  await expect(statement).toContainText('PRELIMINARY')
+  await expect(statement.locator('tr', { hasText: 'Net vote pack sales' })).toContainText('$20.00')
+  await expect(statement.locator('tr', { hasText: 'Shelter share (30%)' })).toContainText('$6.00')
+
+  // The archive: three files, standings by pet name, and no owner details.
+  const files = []
+  page.on('download', (d) => files.push(d))
+  await page.getByRole('button', { name: 'Download archive' }).click()
+  await expect.poll(() => files.length).toBe(3)
+  const names = files.map((d) => d.suggestedFilename()).sort()
+  expect(names).toEqual(['pet-contest-2026-bracket.csv', 'pet-contest-2026-open-round.csv', 'pet-contest-2026-summary.json'])
+  const standings = (await import('node:fs')).readFileSync(await files.find((d) => d.suggestedFilename().endsWith('open-round.csv')).path(), 'utf8')
+  expect(standings).toContain(PET)
+  expect(standings).not.toMatch(/@example\.com/)
+
+  await page.goto('/#/admin/setup')
+  await page.getByRole('button', { name: /Start next year/ }).click()
+  const form = page.locator('form', { hasText: 'Start the 2027 contest' })
+  await form.getByLabel('Submissions open').fill('2027-10-01T09:00')
+  await form.getByLabel('Submissions close').fill('2027-10-08T21:00')
+  await form.getByRole('button', { name: 'Create draft' }).click()
+  await expect(page.getByText('The 2027 contest is set up as a draft.')).toBeVisible()
+
+  // The new draft is selected, carries the copied packs, and can be deleted.
+  await expect(page.getByRole('heading', { name: /2027 setup/ })).toBeVisible()
+  await expect(page.getByText('5 active vote packs')).toBeVisible()
+  await page.getByRole('button', { name: /Delete this draft/ }).click()
+  await page.getByRole('dialog').getByLabel('Type DELETE to confirm').fill('DELETE')
+  await page.getByRole('dialog').locator('button[type=submit]').click()
+  await expect(page.getByText('The 2027 draft was deleted.')).toBeVisible()
 })
 
 test('the public pages render without script errors', async ({ page }) => {
