@@ -54,6 +54,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+      # The launch preflight's verdicts. Plain Node, nothing to install; the
+      # preflight itself only runs by hand, against production.
+      - run: node --test scripts/preflight.test.mjs
+        working-directory: .
       # No env: proves the build succeeds (and skips share pages) without secrets.
       - run: npm run build
 
