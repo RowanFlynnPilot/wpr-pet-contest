@@ -106,8 +106,9 @@ select results_eq(
 
 select results_eq(
   $$ select name from our_functions where has_function_privilege('authenticated', oid, 'EXECUTE') order by 1 $$,
-  $$ values ('close_round'), ('disqualify_entry'), ('is_admin'), ('moderate_entry'),
-            ('open_round'), ('open_submissions'), ('round_label') $$,
+  $$ values ('close_round'), ('create_contest'), ('delete_draft_contest'), ('disqualify_entry'),
+            ('erase_personal_data'), ('is_admin'), ('moderate_entry'), ('open_round'),
+            ('open_submissions'), ('round_label'), ('update_draft_contest') $$,
   'signed-in sessions reach only the admin actions, each of which checks is_admin()');
 
 select results_eq(
