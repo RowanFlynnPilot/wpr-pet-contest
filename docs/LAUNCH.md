@@ -4,6 +4,43 @@ Everything the code cannot do for itself. Work top to bottom; each section
 assumes the ones above it are done. Dates are yours to set: the contest runs
 about two and a half weeks end to end (CLAUDE.md, "Running a contest").
 
+## Launch preflight
+
+Run it first, to see what is left, and last, on launch morning:
+
+```bash
+node scripts/preflight.mjs
+```
+
+It checks this list against the real project, the repo, the live sites and
+Stripe, one line each: ✔ done, ✖ blocks launch, ! should fix, – not checked
+(and what to set so it can be). Every ✖ and ! names the section below that
+fixes it. Exit status 1 means something blocks launch; `--strict` counts
+warnings too. `--ref` and `--repo` override the linked project and the git
+remote; `--json` is for scripts.
+
+It needs the `supabase` and `gh` CLIs, both signed in. Each of these, set in
+the shell, unlocks more:
+
+| Set | Adds |
+| --- | --- |
+| `SUPABASE_DB_PASSWORD` | Migrations applied in production match `supabase/migrations` |
+| `SUPABASE_ACCESS_TOKEN` | Auth: email provider on, self-signup off, site URL (the CLI then uses this token instead of its own login) |
+| `STRIPE_SECRET_KEY` | Live/test mode matches the publishable key, the webhook endpoint and its events, Apple Pay domains, the statement descriptor. A restricted key with read access is enough |
+
+Read-only: it never writes to the database, changes a setting or deploys. Its
+two empty requests to `submit-entry` and `create-checkout` count against your
+connection's rate limit like any reader's. It prints names and verdicts, never
+a secret.
+
+A free-plan project pauses after a week without traffic, and the preflight
+reports it before anything else. Restore it from the project's dashboard page,
+wait for it to come up, and run the preflight again: secrets,
+functions and contest data cannot be read while it sleeps.
+
+What it cannot see is still yours: Radar rules, receipts, MOUs, the sponsor
+deals and the dry run in section 8.
+
 ## 1. Stripe (the contest's own account)
 
 - [ ] Create a separate Stripe account for the contest. Not WPR's donation
@@ -101,7 +138,10 @@ while it lasts, and when it clears.
 ## 7. Partners and sponsors
 
 - [ ] One-page MOU per shelter: promotion, split, logo use, term.
-- [ ] Shelter rows inserted with logos.
+- [ ] Contest created in the admin desk (Setup tab): dates, the shelter share
+      agreed in the MOUs, bracket size. Shelters added there too, each with a
+      logo link and its payout weight (equal weights split evenly). The Setup
+      checklist lists anything still missing before submissions open.
 - [ ] Sponsor slots sold (`web/src/config.js`, `SPONSORS`): presenting, gallery,
       bracket, and the post-purchase thank-you screen, which is the most
       attentive moment in the whole flow. Unsold slots show an upsell card to
@@ -153,3 +193,22 @@ and every post.
 | Each bracket round | Matchup graphics per game. A Double Vote window each round, final evening. "X votes behind" is the most shareable fact in the contest. |
 | Finale | Live results post. Champion story with photos. Side awards. Total raised, and a check-presentation photo with the shelters. |
 | After | Thank-you email (newsletter opt-ins), wrap-up story, sponsor report from `round_revenue` and the sponsor-click analytics. |
+
+## 10. After the contest
+
+All in the admin desk's Wrap-up tab.
+
+- [ ] Print the shelter payout statement once the contest is complete (it is
+      marked PRELIMINARY until then): sales, refunds, chargebacks, net, the
+      shelter share, and each shelter's amount by its payout weight. Card fees
+      are WPR's and are not deducted. Bring it to the check presentation; file a
+      signed copy with each MOU.
+- [ ] Download the archive (Open Round standings, every matchup, champion and
+      side awards, the money). It holds no owner or buyer details, so it can be
+      kept indefinitely.
+- [ ] Export the newsletter list (Newsletter tab) into WPR's newsletter.
+- [ ] Twelve months on (the health checks remind staff), Erase personal data.
+      The rules promise it, and it cannot run inside the 120-day chargeback
+      window.
+- [ ] Next year: Setup → Start next year's contest copies the packs and
+      shelters forward.

@@ -113,9 +113,11 @@ including the one that credits votes.
 | `moderation_test.sql` | The audit trail, one-way rejection, the rejected-photo check (thumbnails included) |
 | `health_test.sql` | Every live-contest check, and the bookkeeping that reports a problem once |
 | `disqualify_test.sql` | Removal mid-contest: the guards, refunds in every round, walkovers, no stray email, the alert |
+| `contest_admin_test.sql` | Creating and editing a draft from the desk, the payout statement to the cent, shelter shares that add up, erasing personal data |
 | `functions/_shared/*_test.ts` | Photo type sniffing and metadata stripping, input validation, CORS, email and alert text |
 | `tests/integration/functions.test.mjs` | Every edge function over HTTP against the running stack: real uploads, moderation as a real staff session, checkout validation and rate limits, signed Stripe webhooks, health checks |
 | `web/e2e/contest.spec.js` | A real browser: a reader enters from a phone photo, staff moderate and open voting, a paid vote appears live, checkout's packs and legal copy |
+| `scripts/preflight.test.mjs` | The launch preflight's every verdict, on synthetic facts. `node scripts/preflight.mjs` runs the same checks against production (`docs/LAUNCH.md`, Launch preflight) |
 
 CI runs all of it, plus the front end's lint, unit tests and build, on every
 pull request. The integration and browser suites need the stack and the
@@ -196,6 +198,16 @@ Rejecting an entry deletes its photo and thumbnail in the same request
 (`moderate`). `rejected_photos_live` lists any rejected entry with a file still
 in the bucket; it should always be empty.
 
+## Running it from the desk
+
+No SQL is needed to run a contest. The admin desk's **Setup** tab creates the
+contest (a draft with the recommended packs, or a copy of last year's), edits
+it until submissions open, manages the shelters and their payout weights, and
+checks what is still missing. **Wrap-up** prints the shelter payout statement
+(the split of sales after refunds; card fees are WPR's), downloads the
+contest's archive (no owner or buyer details), and erases entrant and buyer
+emails a year on, as the rules promise.
+
 ## Alerts during a contest
 
 The `health` function runs every ten minutes while `HEALTH_CHECKS` is on. It
@@ -240,6 +252,7 @@ supabase/
     0015_health.sql          live-contest checks and alert bookkeeping
     0016_disqualified_status.sql
     0017_disqualification.sql  removal mid-contest, with refunds and walkovers
+    0018_contest_admin.sql   contest setup from the desk, payout statement, erasure
   functions/
     _shared/                 CORS, errors, validation, photo stripping, email
     submit-entry/            the only anonymous write path in the system

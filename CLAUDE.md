@@ -75,6 +75,13 @@ These are load-bearing. Do not soften them.
   photos and asks Stripe for the refunds) can do it, only while voting, and
   re-running it retries refunds still outstanding. A payment that lands for a
   disqualified pet afterward is marked `late` and refunded, never credited.
+- **The shelters' share is of sales after refunds; card fees are WPR's.**
+  `payout_statement` and `shelter_payouts` compute it, split by each
+  shelter's `payout_weight`, rounded so the parts add up to the pool exactly.
+- **Personal data is erased a year after the contest** (published on the
+  rules page): entrant names and emails, buyer emails, opt-ins. Pets, towns,
+  photos, results and money stay. The archive export never contains owner or
+  buyer details, so nothing kept outlives the promise.
 - **Moderation is audited.** Only `moderate_entry` changes an entry's status,
   run as the moderator (not the service role) so `moderated_by` is the real
   person. The `moderation_recorded` constraint backs it up.
@@ -94,10 +101,12 @@ No coin flips, no ties to adjudicate by hand.
 Everything below is a button in the admin panel (`#/admin`). The SQL is what
 the buttons call, for when the panel is not an option.
 
-1. Insert the `contests` row (`status = 'draft'`) with `beneficiary_split_pct`,
-   `bracket_size` (16) and `bracket_round_hours` (48). Publish the percentage on
-   the rules page before launch. Insert its `vote_packs` (seed.sql has the
-   recommended ladder), `shelters`, and any sponsored `bonus_windows`.
+1. Setup tab → set up the contest (`create_contest`): a draft with the
+   recommended pack ladder, or a copy of last year's packs and shelters. Add
+   the shelters and their payout weights (per the MOUs), and any sponsored
+   `bonus_windows` (Packs & bonuses tab). Everything is editable while it is a
+   draft (`update_draft_contest`); the split is published on the rules page and
+   freezes when submissions open. The Setup checklist says what is missing.
 2. `select open_submissions('<contest-id>');` — refuses without an active vote
    pack. One week. It also stages round 1 (pending), scheduled to open when
    submissions close and to run a week; pass a second argument for a different
@@ -130,8 +139,12 @@ the buttons call, for when the panel is not an option.
    tab → Approved → Disqualify…. It refuses during the Open Round if the field
    would drop below `bracket_size`.
 7. The final `close_round` returns null and flips the contest to `complete`.
-   Side awards (`side_awards`) and the payout figure (`contest_stats.
-   shelter_cents`) are ready the moment it does.
+   Side awards (`side_awards`) and the payout figures are ready the moment it
+   does. Wrap-up tab: print the shelter payout statement (`payout_statement`,
+   `shelter_payouts`), download the archive, and export the newsletter list.
+8. A year later (the health checks remind you), Wrap-up → Erase personal data
+   (`erase_personal_data`). The rules promise it; it refuses inside the 120-day
+   chargeback window.
 
 Total elapsed: roughly two and a half weeks. Do not stretch it. Past three
 weeks everyone is exhausted, staff included.
@@ -141,7 +154,7 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, health, lifecycle, moderation
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, health, lifecycle, moderation
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
