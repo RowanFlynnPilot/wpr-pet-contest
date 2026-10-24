@@ -56,8 +56,8 @@
   --board-bulb: color-mix(in oklab, var(--brand-deep) 62%, white);
   --board-label: color-mix(in oklab, var(--brand) 26%, white);
   --board-text: color-mix(in oklab, var(--brand) 12%, white);
-  --board-dim: color-mix(in oklab, var(--brand) 42%, white);
-  --board-quiet: color-mix(in oklab, var(--brand) 40%, #b9b9b9);
+  --board-dim: color-mix(in oklab, var(--brand) 32%, white);
+  --board-quiet: color-mix(in oklab, var(--brand) 20%, #c8c8c8);
   --board-cell-55: color-mix(in oklab, var(--board-cell) 55%, transparent);
   --board-cell-90: color-mix(in oklab, var(--board-cell) 90%, transparent);
 

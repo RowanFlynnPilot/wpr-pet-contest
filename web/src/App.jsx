@@ -12,18 +12,21 @@ import BonusBar from './components/BonusBar.jsx'
 import Footer from './components/Footer.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import Home from './pages/Home.jsx'
-import Enter from './pages/Enter.jsx'
-import Gallery from './pages/Gallery.jsx'
 import Pet from './pages/Pet.jsx'
-import Bracket from './pages/Bracket.jsx'
-import Rules from './pages/Rules.jsx'
-import Shelters from './pages/Shelters.jsx'
-import Results from './pages/Results.jsx'
-import Sponsors from './pages/Sponsors.jsx'
-import Unsubscribe from './pages/Unsubscribe.jsx'
 import NotFound from './pages/NotFound.jsx'
 
-// Readers never download the admin desk.
+// The first paint carries Home and Pet, where readers arrive (the front door
+// and every shared link); the other pages come down when first opened, which
+// is a fifth of the page code on a phone's first load. Readers never download
+// the admin desk.
+const Enter = lazy(() => import('./pages/Enter.jsx'))
+const Gallery = lazy(() => import('./pages/Gallery.jsx'))
+const Bracket = lazy(() => import('./pages/Bracket.jsx'))
+const Rules = lazy(() => import('./pages/Rules.jsx'))
+const Shelters = lazy(() => import('./pages/Shelters.jsx'))
+const Results = lazy(() => import('./pages/Results.jsx'))
+const Sponsors = lazy(() => import('./pages/Sponsors.jsx'))
+const Unsubscribe = lazy(() => import('./pages/Unsubscribe.jsx'))
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
 
 const PAGES = {
@@ -130,7 +133,9 @@ function Shell({ route }) {
               // One page failing keeps the masthead and nav, and moving to
               // another page clears it.
               <ErrorBoundary key={`${route.name}:${route.id || ''}`}>
-                <Page route={route} />
+                <Suspense fallback={<div className="wrap section" aria-busy="true" />}>
+                  <Page route={route} />
+                </Suspense>
               </ErrorBoundary>
             )}
           </main>

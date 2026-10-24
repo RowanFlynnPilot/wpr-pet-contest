@@ -23,6 +23,12 @@ async function main() {
   const samples = join(ROOT, 'public', 'sample-pets')
   const havePhotos = existsSync(join(samples, '1.jpg'))
   if (havePhotos) process.env.VITE_SAMPLE_PHOTOS = 'true'
+  // The pre-rendered widths beside them (scripts/sample-renditions.py), so a
+  // list avatar is not an 800px download. The app learns the widths from the env.
+  const widths = havePhotos
+    ? (await readdir(samples, { withFileTypes: true })).filter((d) => d.isDirectory() && /^w\d+$/.test(d.name)).map((d) => Number(d.name.slice(1))).sort((a, b) => a - b)
+    : []
+  if (widths.length) process.env.VITE_STORAGE_RENDITIONS = widths.join(',')
   await build({ root: ROOT, mode: 'demo', configFile: join(ROOT, 'vite.config.js'), build: { outDir: OUT, emptyOutDir: true }, logLevel: 'warn' })
 
   // The photos, where VITE_STORAGE_URL=. makes the app look for them.
@@ -32,6 +38,7 @@ async function main() {
   for (let n = 1; n <= PHOTO_COUNT; n++) {
     await writeFile(join(pets, 'mock', `${n}.svg`), photo(n))
     if (havePhotos) await writeFile(join(pets, 'mock', `${n}.jpg`), await readFile(join(samples, `${n}.jpg`)))
+    for (const w of widths) await writeFile(join(pets, 'mock', `${n}.w${w}.jpg`), await readFile(join(samples, `w${w}`, `${n}.jpg`)))
   }
   await writeFile(join(pets, 'shelters', 'moments-foster-care.jpg'), await readFile(join(ROOT, 'public', 'moments-foster-care.jpg')))
 

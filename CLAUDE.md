@@ -263,6 +263,9 @@ global `[auth] enable_signup = false` is what refuses self-signup.
 Without Docker, `node web/scripts/mock-api.mjs` serves a read-only mock of the
 public API (`/__phase?set=submissions|open|bracket|complete`); point
 `VITE_SUPABASE_URL` at it for layout, widget and newsletter-block work.
+`VITE_STORAGE_RENDITIONS=160,320` makes the app ask a static photo host for
+pre-rendered widths (`<path>.w160.jpg`); the mock serves them from
+`web/public/sample-pets/w*` and the demo build sets it from what it ships.
 
 The local API gateway rewrites edge function CORS headers to `*`. Hosted
 Supabase does not. Test CORS in `cors_test.ts`, not through `functions serve`.

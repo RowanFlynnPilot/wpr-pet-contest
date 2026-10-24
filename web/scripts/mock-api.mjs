@@ -47,10 +47,13 @@ createServer((req, res) => {
     return json(res, 200, { phase: mock.phase })
   }
 
-  const pic = url.pathname.match(/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/mock\/(\d+)\.(svg|jpg)$/)
-  if (pic && pic[2] === 'jpg' && samples) {
+  // `mock/7.jpg`, or a pre-rendered width `mock/7.w160.jpg` (public/sample-pets/w160)
+  // when the front end was told about it (VITE_STORAGE_RENDITIONS).
+  const pic = url.pathname.match(/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/mock\/(\d+)(?:\.w(\d+))?\.(svg|jpg)$/)
+  if (pic && pic[3] === 'jpg' && samples) {
+    const small = pic[2] && new URL(`w${pic[2]}/${pic[1]}.jpg`, SAMPLES)
     res.writeHead(200, { ...CORS, 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=3600' })
-    return res.end(readFileSync(new URL(`${pic[1]}.jpg`, SAMPLES)))
+    return res.end(readFileSync(small && existsSync(small) ? small : new URL(`${pic[1]}.jpg`, SAMPLES)))
   }
   if (pic) {
     res.writeHead(200, { ...CORS, 'Content-Type': 'image/svg+xml', 'Cache-Control': 'max-age=3600' })

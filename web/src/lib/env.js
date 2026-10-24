@@ -10,6 +10,12 @@ export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || ''
 export const STORAGE_URL = (env.VITE_STORAGE_URL || SUPABASE_URL).replace(/\/+$/, '')
 export const STRIPE_PUBLISHABLE_KEY = env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 export const IMAGE_TRANSFORMS = env.VITE_IMAGE_TRANSFORMS === 'true'
+// Widths a static storage host carries pre-rendered beside each photo (the
+// demo build sets this from what it ships); see lib/photos.js.
+export const STORAGE_RENDITIONS = (env.VITE_STORAGE_RENDITIONS || '')
+  .split(',')
+  .map((s) => Number(s.trim()))
+  .filter((n) => n > 0)
 // The mock API's toy checkout (no Stripe, no charge), for demos and the
 // screenshot deck. Never set on a real build; the real API never says "mock".
 export const MOCK_CHECKOUT = env.VITE_MOCK_CHECKOUT === 'true'
