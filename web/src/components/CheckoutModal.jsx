@@ -17,6 +17,7 @@ import { useContest } from './ContestContext.jsx'
 import Confetti from './Confetti.jsx'
 import { Check } from './Icons.jsx'
 import { Digits } from './Scoreboard.jsx'
+import { ShelterMark } from './ShelterLogo.jsx'
 import Modal from './Modal.jsx'
 import PetPhoto from './PetPhoto.jsx'
 import ShareTools from './ShareTools.jsx'
@@ -483,13 +484,16 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
         <p className="done-impact">
           Your pack sends <strong>{fmtMoney(toShelters)}</strong> to{' '}
           {shelter ? (
-            shelter.url ? (
-              <a href={shelter.url} target="_blank" rel="noopener noreferrer">
-                {shelter.name}
-              </a>
-            ) : (
-              shelter.name
-            )
+            <>
+              <ShelterMark shelter={shelter} size={26} />
+              {shelter.url ? (
+                <a href={shelter.url} target="_blank" rel="noopener noreferrer">
+                  {shelter.name}
+                </a>
+              ) : (
+                shelter.name
+              )}
+            </>
           ) : (
             'local animal shelters'
           )}

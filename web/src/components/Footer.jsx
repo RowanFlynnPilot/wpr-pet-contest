@@ -1,6 +1,7 @@
 import { SUPPORT_URL, WPR_BADGE, WPR_PHONE } from '../config.js'
 import { track } from '../lib/analytics.js'
 import { useContest } from './ContestContext.jsx'
+import { ShelterMark } from './ShelterLogo.jsx'
 
 export default function Footer() {
   const { contest, shelters } = useContest()
@@ -23,13 +24,16 @@ export default function Footer() {
                 {' '}
                 {split}% of proceeds go to{' '}
                 {partner ? (
-                  partner.url ? (
-                    <a href={partner.url} target="_blank" rel="noopener noreferrer">
-                      {partner.name}
-                    </a>
-                  ) : (
-                    partner.name
-                  )
+                  <>
+                    <ShelterMark shelter={partner} size={18} />
+                    {partner.url ? (
+                      <a href={partner.url} target="_blank" rel="noopener noreferrer">
+                        {partner.name}
+                      </a>
+                    ) : (
+                      partner.name
+                    )}
+                  </>
                 ) : (
                   "the contest's partner animal shelters"
                 )}

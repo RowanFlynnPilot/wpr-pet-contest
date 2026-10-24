@@ -1,28 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useContest } from '../components/ContestContext.jsx'
-import { Arrow, Facebook, Paw } from '../components/Icons.jsx'
+import { Arrow, Facebook } from '../components/Icons.jsx'
+import Logo from '../components/ShelterLogo.jsx'
 import { fetchFeaturedAdoptable } from '../lib/api.js'
 import { fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
-import { photoUrl } from '../lib/photos.js'
 
-// logo_path is either a full URL (a logo the shelter already hosts) or a path
-// in the pets bucket. Staff cannot upload to the bucket, so a URL is the usual
-// case.
-export function shelterLogoUrl(logoPath) {
-  if (!logoPath) return null
-  return /^https?:\/\//i.test(logoPath) ? logoPath : photoUrl(logoPath)
-}
-
-function Logo({ shelter }) {
-  const [failed, setFailed] = useState(false)
-  const src = shelterLogoUrl(shelter.logo_path)
-  return (
-    <span className="shelter-logo" aria-hidden="true">
-      {src && !failed ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : <Paw size={30} style={{ color: 'var(--teal)' }} />}
-    </span>
-  )
-}
+export { shelterLogoUrl } from '../components/ShelterLogo.jsx'
 
 // A shelter's link is often its Facebook page, which deserves the name.
 export const isFacebook = (url) => /^https?:\/\/([a-z0-9-]+\.)*(facebook\.com|fb\.com)\//i.test(url || '')

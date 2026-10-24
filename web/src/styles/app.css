@@ -1057,3 +1057,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .owner-goal input { max-width: 140px; }
 .raised-matched { margin-top: 4px; font-size: 13.5px; color: var(--muted); }
 .bonus-bar.match .bonus-badge { background: var(--teal-deep); color: #fff; }
+
+/* The partner's logo as a small mark beside its name in a sentence. */
+.shelter-mark { display: inline-block; vertical-align: -0.3em; margin-right: 0.3em; border-radius: 5px; background: #fff; object-fit: contain; border: 1px solid var(--rule); }
+.done-impact .shelter-mark { vertical-align: -0.4em; }
