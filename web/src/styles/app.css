@@ -1001,7 +1001,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .shelter-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
 /* The one partner: bigger, with what each pack does for it. */
 .shelter.partner { align-items: flex-start; padding: 18px; }
-.shelter.partner .shelter-logo { width: 84px; height: 84px; }
+.shelter.partner .shelter-logo { width: clamp(96px, 26vw, 132px); height: clamp(96px, 26vw, 132px); }
 .shelter.partner .shelter-name { font-size: 24px; }
 .shelter-note { margin: 4px 0 12px; font-size: 15px; color: var(--muted); }
 .shelter.partner .shelter-link { margin-top: 2px; }
