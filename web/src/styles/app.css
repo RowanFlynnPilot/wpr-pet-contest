@@ -1021,7 +1021,8 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 /* ------------------------------------------------------------------ footer */
 .footer { margin-top: 48px; background: var(--paper); border-top: 1px solid var(--rule); }
 .footer .wrap { display: flex; gap: 14px; align-items: flex-start; padding-top: 22px; padding-bottom: 32px; }
-.footer img { width: 44px; height: 44px; flex: none; margin-top: 2px; }
+.footer-marks { display: grid; gap: 10px; flex: none; margin-top: 2px; }
+.footer-marks img { width: 44px; height: 44px; }
 .footer-text { font-size: 12px; line-height: 1.65; color: var(--muted); }
 .footer-text p { margin: 0 0 6px; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; }
@@ -1058,6 +1059,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .raised-matched { margin-top: 4px; font-size: 13.5px; color: var(--muted); }
 .bonus-bar.match .bonus-badge { background: var(--teal-deep); color: #fff; }
 
-/* The partner's logo as a small mark beside its name in a sentence. */
-.shelter-mark { display: inline-block; vertical-align: -0.3em; margin-right: 0.3em; border-radius: 5px; background: #fff; object-fit: contain; border: 1px solid var(--rule); }
-.done-impact .shelter-mark { vertical-align: -0.4em; }
+/* The partner's logo as a mark beside its name: under WPR's badge in the
+   footer, inline on the thank-you screen's impact line. */
+.shelter-mark { display: inline-block; vertical-align: middle; border-radius: 6px; background: #fff; object-fit: contain; border: 1px solid var(--rule); }
+.done-impact .shelter-mark { margin: -6px 6px -6px 0; }

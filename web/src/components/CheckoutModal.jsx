@@ -485,7 +485,7 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
           Your pack sends <strong>{fmtMoney(toShelters)}</strong> to{' '}
           {shelter ? (
             <>
-              <ShelterMark shelter={shelter} size={26} />
+              <ShelterMark shelter={shelter} size={40} />
               {shelter.url ? (
                 <a href={shelter.url} target="_blank" rel="noopener noreferrer">
                   {shelter.name}

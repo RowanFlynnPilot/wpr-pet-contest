@@ -28,5 +28,6 @@ export function ShelterMark({ shelter, size = 20 }) {
   const [failed, setFailed] = useState(false)
   const src = shelterLogoUrl(shelter?.logo_path)
   if (!src || failed) return null
-  return <img className="shelter-mark" src={src} alt="" width={size} height={size} loading="lazy" onError={() => setFailed(true)} />
+  // Sized inline: the footer sizes its badge with a bare `img` rule.
+  return <img className="shelter-mark" src={src} alt="" width={size} height={size} style={{ width: size, height: size }} loading="lazy" onError={() => setFailed(true)} />
 }

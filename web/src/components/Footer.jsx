@@ -10,7 +10,10 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="wrap">
-        <img src={WPR_BADGE} alt="" width="44" height="44" loading="lazy" decoding="async" />
+        <div className="footer-marks">
+          <img src={WPR_BADGE} alt="" width="44" height="44" loading="lazy" decoding="async" />
+          {partner && <ShelterMark shelter={partner} size={44} />}
+        </div>
         <div className="footer-text">
           <p>
             Photos are submitted by readers and reviewed by a Wausau Pilot &amp; Review editor before they appear.
@@ -24,16 +27,13 @@ export default function Footer() {
                 {' '}
                 {split}% of proceeds go to{' '}
                 {partner ? (
-                  <>
-                    <ShelterMark shelter={partner} size={18} />
-                    {partner.url ? (
-                      <a href={partner.url} target="_blank" rel="noopener noreferrer">
-                        {partner.name}
-                      </a>
-                    ) : (
-                      partner.name
-                    )}
-                  </>
+                  partner.url ? (
+                    <a href={partner.url} target="_blank" rel="noopener noreferrer">
+                      {partner.name}
+                    </a>
+                  ) : (
+                    partner.name
+                  )
                 ) : (
                   "the contest's partner animal shelters"
                 )}
