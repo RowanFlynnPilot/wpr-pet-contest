@@ -1,37 +1,41 @@
 import { useEffect, useState } from 'react'
 import { APP_BASE, PUBLIC_URL } from '../lib/env.js'
-import { petPublicUrl, petSharePageUrl, shareLinks, shareText } from '../lib/share.js'
+import { petPublicUrl, shareLinks, sharePageUrl, shareText } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
 import { Chat, Facebook, LinkIcon, Mail, Share, XLogo } from './Icons.jsx'
 
 // Share pages are built at deploy time, so a pet approved since the last build
 // has none yet. Same-origin HEAD check; fall back to the plain link. The card
-// share menu (CardShare) uses it too, once it is opened.
+// share menu (CardShare) uses it too, once it is opened. `path` is the page's
+// path under the app: a pet's own page or a matchup's.
 const sharePageCache = new Map()
-export function useSharePage(id) {
-  const [ok, setOk] = useState(() => sharePageCache.get(id) ?? null)
+export function useSharePage(path) {
+  const [ok, setOk] = useState(() => (path ? (sharePageCache.get(path) ?? null) : null))
   useEffect(() => {
-    if (sharePageCache.has(id)) return
+    if (!path || sharePageCache.has(path)) return
     let alive = true
-    const url = petSharePageUrl(APP_BASE, id)
-    fetch(url, { method: 'HEAD', cache: 'no-store' })
+    fetch(sharePageUrl(APP_BASE, path), { method: 'HEAD', cache: 'no-store' })
       .then((r) => r.ok)
       .catch(() => false)
       .then((found) => {
-        sharePageCache.set(id, found)
+        sharePageCache.set(path, found)
         if (alive) setOk(found)
       })
     return () => {
       alive = false
     }
-  }, [id])
-  return ok ? petSharePageUrl(APP_BASE, id) : null
+  }, [path])
+  return path && (ok ?? sharePageCache.get(path)) ? sharePageUrl(APP_BASE, path) : null
 }
 
 // `extra` renders after the share buttons (the pet page's image maker).
-export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false, extra = null }) {
+// `sharePage` names a page for the crawlers other than the pet's own (a
+// matchup card while a bracket round is live).
+export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false, extra = null, sharePage = null }) {
   const url = petPublicUrl(PUBLIC_URL, entry.id)
-  const crawlerUrl = useSharePage(entry.id) || url
+  const matchupPage = useSharePage(sharePage)
+  const petPage = useSharePage(`p/${entry.id}/`)
+  const crawlerUrl = matchupPage || petPage || url
   const text = shareText(entry.pet_name, contestName)
   const links = shareLinks({ url, crawlerUrl, text, subject: `Vote for ${entry.pet_name}!` })
   const [copied, setCopied] = useState(false)

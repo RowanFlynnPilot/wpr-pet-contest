@@ -8,10 +8,16 @@ export function petPublicUrl(publicUrl, id) {
   return `${stripHash(publicUrl)}#/pet/${id}`
 }
 
-export function petSharePageUrl(appBase, id) {
+export function sharePageUrl(appBase, path) {
   const base = stripHash(appBase).replace(/\/?$/, '/')
-  return `${base}p/${id}/`
+  return `${base}${path}`
 }
+
+export const petSharePageUrl = (appBase, id) => sharePageUrl(appBase, `p/${id}/`)
+
+// A matchup's share page carries both pets on its card, and a new address
+// each round, since social sites cache previews.
+export const matchupSharePageUrl = (appBase, id) => sharePageUrl(appBase, `m/${id}/`)
 
 export function shareText(petName, contestName = 'Cutest Pet in Marathon County') {
   return `Vote for ${petName} in the ${contestName} contest! Every vote pack helps local animal shelters.`

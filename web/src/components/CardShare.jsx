@@ -10,7 +10,7 @@ const canNativeShare = () => typeof navigator !== 'undefined' && typeof navigato
 
 // The choices, once opened. Same url, text and links as ShareTools.
 function ShareMenu({ id, open, entry, url, text, log, onDone }) {
-  const crawlerUrl = useSharePage(entry.id) || url
+  const crawlerUrl = useSharePage(`p/${entry.id}/`) || url
   const links = shareLinks({ url, crawlerUrl, text, subject: `Vote for ${entry.pet_name}!` })
   const list = useRef(null)
   const input = useRef(null)

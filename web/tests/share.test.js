@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { petPublicUrl, petSharePageUrl, shareLinks, shareText } from '../src/lib/share.js'
+import { matchupSharePageUrl, petPublicUrl, petSharePageUrl, shareLinks, shareText } from '../src/lib/share.js'
 import { buildPhotoUrl } from '../src/lib/photos.js'
 
 const ID = '45d86334-7320-4238-bfd0-9bae59f0e115'
@@ -14,6 +14,7 @@ describe('share URLs', () => {
   it('builds the per-pet share page under the app base', () => {
     expect(petSharePageUrl('https://rowanflynnpilot.github.io/wpr-pet-contest/', ID)).toBe(`https://rowanflynnpilot.github.io/wpr-pet-contest/p/${ID}/`)
     expect(petSharePageUrl('https://rowanflynnpilot.github.io/wpr-pet-contest', ID)).toBe(`https://rowanflynnpilot.github.io/wpr-pet-contest/p/${ID}/`)
+    expect(matchupSharePageUrl('https://rowanflynnpilot.github.io/wpr-pet-contest/#/x', ID)).toBe(`https://rowanflynnpilot.github.io/wpr-pet-contest/m/${ID}/`)
   })
   it('gives crawlers the share page and people the public link', () => {
     const url = petPublicUrl('https://w.com/pets/', ID)

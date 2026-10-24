@@ -43,8 +43,14 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # Matchup share cards (web/scripts/matchup-cards.py) are drawn with Pillow.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
       - run: npm run build
         env:
+          SHARE_CARDS: 'true'
           # All public by design: the anon key and the Stripe publishable key
           # are meant for browsers. Row level security is the boundary.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
