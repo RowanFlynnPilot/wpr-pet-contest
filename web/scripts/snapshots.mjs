@@ -109,6 +109,9 @@ async function settle(page) {
 const MAX_HEIGHT = 3200
 async function shoot(page, file, { fullPage = true } = {}) {
   if (fullPage) {
+    // #main stretches to the viewport (min-height: 100vh), which would push
+    // the footer below any viewport sized to the page. Not in a capture.
+    await page.addStyleTag({ content: '#main { min-height: 0 !important }' })
     const height = await page.evaluate(() => document.documentElement.scrollHeight)
     const { width } = page.viewportSize()
     await page.setViewportSize({ width, height: Math.min(MAX_HEIGHT, Math.max(height, 600)) })
