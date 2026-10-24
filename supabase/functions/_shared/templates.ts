@@ -344,15 +344,30 @@ ${after.map(para).join("\n")}
   return { subject, html, text };
 }
 
+// AP style, Central time, matching the site: "Wednesday, Oct. 14 at 8 p.m."
+const AP_MONTHS = ["Jan.", "Feb.", "March", "April", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."];
+
 export function formatWhen(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", {
+  const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago",
     weekday: "long",
-    month: "long",
+    month: "numeric",
     day: "numeric",
     hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(iso));
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(new Date(iso));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const hour24 = Number(get("hour")) % 24;
+  const minute = Number(get("minute"));
+  let time: string;
+  if (minute === 0 && hour24 === 12) time = "noon";
+  else if (minute === 0 && hour24 === 0) time = "midnight";
+  else {
+    const h = hour24 % 12 || 12;
+    time = `${h}${minute ? `:${String(minute).padStart(2, "0")}` : ""} ${hour24 < 12 ? "a.m." : "p.m."}`;
+  }
+  return `${get("weekday")}, ${AP_MONTHS[Number(get("month")) - 1]} ${get("day")} at ${time}`;
 }
 
 export function dollars(cents: number): string {

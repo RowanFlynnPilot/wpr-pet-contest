@@ -15,7 +15,7 @@ export function Digits({ value, min = 3, label, dim = false, zero = false, decor
   const cells = text.padStart(Math.max(min, text.length), zero && known ? '0' : ' ').split('')
   const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': label }
   return (
-    <span className={`sb-digits${dim ? ' dim' : ''}`} {...a11y}>
+    <span className={`sb-digits${dim ? ' dim' : ''}`} data-cells={cells.length} {...a11y}>
       {cells.map((ch, i) => (
         <span key={`${cells.length - i}:${ch}`} className={`sb-cell${ch === ' ' ? ' ghost' : ''}`} aria-hidden="true">
           {ch === ' ' ? '0' : ch}

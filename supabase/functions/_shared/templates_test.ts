@@ -58,7 +58,7 @@ Deno.test("advancement names the round, the opponent and the reset", () => {
   assertEquals(msg.subject, "Biscuit made the Elite Eight!");
   assertStringIncludes(msg.text, "facing Luna");
   assertStringIncludes(msg.text, "reset every round");
-  assertStringIncludes(msg.text, "Wednesday, October 14");
+  assertStringIncludes(msg.text, "Wednesday, Oct. 14");
 });
 
 Deno.test("owner-supplied text is escaped in html", () => {
@@ -71,7 +71,10 @@ Deno.test("owner-supplied text is escaped in html", () => {
 Deno.test("formatting helpers", () => {
   assertEquals(dollars(123_400), "$1,234");
   assertEquals(escape(`"'&`), "&quot;&#39;&amp;");
-  assertStringIncludes(formatWhen("2026-10-15T01:00:00Z"), "8:00 PM");
+  assertStringIncludes(formatWhen("2026-10-15T01:00:00Z"), "8 p.m.");
+  assertStringIncludes(formatWhen("2026-10-15T17:00:00Z"), "Thursday, Oct. 15 at noon");
+  assertStringIncludes(formatWhen("2026-07-04T05:00:00Z"), "Saturday, July 4 at midnight");
+  assertStringIncludes(formatWhen("2026-11-20T14:30:00Z"), "Friday, Nov. 20 at 8:30 a.m.");
 });
 
 Deno.test("the free-vote code email puts the code in the subject and offers the link", () => {

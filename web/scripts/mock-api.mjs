@@ -64,9 +64,11 @@ function contestState() {
     shelter_goal_cents: 500000,
   }
 
+  // VOTE_SCALE multiplies every total: how do five-figure counts fit?
+  const scale = Math.max(1, Number(process.env.VOTE_SCALE) || 1)
   const totalsFor = (roundSeq, ids) => ids.map((eid, i) => ({
     entry_id: eid,
-    votes: Math.round(rand(roundSeq * 100 + i) * (roundSeq === 1 ? 400 : 150)) + 5,
+    votes: (Math.round(rand(roundSeq * 100 + i) * (roundSeq === 1 ? 400 : 150)) + 5) * scale,
   }))
 
   const rounds = []
