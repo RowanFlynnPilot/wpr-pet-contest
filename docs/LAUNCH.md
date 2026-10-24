@@ -142,10 +142,10 @@ while it lasts, and when it clears.
       agreed in the MOUs, bracket size. Shelters added there too, each with a
       logo link and its payout weight (equal weights split evenly). The Setup
       checklist lists anything still missing before submissions open.
-- [ ] Sponsor slots sold (`web/src/config.js`, `SPONSORS`): presenting, gallery,
-      bracket, and the post-purchase thank-you screen, which is the most
-      attentive moment in the whole flow. Unsold slots show an upsell card to
-      weber.chris@wausaupilotandreview.com. Send prospects `?demo`.
+- [ ] Sponsor slots sold (`web/src/config.js`, `SPONSORS`): presenting, gallery
+      and bracket. The buyer's thank-you screen is never sold. Unsold slots
+      show an upsell card to weber.chris@wausaupilotandreview.com. Send
+      prospects `?demo`, and the kit in `docs/sponsor-kit/`.
 - [ ] Double Vote windows sold as their own product: one sponsor per window,
       an hour or an evening, named in the banner. Insert them as
       `bonus_windows`; overlapping windows are refused.

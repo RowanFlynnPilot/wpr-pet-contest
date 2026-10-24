@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sponsor the Pet Contest — Wausau Pilot &amp; Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=JetBrains+Mono:wght@500;700&family=Public+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Cutest Pet in Marathon County design system (DESIGN.md): WPR's Follow the
+   Money palette in arena mode. Teal and sun are fills; text uses their ink. */
+:root {
+  --ink: #1a1a1a; --ink-2: #3a3a3a; --muted: #5f5f5f;
+  --paper: #ffffff; --cream: #f6f2e9; --cream-deep: #ede6d6;
+  --rule: #e3ddd0; --rule-strong: #cfc6b3; --slate: #32373c;
+  --teal: #3a867c; --teal-ink: #2b655d; --teal-deep: #1f4b45; --teal-tint: #e1edea; --teal-wash: #eff5f3;
+  --sun: #f4b942; --sun-ink: #7a5500; --sun-tint: #fcefd0;
+  --board-label: #cfe3de; --board-text: #e3efec;
+  --display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --shadow: 0 1px 2px rgba(31, 43, 40, 0.06), 0 4px 14px rgba(31, 43, 40, 0.06);
+  --gutter: 16px;
+}
+@media (min-width: 720px) { :root { --gutter: 24px; } }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--cream); color: var(--ink); font: 400 16px/1.55 var(--sans); }
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--teal-ink); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 var(--gutter); }
+h1, h2, h3 { font-family: var(--display); font-weight: 650; margin: 0; color: var(--ink); }
+.mono { font-family: var(--mono); font-feature-settings: 'tnum'; }
+
+/* WPR's flag: badge + wordmark, tagline, thick-over-thin rule. */
+.masthead { background: var(--paper); border-top: 4px solid var(--slate); }
+.flag { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 18px 0 6px; text-decoration: none; }
+.flag .badge { width: 58px; height: 58px; }
+.flag .wordmark { height: 34px; width: auto; }
+.tagline { text-align: center; font-size: 10.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-2); padding: 4px 0 12px; }
+.dateline { display: flex; justify-content: space-between; border-top: 1px solid var(--rule); padding: 6px 0 8px; font-size: 11.5px; color: var(--muted); letter-spacing: 0.02em; }
+.dateline span:last-child { text-transform: uppercase; letter-spacing: 0.08em; }
+
+.banner { position: relative; background: var(--teal-deep); color: #fff; overflow: hidden; }
+.banner::before { content: ""; position: absolute; inset: 0; opacity: 0.07; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23fff'%3E%3Cellipse cx='30' cy='38' rx='9' ry='8'/%3E%3Ccircle cx='19' cy='26' r='4'/%3E%3Ccircle cx='26' cy='21' r='4'/%3E%3Ccircle cx='34' cy='21' r='4'/%3E%3Ccircle cx='41' cy='26' r='4'/%3E%3Cellipse cx='90' cy='98' rx='9' ry='8'/%3E%3Ccircle cx='79' cy='86' r='4'/%3E%3Ccircle cx='86' cy='81' r='4'/%3E%3Ccircle cx='94' cy='81' r='4'/%3E%3Ccircle cx='101' cy='86' r='4'/%3E%3C/g%3E%3C/svg%3E"); }
+.banner .wrap { position: relative; padding-top: 34px; padding-bottom: 34px; }
+.banner h1 { color: #fff; font-size: clamp(36px, 6.4vw, 62px); line-height: 0.98; letter-spacing: -0.025em; font-variation-settings: 'opsz' 144; max-width: 16ch; }
+.banner .sub { margin: 10px 0 0; color: var(--board-label); font-weight: 700; font-size: 14px; }
+.banner .dek { margin: 16px 0 0; max-width: 60ch; font-family: var(--display); font-style: italic; font-size: clamp(17px, 2.2vw, 20px); line-height: 1.42; color: var(--board-text); }
+
+/* The internal notice. Delete before sending once prices are set. */
+.proposed-note { margin: 22px 0 0; background: var(--sun-tint); border: 1px solid #ecd48f; border-top: 4px solid var(--sun); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: var(--ink); }
+.proposed-note b { font-weight: 800; }
+.tag-proposed { display: inline-block; vertical-align: 0.12em; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--sun-tint); color: var(--sun-ink); border: 1px solid #ecd48f; font: 800 10.5px/1.4 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; }
+.ph { background: var(--sun-tint); color: var(--sun-ink); font-weight: 700; padding: 0 3px; border-radius: 3px; white-space: nowrap; }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; margin: 22px 0 0; }
+.fact { background: var(--paper); border: 1px solid var(--rule); border-top: 3px solid var(--sun); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+.fact .big { font-family: var(--display); font-weight: 650; font-size: 24px; line-height: 1.1; font-variation-settings: 'opsz' 144; }
+.fact p { margin: 4px 0 0; font-size: 13.5px; color: var(--muted); }
+
+section { padding: 40px 0 0; }
+.section-head h2 { font-size: clamp(26px, 4vw, 34px); line-height: 1.1; letter-spacing: -0.01em; }
+.section-head .count { margin: 6px 0 0; font-weight: 700; font-size: 14px; color: var(--muted); }
+
+.placement { margin: 26px 0 0; background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.placement-head { padding: 20px 22px 4px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 18px; align-items: start; }
+.placement-head h3 { font-size: clamp(22px, 3vw, 28px); line-height: 1.1; }
+.placement-head .meta { grid-column: 1; margin: 4px 0 0; font-size: 14px; font-weight: 700; color: var(--teal-ink); }
+.placement-head .price { grid-column: 2; grid-row: 1 / span 2; text-align: right; }
+.price .amt { font-family: var(--mono); font-feature-settings: 'tnum'; font-weight: 700; font-size: 22px; }
+.price .tag-proposed { display: block; margin: 4px 0 0 auto; width: max-content; }
+.placement-body { padding: 8px 22px 20px; }
+.placement-body > p { margin: 0 0 10px; max-width: 70ch; }
+.where { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; max-width: 78ch; }
+.where li { position: relative; padding-left: 20px; font-size: 15px; }
+.where li::before { content: ""; position: absolute; left: 2px; top: 0.55em; width: 9px; height: 9px; border-radius: 50%; background: var(--teal); }
+.where b { font-weight: 700; }
+.shots { display: grid; gap: 14px; padding: 4px 22px 22px; background: linear-gradient(var(--paper), var(--paper)); }
+.shots.two { grid-template-columns: minmax(0, 2.6fr) minmax(0, 1fr); align-items: start; }
+.shots.three { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.shots.pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+/* Columns in proportion to each shot's real width, so type reads at one scale. */
+.shots.wn { grid-template-columns: minmax(0, 400fr) minmax(0, 640fr); align-items: start; }
+.shots.dv { grid-template-columns: minmax(0, 390fr) minmax(0, 400fr) minmax(0, 640fr); align-items: start; }
+figure { margin: 0; }
+figure img { border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--cream); }
+figcaption { margin: 7px 0 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+figcaption b { color: var(--ink-2); }
+@media (max-width: 760px) {
+  .shots.two, .shots.three, .shots.pair, .shots.wn, .shots.dv { grid-template-columns: minmax(0, 1fr); }
+  .shots .phone { max-width: 320px; }
+  .placement-head { grid-template-columns: minmax(0, 1fr); }
+  .placement-head .price { grid-column: 1; grid-row: auto; text-align: left; display: flex; align-items: center; gap: 8px; }
+  .price .tag-proposed { margin: 0; }
+}
+
+.audience { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 18px 0 0; background: var(--teal-deep); border-radius: 14px; overflow: hidden; }
+.audience > div { padding: 18px 18px 16px; border-left: 1px solid rgba(255, 255, 255, 0.12); }
+.audience > div:first-child { border-left: 0; }
+.audience .n { font-family: var(--mono); font-feature-settings: 'tnum'; font-weight: 700; font-size: clamp(26px, 3.6vw, 36px); color: var(--sun); line-height: 1.1; }
+.audience .l { margin: 4px 0 0; color: var(--board-text); font-size: 13.5px; font-weight: 600; }
+@media (max-width: 640px) { .audience { grid-template-columns: repeat(2, minmax(0, 1fr)); } .audience > div:nth-child(3) { border-left: 0; } .audience > div:nth-child(n+3) { border-top: 1px solid rgba(255, 255, 255, 0.12); } }
+.source { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); max-width: 90ch; }
+.quote-line { margin: 16px 0 0; font-size: 15px; color: var(--ink-2); }
+.quote { font-family: var(--display); font-style: italic; font-size: 19px; color: var(--ink); }
+.quote::before { content: "\201C"; color: var(--teal); } .quote::after { content: "\201D"; color: var(--teal); }
+
+.packages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0 0; }
+.package { background: var(--paper); border: 1px solid var(--rule); border-top: 4px solid var(--teal); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.package.lead { border-top-color: var(--sun); }
+.package h3 { font-size: 22px; }
+.package .pp { margin: 10px 0 0; font-family: var(--display); font-weight: 650; font-size: 40px; line-height: 1; font-variation-settings: 'opsz' 144; color: var(--ink); }
+.package .save { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+.package ul { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 14.5px; }
+.package li { padding-left: 18px; position: relative; }
+.package li::before { content: ""; position: absolute; left: 1px; top: 0.5em; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+.package .for { margin: auto 0 0; padding-top: 12px; font-size: 13px; color: var(--ink-2); border-top: 1px solid var(--rule); margin-top: 14px; }
+@media (max-width: 860px) { .packages { grid-template-columns: minmax(0, 1fr); } }
+
+table.rates { width: 100%; border-collapse: collapse; margin: 18px 0 0; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; font-size: 14.5px; }
+.rates th, .rates td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.rates th { font-size: 11.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); background: var(--teal-wash); }
+.rates td.num, .rates th.num { text-align: right; white-space: nowrap; }
+.rates td.num { font-family: var(--mono); font-feature-settings: 'tnum'; font-weight: 700; }
+.rates tr:last-child td { border-bottom: 0; }
+@media (max-width: 560px) {
+  .rates th, .rates td { padding: 9px 10px; }
+  .rates td.num, .rates th.num, .rates .ph { white-space: normal; }
+}
+
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 28px; margin: 18px 0 0; }
+.terms div { border-top: 1px solid var(--rule-strong); padding-top: 10px; }
+.terms h3 { font-family: var(--sans); font-size: 15px; font-weight: 800; }
+.terms p { margin: 4px 0 0; font-size: 14.5px; color: var(--ink-2); }
+@media (max-width: 720px) { .terms { grid-template-columns: minmax(0, 1fr); } }
+
+.next { margin: 40px 0 0; background: var(--teal-deep); color: #fff; border-radius: 14px; padding: 26px 24px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px 32px; align-items: center; }
+.next h2 { color: #fff; font-size: clamp(26px, 3.8vw, 34px); line-height: 1.1; font-variation-settings: 'opsz' 144; }
+.next p { margin: 8px 0 0; color: var(--board-text); }
+.contact { background: var(--paper); color: var(--ink); border-top: 4px solid var(--sun); border-radius: 10px; padding: 16px 18px; }
+.contact .name { font-family: var(--display); font-weight: 650; font-size: 21px; }
+.contact .role { margin: 2px 0 8px; font-size: 13px; color: var(--muted); }
+.contact .line { font-size: 15px; margin: 3px 0 0; color: var(--ink); user-select: text; word-break: break-word; }
+.contact .line span { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; display: inline-block; width: 52px; }
+.next .ph { color: var(--sun-ink); }
+@media (max-width: 760px) { .next { grid-template-columns: minmax(0, 1fr); } }
+
+footer.foot { margin: 36px 0 0; border-top: 4px solid var(--slate); background: var(--paper); }
+footer.foot .wrap { border-top: 1px solid var(--rule); margin-top: 3px; padding-top: 14px; padding-bottom: 22px; font-size: 12.5px; color: var(--muted); }
+footer.foot p { margin: 4px 0 0; max-width: 100ch; }
+
+@media print {
+  @page { size: letter; margin: 0.45in; }
+  html, body { background: #fff; }
+  body { font-size: 11pt; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .wrap { max-width: none; padding: 0; }
+  .banner .wrap { padding: 22px 20px; }
+  section { padding-top: 22px; }
+  .placement, .package, .fact, .next, .audience, table.rates, .terms div { box-shadow: none; break-inside: avoid; }
+  .placement { break-inside: auto; }
+  .placement-head, .placement-body { break-inside: avoid; break-after: avoid; }
+  figure { break-inside: avoid; }
+  .section-head { break-after: avoid; }
+  a { color: inherit; text-decoration: none; }
+  #packages { break-before: page; }
+  section[aria-labelledby="placements"] { break-before: page; padding-top: 0; }
+  .shots { break-inside: avoid; }
+  /* Letter paper is ~730 CSS px wide, inside the phone breakpoints: keep the
+     desktop arrangement on paper. */
+  .shots.two { grid-template-columns: minmax(0, 2.6fr) minmax(0, 1fr); }
+  .shots.wn { grid-template-columns: minmax(0, 400fr) minmax(0, 640fr); }
+  .shots.dv { grid-template-columns: minmax(0, 390fr) minmax(0, 400fr) minmax(0, 640fr); }
+  .shots .phone { max-width: none; }
+  .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .packages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .next { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+  .audience { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .audience > div:nth-child(n+3) { border-top: 0; }
+  .audience > div:nth-child(3) { border-left: 1px solid rgba(255, 255, 255, 0.12); }
+  .placement-head { grid-template-columns: minmax(0, 1fr) auto; }
+  .placement-head .price { grid-column: 2; grid-row: 1 / span 2; text-align: right; display: block; }
+  .price .tag-proposed { margin: 4px 0 0 auto; }
+}
+</style>
+</head>
+<body>
+<!--
+  PITCH PAGE SOURCE. Edit this file, then run `python docs/sponsor-kit/src/build.py`
+  to rebuild docs/sponsor-kit/index.html with the mock-ups embedded.
+  Every [bracketed] value is a placeholder: see docs/sponsor-kit/README.md.
+-->
+<header class="masthead">
+  <div class="wrap">
+    <a class="flag" href="https://wausaupilotandreview.com/">
+      <img class="badge" src="{{asset:wpr-typewriter-badge.png}}" alt="" width="58" height="58">
+      <img class="wordmark" src="{{asset:wpr-wordmark.png}}" alt="Wausau Pilot &amp; Review" height="34">
+    </a>
+    <div class="tagline">Where Locals Look First For News</div>
+    <div class="dateline"><span>Sponsorship opportunities · prepared Oct. 23, 2026</span><span>Wausau, Wisconsin</span></div>
+  </div>
+</header>
+
+<div class="banner">
+  <div class="wrap">
+    <h1>Put your name on the county&rsquo;s cutest contest</h1>
+    <p class="sub">Cutest Pet in Marathon County · <span class="ph">[contest dates]</span></p>
+    <p class="dek">Wausau Pilot &amp; Review&rsquo;s reader pet contest. Entering is free, readers buy vote packs to back their favorites, and a published share goes to our partner shelter. Four placements are for sale, and each one goes to a single business.</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <!-- DELETE THIS NOTICE before sending, once Chris has set the prices. -->
+  <div class="proposed-note" role="note">
+    <b>PROPOSED, for Chris Weber to set.</b> Every price on this page is a suggestion, not a commitment. Fill in each highlighted <span class="ph">[placeholder]</span> before this goes to a business (the list is in README.md), then delete this notice.
+  </div>
+
+  <div class="facts">
+    <div class="fact"><div class="big">Free</div><p>to enter, from a phone photo. Owners then share their pet&rsquo;s page to round up votes.</p></div>
+    <div class="fact"><div class="big"><span class="mono">$5</span> to <span class="mono">$250</span></div><p>vote packs. Not donations, and not tax-deductible.</p></div>
+    <div class="fact"><div class="big"><span class="ph">[shelter share %]</span></div><p>of vote pack sales, after refunds, goes to Moments Foster Care, a nonprofit.</p></div>
+    <div class="fact"><div class="big">Open round, then 16</div><p>One round for the whole field, then a head-to-head bracket: Sweet 16 to the Championship.</p></div>
+  </div>
+
+  <section aria-labelledby="placements">
+    <div class="section-head">
+      <h2 id="placements">Where your name appears</h2>
+      <p class="count">Four placements · one business each · the gold ring marks each one in the mock-ups</p>
+    </div>
+
+    <!-- Presenting sponsor -->
+    <article class="placement">
+      <div class="placement-head">
+        <h3>Presenting sponsor</h3>
+        <p class="meta">One available · on the contest from the first entry to the champion</p>
+        <div class="price"><span class="amt">$1,500</span><span class="tag-proposed">Proposed</span></div>
+      </div>
+      <div class="placement-body">
+        <p>Your name on the whole contest, everywhere it shows up.</p>
+        <ul class="where">
+          <li><b>Every contest page:</b> &ldquo;Presented by&rdquo; your name in the contest bar, phones included.</li>
+          <li><b>The home page:</b> your full sponsor card, with your logo, a one-line tagline and a link, on every screen size.</li>
+          <li><b>The article widget in WPR stories:</b> &ldquo;Presented by&rdquo; your name in its footer.</li>
+          <li><b>The contest block in WPR&rsquo;s daily newsletters:</b> &ldquo;Presented by&rdquo; your name, linked. <span class="ph">[newsletter block schedule]</span></li>
+        </ul>
+      </div>
+      <div class="shots two">
+        <figure><img src="{{img:presenting-bar-desktop}}" alt="Mock-up: the contest bar on a computer, reading Presented by Your Business Here."><figcaption><b>Every page.</b> The contest bar under WPR&rsquo;s masthead, on a computer.</figcaption></figure>
+        <figure class="phone"><img src="{{img:presenting-bar-mobile}}" alt="Mock-up: the contest bar on a phone, with Presented by Your Business Here on its own line."><figcaption><b>On a phone,</b> the credit gets its own line.</figcaption></figure>
+      </div>
+      <div class="shots two">
+        <figure><img src="{{img:presenting-home-desktop}}" alt="Mock-up: the presenting sponsor card on the contest home page, on a computer."><figcaption><b>The home page.</b> Your sponsor card under the shelter tally.</figcaption></figure>
+        <figure class="phone"><img src="{{img:presenting-home-mobile}}" alt="Mock-up: the presenting sponsor card on the contest home page, on a phone."><figcaption><b>The home page, on a phone.</b></figcaption></figure>
+      </div>
+      <div class="shots wn">
+        <figure><img src="{{img:presenting-widget}}" alt="Mock-up: the contest widget for WPR stories, with Presented by Your Business Here in its footer."><figcaption><b>The article widget</b> that runs in WPR stories during the contest.</figcaption></figure>
+        <figure><img src="{{img:presenting-newsletter}}" alt="Mock-up: the contest block in a WPR daily newsletter, ending Presented by Your Business Here."><figcaption><b>The newsletter block</b> staff add to WPR&rsquo;s daily newsletters.</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- Gallery sponsor -->
+    <article class="placement">
+      <div class="placement-head">
+        <h3>Gallery sponsor</h3>
+        <p class="meta">One available · the whole contest</p>
+        <div class="price"><span class="amt">$700</span><span class="tag-proposed">Proposed</span></div>
+      </div>
+      <div class="placement-body">
+        <p>Your sponsor card in the gallery, the page with every pet in the contest. It runs the full width of the grid, right after the first row of photos.</p>
+      </div>
+      <div class="shots two">
+        <figure><img src="{{img:gallery-desktop}}" alt="Mock-up: the gallery sponsor card spanning the grid right after the first row of pet photos, on a computer."><figcaption><b>Right after the first row of photos,</b> on a computer.</figcaption></figure>
+        <figure class="phone"><img src="{{img:gallery-mobile}}" alt="Mock-up: the gallery sponsor card right after the first row of pet photos, on a phone."><figcaption><b>On a phone,</b> after the first row.</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- Bracket sponsor -->
+    <article class="placement">
+      <div class="placement-head">
+        <h3>Bracket sponsor</h3>
+        <p class="meta">One available · from the projected bracket to the champion</p>
+        <div class="price"><span class="amt">$500</span><span class="tag-proposed">Proposed</span></div>
+      </div>
+      <div class="placement-body">
+        <p>Your sponsor card at the top of the bracket page. During the open round, the page shows the projected bracket. In the final week and a half, it&rsquo;s where the Sweet 16, Elite Eight, Final Four and Championship are decided.</p>
+      </div>
+      <div class="shots two">
+        <figure><img src="{{img:bracket-desktop}}" alt="Mock-up: the bracket sponsor card above the head-to-head bracket, on a computer."><figcaption><b>Over the head-to-head rounds,</b> on a computer.</figcaption></figure>
+        <figure class="phone"><img src="{{img:bracket-mobile}}" alt="Mock-up: the bracket sponsor card on a phone."><figcaption><b>On a phone.</b></figcaption></figure>
+      </div>
+    </article>
+
+
+    <!-- Double Vote Hour -->
+    <article class="placement">
+      <div class="placement-head">
+        <h3>Double Vote Hour</h3>
+        <p class="meta"><span class="ph">[number of Double Vote Hours]</span> available · one business per hour</p>
+        <div class="price"><span class="amt">$150</span><span class="tag-proposed">Proposed</span></div>
+      </div>
+      <div class="placement-body">
+        <p>For one hour, every vote pack bought counts twice: &ldquo;Double Vote Hour, presented by&rdquo; your business. WPR schedules the hour with you.</p>
+        <ul class="where">
+          <li><b>A gold bar across every contest page,</b> with a countdown, while the hour is on, plus a heads-up bar in the day before it starts.</li>
+          <li><b>The vote pack picker,</b> where buyers see your name as they choose a pack.</li>
+          <li><b>The article widget in WPR stories,</b> and the newsletter contest block when an edition goes out during your hour or in the day and a half before it.</li>
+        </ul>
+      </div>
+      <div class="shots">
+        <figure><img src="{{img:bonus-bar-desktop}}" alt="Mock-up: the gold Double Vote Hour bar across a contest page, presented by Your Business Here."><figcaption><b>Every contest page,</b> while your hour is on.</figcaption></figure>
+      </div>
+      <div class="shots dv">
+        <figure class="phone"><img src="{{img:bonus-checkout-mobile}}" alt="Mock-up: the vote pack picker during a Double Vote Hour, presented by Your Business Here."><figcaption><b>The vote pack picker.</b></figcaption></figure>
+        <figure><img src="{{img:bonus-widget}}" alt="Mock-up: the article widget announcing the Double Vote Hour with the sponsor's name."><figcaption><b>The article widget.</b></figcaption></figure>
+        <figure><img src="{{img:bonus-newsletter}}" alt="Mock-up: the newsletter contest block announcing the Double Vote Hour with the sponsor's name."><figcaption><b>The newsletter block.</b></figcaption></figure>
+      </div>
+    </article>
+  </section>
+
+  <section aria-labelledby="audience">
+    <div class="section-head">
+      <h2 id="audience">Who sees it</h2>
+      <p class="count">Wausau Pilot &amp; Review&rsquo;s readers, from its 2026&ndash;2027 media kit</p>
+    </div>
+    <div class="audience">
+      <div><div class="n">1.4M+</div><p class="l">monthly page views</p></div>
+      <div><div class="n">354K+</div><p class="l">unique monthly visitors</p></div>
+      <div><div class="n">20K+</div><p class="l">email subscribers</p></div>
+      <div><div class="n">36K+</div><p class="l">social likes and follows</p></div>
+    </div>
+    <p class="quote-line"><span class="quote">a daily habit, not a drive-by click</span> is how WPR&rsquo;s media kit describes its readers.</p>
+    <p class="source">Source: Wausau Pilot &amp; Review 2026&ndash;2027 media kit, Advertiser&rsquo;s Edition (updated Oct. 1, 2026). These figures are for Wausau Pilot &amp; Review as a whole, not for the contest. The contest is new, so there are no past contest numbers to show. WPR is an editorially independent nonprofit newsroom covering Marathon County.</p>
+  </section>
+
+  <section id="packages" aria-labelledby="packages-h">
+    <div class="section-head">
+      <h2 id="packages-h">Packages <span class="tag-proposed">Proposed</span></h2>
+      <p class="count">Suggested bundles. Every placement is also sold on its own, in the table below.</p>
+    </div>
+    <div class="packages">
+      <div class="package lead">
+        <h3>Best in Show</h3>
+        <p class="pp">$1,600</p>
+        <p class="save">Saves $200 on the placements bought separately</p>
+        <ul>
+          <li>Presenting sponsor</li>
+          <li>Two Double Vote Hours</li>
+        </ul>
+        <p class="for">For one business that wants its name on the whole contest.</p>
+      </div>
+      <div class="package">
+        <h3>Blue Ribbon</h3>
+        <p class="pp">$1,200</p>
+        <p class="save">Saves $150 on the placements bought separately</p>
+        <ul>
+          <li>Gallery sponsor</li>
+          <li>Bracket sponsor</li>
+          <li>One Double Vote Hour</li>
+        </ul>
+        <p class="for">Both pages where readers browse the field and follow the matchups.</p>
+      </div>
+    </div>
+    <table class="rates">
+      <thead><tr><th>Placement</th><th>Available</th><th class="num">Price (proposed)</th></tr></thead>
+      <tbody>
+        <tr><td>Presenting sponsor</td><td>One</td><td class="num">$1,500</td></tr>
+        <tr><td>Gallery sponsor</td><td>One</td><td class="num">$700</td></tr>
+        <tr><td>Bracket sponsor</td><td>One</td><td class="num">$500</td></tr>
+        <tr><td>Double Vote Hour</td><td><span class="ph">[number of Double Vote Hours]</span></td><td class="num">$150 each, three for $400</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section aria-labelledby="terms">
+    <div class="section-head">
+      <h2 id="terms">How it works</h2>
+    </div>
+    <div class="terms">
+      <div><h3>One business per placement</h3><p>Each placement carries a single sponsor. Nobody shares your spot or rotates through it.</p></div>
+      <div><h3>What we need from you</h3><p>Your business name, a logo that works on white (PNG or SVG), a one-line tagline and the web address to link to, by <span class="ph">[artwork deadline]</span>.</p></div>
+      <div><h3>Your link</h3><p>Opens in a new tab, tagged so contest visits show up in your own website analytics, and marked as a paid link, as search engines require.</p></div>
+      <div><h3>Reporting</h3><p><span class="ph">[confirm click reporting]</span></p></div>
+      <div><h3>Where the money goes</h3><p>Vote packs are not donations and are not tax-deductible. <span class="ph">[shelter share %]</span> of vote pack sales, after refunds, goes to Moments Foster Care. Sponsorship fees are separate: they support WPR&rsquo;s nonprofit newsroom and don&rsquo;t change the shelter&rsquo;s share.</p></div>
+      <div><h3>Independence</h3><p>A sponsorship buys placement, not news coverage. Results come only from the vote count, with fixed tiebreaks. WPR may decline any sponsorship, and some categories (gaming, alcohol, cannabis, financial services) may need a disclaimer line.</p></div>
+    </div>
+  </section>
+
+  <div class="next">
+    <div>
+      <h2>Hold your placement</h2>
+      <p>Each placement goes to one business. Reply to Chris by <span class="ph">[commitment deadline]</span> to hold yours. To see your name on the contest pages first, open <span class="ph">[contest preview link]</span>.</p>
+    </div>
+    <div class="contact">
+      <div class="name">Chris Weber</div>
+      <div class="role">Sponsorships, Wausau Pilot &amp; Review</div>
+      <p class="line"><span>Email</span>weber.chris@wausaupilotandreview.com</p>
+      <p class="line"><span>Office</span>715-301-5539</p>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p><b>Wausau Pilot &amp; Review · 715-301-5539</b> · An editorially independent nonprofit newsroom covering Marathon County.</p>
+    <p>Mock-ups show the contest site running on sample data. The pets, vote counts and dollar figures in them are not real, and &ldquo;Your Business Here&rdquo; marks where a sponsor&rsquo;s name goes. Prices are proposed and not final.</p>
+  </div>
+</footer>
+</body>
+</html>
