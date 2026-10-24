@@ -12,6 +12,7 @@
 // Switch the contest's phase while it runs:
 //   curl http://127.0.0.1:8787/__phase?set=submissions   (submissions | open | bracket | complete)
 
+import { readFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 
 // Not in the 49152+ range: Windows reserves chunks of it for Hyper-V and WSL.
@@ -135,7 +136,7 @@ function contestState() {
       : [],
     shelters: [
       // The real partner. Swap in its Facebook page address once confirmed.
-      { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/search/top?q=Moments%20Foster%20Care', logo_path: null, payout_weight: 1 },
+      { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/p/Moments-Foster-Care-Inc-100064839574671/', logo_path: 'shelters/moments-foster-care.jpg', payout_weight: 1 },
     ],
     contest_stats: submissions
       ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
@@ -241,6 +242,11 @@ createServer((req, res) => {
   if (pic) {
     res.writeHead(200, { ...CORS, 'Content-Type': 'image/svg+xml', 'Cache-Control': 'max-age=3600' })
     return res.end(photo(Number(pic[1])))
+  }
+  // The partner's photo, the committed copy the live site serves from Pages.
+  if (/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/shelters\/moments-foster-care\.jpg$/.test(url.pathname)) {
+    res.writeHead(200, { ...CORS, 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=3600' })
+    return res.end(readFileSync(new URL('../public/moments-foster-care.jpg', import.meta.url)))
   }
 
   const table = url.pathname.match(/\/rest\/v1\/([a-z_]+)$/)?.[1]
