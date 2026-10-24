@@ -125,6 +125,13 @@ pet is what sells votes, so this is worth the setup.
 - [ ] `supabase secrets set RESEND_API_KEY=re_... EMAIL_FROM="Wausau Pilot & Review <pets@wausaupilotandreview.com>" CRON_SECRET=<random>`
 - [ ] GitHub: variable `EMAIL_SWEEP=true`, secrets `NOTIFY_URL` and
       `CRON_SECRET` (same value). The sweep then runs every 15 minutes.
+- [ ] Volume. The sweep also sends each owner six tips over the contest
+      (approval, voting open, halfway, last day, matchup day, thanks), one
+      "plays again" note per bracket round to each buyer who ticked the box
+      at checkout, and the free-vote reminders if that is on. Budget roughly
+      entries × 8 plus opted-in buyers × 4 for the contest; the $20 Resend
+      plan covers a 300-entry contest with room. Every one of these carries
+      its own stop link (the `links` function; nothing to configure).
 
 ### Free daily vote (only if the contest turns it on)
 

@@ -122,6 +122,29 @@ These are load-bearing. Do not soften them.
 - **Uploaded photos carry no metadata but orientation.** Phone EXIF holds GPS,
   which for most entrants is their house, and the bucket serves originals.
   `submit-entry` strips it server-side even though the front end re-encodes.
+- **The live tally is a cache** (0025). Triggers on `votes` and `free_votes`
+  keep `round_tally`; `entry_round_totals` serves it for unresolved rounds;
+  `contest_health` reports `tally_drift`; `rebuild_round_tally` repairs it.
+  `close_round` never trusts it: it re-sums from the vote tables before
+  seeding. The cache has not been load-tested on staging yet.
+- **Buyer notes are opt-in, one per round.** A box at checkout
+  (`plays_again_opt_in`) asks for one email per bracket round about the pets
+  that address backed. `buyer_notices` dedups on (email, round, kind); the
+  sweep sends only what `buyer_notice_queue` returns; every note carries a
+  stop link and one-click unsubscribe, and `buyer_notice_unsubscribe` clears
+  the opt-in for every pack that address bought in the contest.
+- **Entrant tips stop on request.** Six nurture emails per owner over the
+  contest (`nurture_*` kinds), gated by `entries.nurture_opt_out_at`, which
+  only `entrant_opt_out` sets, with the owner's token. Notices about the
+  entry itself (approved, advanced, eliminated) still go.
+- **An owner's goal is the owner's.** `set_entry_goal` needs the entry's
+  `owner_token` from the approval email. The token is a bearer secret:
+  rate-limited in the `links` function, never read back, rotated at erasure.
+- **Sponsor matches are the sponsor's money, never votes.** `sponsor_matches`
+  windows cannot overlap; `sponsor_match_cents` counts sales whose checkout
+  began in the window, after refunds, up to the cap. It is added to the
+  shelters' pool on the counter and the payout statement, listed for the
+  sponsor to settle, and never changes a count.
 
 ## Tiebreaks
 
@@ -137,8 +160,9 @@ the buttons call, for when the panel is not an option.
 
 1. Setup tab → set up the contest (`create_contest`): a draft with the
    recommended pack ladder, or a copy of last year's packs and shelters. Add
-   the shelters and their payout weights (per the MOUs), and any sponsored
-   `bonus_windows` (Packs & bonuses tab). Everything is editable while it is a
+   the shelters and their payout weights (per the MOUs), any sponsored
+   `bonus_windows`, and any sponsor matches (Packs & bonuses tab; a match may
+   be added mid-contest, since it changes money, not votes). Everything is editable while it is a
    draft (`update_draft_contest`); the split is published on the rules page and
    freezes when submissions open. The free daily vote is a Setup switch too
    (draft only, and only after counsel; docs/FREE-DAILY-VOTE.md). So is an
@@ -171,6 +195,8 @@ the buttons call, for when the panel is not an option.
      after that needs a manual refund in Stripe.
    - `select * from rejected_photos_live;` — must be zero rows.
    - Run the email sweep (Email tab) for advancement and elimination notices.
+     The same sweep sends the entrant tips and the buyers' "plays again"
+     notes; nothing else to run.
    - Newsletter tab → Build block, for the next edition: the new standings or
      matchups, ready to paste into the Noptin draft as one Custom HTML block.
    - If the free daily vote is on, the Free votes tab, daily too: its watch
@@ -208,6 +234,10 @@ cd web && npm run dev
 
 `supabase start -x studio,logflare,vector,realtime,imgproxy,postgres-meta,supavisor,mailpit`
 starts only what the tests need, about a quarter of the full download.
+
+`SHARE_CARDS=true npm --prefix web run build` also draws the matchup share
+cards (`web/scripts/matchup-cards.py`, Pillow). The Pages workflow sets it;
+without it the matchup pages carry the first pet's photo.
 
 Migrations use `create function`, not `create or replace`. To change a
 function, add a new numbered migration (which may `create or replace`, or

@@ -64,10 +64,15 @@ test('staff work the moderation queue and open voting', async ({ page }) => {
   const clear = page.getByText('The queue is clear. Nothing waiting.')
   await expect(pending).toBeVisible()
   await expect(pending).not.toHaveText(/…/)
+  const approve = page.getByRole('button', { name: /^Approve/ }).first()
   for (let i = 0; i < 10 && !(await clear.isVisible()); i++) {
     const before = await pending.innerText()
-    await page.getByRole('button', { name: /^Approve/ }).first().click()
+    await approve.click()
     await expect(pending).not.toHaveText(before)
+    // The count and the list update separately. Let the list settle before
+    // asking whether anything is left, or the next click finds a row that
+    // is about to vanish.
+    await expect(clear.or(approve)).toBeVisible()
   }
   await expect(clear).toBeVisible()
 
