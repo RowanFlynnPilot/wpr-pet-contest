@@ -32,8 +32,8 @@ export default function Rules() {
         </div>
       )}
       <article className="wrap-narrow section rules">
-        <p className="kicker">{k.year} · Official rules</p>
         <h1 style={{ fontSize: 'clamp(30px, 6vw, 44px)' }}>{k.name}</h1>
+        <p className="section-count">Official rules · {k.year}</p>
         <p className="dek">Free to enter. Voting is by vote pack purchase. Vote packs are not tax-deductible.</p>
 
         <h2>1. The contest</h2>

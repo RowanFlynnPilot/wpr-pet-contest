@@ -264,10 +264,10 @@ export default function Enter() {
     <div className="wrap">
       <div className="enter-layout">
         <form onSubmit={submit} noValidate aria-labelledby="enter-title">
-          <p className="kicker">Free to enter · closes {apDate(c.contest.submissions_close_at)}</p>
           <h1 id="enter-title" style={{ fontSize: 'clamp(32px, 6vw, 48px)' }}>
             Enter your pet
           </h1>
+          <p className="section-count">Free to enter · closes {apDate(c.contest.submissions_close_at)}</p>
           <p className="dek" style={{ marginBottom: 20 }}>
             One great photo and a few details. An editor reviews every entry before it goes live.
           </p>

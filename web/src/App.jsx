@@ -74,7 +74,7 @@ function Shell({ route }) {
       )}
       <header>
         <Masthead />
-        <Banner compact={route.name !== 'home'} />
+        <Banner />
       </header>
       <Nav route={route} />
       {c.loading || !c.windowsLoaded ? (

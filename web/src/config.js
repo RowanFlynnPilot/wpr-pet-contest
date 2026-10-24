@@ -25,37 +25,31 @@ export const RULES = {
 
 // Sponsor slots. A slot is a sponsor object or null (null renders an upsell).
 // Shape: { name, logo?, url?, tagline? }. Logos go in public/, never hot-linked.
-//   presenting: the title credit on the banner and home page
-//   gallery:    above the pet grid, the page with the most time on it
+//   presenting: the title credit on the contest bar and home page
+//   gallery:    the pet grid, after its first row of photos
 //   bracket:    the bracket page, every head-to-head round
-//   thankyou:   the checkout success screen, seen by every buyer
+// The buyer's thank-you screen is never sold: no sponsor, no upsell.
 export const SPONSORS = {
   presenting: null,
   gallery: null,
   bracket: null,
-  thankyou: null,
 }
 
 export const SPONSOR_SLOTS = {
   presenting: {
     name: 'Presenting sponsor',
-    pitch: 'Your name on the whole contest: the banner, the home page, every share card.',
+    pitch: 'Your name on the whole contest: the contest bar on every page, and the home page.',
     demo: '#/',
   },
   gallery: {
     name: 'Gallery sponsor',
-    pitch: 'Above every pet in the field. The page readers scroll longest.',
+    pitch: 'In the gallery of every pet in the field, right after the first row of photos.',
     demo: '#/gallery',
   },
   bracket: {
     name: 'Bracket sponsor',
-    pitch: 'Across the head-to-head bracket for the final week and a half, when traffic peaks.',
+    pitch: 'Across the head-to-head bracket for the final week and a half.',
     demo: '#/bracket',
-  },
-  thankyou: {
-    name: 'Thank-you screen',
-    pitch: 'Seen by every buyer at the moment they finish a purchase.',
-    demo: '#/sponsors',
   },
 }
 

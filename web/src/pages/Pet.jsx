@@ -3,6 +3,7 @@ import { useContest } from '../components/ContestContext.jsx'
 import { Arrow } from '../components/Icons.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
 import PetCard from '../components/PetCard.jsx'
+import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
 import { CountdownCells, CrownMark, Digits, GameClock, Lamp, RoadStrip, Scoreboard, StickyVote } from '../components/Scoreboard.jsx'
 import ShareTools from '../components/ShareTools.jsx'
 import ShareImageButton from '../components/ShareImageButton.jsx'
@@ -14,7 +15,7 @@ import { apDate, apWhen, fmtInt, fmtMoney, plural } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { useLive } from '../lib/live.js'
 import { cheapestPerVote } from '../lib/packs.js'
-import { cutline, isUpset, matchupStanding, rankOpenRound } from '../lib/rank.js'
+import { cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
 import { roadStops } from '../lib/road.js'
 import { roundLabel } from '../lib/rounds.js'
 
@@ -50,65 +51,6 @@ function VoteBlock({ entry, round, packs }) {
         </VoteButton>
       </StickyVote>
     </>
-  )
-}
-
-function Team({ side, lead, here }) {
-  const e = side.entry
-  const name = e?.pet_name || 'Removed'
-  const id = (
-    <>
-      <span className="sb-face">
-        <PetPhoto entry={e} width={120} square alt="" />
-      </span>
-      <span className="sb-team-name">{name}</span>
-      <span className="sb-seed">{side.seed != null ? `No. ${side.seed}` : ' '}</span>
-    </>
-  )
-  return (
-    <div className={`sb-team${lead ? ' lead' : ''}`}>
-      {here || !e ? (
-        <div className="sb-team-id">{id}</div>
-      ) : (
-        <a className="sb-team-id" href={`#/pet/${e.id}`}>
-          {id}
-        </a>
-      )}
-      <Digits value={side.votes} label={`${name}: ${fmtInt(side.votes)} ${votesWord(side.votes)}`} dim={!lead} />
-    </div>
-  )
-}
-
-// The two pets, their counts and the tug between them.
-function FaceOff({ me, opp, leading, name }) {
-  const total = me.votes + opp.votes
-  const pct = total ? Math.round((me.votes / total) * 100) : 50
-  return (
-    <>
-      <div className="sb-h2h">
-        <Team side={me} lead={leading} here />
-        <span className="sb-vs" aria-hidden="true">
-          vs.
-        </span>
-        <Team side={opp} lead={!leading} />
-      </div>
-      <div className="sb-tug" role="img" aria-label={`${name} has ${pct}% of the votes in this matchup`}>
-        <i style={{ width: `${pct}%` }} />
-      </div>
-    </>
-  )
-}
-
-// Between unequal seeds the upset lamp is always on the board, and lights
-// the moment the worse seed leads.
-function upsetLamp(st, me, opp, decided) {
-  if (me.seed == null || opp.seed == null || me.seed === opp.seed) return null
-  const on = isUpset(st)
-  const sr = on ? (decided ? 'Upset: the lower seed won.' : 'Upset: the lower seed leads.') : 'No upset: the better seed leads.'
-  return (
-    <Lamp on={on} sr={sr}>
-      Upset
-    </Lamp>
   )
 }
 
@@ -225,7 +167,7 @@ function BracketPanel({ c, entry, entries, byId, bracket, state }) {
         <p className="sb-crowned">
           <CrownMark size={30} /> {entry.pet_name} wins the crown
         </p>
-        <FaceOff me={me} opp={opp} leading name={entry.pet_name} />
+        <FaceOff a={me} b={opp} leading here />
         <p className="sb-note">
           {entry.pet_name} is the {c.contest.year} {c.contest.name} champion. Scores count each round&rsquo;s votes; totals reset every
           round. <a href="#/results">See the final bracket</a>
@@ -272,9 +214,9 @@ function BracketPanel({ c, entry, entries, byId, bracket, state }) {
         label={label}
         sub={live ? `Closes ${apWhen(round.closes_at, c.now)}` : null}
         clock={clock}
-        lamp={pending ? null : upsetLamp(st, me, opp, decided)}
+        lamp={pending ? null : <UpsetLamp standing={st} a={me} b={opp} decided={decided} />}
       >
-        <FaceOff me={me} opp={opp} leading={leading} name={entry.pet_name} />
+        <FaceOff a={me} b={opp} leading={leading} here />
         <p className="sb-note">
           {note} Totals reset every round.
         </p>

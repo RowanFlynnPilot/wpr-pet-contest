@@ -20,6 +20,7 @@ import { apTime, fmtInt, fmtMoney } from '../lib/format.js'
 import { useLive } from '../lib/live.js'
 import { contestPhase, pickActiveContest } from '../lib/phase.js'
 import { entryPhotoUrl } from '../lib/photos.js'
+import { isUpset, matchupStanding } from '../lib/rank.js'
 import { roundLabel } from '../lib/rounds.js'
 import { chooseView, closestMatchup, leaderIds, linkTo, timeLeft, topOpenRound } from '../lib/widget.js'
 import { useNow } from '../lib/hooks.js'
@@ -171,11 +172,13 @@ function Matchup({ round, bracketSize, focusId, fallback = null, to }) {
   const total = va + vb
   const share = (v) => (total ? Math.max(6, Math.round((v / total) * 100)) : 50)
   const gap = Math.abs(va - vb)
+  const upset = isUpset(matchupStanding(m, totals.data, byId))
   return (
     <>
       <p className="w-kicker-small">
         {focusId ? `${byId.get(focusId)?.pet_name} in the ` : 'The closest race in the '}
         {roundLabel(round.seq, bracketSize)}
+        {upset && <span className="w-upset">Upset alert</span>}
       </p>
       <div className="w-matchup" role="group" aria-label={`${a.pet_name} versus ${b.pet_name}`}>
         <Side entry={a} votes={va} share={share(va)} lead={va >= vb} to={to} />
@@ -210,9 +213,10 @@ function Champion({ rounds, to }) {
       <div className="w-champ">
         <Thumb entry={e} size={96} />
         <div>
-          <p className="w-kicker-small">The {new Date(final.closes_at).getFullYear()} champion</p>
           <p className="w-headline">{e.pet_name}</p>
-          <p className="w-sub">{e.town}</p>
+          <p className="w-sub">
+            The {new Date(final.closes_at).getFullYear()} champion · {e.town}
+          </p>
         </div>
       </div>
       <Cta href={linkTo(to, 'results')} view="champion">

@@ -51,7 +51,8 @@ a { color: inherit; }
   display: grid; grid-template-columns: 22px 40px 1fr auto; align-items: center; gap: 10px;
   padding: 6px 0; text-decoration: none;
 }
-.w-board a:hover .w-name, .w-board a:focus-visible .w-name { text-decoration: underline; }
+.w-board a:focus-visible .w-name { text-decoration: underline; }
+@media (hover: hover) and (pointer: fine) { .w-board a:hover .w-name { text-decoration: underline; } }
 .w-rank { font: 700 13px/1 var(--mono); color: var(--muted); text-align: right; }
 .w-name { min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .w-town { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
@@ -73,7 +74,8 @@ a { color: inherit; }
   display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 16px;
   border-radius: 999px; background: var(--teal-ink); color: #fff; font-weight: 700; text-decoration: none;
 }
-.w-cta:hover, .w-cta:focus-visible { background: var(--teal-deep); }
+.w-cta:focus-visible { background: var(--teal-deep); }
+@media (hover: hover) and (pointer: fine) { .w-cta:hover { background: var(--teal-deep); } }
 .w-cta:focus-visible, .w-board a:focus-visible, .w-side:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
 
 .w-foot {
@@ -88,6 +90,10 @@ a { color: inherit; }
   .w-bar { transition: width 400ms var(--ease); }
 }
 .w-bonus-by { font-weight: 500; }
+.w-upset {
+  display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; vertical-align: 1px;
+  background: var(--sun); color: var(--ink); font-size: 10.5px; letter-spacing: 0.1em;
+}
 
 .w-skel { display: block; border-radius: var(--radius-sm); background: var(--cream-deep); }
 .w-skel-row { height: 40px; margin: 6px 0; }

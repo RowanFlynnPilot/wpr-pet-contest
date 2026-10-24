@@ -29,18 +29,18 @@ export default function Sponsors() {
   const why = [
     [c.stats ? fmtInt(c.stats.entries) : '—', 'local pets entered, each with a family sharing their page'],
     [c.stats ? fmtInt(c.stats.votes) : '—', 'votes cast so far, every one a return visit'],
-    ['2½ weeks', 'of daily traffic, peaking in the bracket'],
+    ['2½ weeks', 'from the first entry to the champion'],
     ['0', 'cookies. No consent banner between readers and your brand'],
   ]
 
   return (
     <div className="wrap section" style={{ paddingTop: 24 }}>
-      <p className="kicker">Sponsorships · {c.contest?.year}</p>
       <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>Put your name on the county&rsquo;s cutest contest</h1>
+      <p className="section-count">Sponsorships · {c.contest?.year}</p>
       <p className="dek">
         {c.contest?.name || 'The pet contest'} is Wausau Pilot &amp; Review&rsquo;s biggest reader event of the year, and{' '}
         {c.contest ? `${c.contest.beneficiary_split_pct}%` : 'a share'} of every vote pack goes to local animal shelters. Sponsors are seen
-        by every pet lover in Marathon County, in a story they want to share.
+        by pet lovers across Marathon County, in a story they want to share.
       </p>
       <div className="hero-actions">
         <Cta slot="media-kit-top" subject="Pet contest sponsorship" label="Start the conversation" big />
@@ -97,10 +97,10 @@ export default function Sponsors() {
       </ul>
 
       <div className="card plain" style={{ marginTop: 24, background: 'var(--cream)' }}>
-        <h2 style={{ fontSize: 19 }}>Provable, not promised</h2>
+        <h2 style={{ fontSize: 19 }}>Clicks you can check</h2>
         <p className="small" style={{ margin: '6px 0 0' }}>
-          Each placement reports its own impressions and click-throughs, measured without cookies, and your link carries your campaign tags so
-          the traffic shows up in your analytics too.
+          Clicks on each placement are counted without cookies, and your link carries your campaign tags so the traffic shows up in your
+          analytics too.
         </p>
       </div>
 

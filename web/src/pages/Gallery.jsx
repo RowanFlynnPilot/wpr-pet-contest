@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import PetCard from '../components/PetCard.jsx'
@@ -7,7 +7,7 @@ import { Search } from '../components/Icons.jsx'
 import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
 import { entryStates } from '../lib/bracketState.js'
 import { fmtInt } from '../lib/format.js'
-import { useDocumentTitle } from '../lib/hooks.js'
+import { useDocumentTitle, useMediaQuery } from '../lib/hooks.js'
 import { rankOpenRound } from '../lib/rank.js'
 import { roundLabel } from '../lib/rounds.js'
 
@@ -106,7 +106,16 @@ export default function Gallery() {
   }, [entries, q, species, town, status, states, sortBy, rankOf])
 
   const resetKey = `${q}|${species}|${town}|${status}|${sortBy}`
+  // The Open Round leader leads the grid, unfiltered and sorted by votes.
+  const featureLeader = openLive && sortBy === 'votes' && !q && species === 'all' && !town
   const { shown, more, sentinel } = useIncremental(list.length, resetKey)
+  // Photos first: the sponsor sits after the first full row, whatever the
+  // column count (the featured card takes two cells).
+  const four = useMediaQuery('(min-width: 980px)')
+  const three = useMediaQuery('(min-width: 640px)')
+  const cols = four ? 4 : three ? 3 : 2
+  const sponsorAfter = (featureLeader ? cols - 1 : cols) - 1
+  const sponsor = <Sponsor sponsor={SPONSORS.gallery} slot="gallery" full />
   const cut = c.bracketSize
   const currentLabel = c.round ? roundLabel(c.round.seq, c.bracketSize) : null
 
@@ -168,10 +177,6 @@ export default function Gallery() {
             </p>
           )}
         </div>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <Sponsor sponsor={SPONSORS.gallery} slot="gallery" full />
       </div>
 
       <div className="gallery-tools" role="search">
@@ -270,12 +275,24 @@ export default function Gallery() {
               'Check back soon.'
             )}
           </p>
+          <div style={{ marginTop: 16 }}>{sponsor}</div>
         </div>
       ) : (
         <>
           <div className="grid">
             {list.slice(0, shown).map((e, i) => (
-              <PetCard key={e.id} entry={e} cut={cut} eager={i < 4} adoptable={Boolean(e.shelter_id)} level={2} {...cardProps(e)} />
+              <Fragment key={e.id}>
+                <PetCard
+                  entry={e}
+                  cut={cut}
+                  eager={i < 4}
+                  adoptable={Boolean(e.shelter_id)}
+                  level={2}
+                  featured={i === 0 && featureLeader}
+                  {...cardProps(e)}
+                />
+                {(i === sponsorAfter || (i === list.length - 1 && i < sponsorAfter)) && <div className="grid-break">{sponsor}</div>}
+              </Fragment>
             ))}
           </div>
           {shown < list.length && (

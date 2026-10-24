@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import { NEWSLETTER_URL, RULES, SPONSORS, SUPPORT_URL } from '../config.js'
+import { NEWSLETTER_URL, RULES, SUPPORT_URL } from '../config.js'
 import { createCheckout, fetchActivity, fetchTotals } from '../lib/api.js'
 import { APP_BASE, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
 import { apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
@@ -14,11 +14,12 @@ import { multiplierWord, windowTitle } from '../lib/bonus.js'
 import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
 import { useContest } from './ContestContext.jsx'
+import Confetti from './Confetti.jsx'
 import { Check } from './Icons.jsx'
+import { Digits } from './Scoreboard.jsx'
 import Modal from './Modal.jsx'
 import PetPhoto from './PetPhoto.jsx'
 import ShareTools from './ShareTools.jsx'
-import Sponsor from './Sponsor.jsx'
 
 // Loaded with this chunk. A failed load is forgotten, so "Try again" really
 // tries again instead of handing back the same rejected promise.
@@ -169,17 +170,23 @@ export default function CheckoutModal({ entry, round, onClose }) {
     else outcome = 'waiting'
   }
 
-  const head = (
-    <div className="modal-head">
-      <PetPhoto entry={entry} width={160} square />
-      <div>
-        <h2 id="checkout-title">{step === 'done' ? 'Thank you!' : `Vote for ${entry.pet_name}`}</h2>
-        <div className="sub">
-          {label} · {fmtInt(currentVotes)} {currentVotes === 1 ? 'vote' : 'votes'} so far
+  // The done step shows the pet and its count below; the head only thanks.
+  const head =
+    step === 'done' ? (
+      <div className="modal-head">
+        <h2 id="checkout-title">Thank you!</h2>
+      </div>
+    ) : (
+      <div className="modal-head">
+        <PetPhoto entry={entry} width={160} square />
+        <div>
+          <h2 id="checkout-title">Vote for {entry.pet_name}</h2>
+          <div className="sub">
+            {label} · {fmtInt(currentVotes)} {currentVotes === 1 ? 'vote' : 'votes'} so far
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
 
   return (
     <Modal label={step === 'done' ? 'Purchase complete' : `Vote for ${entry.pet_name}`} onClose={onClose} head={head} locked={paying}>
@@ -354,6 +361,8 @@ export default function CheckoutModal({ entry, round, onClose }) {
           closesAt={closesAt}
           currentVotes={currentVotes}
           contestName={c.contest?.name}
+          split={c.contest?.beneficiary_split_pct}
+          shelterName={c.shelters.length === 1 ? c.shelters[0].name : null}
           canBuyAgain={!closed}
           onAgain={() => {
             request.current = null
@@ -436,20 +445,43 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
   )
 }
 
-function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestName, canBuyAgain, onAgain, onClose }) {
+// The peak of the whole contest for a reader: their pet, its count lighting
+// up as the votes land, and what the pack did for the shelters. A late
+// payment gets the plain truth instead of a celebration.
+function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestName, split, shelterName, canBuyAgain, onAgain, onClose }) {
   const votes = fmtInt(intent.votes)
+  const late = outcome === 'late'
+  const toShelters = split != null ? Math.round((intent.cents * split) / 100) : null
   return (
-    <div>
-      <div className="success-burst" style={{ padding: '8px 0 4px' }}>
-        <div className="mark">
-          <Check size={34} />
+    <div className="done">
+      {outcome === 'credited' && <Confetti count={28} />}
+      <div className="done-hero">
+        <span className="done-photo">
+          <PetPhoto entry={entry} width={240} square alt="" />
+          <span className="done-check" aria-hidden="true">
+            <Check size={18} />
+          </span>
+        </span>
+        <div className="done-head">
+          <h2 className="done-title">{late ? 'Payment received' : `${votes} votes for ${entry.pet_name}`}</h2>
+          {!late && (
+            <div className="done-board">
+              <Digits value={currentVotes} label={`${entry.pet_name} has ${fmtInt(currentVotes)} votes this round`} />
+              <span className="done-board-label">{outcome === 'credited' ? 'votes this round, yours included' : 'votes this round so far'}</span>
+            </div>
+          )}
         </div>
-        <h2 style={{ fontSize: 26 }}>Payment received</h2>
+      </div>
+      {!late && toShelters > 0 && (
+        <p className="done-impact">
+          Your pack sends <strong>{fmtMoney(toShelters)}</strong> to {shelterName || 'local animal shelters'}.
+        </p>
+      )}
+      <div className="done-status">
         <p aria-live="polite">
           {outcome === 'credited' && (
             <>
-              <strong>Your {votes} votes are in.</strong> {entry.pet_name} now has <span className="mono">{fmtInt(currentVotes)}</span> votes
-              this round.
+              <strong>Your {votes} votes are in.</strong> Totals reset every round.
             </>
           )}
           {outcome === 'late' && (
@@ -473,7 +505,7 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
         </p>
       </div>
 
-      <ShareTools entry={entry} contestName={contestName} title={`Now get ${entry.pet_name} more votes`} compact />
+      {!late && <ShareTools entry={entry} contestName={contestName} title={`Now get ${entry.pet_name} more votes`} compact />}
 
       <div className="hero-actions" style={{ marginTop: 16 }}>
         {canBuyAgain && (
@@ -486,23 +518,17 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
         </button>
       </div>
 
-      <div className="support-box">
-        <strong>WPR is a nonprofit newsroom</strong>
-        Your vote pack isn&rsquo;t a donation. If you&rsquo;d like to support local journalism too,{' '}
+      <p className="done-support">
+        Your vote pack isn&rsquo;t a donation. WPR is a nonprofit newsroom:{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" onClick={() => track('Donate Click', { from: 'post-purchase' })}>
-          make a tax-deductible gift to Wausau Pilot &amp; Review
-        </a>
-        , or{' '}
+          make a tax-deductible gift
+        </a>{' '}
+        or{' '}
         <a href={NEWSLETTER_URL} target="_blank" rel="noopener noreferrer">
-          get our free newsletter
+          get the free newsletter
         </a>
         .
-      </div>
-
-      <div style={{ marginTop: 14 }}>
-        {/* A buyer's thank-you screen never carries an ad for itself. */}
-        <Sponsor sponsor={SPONSORS.thankyou} slot="thankyou" eyebrow="Thank-you screen presented by" quiet />
-      </div>
+      </p>
     </div>
   )
 }

@@ -60,10 +60,10 @@ function Adoptable() {
       <div className="card sun adoptable">
         {pet.pngLatestUrl && <img src={pet.pngLatestUrl} alt={`${pet.name}, ${facts}`} loading="lazy" width="1200" height="1502" />}
         <div>
-          <p className="kicker sun">Looking for a home</p>
           <h2 id="adopt-title" style={{ fontSize: 30 }}>
             Meet {pet.name}
           </h2>
+          <p className="section-count">Looking for a home</p>
           <p style={{ margin: '8px 0 0' }}>
             {facts}
             {pet.shelterName ? `, at ${pet.shelterName}` : ''}.
@@ -85,7 +85,6 @@ export default function Shelters() {
   const split = c.contest?.beneficiary_split_pct
   return (
     <div className="wrap section" style={{ paddingTop: 24 }}>
-      <p className="kicker">Where the money goes</p>
       <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>Our partner shelters</h1>
       <p className="dek">
         {split != null ? `${split}% of every vote pack` : 'A share of every vote pack'} goes to these local animal shelters

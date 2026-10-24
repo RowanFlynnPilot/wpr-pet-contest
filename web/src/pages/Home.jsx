@@ -2,12 +2,12 @@ import { useMemo } from 'react'
 import { SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
-import { apDate, apDateTime, fmtInt, fmtMoney, period } from '../lib/format.js'
+import { apWhen, fmtInt, fmtMoney } from '../lib/format.js'
 import { cheapestPerVote } from '../lib/packs.js'
 import { useDocumentTitle } from '../lib/hooks.js'
-import { rankOpenRound } from '../lib/rank.js'
+import { cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
 import { roundLabel } from '../lib/rounds.js'
-import Countdown from '../components/Countdown.jsx'
+import { closestMatchup } from '../lib/widget.js'
 import RaisedCounter from '../components/RaisedCounter.jsx'
 import HowItWorks from '../components/HowItWorks.jsx'
 import Leaderboard from '../components/Leaderboard.jsx'
@@ -16,135 +16,259 @@ import MatchupCard from '../components/MatchupCard.jsx'
 import PetCard from '../components/PetCard.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
 import Sponsor from '../components/Sponsor.jsx'
+import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
+import { CountdownCells, Digits, GameClock, Scoreboard } from '../components/Scoreboard.jsx'
 import { ShelterList } from './Shelters.jsx'
 import Results from './Results.jsx'
 import { Arrow } from '../components/Icons.jsx'
 
+const votesWord = (n) => (n === 1 ? 'vote' : 'votes')
+const plural = (n) => `${fmtInt(n)} ${votesWord(n)}`
+
+// The taped polaroids, for the entry weeks. The first pet given sits on top.
 function Polaroids({ entries }) {
   if (!entries.length) return null
   return (
     <div className="polaroids" aria-hidden="true">
-      {entries.slice(0, 3).map((e) => (
-        <a className="polaroid" href={`#/pet/${e.id}`} key={e.id} tabIndex={-1}>
-          <span className="tape" />
-          <PetPhoto entry={e} width={500} square eager alt="" />
-          <span className="cap">{e.pet_name}</span>
-        </a>
-      ))}
+      {entries
+        .slice(0, 3)
+        .reverse()
+        .map((e) => (
+          <a className="polaroid" href={`#/pet/${e.id}`} key={e.id} tabIndex={-1}>
+            <span className="tape" />
+            <PetPhoto entry={e} width={500} square eager alt="" />
+            <span className="cap">{e.pet_name}</span>
+          </a>
+        ))}
     </div>
   )
 }
 
-function Hero({ c, featured, entryCount }) {
-  const { phase, contest, round, nextRound, bracketSize } = c
-  const label = round ? roundLabel(round.seq, bracketSize) : null
-  let kicker, title, lede, actions, clock
-
+// Entry weeks: how many pets are in, and how long is left to join them.
+function EntryBoard({ c, entryCount }) {
+  const { phase, contest, nextRound } = c
   if (phase === 'coming') {
-    kicker = `Entries open ${apDate(contest.submissions_open_at)}`
-    title = (
-      <>
-        Is your pet the <em>cutest</em> in Marathon County?
-      </>
+    return (
+      <Scoreboard label="Entries open" sub={`Opens ${apWhen(contest.submissions_open_at, c.now)}`}>
+        <CountdownCells to={contest.submissions_open_at} label="Entries open in" />
+        <p className="sb-note">Entry is free, and every vote pack sold helps local animal shelters.</p>
+      </Scoreboard>
     )
-    lede = 'Get your best photo ready. Entry is free, and every vote pack helps local animal shelters.'
-    actions = (
-      <a className="btn btn-ghost btn-lg" href="#/rules">
-        Read the rules
-      </a>
-    )
-    clock = <Countdown to={contest.submissions_open_at} label="Entries open in" />
-  } else if (phase === 'submissions') {
-    kicker = `Free to enter · ${fmtInt(entryCount)} ${entryCount === 1 ? 'pet' : 'pets'} so far`
-    title = (
-      <>
-        Is your pet the <em>cutest</em> in Marathon County?
-      </>
-    )
-    lede = `Enter a photo free. Then readers vote with vote packs, and ${contest.beneficiary_split_pct}% of every pack goes to local animal shelters.`
-    actions = (
-      <>
-        <a className="btn btn-primary btn-lg" href="#/enter">
-          Enter your pet
+  }
+  const closed = phase === 'submissions_closed'
+  const opens = nextRound?.opens_at
+  return (
+    <Scoreboard
+      label={closed ? 'Entries closed' : 'Entries'}
+      sub={closed ? (opens ? `Voting opens ${apWhen(opens, c.now)}` : 'Voting opens soon') : `Closes ${apWhen(contest.submissions_close_at, c.now)}`}
+      clock={closed ? null : <GameClock to={contest.submissions_close_at} done="Closed" />}
+    >
+      <div className="sb-solo">
+        <div className="sb-solo-count">
+          <Digits value={entryCount} label={`${fmtInt(entryCount)} pets entered`} />
+          <span className="sb-unit">{closed ? 'pets in the field' : 'pets entered so far'}</span>
+        </div>
+      </div>
+      {closed && opens && (
+        <div className="sb-countdown-row">
+          <CountdownCells to={opens} label="Voting opens in" />
+        </div>
+      )}
+      <p className="sb-note">
+        {closed
+          ? 'The field is set. Pick your favorite now; the whole field goes head to head when voting opens.'
+          : `Entering is free. Then readers vote with vote packs, and ${contest.beneficiary_split_pct}% of every pack goes to local animal shelters.`}
+      </p>
+    </Scoreboard>
+  )
+}
+
+// The Open Round: the top three on the board, and the fight at the cut line.
+function OpenBoard({ c, entries, totals }) {
+  const ranked = useMemo(() => rankOpenRound(entries, totals), [entries, totals])
+  const label = roundLabel(c.round.seq, c.bracketSize)
+  const voting = c.phase === 'voting'
+  const firstOut = ranked[c.bracketSize]
+  const lastIn = ranked[c.bracketSize - 1]
+  const cut = firstOut ? cutline(ranked, firstOut.entry.id, c.bracketSize) : null
+  return (
+    <Scoreboard
+      label={label}
+      sub={voting ? `Closes ${apWhen(c.round.closes_at, c.now)}` : 'Voting has closed'}
+      clock={<GameClock to={c.round.closes_at} done="Final count" />}
+    >
+      <ol className="sb-rows" aria-label={`${label} leaders`}>
+        {ranked.slice(0, 3).map((r) => (
+          <li key={r.entry.id} className={`sb-row${r.rank === 1 ? ' lead' : ''}`}>
+            <span className="sb-row-rank">{r.rank}</span>
+            <a className="sb-row-id" href={`#/pet/${r.entry.id}`}>
+              <span className="sb-face sm">
+                <PetPhoto entry={r.entry} width={96} square alt="" />
+              </span>
+              <span className="sb-row-name">
+                {r.entry.pet_name}
+                <span className="sb-row-town">{r.entry.town}</span>
+              </span>
+            </a>
+            <Digits value={r.votes} label={`${fmtInt(r.votes)} ${votesWord(r.votes)}`} dim={r.rank !== 1} />
+          </li>
+        ))}
+      </ol>
+      <p className="sb-note">
+        {cut && lastIn
+          ? `At the cut, ${firstOut.entry.pet_name} needs ${plural(cut.needed)} to pass ${lastIn.entry.pet_name} for the last spot in the top ${c.bracketSize}. `
+          : ''}
+        {voting ? `The top ${c.bracketSize} make the bracket, where every total starts over.` : 'Results are finalized shortly after the deadline.'}
+      </p>
+    </Scoreboard>
+  )
+}
+
+// A bracket round: the closest race on the board.
+function MatchBoard({ c, byId, round }) {
+  const { matchups, totalsByRound } = useBracket(c.rounds, { openRoundId: c.phase === 'voting' ? c.round?.id : null })
+  const totals = totalsByRound.get(round.id) || new Map()
+  const current = matchups.filter((m) => m.round_id === round.id)
+  const m = closestMatchup(current, totals, byId)
+  const label = roundLabel(round.seq, c.bracketSize)
+  const voting = c.phase === 'voting'
+  if (!m) return <div className="scoreboard-skeleton skeleton" aria-busy="true" aria-label="Loading the matchups" />
+  const st = matchupStanding(m, totals, byId)
+  const leading = st.leader === 'a'
+  const lead = leading ? st.a : st.b
+  const trail = leading ? st.b : st.a
+  const gap = lead.votes - trail.votes
+  return (
+    <Scoreboard
+      label={label}
+      sub={voting ? `Closes ${apWhen(round.closes_at, c.now)}` : 'Voting has closed'}
+      clock={<GameClock to={round.closes_at} done="Final count" />}
+      lamp={<UpsetLamp standing={st} a={st.a} b={st.b} />}
+    >
+      <FaceOff a={st.a} b={st.b} leading={leading} />
+      <p className="sb-note">
+        The closest race:{' '}
+        {gap === 0
+          ? `${lead.entry?.pet_name} and ${trail.entry?.pet_name} are tied.`
+          : `${lead.entry?.pet_name} leads ${trail.entry?.pet_name} by ${plural(gap)}.`}{' '}
+        Totals reset every round.
+      </p>
+    </Scoreboard>
+  )
+}
+
+// Between rounds: the countdown to the next one.
+function NextBoard({ c }) {
+  const next = c.nextRound
+  const label = next ? roundLabel(next.seq, c.bracketSize) : 'Next round'
+  return (
+    <Scoreboard label={label} sub={next?.opens_at ? `Opens ${apWhen(next.opens_at, c.now)}` : 'Opens soon'}>
+      {next?.opens_at && <CountdownCells to={next.opens_at} label={`${label} opens in`} />}
+      <p className="sb-note">The matchups are set. Every total starts over at zero.</p>
+    </Scoreboard>
+  )
+}
+
+function Arena({ c, entries, byId, totals }) {
+  const { phase, round, nextRound, bracketSize } = c
+  const label = round ? roundLabel(round.seq, bracketSize) : null
+  const entering = ['coming', 'submissions', 'submissions_closed'].includes(phase)
+  const openRound = round?.kind === 'open' && ['voting', 'counting'].includes(phase)
+  const cutest = (
+    <>
+      Is your pet the <em>cutest</em> in Marathon County?
+    </>
+  )
+  let title, lede, actions, board
+
+  if (entering) {
+    title = phase === 'submissions_closed' ? 'The field is set.' : cutest
+    lede =
+      phase === 'coming'
+        ? 'Get your best photo ready.'
+        : phase === 'submissions'
+          ? null
+          : 'Voting opens soon, so pick your favorite now.'
+    actions =
+      phase === 'submissions' ? (
+        <>
+          <a className="btn btn-primary btn-lg" href="#/enter">
+            Enter your pet
+          </a>
+          <a className="btn btn-ghost btn-lg" href="#/gallery">
+            Meet the entrants
+          </a>
+        </>
+      ) : phase === 'coming' ? (
+        <a className="btn btn-ghost btn-lg" href="#/rules">
+          Read the rules
         </a>
-        <a className="btn btn-ghost btn-lg" href="#/gallery">
+      ) : (
+        <a className="btn btn-primary btn-lg" href="#/gallery">
           Meet the entrants
         </a>
-      </>
-    )
-    clock = <Countdown to={contest.submissions_close_at} label="Entries close in" />
-  } else if (phase === 'submissions_closed') {
-    kicker = 'Entries are closed'
-    title = 'The field is set.'
-    lede = `${fmtInt(entryCount)} pets are in. Voting opens soon, so pick your favorite now.`
-    actions = (
-      <a className="btn btn-primary btn-lg" href="#/gallery">
-        Meet the entrants
-      </a>
-    )
-  } else if (phase === 'voting' && round.kind === 'open') {
-    kicker = `${label} · voting now`
+      )
+    board = <EntryBoard c={c} entryCount={entries.length} />
+  } else if (openRound) {
     title = (
       <>
         Vote for the <em>cutest</em> pet in Marathon County
       </>
     )
     lede = `Every pet is in the running. The top ${bracketSize} when the ${label} closes make the bracket, seeded by votes.`
-    actions = (
-      <>
+    actions =
+      phase === 'voting' ? (
+        <>
+          <a className="btn btn-primary btn-lg" href="#/gallery">
+            Vote now
+          </a>
+          <a className="btn btn-ghost btn-lg" href="#/bracket">
+            Projected bracket
+          </a>
+        </>
+      ) : (
         <a className="btn btn-primary btn-lg" href="#/gallery">
-          Vote now
+          See the standings
         </a>
-        <a className="btn btn-ghost btn-lg" href="#/bracket">
-          Projected bracket
-        </a>
-      </>
-    )
-    clock = <Countdown to={round.closes_at} label={`${label} closes in`} />
-  } else if (phase === 'voting') {
-    kicker = `${label} · voting now`
-    title = <>The {label} is on.</>
-    lede = 'Head to head, and every matchup started at zero. The pet with more votes when the clock runs out moves on.'
+      )
+    board = <OpenBoard c={c} entries={entries} totals={totals} />
+  } else if (phase === 'voting' || phase === 'counting') {
+    title = phase === 'voting' ? <>The {label} is on.</> : 'The votes are in.'
+    lede =
+      phase === 'voting'
+        ? 'Head to head, and every matchup started at zero. The pet with more votes when the clock runs out moves on.'
+        : `Voting for the ${label} has closed. Results are finalized shortly after the deadline.`
     actions = (
       <a className="btn btn-primary btn-lg" href="#/bracket">
-        Vote in the {label}
+        {phase === 'voting' ? `Vote in the ${label}` : 'See the bracket'}
       </a>
     )
-    clock = <Countdown to={round.closes_at} label={`${label} closes in`} />
-  } else if (phase === 'counting') {
-    kicker = `${label} · voting closed`
-    title = 'The votes are in.'
-    lede = `Voting for the ${label} has closed. Results are finalized shortly after the deadline.`
-    actions = (
-      <a className="btn btn-primary btn-lg" href="#/bracket">
-        See the bracket
-      </a>
-    )
+    board = <MatchBoard c={c} byId={byId} round={round} />
   } else {
     const next = nextRound ? roundLabel(nextRound.seq, bracketSize) : 'next round'
-    kicker = 'Between rounds'
     title = <>The {next} is next.</>
-    lede = nextRound
-      ? `${period(`Scheduled to open ${apDateTime(nextRound.opens_at)}`)} Totals start from zero.`
-      : 'The next round opens soon. Totals start from zero.'
+    lede = 'The matchups are set, and every pet starts the round at zero.'
     actions = (
       <a className="btn btn-primary btn-lg" href="#/bracket">
         See the matchups
       </a>
     )
+    board = <NextBoard c={c} />
   }
 
+  const featured = entering ? [...entries].reverse() : []
   return (
-    <section className="hero">
-      <div className="wrap hero-grid">
-        <div>
-          <p className="kicker">{kicker}</p>
-          <h1>{title}</h1>
-          <p className="hero-lede">{lede}</p>
-          {clock}
-          <div className="hero-actions">{actions}</div>
-        </div>
-        <Polaroids entries={featured} />
+    <section className="home-arena">
+      <div className="wrap home-grid">
+        <h1 className="home-title">{title}</h1>
+        <div className="home-board">{board}</div>
+        <div className="hero-actions home-actions">{actions}</div>
+        {lede && <p className="hero-lede home-lede">{lede}</p>}
+        {entering && (
+          <div className="home-polaroids">
+            <Polaroids entries={featured} />
+          </div>
+        )}
       </div>
     </section>
   )
@@ -168,15 +292,14 @@ function PackCard({ c }) {
   )
 }
 
-function OpenRoundPreview({ c, entries, byId }) {
-  const { totals } = useRoundTotals(c.round.id)
+function OpenRoundPreview({ c, entries, byId, totals }) {
   const ranked = useMemo(() => rankOpenRound(entries, totals), [entries, totals])
   return (
     <section className="section" aria-labelledby="lb-title">
       <div className="section-head">
         <div>
-          <p className="kicker">Live leaderboard</p>
           <h2 id="lb-title">Who&rsquo;s in the top {c.bracketSize}</h2>
+          <p className="section-count">Live, with the cut line marked</p>
         </div>
         <a className="more" href="#/gallery">
           All {fmtInt(entries.length)} pets <Arrow size={14} />
@@ -186,13 +309,6 @@ function OpenRoundPreview({ c, entries, byId }) {
         <Leaderboard ranked={ranked} cut={c.bracketSize} bubble />
         <div className="stack">
           <ActivityTicker roundId={c.round.id} byId={byId} />
-          <div className="card">
-            <h3>Totals reset after this round</h3>
-            <p className="small" style={{ margin: 0 }}>
-              Open Round votes decide who makes the bracket and each pet&rsquo;s seed. When the {roundLabel(2, c.bracketSize)} starts,
-              everyone is back to zero.
-            </p>
-          </div>
           <PackCard c={c} />
         </div>
       </div>
@@ -208,8 +324,8 @@ function BracketPreview({ c, byId, round }) {
     <section className="section" aria-labelledby="bp-title">
       <div className="section-head">
         <div>
-          <p className="kicker">{c.phase === 'voting' ? 'Live now' : c.phase === 'intermission' ? 'Up next' : 'Voting closed'}</p>
-          <h2 id="bp-title">The {label}</h2>
+          <h2 id="bp-title">Every {label} matchup</h2>
+          <p className="section-count">{c.phase === 'voting' ? 'Live now' : c.phase === 'intermission' ? 'Up next' : 'Voting closed'}</p>
         </div>
         <a className="more" href="#/bracket">
           Full bracket <Arrow size={14} />
@@ -222,14 +338,7 @@ function BracketPreview({ c, byId, round }) {
       )}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
         {current.map((m) => (
-          <MatchupCard
-            key={m.id}
-            matchup={m}
-            totals={totalsByRound.get(m.round_id)}
-            byId={byId}
-            round={round}
-            live={c.phase === 'voting'}
-          />
+          <MatchupCard key={m.id} matchup={m} totals={totalsByRound.get(m.round_id)} byId={byId} round={round} live={c.phase === 'voting'} />
         ))}
       </div>
     </section>
@@ -243,8 +352,8 @@ function Newcomers({ entries }) {
     <section className="section" aria-labelledby="new-title">
       <div className="section-head">
         <div>
-          <p className="kicker">Just entered</p>
           <h2 id="new-title">Meet the entrants</h2>
+          <p className="section-count">The newest first</p>
         </div>
         <a className="more" href="#/gallery">
           See all {fmtInt(entries.length)} <Arrow size={14} />
@@ -266,11 +375,6 @@ export default function Home() {
   const { totals } = useRoundTotals(openRound ? c.round.id : null)
   useDocumentTitle(c.contest ? `${c.contest.name} — Wausau Pilot & Review` : 'Pet contest — Wausau Pilot & Review')
 
-  const featured = useMemo(() => {
-    if (openRound) return rankOpenRound(entries, totals).map((r) => r.entry)
-    return [...entries].reverse()
-  }, [entries, totals, openRound])
-
   if (c.roundsError) {
     return (
       <div className="wrap section">
@@ -287,8 +391,7 @@ export default function Home() {
     return (
       <div className="wrap section" aria-busy="true">
         <div className="skeleton" style={{ height: 48, maxWidth: 520 }} />
-        <div className="skeleton" style={{ height: 22, maxWidth: 380, marginTop: 14 }} />
-        <div className="skeleton" style={{ height: 160, marginTop: 28 }} />
+        <div className="scoreboard-skeleton skeleton" style={{ marginTop: 18 }} />
       </div>
     )
   }
@@ -306,14 +409,22 @@ export default function Home() {
 
   const previewRound = c.phase === 'intermission' ? c.nextRound || c.round : c.round
   const bracketLive = previewRound?.kind === 'bracket' && ['voting', 'counting', 'intermission'].includes(c.phase)
+  const raised = (c.stats?.shelter_cents ?? 0) > 0
   return (
     <>
-      <Hero c={c} featured={featured} entryCount={entries.length} />
+      <Arena c={c} entries={entries} byId={byId} totals={totals} />
       <div className="wrap">
-        <div className="section" style={{ paddingTop: 20 }}>
-          <RaisedCounter />
-        </div>
-        {openRound && <OpenRoundPreview c={c} entries={entries} byId={byId} />}
+        {raised && (
+          <div className="section" style={{ paddingTop: 20 }}>
+            <RaisedCounter />
+          </div>
+        )}
+        {SPONSORS.presenting && (
+          <section className="section" aria-label="Presenting sponsor">
+            <Sponsor sponsor={SPONSORS.presenting} slot="presenting" full />
+          </section>
+        )}
+        {openRound && <OpenRoundPreview c={c} entries={entries} byId={byId} totals={totals} />}
         {bracketLive && <BracketPreview c={c} byId={byId} round={previewRound} />}
         {(c.phase === 'submissions' || c.phase === 'submissions_closed' || c.phase === 'coming') && <Newcomers entries={entries} />}
         <HowItWorks />
@@ -321,8 +432,8 @@ export default function Home() {
           <section className="section" aria-labelledby="sh-title">
             <div className="section-head">
               <div>
-                <p className="kicker">Where the money goes</p>
-                <h2 id="sh-title">Our partner shelters</h2>
+                <h2 id="sh-title">Where the money goes</h2>
+                <p className="section-count">Our partner shelters</p>
               </div>
               <a className="more" href="#/shelters">
                 Adopt a pet <Arrow size={14} />

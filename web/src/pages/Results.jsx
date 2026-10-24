@@ -1,35 +1,22 @@
-import { useMemo } from 'react'
 import { useContest } from '../components/ContestContext.jsx'
+import Confetti from '../components/Confetti.jsx'
+import { CrownMark } from '../components/Scoreboard.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
 import RaisedCounter from '../components/RaisedCounter.jsx'
 import { useBracket, useEntries, useSideAwards } from '../lib/data.js'
 import { fmtInt, fmtMoney } from '../lib/format.js'
-import { useDocumentTitle, useReducedMotion } from '../lib/hooks.js'
+import { useDocumentTitle } from '../lib/hooks.js'
 import { finalSeq } from '../lib/rounds.js'
 import { BracketBoard } from './Bracket.jsx'
 
-const CONFETTI = ['#f4b942', '#3a867c', '#ffffff', '#e1edea', '#f7c860']
+// On the sun field, pieces that show against it.
+const ON_SUN = ['#1f4b45', '#3a867c', '#ffffff', '#2b655d', '#fcefd0']
 
-function Confetti() {
-  const reduced = useReducedMotion()
-  const bits = useMemo(
-    () =>
-      Array.from({ length: 36 }, (_, i) => ({
-        left: `${(i * 37) % 100}%`,
-        delay: `${(i % 9) * 0.12}s`,
-        color: CONFETTI[i % CONFETTI.length],
-        rotate: `${(i * 47) % 360}deg`,
-      })),
-    [],
-  )
-  if (reduced) return null
-  return (
-    <div className="confetti" aria-hidden="true">
-      {bits.map((b, i) => (
-        <i key={i} style={{ left: b.left, animationDelay: b.delay, background: b.color, transform: `rotate(${b.rotate})` }} />
-      ))}
-    </div>
-  )
+// The story of the win in a line, under the name.
+function story(seed, size) {
+  if (seed === 1) return 'The top seed holds on'
+  if (seed > size / 2) return `A No. ${seed} seed takes the crown`
+  return `No. ${seed} seed takes the crown`
 }
 
 export function Champion({ c, byId }) {
@@ -40,21 +27,26 @@ export function Champion({ c, byId }) {
   const runnerUp = champ && byId.get(m.entry_a_id === champ.id ? m.entry_b_id : m.entry_a_id)
   if (!champ) return null
   return (
+    // A staged reveal: the photo settles and the crown drops onto it, then
+    // the name lands a beat later, so "is…" has its answer arrive.
     <section className="champion" aria-labelledby="champ-title">
-      <Confetti />
-      <PetPhoto entry={champ} width={800} eager />
-      <div>
+      <Confetti colors={ON_SUN} />
+      <div className="champ-photo">
+        <PetPhoto entry={champ} width={800} eager />
+        <CrownMark size={64} />
+      </div>
+      <div className="champ-copy">
         <h2 id="champ-title">{champ.pet_name}</h2>
         <p className="champ-meta">
-          {c.contest.year} champion · No. {champ.seed} seed
+          {c.contest.year} champion · {story(champ.seed, c.bracketSize)}
         </p>
         <p>
-          of {champ.town} is the {c.contest.name}
+          {champ.pet_name}, of {champ.town}, is the {c.contest.name}
           {runnerUp ? `, beating ${runnerUp.pet_name} in the Championship` : ''}.
           {c.stats ? ` Together, voters raised ${fmtMoney(c.stats.shelter_cents, { whole: true })} for local animal shelters.` : ''}
         </p>
-        <a className="btn btn-sun" href={`#/pet/${champ.id}`}>
-          Congratulate {champ.pet_name}
+        <a className="btn btn-primary" href={`#/pet/${champ.id}`}>
+          See {champ.pet_name}&rsquo;s road to the crown
         </a>
       </div>
     </section>
@@ -72,8 +64,8 @@ export function SideAwards({ c, byId }) {
     <section className="section" aria-labelledby="awards-title">
       <div className="section-head">
         <div>
-          <p className="kicker">Side awards · from Open Round votes</p>
           <h2 id="awards-title">Best in species</h2>
+          <p className="section-count">Side awards, from Open Round votes</p>
         </div>
       </div>
       <div className="awards">
@@ -118,7 +110,6 @@ export default function Results() {
   return (
     <div className="wrap">
       <div className="section" style={{ paddingBottom: 12 }}>
-        <p className="kicker">{c.contest.year} results</p>
         <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', marginBottom: 18 }}>And the cutest pet in Marathon County is…</h1>
         <Champion c={c} byId={byId} />
       </div>

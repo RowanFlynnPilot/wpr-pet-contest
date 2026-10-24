@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Children, useEffect, useState } from 'react'
 import { EMBEDDED } from '../lib/env.js'
 import { countdownParts, describeCountdown } from '../lib/format.js'
 import { useNow } from '../lib/hooks.js'
@@ -70,7 +70,13 @@ export function Lamp({ on = false, sr, children }) {
       <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
         <circle cx="5" cy="5" r="4" />
       </svg>
-      <span aria-hidden={sr ? true : undefined}>{children}</span>
+      {on || !sr ? (
+        <span aria-hidden={sr ? true : undefined}>{children}</span>
+      ) : (
+        // Unlit, the word is a ghost drawn like the 8s behind the digits:
+        // decoration, with the state carried by `sr`.
+        <span className="sb-lamp-ghost" data-word={Children.toArray(children).join('')} aria-hidden="true" />
+      )}
       {sr && <span className="sr-only">{sr}</span>}
     </span>
   )

@@ -14,8 +14,8 @@ export default function HowItWorks() {
     <section className="section" aria-labelledby="how-title">
       <div className="section-head">
         <div>
-          <p className="kicker">How it works</p>
           <h2 id="how-title">Three steps to top dog (or cat)</h2>
+          <p className="section-count">How it works</p>
         </div>
       </div>
       <ol className="steps">

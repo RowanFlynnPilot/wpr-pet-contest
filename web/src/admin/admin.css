@@ -80,6 +80,11 @@ code { font-family: var(--mono); font-size: 12.5px; background: var(--cream); pa
 .window-form label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
 .window-form .label { font-weight: 700; }
 .window-form input, .window-form select { min-height: 38px; font-size: 14px; }
+/* Under 16px, iOS zooms the page into a field and never zooms back. Staff
+   moderate from phones too. */
+@media (pointer: coarse) {
+  table.data input[type='text'], table.data input[type='number'], .window-form input, .window-form select { font-size: 16px; }
+}
 
 /* Payout statement: a real document when printed, nothing else on the page. */
 .statement { width: 100%; max-width: 560px; border-collapse: collapse; margin: 12px 0; }

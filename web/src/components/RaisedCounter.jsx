@@ -31,7 +31,7 @@ function useRollingNumber(target, ms = 1200) {
 }
 
 export default function RaisedCounter() {
-  const { stats, contest } = useContest()
+  const { stats, contest, phase } = useContest()
   const cents = stats?.shelter_cents ?? 0
   const shown = useRollingNumber(Number(cents))
   if (!contest) return null
@@ -49,7 +49,8 @@ export default function RaisedCounter() {
       </div>
       <div>
         <p style={{ margin: '0 0 8px', fontSize: 15 }}>
-          {split}% of every vote pack goes straight to our partner shelters. The counter updates as votes come in.
+          {split}% of every vote pack goes straight to our partner shelters.
+          {phase === 'complete' ? ' The final total, after refunds.' : ' The counter updates as votes come in.'}
         </p>
         <div className="raised-facts">
           <span>

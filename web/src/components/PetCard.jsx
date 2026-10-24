@@ -13,11 +13,11 @@ function rankClass(rank, cut) {
 
 // One pet in the grid. The photo and name link to the pet's page; the Vote
 // button opens checkout straight from the grid, one tap fewer.
-function PetCard({ entry, votes, rank, seed, cut = 16, voteRound, state, eager, adoptable, level = 3 }) {
+function PetCard({ entry, votes, rank, seed, cut = 16, voteRound, state, eager, adoptable, level = 3, featured = false }) {
   const href = `#/pet/${entry.id}`
   const Name = `h${level}`
   return (
-    <article className={`pet-card${state?.out ? ' is-out' : ''}`}>
+    <article className={`pet-card${state?.out ? ' is-out' : ''}${featured ? ' featured' : ''}`}>
       <a className="pet-card-link" href={href}>
         <div style={{ position: 'relative' }}>
           {rank != null && (
@@ -49,7 +49,7 @@ function PetCard({ entry, votes, rank, seed, cut = 16, voteRound, state, eager, 
               <span className="u">{state?.note || ''}</span>
             </span>
           )}
-          {voteRound && <VoteButton entry={entry} round={voteRound} />}
+          {voteRound && <VoteButton entry={entry} round={voteRound} className="btn btn-ghost btn-sm" />}
         </div>
       </div>
     </article>
