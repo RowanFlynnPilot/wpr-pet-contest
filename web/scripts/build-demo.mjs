@@ -8,6 +8,7 @@
 // rules and the copy. Entries and sign-in are switched off; the checkout
 // pretends.
 
+import { existsSync } from 'node:fs'
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -18,13 +19,20 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'dist-demo')
 
 async function main() {
+  // The sample photos, when they are there, instead of the drawn faces.
+  const samples = join(ROOT, 'public', 'sample-pets')
+  const havePhotos = existsSync(join(samples, '1.jpg'))
+  if (havePhotos) process.env.VITE_SAMPLE_PHOTOS = 'true'
   await build({ root: ROOT, mode: 'demo', configFile: join(ROOT, 'vite.config.js'), build: { outDir: OUT, emptyOutDir: true }, logLevel: 'warn' })
 
   // The photos, where VITE_STORAGE_URL=. makes the app look for them.
   const pets = join(OUT, 'storage', 'v1', 'object', 'public', 'pets')
   await mkdir(join(pets, 'mock'), { recursive: true })
   await mkdir(join(pets, 'shelters'), { recursive: true })
-  for (let n = 1; n <= PHOTO_COUNT; n++) await writeFile(join(pets, 'mock', `${n}.svg`), photo(n))
+  for (let n = 1; n <= PHOTO_COUNT; n++) {
+    await writeFile(join(pets, 'mock', `${n}.svg`), photo(n))
+    if (havePhotos) await writeFile(join(pets, 'mock', `${n}.jpg`), await readFile(join(samples, `${n}.jpg`)))
+  }
   await writeFile(join(pets, 'shelters', 'moments-foster-care.jpg'), await readFile(join(ROOT, 'public', 'moments-foster-care.jpg')))
 
   // artifact.html: the same page for a host that wraps it in its own document

@@ -14,13 +14,16 @@
 // Switch the contest's phase while it runs:
 //   curl http://127.0.0.1:8787/__phase?set=submissions   (submissions | open | bracket | complete)
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { createMock, photo } from '../src/demo/contest.js'
 
 // Not in the 49152+ range: Windows reserves chunks of it for Hyper-V and WSL.
 const PORT = Number(process.env.PORT || 8787)
-const mock = createMock({ phase: process.env.PHASE || 'open', scale: process.env.VOTE_SCALE })
+// The sample photos (public/sample-pets), when they are there; drawn faces otherwise.
+const SAMPLES = new URL('../public/sample-pets/', import.meta.url)
+const samples = process.env.MOCK_PHOTOS !== 'drawn' && existsSync(new URL('1.jpg', SAMPLES))
+const mock = createMock({ phase: process.env.PHASE || 'open', scale: process.env.VOTE_SCALE, photos: samples ? 'jpg' : 'svg' })
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -44,7 +47,11 @@ createServer((req, res) => {
     return json(res, 200, { phase: mock.phase })
   }
 
-  const pic = url.pathname.match(/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/mock\/(\d+)\.svg$/)
+  const pic = url.pathname.match(/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/mock\/(\d+)\.(svg|jpg)$/)
+  if (pic && pic[2] === 'jpg' && samples) {
+    res.writeHead(200, { ...CORS, 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=3600' })
+    return res.end(readFileSync(new URL(`${pic[1]}.jpg`, SAMPLES)))
+  }
   if (pic) {
     res.writeHead(200, { ...CORS, 'Content-Type': 'image/svg+xml', 'Cache-Control': 'max-age=3600' })
     return res.end(photo(Number(pic[1])))
