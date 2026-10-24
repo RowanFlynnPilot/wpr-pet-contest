@@ -244,7 +244,7 @@ createServer((req, res) => {
     return res.end(photo(Number(pic[1])))
   }
   // The partner's logo, the committed copy the live site serves from Pages.
-  if (/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/shelters\/moments-foster-care\.jpg$/.test(url.pathname)) {
+  if (/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/shelters\/moments-foster-care\.png$/.test(url.pathname)) {
     res.writeHead(200, { ...CORS, 'Content-Type': 'image/png', 'Cache-Control': 'max-age=3600' })
     return res.end(readFileSync(new URL('../public/moments-foster-care.png', import.meta.url)))
   }
