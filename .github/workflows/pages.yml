@@ -10,7 +10,7 @@ name: pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, free-vote-favorites]
     paths: ['web/**', '.github/workflows/pages.yml']
   schedule:
     - cron: '*/30 * * * *'
@@ -29,8 +29,9 @@ jobs:
   build:
     # GitHub Pages needs a public repo on the free plan. Until it is enabled,
     # set nothing and this workflow does nothing, rather than failing every 30
-    # minutes and teaching everyone to ignore red checks.
-    if: vars.PAGES_ENABLED == 'true'
+    # minutes and teaching everyone to ignore red checks. The 30-minute rebuild
+    # is for share pages, which need Supabase: without it, only pushes deploy.
+    if: vars.PAGES_ENABLED == 'true' && (github.event_name != 'schedule' || vars.VITE_SUPABASE_URL != '')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -62,6 +63,16 @@ jobs:
           # The 30-minute rebuild is only for share pages: if Supabase is
           # unreachable, fail it rather than deploy a site without them.
           SHARE_PAGES_REQUIRED: ${{ github.event_name == 'schedule' }}
+      # The demo (the site with its backend inside the browser, placeholder
+      # pets) lives at /demo/ for showing the newsroom. Until the real site
+      # is configured, the root points there too.
+      - name: Add the demo at /demo/
+        run: |
+          npm run demo
+          mkdir -p dist/demo && cp -r dist-demo/. dist/demo/
+          if [ -z "${{ vars.VITE_SUPABASE_URL }}" ]; then
+            printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=./demo/"><title>Cutest Pet in Marathon County</title><p><a href="./demo/">Open the demo</a></p>' > dist/index.html
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

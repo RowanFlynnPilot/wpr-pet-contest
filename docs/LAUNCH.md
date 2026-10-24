@@ -97,12 +97,15 @@ supabase secrets set \
 
 ## 3. GitHub
 
-- [ ] The repo is private. GitHub Pages on the free plan needs it public (the
-      code is MIT-licensed and holds no secrets), or a paid plan.
-- [ ] Settings → Pages → Source: GitHub Actions.
-- [ ] Actions variables: `PAGES_ENABLED=true`, `VITE_SUPABASE_URL`,
+- [x] The repo is public (done Oct. 24, 2026: the code is MIT-licensed and
+      holds no secrets; the history was scanned). GitHub Pages is on, source
+      GitHub Actions, `PAGES_ENABLED=true`. Until the variables below are set,
+      the site's root forwards to the demo at `/demo/` (placeholder pets, the
+      backend inside the browser), which is what the newsroom reviews.
+- [ ] Actions variables: `VITE_SUPABASE_URL`,
       `VITE_SUPABASE_ANON_KEY`, `VITE_STRIPE_PUBLISHABLE_KEY`,
-      `VITE_PUBLIC_URL`, `VITE_IMAGE_TRANSFORMS`.
+      `VITE_PUBLIC_URL`, `VITE_IMAGE_TRANSFORMS`. Setting `VITE_SUPABASE_URL`
+      is what puts the real site at the root; the demo stays at `/demo/`.
 - [ ] CI secrets already exist for the database deploy
       (`SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID`).
 
