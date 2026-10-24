@@ -11,7 +11,7 @@ name: pages
 on:
   push:
     branches: [main, free-vote-favorites]
-    paths: ['web/**', '.github/workflows/pages.yml']
+    paths: ['web/**', 'docs/newsroom-kit/**', '.github/workflows/pages.yml']
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
