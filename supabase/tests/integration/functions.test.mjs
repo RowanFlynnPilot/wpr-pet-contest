@@ -16,7 +16,7 @@
 
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
@@ -329,6 +329,64 @@ test("create-checkout: one connection is rate-limited", async () => {
   assert.ok(statuses.slice(0, 30).every((s) => s === 400), "the first 30 get as far as validation");
   assert.equal(statuses[30], 429);
   await rest("rate_limits?hits=gte.0", { method: "DELETE" });
+});
+
+
+// ------------------------------------------------------------------ links --
+test("links: the owner's token sets a goal and stops the tips; any other token does nothing", async () => {
+  const biscuit = await one("entries?select=id,owner_token&pet_name=eq.Biscuit");
+  let r = await call("links", { action: "goal", entry_id: biscuit.id, token: biscuit.owner_token, goal: 300 });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.goal, 300);
+  assert.equal((await one(`entries?select=goal_votes&id=eq.${biscuit.id}`)).goal_votes, 300);
+
+  r = await call("links", { action: "goal", entry_id: biscuit.id, token: crypto.randomUUID(), goal: 10 });
+  assert.equal(r.status, 400);
+  assert.equal(r.body.error, "That link is not valid.");
+  assert.equal((await one(`entries?select=goal_votes&id=eq.${biscuit.id}`)).goal_votes, 300);
+
+  r = await call("links", { action: "goal", entry_id: biscuit.id, token: biscuit.owner_token, goal: null });
+  assert.equal(r.status, 200);
+  assert.equal((await one(`entries?select=goal_votes&id=eq.${biscuit.id}`)).goal_votes, null);
+
+  r = await call("links", { action: "opt-out", entry_id: biscuit.id, token: crypto.randomUUID() });
+  assert.equal(r.status, 400);
+  assert.equal((await one(`entries?select=nurture_opt_out_at&id=eq.${biscuit.id}`)).nurture_opt_out_at, null);
+  r = await call("links", { action: "opt-out", entry_id: biscuit.id, token: biscuit.owner_token });
+  assert.equal(r.status, 200);
+  assert.ok((await one(`entries?select=nurture_opt_out_at&id=eq.${biscuit.id}`)).nurture_opt_out_at);
+});
+
+test("links: a buyer's token stops the notes for every pack that address bought", async () => {
+  const biscuit = (await one("entries?select=id&pet_name=eq.Biscuit")).id;
+  const vote = await rest("votes", {
+    method: "POST",
+    body: JSON.stringify({
+      round_id: ROUND1, entry_id: biscuit, quantity: 25, amount_cents: 2000, buyer_email: "fan@example.com",
+      stripe_payment_intent_id: "pi_links_1", pack_slug: "fan", plays_again_opt_in: true,
+    }),
+  });
+  assert.equal(vote.status, 201, JSON.stringify(vote.body));
+  // The note's token, stored as its SHA-256, the way the sweep stores it.
+  const token = "links-test-token-aaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  const notice = await rest("buyer_notices", {
+    method: "POST",
+    body: JSON.stringify({ email: "fan@example.com", round_id: ROUND1, kind: "round", status: "sent", unsub_hash: "\\x" + createHash("sha256").update(token).digest("hex") }),
+  });
+  assert.equal(notice.status, 201, JSON.stringify(notice.body));
+
+  let r = await call("links", { action: "unsubscribe", token: `nope-${token}` });
+  assert.equal(r.status, 400);
+  assert.equal((await one("votes?select=plays_again_opt_in&stripe_payment_intent_id=eq.pi_links_1")).plays_again_opt_in, true);
+  r = await call("links", { action: "unsubscribe", token });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal((await one("votes?select=plays_again_opt_in&stripe_payment_intent_id=eq.pi_links_1")).plays_again_opt_in, false);
+
+  // One-click unsubscribe from a mail client: a form POST with the token in the query.
+  const oneClick = await fetch(`${FN}/links?unsubscribe=${token}`, {
+    method: "POST", headers: { Origin: ORIGIN, "Content-Type": "application/x-www-form-urlencoded" }, body: "List-Unsubscribe=One-Click",
+  });
+  assert.equal(oneClick.status, 200);
 });
 
 

@@ -36,6 +36,8 @@ export type QueueRow = {
   owner_token?: string | null;
   champion_name?: string | null;
   opens_at?: string | null;
+  // The matchup an advancement or matchup-day note is about.
+  matchup_id?: string | null;
 };
 
 export type Links = {
@@ -96,6 +98,9 @@ export function render(row: QueueRow, links: Links): Message {
   const first = row.owner_name.split(" ")[0] || "there";
   const petUrl = `${links.publicUrl}#/pet/${row.entry_id}`;
   const shareUrl = `${links.shareBase.replace(/\/$/, "")}/p/${row.entry_id}/`;
+  // During the bracket, the matchup page: both pets in the preview, and a
+  // tap lands on this pet. Falls back to the pet's own page.
+  const matchupUrl = row.matchup_id ? `${links.shareBase.replace(/\/$/, "")}/m/${row.matchup_id}/?p=${row.entry_id}` : shareUrl;
   const closes = row.closes_at ? formatWhen(row.closes_at) : null;
   const raised = dollars(row.raised_cents);
   const stopLine = `These tips come with your entry; stop them here: ${optOutUrl(links, row)}`;
@@ -165,7 +170,7 @@ export function render(row: QueueRow, links: Links): Message {
         `${pet}'s ${row.round_name ?? "bracket"} matchup closes tonight${closes ? `, ${closes}` : ""}. As of this morning, ${matchupLine(row)}`,
         `Both pets started this round at zero, and the one with more votes at the close moves on. Payments have to go through by the deadline; later ones are refunded automatically.`,
         ...(goal ? [goal] : []),
-      ], { label: `Share ${pet}'s matchup`, url: shareUrl }, [stopLine]);
+      ], { label: `Share ${pet}'s matchup`, url: matchupUrl }, [stopLine]);
     }
 
     case "nurture_thanks":
@@ -192,7 +197,7 @@ export function render(row: QueueRow, links: Links): Message {
           `${pet} is through to the ${row.round_name}${row.opponent_name ? `, facing ${row.opponent_name}` : ""}.`,
           `Vote totals reset every round, so both pets start at zero.${closes ? ` Voting closes ${closes}.` : ""} Now is the time to share again:`,
         ],
-        { label: `Share ${pet}'s matchup`, url: shareUrl },
+        { label: `Share ${pet}'s matchup`, url: matchupUrl },
       );
 
     case "eliminated":

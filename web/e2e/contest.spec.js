@@ -136,6 +136,17 @@ test('checkout offers the database packs and never calls it a donation', async (
   const text = (await dialog.innerText()).toLowerCase().replace(/[’']/g, "'")
   expect(text).toContain('not tax-deductible')
   expect(text.replace(/(isn't|not)( a| tax-deductible)? donations?/g, '')).not.toMatch(/donat/)
+
+  // The "plays again" box reaches the checkout call. The placeholder Stripe
+  // key means the server answers with a readable error and nothing is parked.
+  await dialog.getByLabel(/email for your receipt/i).fill('e2e-buyer@example.com')
+  await dialog.getByLabel(/plays again/i).check()
+  const [request] = await Promise.all([
+    page.waitForRequest((r) => r.url().includes('/functions/v1/create-checkout')),
+    dialog.getByRole('button', { name: /^Continue/ }).click(),
+  ])
+  expect(request.postDataJSON()).toMatchObject({ pack_slug: 'fan', plays_again_opt_in: true, newsletter_opt_in: false })
+  await expect(dialog.getByRole('alert')).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
 })

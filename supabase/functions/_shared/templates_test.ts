@@ -54,8 +54,13 @@ Deno.test("advancement names the round, the opponent and the reset", () => {
     round_name: "Elite Eight",
     opponent_name: "Luna",
     closes_at: "2026-10-15T01:00:00Z",
+    matchup_id: "f3a0d1a2-5a8b-4d2c-9d6e-0b7c1f2e3a44",
   }, LINKS);
   assertEquals(msg.subject, "Biscuit made the Elite Eight!");
+  // The matchup page: both pets in the preview, this pet on the tap.
+  assertStringIncludes(msg.html, "https://rowanflynnpilot.github.io/wpr-pet-contest/m/f3a0d1a2-5a8b-4d2c-9d6e-0b7c1f2e3a44/?p=7a000000-0000-0000-0000-00000000000a");
+  const noMatchup = render({ ...base, kind: "advanced", round_name: "Elite Eight" }, LINKS);
+  assertStringIncludes(noMatchup.html, "/p/7a000000-0000-0000-0000-00000000000a/");
   assertStringIncludes(msg.text, "facing Luna");
   assertStringIncludes(msg.text, "reset every round");
   assertStringIncludes(msg.text, "Wednesday, Oct. 14");

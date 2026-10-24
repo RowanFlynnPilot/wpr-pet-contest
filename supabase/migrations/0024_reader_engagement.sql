@@ -360,7 +360,10 @@ create function notification_queue(p_limit int default 50)
                  goal_votes       int,
                  owner_token      uuid,
                  champion_name    text,
-                 opens_at         timestamptz)
+                 opens_at         timestamptz,
+                 -- The matchup an advancement or matchup-day note is about,
+                 -- for the two-pet share page.
+                 matchup_id       uuid)
   language sql stable security definer set search_path = public, pg_temp
 as $$
   with resolved as (
@@ -392,14 +395,14 @@ as $$
            null::text as round_name, null::text as opponent_name,
            c.submissions_close_at as closes_at, 1 as priority, e.created_at as since,
            null::int as my_votes, null::int as rank, null::int as field_size, null::int as cut_margin,
-           null::int as opponent_votes, null::text as champion_name, null::timestamptz as opens_at
+           null::int as opponent_votes, null::text as champion_name, null::timestamptz as opens_at, null::uuid as matchup_id
     from entries e
     join contests c on c.id = e.contest_id
     where e.status = 'pending' and e.created_at > now() - interval '1 day'
 
     union all
     select 'entry_approved', e.id, null, null, null, null, 2, e.moderated_at,
-           null, null, null, null, null, null, null
+           null, null, null, null, null, null, null, null
     from entries e
     join contests c on c.id = e.contest_id
     where e.status = 'approved'
@@ -409,14 +412,14 @@ as $$
 
     union all
     select 'entry_rejected', e.id, null, null, null, null, 2, e.moderated_at,
-           null, null, null, null, null, null, null
+           null, null, null, null, null, null, null, null
     from entries e
     where e.status = 'rejected' and e.moderated_at > now() - interval '7 days'
 
     union all
     select 'advanced', side.entry_id, n.id, round_label(n.seq, rs.bracket_size),
            opp.pet_name, n.closes_at, 3, rs.resolved_at,
-           null, null, null, null, null, null, n.opens_at
+           null, null, null, null, null, null, n.opens_at, m.id
     from resolved rs
     join rounds n on n.contest_id = rs.contest_id and n.seq = rs.seq + 1
                  and n.status in ('pending', 'open')
@@ -428,7 +431,7 @@ as $$
     union all
     select 'eliminated', e.id, rs.id, round_label(rs.seq, rs.bracket_size),
            null, null, 4, rs.resolved_at,
-           null, null, null, null, null, null, null
+           null, null, null, null, null, null, null, null
     from resolved rs
     join entries e on e.contest_id = rs.contest_id
     where rs.kind = 'open' and e.status = 'approved' and e.seed is null
@@ -438,7 +441,7 @@ as $$
            case when m.winner_entry_id = m.entry_a_id then m.entry_b_id else m.entry_a_id end,
            rs.id, round_label(rs.seq, rs.bracket_size),
            w.pet_name, null, 4, rs.resolved_at,
-           null, null, null, null, null, null, null
+           null, null, null, null, null, null, null, null
     from resolved rs
     join matchups m on m.round_id = rs.id and m.winner_entry_id is not null
     join entries w on w.id = m.winner_entry_id
@@ -447,7 +450,7 @@ as $$
     union all
     select 'champion', m.winner_entry_id, rs.id, round_label(rs.seq, rs.bracket_size),
            null, null, 3, rs.resolved_at,
-           null, null, null, null, null, null, null
+           null, null, null, null, null, null, null, null
     from resolved rs
     join contests c on c.id = rs.contest_id and c.status = 'complete'
     join matchups m on m.round_id = rs.id
@@ -457,7 +460,7 @@ as $$
     -- N1: a day after approval, while voting is still a day or more away.
     union all
     select 'nurture_ready', e.id, null, null, null, r1.opens_at, 5, e.moderated_at + interval '24 hours',
-           null, null, null, null, null, null, r1.opens_at
+           null, null, null, null, null, null, r1.opens_at, null
     from entries e
     join contests c on c.id = e.contest_id and c.status = 'submissions_open'
     join rounds r1 on r1.contest_id = c.id and r1.seq = 1 and r1.status = 'pending'
@@ -469,7 +472,7 @@ as $$
     -- N2: the Open Round's first two days.
     union all
     select 'nurture_open', e.id, r1.id, round_label(1, c.bracket_size), null, r1.closes_at, 5, r1.opens_at,
-           null, null, null, null, null, null, r1.opens_at
+           null, null, null, null, null, null, r1.opens_at, null
     from entries e
     join contests c on c.id = e.contest_id
     join rounds r1 on r1.contest_id = c.id and r1.seq = 1 and r1.status = 'open'
@@ -483,7 +486,7 @@ as $$
            k.votes, k.rank, k.field_size,
            case when k.rank <= k.bracket_size then k.votes - coalesce(k.first_out, 0)
                 else -(coalesce(k.last_in, 0) - k.votes + 1) end,
-           null, null, r1.opens_at
+           null, null, r1.opens_at, null
     from entries e
     join contests c on c.id = e.contest_id
     join rounds r1 on r1.contest_id = c.id and r1.seq = 1 and r1.status = 'open'
@@ -500,7 +503,7 @@ as $$
            k.votes, k.rank, k.field_size,
            case when k.rank <= k.bracket_size then k.votes - coalesce(k.first_out, 0)
                 else -(coalesce(k.last_in, 0) - k.votes + 1) end,
-           null, null, r1.opens_at
+           null, null, r1.opens_at, null
     from entries e
     join contests c on c.id = e.contest_id
     join rounds r1 on r1.contest_id = c.id and r1.seq = 1 and r1.status = 'open'
@@ -512,7 +515,7 @@ as $$
     union all
     select 'nurture_matchup_last_day', e.id, rb.id, round_label(rb.seq, c.bracket_size), opp.pet_name, rb.closes_at, 5,
            chicago_morning(rb.closes_at),
-           coalesce(tm.votes, 0)::int, null, null, null, coalesce(topp.votes, 0)::int, null, rb.opens_at
+           coalesce(tm.votes, 0)::int, null, null, null, coalesce(topp.votes, 0)::int, null, rb.opens_at, m.id
     from entries e
     join contests c on c.id = e.contest_id
     join rounds rb on rb.contest_id = c.id and rb.kind = 'bracket' and rb.status = 'open'
@@ -527,7 +530,7 @@ as $$
     -- N6: 36 hours after the final, to everyone but the champion.
     union all
     select 'nurture_thanks', e.id, null, null, null, null, 5, rf.resolved_at + interval '36 hours',
-           null, null, null, null, null, w.pet_name, null
+           null, null, null, null, null, w.pet_name, null, null
     from entries e
     join contests c on c.id = e.contest_id and c.status = 'complete'
     join rounds rf on rf.contest_id = c.id and rf.kind = 'bracket' and rf.status = 'resolved'
@@ -541,7 +544,7 @@ as $$
          c.name, o.round_name, o.opponent_name, o.closes_at, e.rejection_reason,
          coalesce(s.shelter_cents, 0) + coalesce(s.match_cents, 0),
          o.my_votes, o.rank, o.field_size, o.cut_margin, o.opponent_votes,
-         e.goal_votes, e.owner_token, o.champion_name, o.opens_at
+         e.goal_votes, e.owner_token, o.champion_name, o.opens_at, o.matchup_id
   from owed o
   join entries e  on e.id = o.entry_id
   join contests c on c.id = e.contest_id

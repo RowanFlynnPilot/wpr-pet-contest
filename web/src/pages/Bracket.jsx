@@ -165,7 +165,7 @@ export default function Bracket() {
       )}
 
       <div style={{ marginBottom: 16 }}>
-        <Sponsor sponsor={SPONSORS.bracket} slot="bracket" full />
+        <Sponsor sponsor={SPONSORS.bracket} slot="bracket" full line />
       </div>
 
       {liveBracketRound && (

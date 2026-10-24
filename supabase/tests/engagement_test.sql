@@ -7,7 +7,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(30);
+select plan(31);
 
 -- ---------------------------------------------------------------- fixtures --
 insert into auth.users (id) values ('11111111-1111-1111-1111-111111111111');
@@ -45,6 +45,13 @@ values ('ef000000-0000-0000-0000-00000000000f', 'e2000000-0000-0000-0000-0000000
         'eb000000-0000-0000-0000-00000000000b', 'ee000000-0000-0000-0000-00000000000c');
 insert into vote_packs (contest_id, slug, label, votes, cents)
 values ('ec000000-0000-0000-0000-0000000000ec', 'fan', 'Fan', 25, 2000);
+
+-- The "plays again" box at checkout lands on the vote row (pending until
+-- the webhook; the notes only ever count succeeded packs).
+select create_pending_vote('e2000000-0000-0000-0000-000000000002', 'ea000000-0000-0000-0000-00000000000a', 'fan',
+                           'box@example.com', 'pi_eng_box', false, true);
+select is((select plays_again_opt_in from votes where stripe_payment_intent_id = 'pi_eng_box'), true,
+  'the checkout box is recorded on the vote');
 
 
 -- ------------------------------------------------------------ owner goals --
