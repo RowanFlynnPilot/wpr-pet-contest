@@ -17,7 +17,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-/* global document -- inside page.evaluate, which runs in the browser */
+/* global document, window -- inside page.evaluate, which runs in the browser */
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = resolve(ROOT, '..', 'docs', 'preview')
@@ -104,14 +104,24 @@ async function settle(page) {
   await sleep(400)
 }
 
+// A whole page, but no more than MAX_HEIGHT of it: the rules run long, and
+// the file carries every image inside it.
+const MAX_HEIGHT = 3200
 async function shoot(page, file, { fullPage = true } = {}) {
-  await page.screenshot({ path: file, fullPage, type: 'jpeg', quality: 72 })
+  if (fullPage) {
+    const height = await page.evaluate(() => document.documentElement.scrollHeight)
+    const { width } = page.viewportSize()
+    await page.setViewportSize({ width, height: Math.min(MAX_HEIGHT, Math.max(height, 600)) })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await sleep(250)
+  }
+  await page.screenshot({ path: file, type: 'jpeg', quality: 66 })
 }
 
 async function capture(browser, phase, route, petId, stamp) {
   const files = {}
   for (const [kind, viewport, mobile] of [['desktop', DESKTOP, false], ['phone', PHONE, true]]) {
-    const context = await browser.newContext({ viewport, deviceScaleFactor: mobile ? 2 : 1, isMobile: mobile, hasTouch: mobile, reducedMotion: 'reduce' })
+    const context = await browser.newContext({ viewport, deviceScaleFactor: mobile ? 1.5 : 1, isMobile: mobile, hasTouch: mobile, reducedMotion: 'reduce' })
     const page = await context.newPage()
     let url = `${SITE}/#/${route}`
     if (route === 'pet' || route === 'checkout') url = `${SITE}/#/pet/${petId}`
@@ -196,6 +206,7 @@ footer { margin: 50px 0 40px; color: var(--muted); font-size: 14px; border-top: 
 <div class="kicker">Wausau Pilot &amp; Review · Reader contest</div>
 <h1>Cutest Pet in Marathon County: how it looks today</h1>
 <p>Captured ${esc(date)} from the current build, on a laptop and on a phone, in each phase of the contest. The pets, towns and totals are placeholders; the partner shelter, the vote packs, the copy and the rules are real. Not shown: the staff panel (moderation, rounds, emails, payouts) and the emails themselves.</p>
+<p>This is year one of a contest WPR plans to run every year. The engine is built for that: next year&rsquo;s contest starts as a copy of this year&rsquo;s packs and shelters, each year&rsquo;s results stay up as the record, and the same share pages, emails and sponsor placements come back with new pets.</p>
 <nav><ol>${toc}${extras.length ? '<li><a href="#cards">Share cards</a></li>' : ''}</ol></nav>
 </div></header>
 <main class="wrap">${body}</main>
