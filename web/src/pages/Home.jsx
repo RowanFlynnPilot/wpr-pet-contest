@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
+import { useFavorites } from '../lib/favorites.js'
 import { apWhen, fmtInt, fmtMoney } from '../lib/format.js'
 import { cheapestPerVote } from '../lib/packs.js'
 import { useDocumentTitle } from '../lib/hooks.js'
@@ -274,13 +275,38 @@ function Arena({ c, entries, byId, totals }) {
   )
 }
 
+// The reader's own favorites while a round is live, kept on this device.
+function FavoritesRow({ c, byId }) {
+  const ids = useFavorites(c.contest.id)
+  const pets = ids.map((id) => byId.get(id)).filter(Boolean)
+  if (!pets.length) return null
+  return (
+    <section className="section fav-row" aria-labelledby="fav-title">
+      <h2 id="fav-title">Your favorites</h2>
+      <p className="section-count">Saved on this device only</p>
+      <ul className="fav-list">
+        {pets.map((e) => (
+          <li key={e.id}>
+            <a className="fav-pet" href={`#/pet/${e.id}`}>
+              <span className="fav-face">
+                <PetPhoto entry={e} width={96} square alt="" />
+              </span>
+              <span className="fav-name">{e.pet_name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 function PackCard({ c }) {
   if (!c.packs.length) return null
   const low = cheapestPerVote(c.packs)
   const from = Math.min(...c.packs.map((p) => p.cents))
   return (
     <div className="card sun">
-      <h3>Every vote helps a shelter</h3>
+      <h3>Every vote pack helps a shelter</h3>
       <p className="small" style={{ margin: '0 0 12px' }}>
         Vote packs from {fmtMoney(from)}, down to {low} a vote in bulk. {c.contest.beneficiary_split_pct}% of every pack goes to local animal
         shelters. Not tax-deductible.
@@ -410,6 +436,11 @@ export default function Home() {
   const previewRound = c.phase === 'intermission' ? c.nextRound || c.round : c.round
   const bracketLive = previewRound?.kind === 'bracket' && ['voting', 'counting', 'intermission'].includes(c.phase)
   const raised = (c.stats?.shelter_cents ?? 0) > 0
+  // Favorites never sit right under the arena, where they could reach into
+  // the first screen: they follow the money raised or the presenting sponsor,
+  // or, before either shows, the round's preview.
+  const favRow = c.phase === 'voting' && <FavoritesRow c={c} byId={byId} />
+  const favEarly = raised || Boolean(SPONSORS.presenting)
   return (
     <>
       <Arena c={c} entries={entries} byId={byId} totals={totals} />
@@ -424,8 +455,10 @@ export default function Home() {
             <Sponsor sponsor={SPONSORS.presenting} slot="presenting" full />
           </section>
         )}
+        {favEarly && favRow}
         {openRound && <OpenRoundPreview c={c} entries={entries} byId={byId} totals={totals} />}
         {bracketLive && <BracketPreview c={c} byId={byId} round={previewRound} />}
+        {!favEarly && favRow}
         {(c.phase === 'submissions' || c.phase === 'submissions_closed' || c.phase === 'coming') && <Newcomers entries={entries} />}
         <HowItWorks />
         {c.shelters.length > 0 && (

@@ -104,9 +104,11 @@ export const Trophy = ({ size = 22 }) => (
   </svg>
 )
 
-export const Heart = ({ size = 18 }) => (
-  <svg {...base(size)}>
-    <path d="M12 20s-7-4.4-9.2-9A4.9 4.9 0 0 1 12 6.6a4.9 4.9 0 0 1 9.2 4.4C19 15.6 12 20 12 20Z" />
+// Two r4.5 lobes meeting at a notch, with straight sides drawn tangent to
+// them down to the point. Outline when off, filled when on.
+export const Heart = ({ size = 18, filled = false }) => (
+  <svg {...base(size)} fill={filled ? 'currentColor' : 'none'}>
+    <path d="M12 6.94A4.5 4.5 0 1 0 4.6 11.95L12 20.5l7.4-8.55A4.5 4.5 0 1 0 12 6.94Z" />
   </svg>
 )
 

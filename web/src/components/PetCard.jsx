@@ -1,5 +1,7 @@
 import { memo } from 'react'
 import { fmtInt } from '../lib/format.js'
+import CardShare from './CardShare.jsx'
+import FavoriteButton from './FavoriteButton.jsx'
 import PetPhoto from './PetPhoto.jsx'
 import VoteButton from './VoteButton.jsx'
 
@@ -12,7 +14,9 @@ function rankClass(rank, cut) {
 }
 
 // One pet in the grid. The photo and name link to the pet's page; the Vote
-// button opens checkout straight from the grid, one tap fewer.
+// button opens checkout straight from the grid, one tap fewer. Heart and share
+// stay quiet beside it; the heart sits on its own layer over the photo, since
+// a button cannot go inside the link.
 function PetCard({ entry, votes, rank, seed, cut = 16, voteRound, state, eager, adoptable, level = 3, featured = false }) {
   const href = `#/pet/${entry.id}`
   const Name = `h${level}`
@@ -37,6 +41,9 @@ function PetCard({ entry, votes, rank, seed, cut = 16, voteRound, state, eager, 
           </div>
         </div>
       </a>
+      <div className="pet-card-over">
+        <FavoriteButton entry={entry} />
+      </div>
       <div className="pet-card-body" style={{ paddingTop: 6 }}>
         <div className="pet-card-foot">
           {votes != null ? (
@@ -49,6 +56,7 @@ function PetCard({ entry, votes, rank, seed, cut = 16, voteRound, state, eager, 
               <span className="u">{state?.note || ''}</span>
             </span>
           )}
+          <CardShare entry={entry} />
           {voteRound && <VoteButton entry={entry} round={voteRound} className="btn btn-ghost btn-sm" />}
         </div>
       </div>

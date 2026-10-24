@@ -391,6 +391,104 @@ p { margin: 0 0 0.8em; }
 .empty { text-align: center; padding: 40px 16px; color: var(--muted); }
 .empty h2, .empty h3 { color: var(--ink); font-size: 22px; margin-bottom: 6px; }
 
+/* ------------------------------------------------ favorites and card share */
+/* Quiet icon buttons: a 44px target around a smaller drawn disc. */
+.fav-btn, .icon-btn {
+  position: relative; display: grid; place-items: center; flex: none; width: 44px; height: 44px; padding: 0;
+  border: 0; border-radius: 50%; background: none; cursor: pointer;
+}
+.fav-btn::before, .icon-btn::before {
+  content: ''; position: absolute; inset: 4px; border-radius: 50%;
+  transition: transform 100ms var(--ease), background-color 150ms var(--ease), border-color 150ms var(--ease), box-shadow 150ms var(--ease);
+}
+.fav-btn svg, .icon-btn svg { position: relative; transition: transform 100ms var(--ease); }
+.fav-btn:active::before, .icon-btn:active::before, .fav-btn:active svg, .icon-btn:active svg { transform: scale(0.92); }
+.fav-btn:focus-visible, .icon-btn:focus-visible { outline-offset: -1px; border-radius: 50%; }
+
+/* The heart: teal-ink on a paper disc over photos, filled when kept. Not sun:
+   a favorite is the reader's, not a pet's standing. */
+.fav-btn { color: var(--teal-ink); }
+.fav-btn::before { background: rgba(255, 255, 255, 0.94); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+@media (hover: hover) and (pointer: fine) {
+  .fav-btn:hover { color: var(--teal-deep); }
+  .fav-btn:hover::before { background: #fff; box-shadow: 0 2px 8px rgba(15, 42, 38, 0.32); }
+}
+.fav-btn.pop svg { animation: fav-pop 320ms cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes fav-pop { 40% { transform: scale(1.22); } }
+
+/* On a card the heart rides the photo's bottom corner (the rank badge has the
+   top), on a layer sized like the photo: it cannot sit inside the card's
+   link, and presses elsewhere on the layer fall through to the link. */
+.pet-card { container-type: inline-size; }
+.pet-card-over { position: absolute; top: 0; left: 0; z-index: 3; width: 100%; aspect-ratio: 4 / 5; pointer-events: none; }
+.pet-card.featured .pet-card-over { aspect-ratio: 16 / 10; }
+.pet-card-over .fav-btn { position: absolute; right: 4px; bottom: 4px; pointer-events: auto; }
+
+/* Share sits beside Vote on a hairline disc, quieter than Vote. Where count,
+   share and Vote cannot share a line, Vote takes its own, full width. */
+.icon-btn { margin: -4px; color: var(--ink-2); }
+.icon-btn::before { background: var(--paper); border: 1px solid var(--rule-strong); }
+.icon-btn.done { color: var(--teal-ink); }
+@media (hover: hover) and (pointer: fine) { .icon-btn:hover::before { border-color: var(--ink-2); } }
+.pet-card-foot { position: relative; }
+.pet-card-foot .votes { margin-right: auto; }
+@container (max-width: 250px) {
+  .pet-card-foot { flex-wrap: wrap; }
+  .pet-card-foot .btn { width: 100%; }
+}
+
+/* The share menu opens upward over the card, inside it (the card clips). */
+.share-pop {
+  position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 5; width: min(200px, 100%); padding: 6px;
+  background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow-lift);
+}
+.share-pop[hidden] { display: none; }
+.share-pop ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.share-pop a, .share-pop button {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 10px; border: 0; border-radius: 8px;
+  background: none; color: var(--ink); font-size: 14.5px; font-weight: 700; line-height: 1.2; text-align: left; text-decoration: none; cursor: pointer;
+}
+.share-pop a:active, .share-pop button:active { background: var(--teal-tint); }
+@media (hover: hover) and (pointer: fine) { .share-pop a:hover, .share-pop button:hover { background: var(--teal-wash); } }
+.share-pop svg { flex: none; }
+.share-pop input { margin-top: 6px; }
+/* While its share menu is open, a card's heart (under the menu) steps out of
+   the way, and an Out card is not dimmed. */
+.pet-card:has(.share-pop:not([hidden])) .pet-card-over { visibility: hidden; }
+.pet-card.is-out:has(.share-pop:not([hidden])) { opacity: 1; }
+
+.chip svg { flex: none; }
+
+/* The pet page: the heart beside the name, over the photo's scrim. */
+.pet-title { display: flex; align-items: flex-end; gap: 10px; }
+.pet-title-text { flex: 1 1 auto; min-width: 0; }
+.pet-title .fav-btn { width: 52px; height: 52px; margin: 0 -4px -4px 0; }
+
+/* Home: the reader's favorites in one compact row, below the arena. */
+.fav-row h2 { font-size: 22px; }
+.fav-row .section-count { margin-top: 4px; }
+/* One line on a phone, scrolled sideways edge to edge; wrapped from 720px. */
+.fav-list {
+  list-style: none; display: flex; gap: 8px; margin: 12px calc(var(--pad-r) * -1) 0 calc(var(--pad-l) * -1);
+  padding: 2px var(--pad-r) 8px var(--pad-l); overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity; scroll-padding-inline: var(--pad-l) var(--pad-r); scrollbar-width: thin;
+}
+.fav-list li { flex: none; scroll-snap-align: start; }
+.fav-name { white-space: nowrap; }
+@media (min-width: 720px) {
+  .fav-list { flex-wrap: wrap; margin: 12px 0 0; padding: 0; overflow: visible; }
+  .fav-name { white-space: normal; }
+}
+.fav-pet {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 5px 14px 5px 5px; border-radius: var(--radius);
+  background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--shadow); color: var(--ink); text-decoration: none;
+  transition: transform 100ms var(--ease), border-color 150ms var(--ease);
+}
+.fav-pet:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .fav-pet:hover { border-color: var(--teal); } }
+.fav-face { display: block; width: 40px; flex: none; border-radius: 8px; overflow: hidden; }
+.fav-name { font-family: var(--display); font-size: 17px; font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+
 /* On its own page, the footer starts below the fold, so content arriving does
    not shove it down the screen. Not in the iframe: the frame must be able to
    shrink to a short page. */

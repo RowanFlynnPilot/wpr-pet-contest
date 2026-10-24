@@ -3,9 +3,10 @@ import { SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import PetCard from '../components/PetCard.jsx'
 import Sponsor from '../components/Sponsor.jsx'
-import { Search } from '../components/Icons.jsx'
+import { Heart, Search } from '../components/Icons.jsx'
 import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
 import { entryStates } from '../lib/bracketState.js'
+import { useFavorites } from '../lib/favorites.js'
 import { fmtInt } from '../lib/format.js'
 import { useDocumentTitle, useMediaQuery } from '../lib/hooks.js'
 import { rankOpenRound } from '../lib/rank.js'
@@ -72,6 +73,18 @@ export default function Gallery() {
   const defaultSort = inBracket ? 'seed' : openLive || c.phase === 'complete' ? 'votes' : 'newest'
   const [sort, setSort] = useState(null)
   const sortBy = sort || defaultSort
+  // Favorites, kept on this device. While the filter is on, a pet un-hearted
+  // here stays in view until the filter is toggled, so the card (and focus)
+  // does not vanish from under the reader's finger.
+  const favIds = useFavorites(c.contest?.id)
+  const [favOnly, setFavOnly] = useState(false)
+  const [favKept, setFavKept] = useState(null)
+  const favSet = useMemo(() => new Set(favIds), [favIds])
+  const favCount = useMemo(() => entries.filter((e) => favSet.has(e.id)).length, [entries, favSet])
+  function toggleFavOnly() {
+    setFavKept(favOnly ? null : favSet)
+    setFavOnly(!favOnly)
+  }
   useDocumentTitle('The pets — Wausau Pilot & Review')
 
   const towns = useMemo(() => [...new Set(entries.map((e) => e.town))].sort((a, b) => a.localeCompare(b)), [entries])
@@ -87,6 +100,7 @@ export default function Gallery() {
       (e) =>
         (species === 'all' || e.species === species) &&
         (!town || e.town === town) &&
+        (!favOnly || favSet.has(e.id) || favKept?.has(e.id)) &&
         (!needle || fold(e.pet_name).includes(needle) || fold(e.town).includes(needle)),
     )
     if (states && status !== 'all') {
@@ -103,11 +117,11 @@ export default function Gallery() {
       seed: (a, b) => (a.seed ?? 1e9) - (b.seed ?? 1e9) || byVotes(a, b),
     }
     return [...out].sort(sorters[sortBy] || byVotes)
-  }, [entries, q, species, town, status, states, sortBy, rankOf])
+  }, [entries, q, species, town, favOnly, favSet, favKept, status, states, sortBy, rankOf])
 
-  const resetKey = `${q}|${species}|${town}|${status}|${sortBy}`
+  const resetKey = `${q}|${species}|${town}|${favOnly}|${status}|${sortBy}`
   // The Open Round leader leads the grid, unfiltered and sorted by votes.
-  const featureLeader = openLive && sortBy === 'votes' && !q && species === 'all' && !town
+  const featureLeader = openLive && sortBy === 'votes' && !q && species === 'all' && !town && !favOnly
   const { shown, more, sentinel } = useIncremental(list.length, resetKey)
   // Photos first: the sponsor sits after the first full row, whatever the
   // column count (the featured card takes two cells).
@@ -211,7 +225,7 @@ export default function Gallery() {
         </div>
       </div>
 
-      <div className="chips" style={{ marginBottom: 12 }} role="group" aria-label="Filter by species">
+      <div className="chips" style={{ marginBottom: 12 }} role="group" aria-label="Filter pets">
         {[
           ['all', 'All'],
           ['dog', 'Dogs'],
@@ -236,6 +250,10 @@ export default function Gallery() {
             ))}
           </>
         )}
+        <span aria-hidden="true" style={{ width: 8 }} />
+        <button type="button" className="chip" aria-pressed={favOnly} onClick={toggleFavOnly}>
+          <Heart size={15} filled={favOnly} /> Favorites <span className="count">{favCount}</span>
+        </button>
       </div>
 
       {openLive && (
@@ -261,9 +279,18 @@ export default function Gallery() {
             <div key={i} className="skeleton" style={{ aspectRatio: '4 / 6' }} />
           ))}
         </div>
+      ) : favOnly && list.length === 0 && favCount === 0 ? (
+        <div className="empty">
+          <h2>No favorites yet.</h2>
+          <p>Tap the heart on any pet to keep it here. Saved on this device only.</p>
+          <button type="button" className="btn btn-quiet" style={{ marginTop: 6 }} onClick={toggleFavOnly}>
+            See every pet
+          </button>
+          <div style={{ marginTop: 16 }}>{sponsor}</div>
+        </div>
       ) : list.length === 0 ? (
         <div className="empty">
-          <h3>{entries.length ? 'No pets match that search.' : 'No pets yet.'}</h3>
+          <h3>{!entries.length ? 'No pets yet.' : favOnly ? 'None of your favorites match that search.' : 'No pets match that search.'}</h3>
           <p>
             {entries.length ? (
               'Try a different name or town.'

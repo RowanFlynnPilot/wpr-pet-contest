@@ -5,9 +5,10 @@ import { track } from '../lib/analytics.js'
 import { Chat, Facebook, LinkIcon, Mail, Share, XLogo } from './Icons.jsx'
 
 // Share pages are built at deploy time, so a pet approved since the last build
-// has none yet. Same-origin HEAD check; fall back to the plain link.
+// has none yet. Same-origin HEAD check; fall back to the plain link. The card
+// share menu (CardShare) uses it too, once it is opened.
 const sharePageCache = new Map()
-function useSharePage(id) {
+export function useSharePage(id) {
   const [ok, setOk] = useState(() => sharePageCache.get(id) ?? null)
   useEffect(() => {
     if (sharePageCache.has(id)) return
