@@ -107,18 +107,22 @@ revoke all on round_live_sums from anon, authenticated;
 grant select on round_live_sums to service_role;
 
 -- Triggers and the backfill in one step, with writers held off, so no vote
--- lands between the two.
-lock table votes, free_votes in share mode;
-create trigger votes_tally_ins after insert on votes
-  referencing new table as new_rows for each statement execute function tally_votes_ins();
-create trigger votes_tally_upd after update on votes
-  referencing old table as old_rows new table as new_rows for each statement execute function tally_votes_upd();
-create trigger free_votes_tally_ins after insert on free_votes
-  referencing new table as new_rows for each statement execute function tally_free_ins();
-create trigger free_votes_tally_upd after update on free_votes
-  referencing old table as old_rows new table as new_rows for each statement execute function tally_free_upd();
-insert into round_tally (round_id, entry_id, votes, amount_cents, free_votes)
-select round_id, entry_id, votes, amount_cents, free_votes from round_live_sums;
+-- lands between the two. One DO block, because the CLI applies a migration
+-- statement by statement, and LOCK TABLE needs a transaction around it.
+do $$
+begin
+  lock table votes, free_votes in share mode;
+  create trigger votes_tally_ins after insert on votes
+    referencing new table as new_rows for each statement execute function tally_votes_ins();
+  create trigger votes_tally_upd after update on votes
+    referencing old table as old_rows new table as new_rows for each statement execute function tally_votes_upd();
+  create trigger free_votes_tally_ins after insert on free_votes
+    referencing new table as new_rows for each statement execute function tally_free_ins();
+  create trigger free_votes_tally_upd after update on free_votes
+    referencing old table as old_rows new table as new_rows for each statement execute function tally_free_upd();
+  insert into round_tally (round_id, entry_id, votes, amount_cents, free_votes)
+  select round_id, entry_id, votes, amount_cents, free_votes from round_live_sums;
+end $$;
 
 -- Resolved rounds from the snapshot; live rounds from the cache. Still
 -- security definer, for the reason in 0001.
