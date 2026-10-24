@@ -239,6 +239,11 @@ starts only what the tests need, about a quarter of the full download.
 cards (`web/scripts/matchup-cards.py`, Pillow). The Pages workflow sets it;
 without it the matchup pages carry the first pet's photo.
 
+`npm --prefix web run demo` builds the site with its backend inside the
+browser (`web/src/demo/`): placeholder pets, every phase, a pretend checkout,
+no server. The Pages workflow publishes it at `/demo/` for the newsroom, and
+the site's root forwards there until `VITE_SUPABASE_URL` is set.
+
 Migrations use `create function`, not `create or replace`. To change a
 function, add a new numbered migration (which may `create or replace`, or
 drop and recreate when the signature changes — then re-grant). Never edit a
