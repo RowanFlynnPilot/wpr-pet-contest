@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-24T02:40:46.711Z",
+  "generatedAt": "2026-10-24T03:32:46.632Z",
   "title": "Design System: Cutest Pet in Marathon County",
   "extensions": {
     "colorMeta": {
@@ -304,6 +304,21 @@
         ],
         "whiteLabel": "brand-derived (hard-coded in app.css, not declared in tokens.css)"
       },
+      "board-row": {
+        "role": "neutral",
+        "displayName": "Board Row",
+        "tonalRamp": [
+          "oklch(15% 0.031 181.9)",
+          "oklch(26% 0.031 181.9)",
+          "oklch(38% 0.031 181.9)",
+          "oklch(50% 0.031 181.9)",
+          "oklch(62% 0.031 181.9)",
+          "oklch(74% 0.031 181.9)",
+          "oklch(85% 0.031 181.9)",
+          "oklch(95% 0.031 181.9)"
+        ],
+        "whiteLabel": "brand-derived (hard-coded in app.css, not declared in tokens.css)"
+      },
       "board-label": {
         "role": "neutral",
         "displayName": "Board Label",
@@ -338,11 +353,11 @@
     "typographyMeta": {
       "display-xl": {
         "displayName": "Display XL",
-        "purpose": "The pet name over its photo; banner and champion lines share the face at opsz 144."
+        "purpose": "The pet name over its photo; the champion name shares the face at opsz 144, at clamp(44px, 9vw, 76px)."
       },
       "display": {
         "displayName": "Display",
-        "purpose": "Home hero and big statement lines."
+        "purpose": "Home's title, two to three balanced lines on a phone, key word in teal-ink italic; opsz 144."
       },
       "headline": {
         "displayName": "Headline",
@@ -350,7 +365,7 @@
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Team names on the board, card and pet-card names (17-21px)."
+        "purpose": "Team and leader-row names on the board, the contest bar's title, card and pet-card names (17-21px; 26px on the featured gallery card)."
       },
       "caption": {
         "displayName": "Caption",
@@ -362,7 +377,7 @@
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Scoreboard round name, lamp and unit labels, table headers. Never a kicker above a heading."
+        "purpose": "Scoreboard round name, lamp and unit labels, bracket column heads, the champion's story line, table headers. Never a kicker above a heading."
       },
       "score": {
         "displayName": "Score",
@@ -371,6 +386,10 @@
       "clock": {
         "displayName": "Clock",
         "purpose": "The game clock, sun on teal-deep."
+      },
+      "section-count": {
+        "displayName": "Section count",
+        "purpose": "Public Sans 700, 14px, muted, 6px under a heading; only when it says something the heading does not."
       }
     },
     "shadows": [
@@ -382,7 +401,7 @@
       {
         "name": "lift",
         "value": "0 2px 4px rgba(31, 43, 40, 0.08), 0 12px 28px rgba(31, 43, 40, 0.12)",
-        "purpose": "Hover lift, desktop photo hero, champion panel, toasts (--shadow-lift)."
+        "purpose": "Hover lift, desktop photo hero, toasts (--shadow-lift)."
       },
       {
         "name": "button-press",
@@ -397,7 +416,22 @@
       {
         "name": "board",
         "value": "0 14px 28px -18px rgba(15, 42, 38, 0.75)",
-        "purpose": "Under the scoreboard."
+        "purpose": "Under the scoreboard and the bracket's crown slot."
+      },
+      {
+        "name": "champion",
+        "value": "0 16px 32px -20px rgba(122, 85, 0, 0.6)",
+        "purpose": "Under the sun champion field."
+      },
+      {
+        "name": "champion-photo",
+        "value": "0 14px 28px -16px rgba(31, 43, 40, 0.55)",
+        "purpose": "The champion's white-bordered photo."
+      },
+      {
+        "name": "done-photo",
+        "value": "0 10px 22px -12px rgba(31, 43, 40, 0.5)",
+        "purpose": "The pet's photo on the thank-you screen."
       },
       {
         "name": "sticky-bar",
@@ -412,6 +446,11 @@
         "purpose": "House ease (--ease): buttons 150ms, cards 200ms, sticky bar 280ms, tug bar 600ms."
       },
       {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The arena ease-out: digit ignite, lamp bloom, and every stage of the champion reveal."
+      },
+      {
         "name": "ignite",
         "value": "420ms cubic-bezier(0.16, 1, 0.3, 1)",
         "purpose": "A changed digit flares from sun with a glow in its own cell."
@@ -422,9 +461,24 @@
         "purpose": "A lit lamp blooms a sun ring outward once."
       },
       {
+        "name": "press",
+        "value": "100ms var(--ease), scale(0.97)",
+        "purpose": "Chips, round tabs and share buttons on :active; buttons drop 1px instead."
+      },
+      {
+        "name": "champion-reveal",
+        "value": "settle 900ms; crown-drop 800ms after 450ms; name 700ms after 750ms; all cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Photo settles from rotate(-7deg) scale(0.92), crown drops 36px from -30deg, name rises 14px out of a 3px blur."
+      },
+      {
+        "name": "confetti-fall",
+        "value": "3.2s var(--ease), once",
+        "purpose": "Paper falls behind the champion (ON_SUN colors) and on a credited thank-you screen."
+      },
+      {
         "name": "reduced-motion",
         "value": "animation and transition durations 0.001ms",
-        "purpose": "prefers-reduced-motion: reduce collapses everything; confetti is hidden."
+        "purpose": "prefers-reduced-motion: reduce collapses everything, including the champion reveal; confetti is not rendered."
       }
     ],
     "breakpoints": [
@@ -449,7 +503,11 @@
         "value": "720px"
       },
       {
-        "name": "pet-stage-split",
+        "name": "gallery-tools",
+        "value": "760px"
+      },
+      {
+        "name": "stage-split",
         "value": "900px"
       },
       {
@@ -457,7 +515,7 @@
         "value": "980px"
       },
       {
-        "name": "bracket-desktop",
+        "name": "bracket-poster",
         "value": "1000px"
       }
     ],
@@ -469,6 +527,38 @@
       {
         "name": "Fraunces Display Fallback",
         "value": "local Georgia Bold at 78.5% and Bold Italic at 73%, for opsz 144 lines"
+      }
+    ],
+    "touch": [
+      {
+        "name": "hover-gate",
+        "value": "@media (hover: hover) and (pointer: fine)",
+        "purpose": "Wraps every :hover rule in app.css and widget.css."
+      },
+      {
+        "name": "tap",
+        "value": "-webkit-tap-highlight-color: transparent; touch-action: manipulation",
+        "purpose": "No tap flash, no double-tap wait, on links and controls."
+      },
+      {
+        "name": "select",
+        "value": "user-select: none; -webkit-touch-callout: none",
+        "purpose": "Controls only (buttons, chips, tabs, share buttons, ARIA buttons and tabs)."
+      },
+      {
+        "name": "safe-area",
+        "value": "--pad-l: max(var(--gutter), env(safe-area-inset-left)); --pad-r likewise",
+        "purpose": "With viewport-fit=cover; the sticky bar adds safe-area-inset-bottom."
+      },
+      {
+        "name": "modal-overscroll",
+        "value": "overscroll-behavior: contain",
+        "purpose": "Checkout backdrop and sheet."
+      },
+      {
+        "name": "admin-coarse-inputs",
+        "value": "@media (pointer: coarse) { font-size: 16px }",
+        "purpose": "Admin table and window fields, so iOS does not zoom."
       }
     ]
   },
@@ -530,6 +620,14 @@
       "css": ".ds-sb{background:var(--teal-deep,#1f4b45);color:#fff;border-radius:14px;padding:12px 14px 14px;box-shadow:0 14px 28px -18px rgba(15,42,38,0.75);font-family:var(--sans,'Public Sans',sans-serif);max-width:360px}.ds-sb-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 10px;margin-bottom:10px}.ds-sb-round{font-size:12px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#cfe3de}.ds-sb-sub{display:block;margin-top:2px;font-size:12.5px;font-weight:600;letter-spacing:0;text-transform:none;color:#e3efec}.ds-sb-clock{font-family:var(--mono,'JetBrains Mono',monospace);font-weight:700;font-size:14.5px;letter-spacing:0.04em;color:var(--sun,#f4b942);font-variant-numeric:tabular-nums}.ds-sb-h2h{display:flex;align-items:center;justify-content:space-between;gap:6px}.ds-sb-vs{font-family:var(--display,Fraunces,Georgia,serif);font-size:15px;color:#9fb7b2}.ds-digits{display:inline-flex;gap:3px;font-size:40px}.ds-cell{position:relative;width:0.74em;height:1.16em;border-radius:6px;background:#0f2a26;font-family:var(--mono,'JetBrains Mono',monospace);font-weight:700;line-height:1.16em;text-align:center;color:#fff;font-variant-numeric:tabular-nums;animation:ds-ignite 420ms cubic-bezier(0.16,1,0.3,1)}.ds-cell::before{content:'8';position:absolute;inset:0;color:rgba(255,255,255,0.055)}.ds-cell.ghost{color:transparent;animation:none}.ds-digits.dim .ds-cell:not(.ghost){color:#a9c3bd}@keyframes ds-ignite{from{color:#f4b942;text-shadow:0 0 0.3em rgba(244,185,66,0.8)}}.ds-tug{height:8px;margin-top:12px;border-radius:4px;background:#0f2a26;overflow:hidden}.ds-tug i{display:block;height:100%;border-radius:4px;background:var(--sun,#f4b942)}.ds-sb-note{margin:10px 0 0;font-size:14.5px;line-height:1.45;color:#e3efec}.ds-lamp{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 8px;border-radius:999px;background:#163a35;color:#cfe3de;font-size:11.5px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;transition:background-color 360ms,color 360ms}.ds-lamp svg{fill:#3d6b64}.ds-lamp.on{background:var(--sun,#f4b942);color:var(--ink,#1a1a1a)}.ds-lamp.on svg{fill:#b23a16}@media (prefers-reduced-motion: reduce){.ds-cell{animation:none}}"
     },
     {
+      "name": "Leader Rows",
+      "kind": "custom",
+      "refersTo": "leader-row",
+      "description": "Home's Open Round board: the top three on board-row, the leader lifted inside a sun ring, an unlit lamp drawn as a ghost word.",
+      "html": "<section class=\"ds-lb\"><div class=\"ds-lb-head\"><span class=\"ds-lb-round\">Open Round</span><span class=\"ds-lamp\"><svg width=\"10\" height=\"10\" viewBox=\"0 0 10 10\" aria-hidden=\"true\"><circle cx=\"5\" cy=\"5\" r=\"4\"/></svg><span class=\"ds-ghost\" data-word=\"Upset\" aria-hidden=\"true\"></span><span class=\"ds-sr\">No upset: the better seed leads.</span></span></div><ol class=\"ds-rows\"><li class=\"ds-row lead\"><span class=\"ds-rank\">1</span><span class=\"ds-name\">Biscuit<span class=\"ds-town\">Wausau</span></span><span class=\"ds-n\">412</span></li><li class=\"ds-row\"><span class=\"ds-rank\">2</span><span class=\"ds-name\">Luna<span class=\"ds-town\">Mosinee</span></span><span class=\"ds-n\">388</span></li><li class=\"ds-row\"><span class=\"ds-rank\">3</span><span class=\"ds-name\">Gus<span class=\"ds-town\">Weston</span></span><span class=\"ds-n\">301</span></li></ol></section>",
+      "css": ".ds-lb{background:var(--teal-deep,#1f4b45);color:#fff;border-radius:14px;padding:12px 14px 14px;max-width:360px;font-family:var(--sans,'Public Sans',sans-serif)}.ds-lb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.ds-lb-round{font-size:12px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#cfe3de}.ds-lamp{position:relative;display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 8px;border-radius:999px;background:#163a35;font-size:11.5px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase}.ds-lamp svg{fill:#3d6b64}.ds-ghost::after{content:attr(data-word);color:rgba(255,255,255,0.075)}.ds-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.ds-rows{list-style:none;margin:0;padding:0;display:grid;gap:6px}.ds-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 8px;border-radius:10px;background:#163a35}.ds-row.lead{background:#24564f;box-shadow:inset 0 0 0 2px var(--sun,#f4b942)}.ds-rank{font-family:var(--mono,'JetBrains Mono',monospace);font-size:15px;font-weight:700;color:#cfe3de;text-align:center}.ds-row.lead .ds-rank{color:var(--sun,#f4b942)}.ds-name{font-family:var(--display,Fraunces,Georgia,serif);font-size:17px;font-weight:650;line-height:1.15;min-width:0}.ds-town{display:block;font-family:var(--sans,'Public Sans',sans-serif);font-size:12px;font-weight:600;color:#b9d3cd}.ds-n{font-family:var(--mono,'JetBrains Mono',monospace);font-weight:700;font-size:20px;padding:2px 6px;border-radius:6px;background:#0f2a26;font-variant-numeric:tabular-nums}.ds-row:not(.lead) .ds-n{color:#a9c3bd}"
+    },
+    {
       "name": "Road Strip",
       "kind": "custom",
       "refersTo": "road",
@@ -544,18 +642,35 @@
       "description": "The photo with the name in Fraunces at opsz 144 over a rising teal scrim, and a drawn-arrow back pill.",
       "html": "<div class=\"ds-hero\"><a class=\"ds-back\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M13 8H3M7 4 3 8l4 4\"/></svg>All pets</a><div class=\"ds-title\"><div class=\"ds-name\">Gus</div><p class=\"ds-meta\">No. 16 seed · Mosinee · Dog</p></div></div>",
       "css": ".ds-hero{position:relative;overflow:hidden;background:var(--teal-deep,#1f4b45);aspect-ratio:2/1;max-width:420px;border-radius:10px}.ds-hero::after{content:'';position:absolute;inset:auto 0 0;height:70%;background:linear-gradient(rgba(15,42,38,0),rgba(15,42,38,0.55) 45%,rgba(15,42,38,0.9))}.ds-title{position:absolute;left:16px;right:16px;bottom:14px;z-index:1;color:#fff}.ds-name{font-family:var(--display-xl,Fraunces,Georgia,serif);font-size:56px;font-weight:650;line-height:0.9;letter-spacing:-0.03em;font-variation-settings:'opsz' 144}.ds-meta{margin:7px 0 0;font:700 14px var(--sans,'Public Sans',sans-serif);color:#f3eadb}.ds-back{position:absolute;top:12px;left:16px;z-index:1;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 13px 6px 10px;border-radius:999px;background:rgba(15,42,38,0.78);color:#fff;font:700 13.5px var(--sans,'Public Sans',sans-serif);text-decoration:none}.ds-back:hover{background:var(--teal-deep,#1f4b45)}.ds-back:focus-visible{outline:3px solid var(--teal,#3a867c);outline-offset:2px}"
+    },
+    {
+      "name": "Champion Reveal",
+      "kind": "custom",
+      "refersTo": "champion",
+      "description": "The contest's only sun field: a white-bordered photo, a crown that drops onto it, and the name landing a beat later.",
+      "html": "<section class=\"ds-champ\"><div class=\"ds-champ-photo\"><div class=\"ds-champ-img\"></div><svg class=\"ds-crown\" width=\"54\" height=\"44\" viewBox=\"0 0 22 18\" aria-hidden=\"true\"><path d=\"M1.5 16 3.3 4.4l4.9 5.4L11 1.5l2.8 8.3 4.9-5.4L20.5 16Z\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/></svg></div><div><h2 class=\"ds-champ-name\">Biscuit</h2><p class=\"ds-champ-meta\">2026 champion · A No. 12 seed takes the crown</p></div></section>",
+      "css": ".ds-champ{display:grid;gap:22px;align-items:center;max-width:420px;background:var(--sun,#f4b942);color:var(--ink,#1a1a1a);border-radius:14px;padding:22px;box-shadow:0 16px 32px -20px rgba(122,85,0,0.6);font-family:var(--sans,'Public Sans',sans-serif)}.ds-champ-photo{position:relative;width:200px;justify-self:center}.ds-champ-img{aspect-ratio:4/5;border-radius:8px;border:6px solid #fff;background:#ede6d6;box-shadow:0 14px 28px -16px rgba(31,43,40,0.55);transform:rotate(-2deg);animation:ds-settle 900ms cubic-bezier(0.16,1,0.3,1) both}.ds-crown{position:absolute;top:-26px;left:-10px;fill:var(--sun,#f4b942);stroke:var(--ink,#1a1a1a);transform:rotate(-14deg);filter:drop-shadow(0 4px 6px rgba(31,43,40,0.35));animation:ds-drop 800ms 450ms cubic-bezier(0.16,1,0.3,1) both}.ds-champ-name{margin:0;font-family:var(--display-xl,Fraunces,Georgia,serif);font-size:56px;font-weight:650;letter-spacing:-0.03em;line-height:0.95;font-variation-settings:'opsz' 144;animation:ds-land 700ms 750ms cubic-bezier(0.16,1,0.3,1) both}.ds-champ-meta{margin:8px 0 0;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;font-size:13px}@keyframes ds-settle{from{transform:rotate(-7deg) scale(0.92)}}@keyframes ds-drop{from{transform:translateY(-36px) rotate(-30deg)}}@keyframes ds-land{from{transform:translateY(14px) scale(0.96);filter:blur(3px)}}@media (prefers-reduced-motion: reduce){.ds-champ-img,.ds-crown,.ds-champ-name{animation:none}}"
+    },
+    {
+      "name": "Thank-You Hero",
+      "kind": "custom",
+      "refersTo": "done-board",
+      "description": "The Done step: the pet's photo with a drawn teal check, the count bought, a mini board, and the shelter-impact line.",
+      "html": "<div class=\"ds-done\"><div class=\"ds-done-hero\"><span class=\"ds-done-photo\"><span class=\"ds-done-img\"></span><span class=\"ds-done-check\" aria-hidden=\"true\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg></span></span><div><h2 class=\"ds-done-title\">25 votes for Gus</h2><div class=\"ds-done-board\"><span class=\"ds-done-n\">125</span><span class=\"ds-done-label\">votes this round, yours included</span></div></div></div><p class=\"ds-done-impact\">Your pack sends <strong>$6</strong> to Moments Foster Care.</p></div>",
+      "css": ".ds-done{max-width:380px;font-family:var(--sans,'Public Sans',sans-serif);color:var(--ink,#1a1a1a)}.ds-done-hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;padding:4px 0 10px}.ds-done-photo{position:relative;width:104px}.ds-done-img{display:block;aspect-ratio:1;border-radius:16px;background:#eff5f3;box-shadow:0 10px 22px -12px rgba(31,43,40,0.5)}.ds-done-check{position:absolute;right:-8px;bottom:-8px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--teal-ink,#2b655d);color:#fff;box-shadow:0 0 0 3px #fff}.ds-done-title{margin:0;font-family:var(--display,Fraunces,Georgia,serif);font-size:24px;font-weight:600;line-height:1.1}.ds-done-board{display:grid;justify-items:start;gap:4px;margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--teal-deep,#1f4b45);width:fit-content}.ds-done-n{font-family:var(--mono,'JetBrains Mono',monospace);font-weight:700;font-size:30px;line-height:1.16;color:#fff;letter-spacing:0.2em;font-variant-numeric:tabular-nums}.ds-done-label{font-size:12.5px;font-weight:600;color:#cfe3de}.ds-done-impact{margin:2px 0 0;padding:10px 12px;border-radius:10px;background:var(--sun-tint,#fcefd0);font-size:15.5px}"
     }
   ],
   "narrative": {
     "northStar": "Follow the Money, in Arena Mode",
-    "overview": "The site is WPR's newsroom system, the one it uses to follow the money, carried into a sports arena. The ground stays a newsroom's: warm cream paper, a slate-ruled masthead, Public Sans body copy, Fraunces headlines. On that ground the contest lays out an arena: a deep-teal scoreboard with fixed-cell digits, a lamp that lights when something happens, a game clock, and a road of dots running from the open round to a crown. The newsroom supplies the credibility; the arena supplies the stakes.\n\nDensity is set for one iPhone screen. The pet page puts the pet, its place on the road, the live game and the Vote button inside a 390 by 844 viewport, and the shell gives up height to make room: a one-line masthead on phones, a slim contest bar, then the nav. Drama is staged and never faked. Digits change in place and nothing reflows. The lamp is always on the board, lit or unlit, so an upset reads as a light coming on, not a badge appearing. Wherever a count appears, it is labeled as resetting every round.\n\nSun yellow is held back for the moments that count: a lit lamp, the leader's tug bar, the crown, Double Vote windows. Teal does the structural work. Shadows are soft and tinted with teal; there are no hard offsets.",
+    "overview": "The site is WPR's newsroom system, the one it uses to follow the money, carried into a sports arena. The ground stays a newsroom's: warm cream paper, a slate-ruled masthead, Public Sans body copy, Fraunces headlines. On that ground the contest lays out an arena: a deep-teal scoreboard with fixed-cell digits, a lamp that lights when something happens, a game clock, and a road of dots running from the open round to a crown. The newsroom supplies the credibility; the arena supplies the stakes.\n\nDensity is set for one iPhone screen. The pet page puts the pet, its place on the road, the live game and the Vote button inside a 390 by 844 viewport; Home puts its title, the live board for the current phase and the primary action there too. The shell gives up height to make room: a one-line masthead on phones, a slim one-line contest bar, then the nav. Drama is staged and never faked. Digits change in place and nothing reflows. On the board the lamp is always present, lit or unlit, so an upset reads as a light coming on, not a badge appearing. Wherever a count appears, it is labeled as resetting every round.\n\nSun yellow is held back for the moments that count: a lit lamp, the leader's tug bar and ring, the crown, Double Vote windows, and one whole field, the champion's. Teal does the structural work. Shadows are soft and tinted with teal; there are no hard offsets.",
     "keyCharacteristics": [
       "Cream newsroom ground with one deep-teal arena panel per screen.",
       "JetBrains Mono digits in dark fixed cells over ghost 8s; tabular figures everywhere a number is counted.",
       "Fraunces at optical size 144 for pet names and big lines, set over the photo behind a teal scrim.",
       "The road: teal dots, solid where the pet has traveled and dashed ahead, ending in a drawn crown.",
       "Pill-shaped controls with soft, teal-tinted drop shadows.",
-      "Drawn SVG marks for arrows, checks, crosses and the crown; never text glyphs."
+      "Drawn SVG marks for arrows, checks, crosses and the crown; never text glyphs.",
+      "One sun field in the whole contest: the champion's."
     ],
     "rules": [
       {
@@ -566,6 +681,11 @@
       {
         "name": "The Sun Is Earned Rule",
         "body": "Sun appears where something is won, leading, lit or doubled. A sun surface that marks nothing is noise.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Sun Field Rule",
+        "body": "The champion panel is the only panel filled with sun. Everywhere else sun is a ring, a bar, a lamp, a pill or a crown.",
         "section": "colors"
       },
       {
@@ -585,7 +705,7 @@
       },
       {
         "name": "The Under-Never-Over Rule",
-        "body": "A count or status sits under its heading, never above it as a kicker. The scoreboard's round name is the board's header row, not a kicker over a heading.",
+        "body": "A count or status sits under its heading, never above it as a kicker. Headings carry no kicker at all. A section count goes beneath the heading, and only when it says something the heading doesn't. The scoreboard's round name is the board's header row, not a kicker over a heading.",
         "section": "typography"
       },
       {
@@ -595,12 +715,13 @@
       },
       {
         "name": "The Light-Not-Lift Rule",
-        "body": "On the board, emphasis is light, not elevation: a sun ring on the leader's face, a lamp igniting, a digit flaring sun as it changes.",
+        "body": "On the board, emphasis is light, not elevation: a sun ring on the leader's face or row, a lamp igniting, a digit flaring sun as it changes.",
         "section": "elevation"
       }
     ],
     "dos": [
       "Do put the pet, its road, the live board and a working Vote button inside a 390 by 844 first viewport.",
+      "Do put Home's title, the phase board and the primary action above the fold at 390 by 844.",
       "Do set every comparable number in JetBrains Mono with tabular figures, and change digits in place inside fixed cells.",
       "Do say \"Totals reset every round\" wherever a count appears.",
       "Do call purchases vote packs.",
@@ -608,8 +729,10 @@
       "Do draw arrows, checks, crosses and the crown as inline SVG that rides the text baseline.",
       "Do give buttons the soft, tinted press shadow and a 1px press.",
       "Do keep sponsor placements visually lighter than Vote, and keep them off the buyer's thank-you screen.",
-      "Do keep the lamp present while unlit, so its moment is a light igniting.",
-      "Do honor reduced motion: ignite, lamp bloom, confetti and transitions all collapse."
+      "Do keep the lamp present on the board while unlit, so its moment is a light igniting.",
+      "Do honor reduced motion: ignite, lamp bloom, the champion reveal, confetti and transitions all collapse.",
+      "Do gate every hover style behind `(hover: hover) and (pointer: fine)` and give touch an `:active` press instead.",
+      "Do pad page edges with `--pad-l` and `--pad-r` so content clears the notch."
     ],
     "donts": [
       "Don't place an uppercase kicker or eyebrow above a heading; put counts and status beneath it.",
@@ -618,7 +741,9 @@
       "Don't set body text in teal or sun on cream.",
       "Don't call a vote pack a donation.",
       "Don't pin a fixed Vote bar inside the WordPress iframe.",
-      "Don't let a count reflow or slide when it changes."
+      "Don't let a count reflow or slide when it changes.",
+      "Don't fill any panel but the champion's with sun.",
+      "Don't truncate a name on the bracket poster or inside a Vote button; let it wrap."
     ]
   }
 }
