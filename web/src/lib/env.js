@@ -7,6 +7,9 @@ export const SUPABASE_URL = (env.VITE_SUPABASE_URL || '').replace(/\/+$/, '')
 export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || ''
 export const STRIPE_PUBLISHABLE_KEY = env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 export const IMAGE_TRANSFORMS = env.VITE_IMAGE_TRANSFORMS === 'true'
+// The mock API's toy checkout (no Stripe, no charge), for demos and the
+// screenshot deck. Never set on a real build; the real API never says "mock".
+export const MOCK_CHECKOUT = env.VITE_MOCK_CHECKOUT === 'true'
 // Cloudflare Turnstile, the bot check on free-vote code requests. Public by design.
 export const TURNSTILE_SITE_KEY = env.VITE_TURNSTILE_SITE_KEY || ''
 

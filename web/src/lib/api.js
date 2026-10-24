@@ -276,6 +276,8 @@ export const submitEntry = (form) => callFunction('submit-entry', { form })
 // Acting on a link from an email: an owner's goal or opt-out, a buyer's unsubscribe.
 export const callLinks = (action, json) => callFunction('links', { json: { action, ...json } })
 export const createCheckout = (json) => callFunction('create-checkout', { json })
+// Settles a toy intent on the mock API; see MOCK_CHECKOUT.
+export const mockPay = (id) => callFunction('mock-pay', { json: { id } })
 
 const ADOPTABLE_URL = 'https://rowanflynnpilot.github.io/wpr-adopt-widget/snapshots/featured-pet.json'
 

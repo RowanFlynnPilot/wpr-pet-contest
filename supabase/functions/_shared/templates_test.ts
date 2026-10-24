@@ -61,6 +61,18 @@ Deno.test("advancement names the round, the opponent and the reset", () => {
   assertStringIncludes(msg.text, "Wednesday, Oct. 14");
 });
 
+Deno.test("a sentence ending on a time ends on one period", () => {
+  const msg = render({ ...base, kind: "nurture_halfway", round_name: "Open Round", closes_at: "2026-11-28T02:00:00Z", my_votes: 88, rank: 14, field_size: 212, cut_margin: 12 }, LINKS);
+  assertStringIncludes(msg.text, "closes Friday, Nov. 27 at 8 p.m. If two pets tie");
+  assert(!msg.text.includes("p.m.."));
+  assert(!msg.html.includes("p.m.."));
+  const note = renderBuyerNote({
+    email: "fan@example.com", contest_name: "C", round_name: "Elite Eight", closes_at: "2026-11-28T02:00:00Z", is_final: false,
+    playing: [{ entry_id: "7a000000-0000-0000-0000-00000000000a", pet: "Biscuit", opponent: "Luna" }], ended: [], champion: [], raised_cents: 100,
+  }, LINKS, "https://example.org/u");
+  assert(!note.text.includes("p.m.."));
+});
+
 Deno.test("owner-supplied text is escaped in html", () => {
   const msg = render({ ...base, pet_name: "<img src=x onerror=alert(1)>", owner_name: "A&B" }, LINKS);
   assert(!msg.html.includes("<img src=x"));

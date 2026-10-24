@@ -318,6 +318,12 @@ function compose(
   after: string[] = [],
   footer = ENTRANT_FOOTER,
 ): Message {
+  // A sentence that ends on "8 p.m." must not end on "8 p.m..": one period
+  // after a time, wherever a template adds its own.
+  const tidy = (s: string) => s.replace(/(?<!\.)\.\.(?!\.)/g, ".");
+  subject = tidy(subject);
+  paragraphs = paragraphs.map(tidy);
+  after = after.map(tidy);
   const para = (p: string) =>
     `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">${escape(p)}</p>`;
 

@@ -303,10 +303,13 @@ p { margin: 0 0 0.8em; }
 .bonus-bar a { color: var(--ink); font-weight: 700; }
 .bonus-bar .countdown-inline { background: rgba(255, 255, 255, 0.55); padding: 2px 8px; border-radius: 6px; }
 .bonus-bar.upcoming { background: var(--sun-tint); border-bottom: 1px solid #f1d58f; }
+.bonus-sponsor-short { display: none; }
 @media (max-width: 639px) {
   .bonus-bar .wrap { gap: 2px 8px; padding-top: 6px; padding-bottom: 6px; font-size: 12.5px; }
   .bonus-bar strong { font-size: 15px; }
   .bonus-bar .bonus-badge, .bonus-explain, .bonus-ends, .bonus-presented { display: none; }
+  /* The sponsor keeps its name where the explanation goes. */
+  .bonus-sponsor-short { display: inline; font-weight: 600; }
 }
 .bonus-badge {
   display: inline-flex; align-items: center; gap: 6px; background: var(--sun); color: var(--ink);
@@ -1063,3 +1066,4 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
    footer, inline on the thank-you screen's impact line. */
 .shelter-mark { display: inline-block; vertical-align: middle; border-radius: 6px; background: #fff; object-fit: contain; border: 1px solid var(--rule); }
 .done-impact .shelter-mark { margin: -6px 6px -6px 0; }
+.shelter-lockup { white-space: nowrap; }

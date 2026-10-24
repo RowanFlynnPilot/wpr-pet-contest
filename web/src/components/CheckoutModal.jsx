@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { NEWSLETTER_URL, RULES, SUPPORT_URL } from '../config.js'
-import { createCheckout, fetchActivity, fetchTotals } from '../lib/api.js'
-import { APP_BASE, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
+import { createCheckout, fetchActivity, fetchTotals, mockPay } from '../lib/api.js'
+import { APP_BASE, MOCK_CHECKOUT, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
 import { apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
 import { bestValue, defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
@@ -80,6 +80,8 @@ export default function CheckoutModal({ entry, round, onClose }) {
 
   const pack = packs.find((p) => p.slug === slug) || null
   const best = bestValue(packs)
+  // Stripe, or the mock API's stand-in for it on a demo build.
+  const canPay = Boolean(STRIPE_PUBLISHABLE_KEY) || MOCK_CHECKOUT
   const multiplier = c.bonus?.multiplier || 1
   const split = c.contest?.beneficiary_split_pct
   const label = roundLabel(round.seq, c.bracketSize)
@@ -304,7 +306,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
             </div>
           )}
 
-          {!STRIPE_PUBLISHABLE_KEY ? (
+          {!canPay ? (
             <div className="notice warn">
               <span>
                 <strong>Checkout isn&rsquo;t switched on yet.</strong>
@@ -320,7 +322,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
         </form>
       )}
 
-      {step === 'pay' && intent && STRIPE_PUBLISHABLE_KEY && (!closed || paying) && (
+      {step === 'pay' && intent && canPay && (!closed || paying) && (
         <>
           <div className="summary-line">
             <span>
@@ -334,7 +336,9 @@ export default function CheckoutModal({ entry, round, onClose }) {
             </span>
             <b>{fmtMoney(intent.cents)}</b>
           </div>
-          {stripe.status === 'error' ? (
+          {intent.mock && MOCK_CHECKOUT ? (
+            <MockPay intent={intent} onPaid={paid} />
+          ) : stripe.status === 'error' ? (
             <div className="notice error" role="alert">
               <span>
                 <strong>The payment form couldn&rsquo;t load.</strong>
@@ -392,6 +396,41 @@ function Legal({ split, label }) {
       Votes count in the {label} only; totals reset every round. Vote packs aren&rsquo;t refunded if an owner withdraws a pet.{' '}
       <a href="#/rules">Rules</a>
     </p>
+  )
+}
+
+// The mock API's stand-in for the card form: one button, no charge. Only
+// reachable on a build with MOCK_CHECKOUT set, against an API that says so.
+function MockPay({ intent, onPaid }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  async function pay() {
+    setBusy(true)
+    setError(null)
+    try {
+      await mockPay(intent.id)
+      onPaid(intent, Date.now())
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="mock-pay">
+      <div className="notice warn" style={{ marginBottom: 12 }}>
+        <span>
+          <strong>Demo checkout.</strong> No card and no charge: this button stands in for the payment form.
+        </span>
+      </div>
+      {error && (
+        <div className="notice error" role="alert" style={{ marginBottom: 12 }}>
+          <span>{error}</span>
+        </div>
+      )}
+      <button type="button" className="btn btn-primary btn-lg btn-block" onClick={pay} disabled={busy}>
+        {busy ? 'One moment…' : `Pay ${fmtMoney(intent.cents)} (pretend)`}
+      </button>
+    </div>
   )
 }
 
@@ -484,7 +523,7 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
         <p className="done-impact">
           Your pack sends <strong>{fmtMoney(toShelters)}</strong> to{' '}
           {shelter ? (
-            <>
+            <span className="shelter-lockup">
               <ShelterMark shelter={shelter} size={40} />
               {shelter.url ? (
                 <a href={shelter.url} target="_blank" rel="noopener noreferrer">
@@ -493,7 +532,7 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
               ) : (
                 shelter.name
               )}
-            </>
+            </span>
           ) : (
             'local animal shelters'
           )}

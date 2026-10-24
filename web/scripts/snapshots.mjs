@@ -16,6 +16,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
+import { render, renderBuyerNote, renderFreeVoteCode, renderFreeVoteReminder } from '../../supabase/functions/_shared/templates.ts'
 
 /* global document, window -- inside page.evaluate, which runs in the browser */
 
@@ -50,6 +51,7 @@ const SHOTS = {
     ['gallery', 'All pets', 'Every pet, with a heart to save favorites on this phone, a share button on each card, and filters by species and town.'],
     ['pet', 'A pet page', 'The Open Round scoreboard: this pet’s votes, its rank, how far it is from the cut, the vote button, the free daily vote, and “Remind me before voting closes.”'],
     ['checkout', 'Checkout', 'Vote packs, never a donation. The receipt email, the “tell me when this pet plays again” box (unchecked), and the newsletter box.'],
+    ['thanks', 'The thank-you screen', 'After the card goes through: the pet’s new total with this pack in it, what the pack sent to Moments Foster Care, and share buttons. Not sold to sponsors. (The demo build’s pretend payment stands in for the card form here.)'],
     ['bracket', 'The bracket, projected', 'If voting ended now: who would be seeded where. It fills in for real when the Open Round closes.'],
     ['widget', 'The article widget', 'The compact version that sits inside a WordPress article: the leaders and a vote button.'],
   ],
@@ -127,17 +129,28 @@ async function capture(browser, phase, route, petId, stamp) {
     const context = await browser.newContext({ viewport, deviceScaleFactor: mobile ? 1.5 : 1, isMobile: mobile, hasTouch: mobile, reducedMotion: 'reduce' })
     const page = await context.newPage()
     let url = `${SITE}/#/${route}`
-    if (route === 'pet' || route === 'checkout') url = `${SITE}/#/pet/${petId}`
+    if (route === 'pet' || route === 'checkout' || route === 'thanks') url = `${SITE}/#/pet/${petId}`
     if (route === 'owner') url = `${SITE}/#/pet/${petId}?owner=${OWNER_TOKEN}`
     if (route === 'widget') url = `${SITE}/widget.html`
     await page.goto(url)
     await settle(page)
     let fullPage = true
-    if (route === 'checkout') {
+    if (route === 'checkout' || route === 'thanks') {
       await page.getByRole('button', { name: /^Vote for/ }).first().click()
       await page.getByRole('dialog').waitFor()
       await sleep(400)
       fullPage = false
+    }
+    if (route === 'thanks') {
+      // The demo build's pretend payment (VITE_MOCK_CHECKOUT), through to
+      // the webhook-credited state.
+      const dialog = page.getByRole('dialog')
+      await dialog.getByLabel(/email for your receipt/i).fill('jo@example.com')
+      await dialog.getByLabel(/plays again/i).check()
+      await dialog.getByRole('button', { name: /^Continue/ }).click()
+      await dialog.getByRole('button', { name: /pretend/ }).click()
+      await dialog.getByText(/votes are in/).waitFor({ timeout: 30000 })
+      await sleep(600)
     }
     if (route === 'owner') {
       await page.locator('.owner-tools').scrollIntoViewIfNeeded()
@@ -149,6 +162,82 @@ async function capture(browser, phase, route, petId, stamp) {
     await context.close()
   }
   return files
+}
+
+// The emails, rendered from the real templates with one family's sample
+// data, each with when it goes out. Saved as HTML beside the deck too.
+const LINKS = { publicUrl: 'https://wausaupilotandreview.com/pets/', shareBase: 'https://rowanflynnpilot.github.io/wpr-pet-contest/' }
+const ENTRY = '7a000000-0000-0000-0000-00000000000a'
+const OWNER = { token: '11111111-1111-1111-1111-111111111111' }
+const CLOSES_OPEN = '2026-11-28T02:00:00Z' // Friday, Nov. 27 at 8 p.m. Central
+const CLOSES_S16 = '2026-11-30T02:00:00Z'
+const row = (over) => ({
+  kind: 'entry_approved',
+  entry_id: ENTRY,
+  round_id: null,
+  to_email: 'jo@example.com',
+  owner_name: 'Jo',
+  pet_name: 'Biscuit',
+  contest_name: 'Cutest Pet in Marathon County',
+  round_name: null,
+  opponent_name: null,
+  closes_at: null,
+  rejection_reason: null,
+  raised_cents: 123_400,
+  owner_token: OWNER.token,
+  ...over,
+})
+const EMAILS = [
+  ['entry-received', 'Entry received', 'Right after the form is sent, before anyone has looked at it.', () => render(row({ kind: 'entry_received' }), LINKS)],
+  ['approved', 'Approved', 'When staff approve the entry: the share link, and the owner’s own link for a goal.', () => render(row({}), LINKS)],
+  ['not-approved', 'Not approved', 'When staff decline one, with the reason they gave.', () => render(row({ kind: 'entry_rejected', rejection_reason: 'The photo shows a person’s face. The contest is for pets only; send one of Biscuit alone and we’ll approve it.' }), LINKS)],
+  ['tips-before', 'Tips: before voting opens', 'The day after approval, while the Open Round is still a week away.', () => render(row({ kind: 'nurture_ready', round_name: 'Open Round', opens_at: '2026-11-21T14:00:00Z' }), LINKS)],
+  ['tips-open', 'Tips: voting is open', 'In the first two days of the Open Round.', () => render(row({ kind: 'nurture_open', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 40, rank: 7, field_size: 212, goal_votes: 300 }), LINKS)],
+  ['tips-halfway', 'Tips: halfway', 'Day three of the Open Round, with the standings and the cut.', () => render(row({ kind: 'nurture_halfway', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 88, rank: 14, field_size: 212, cut_margin: 12, goal_votes: 300 }), LINKS)],
+  ['tips-last-day', 'Tips: last day', 'The morning of the Open Round’s deadline. This pet is six votes out of the bracket.', () => render(row({ kind: 'nurture_last_day', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 131, rank: 17, field_size: 212, cut_margin: -6, goal_votes: 300 }), LINKS)],
+  ['advanced', 'Made the Sweet 16', 'When a bracket round opens with the pet in it.', () => render(row({ kind: 'advanced', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16 }), LINKS)],
+  ['tips-matchup', 'Tips: matchup day', 'The morning a bracket round closes, with both counts.', () => render(row({ kind: 'nurture_matchup_last_day', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, my_votes: 111, opponent_votes: 118 }), LINKS)],
+  ['eliminated', 'Thank you for entering', 'After a lost matchup.', () => render(row({ kind: 'eliminated', round_name: 'Sweet 16', opponent_name: 'Luna' }), LINKS)],
+  ['champion', 'Champion', 'To the winner, the night of the final.', () => render(row({ kind: 'champion', round_name: 'Championship', opponent_name: 'Gus', raised_cents: 1_234_500 }), LINKS)],
+  ['tips-thanks', 'Thanks', 'Thirty-six hours after the final, to every owner but the champion’s.', () => render(row({ kind: 'nurture_thanks', champion_name: 'Gus', raised_cents: 1_234_500 }), LINKS)],
+  ['buyer-round', 'Buyer: your pet plays again', 'To a buyer who checked the box at checkout, when a round opens. One per round.', () =>
+    renderBuyerNote(
+      { email: 'fan@example.com', contest_name: 'Cutest Pet in Marathon County', round_name: 'Elite Eight', closes_at: '2026-12-02T02:00:00Z', is_final: false, playing: [{ entry_id: ENTRY, pet: 'Biscuit', opponent: 'Luna' }], ended: [{ pet: 'Mochi', opponent: 'Gus', round: 'Sweet 16' }], champion: [], raised_cents: 456_700 },
+      LINKS,
+      `${LINKS.publicUrl}#/unsubscribe?bn=token`,
+    )],
+  ['buyer-final', 'Buyer: the final', 'To the same buyers after the Championship.', () =>
+    renderBuyerNote(
+      { email: 'fan@example.com', contest_name: 'Cutest Pet in Marathon County', round_name: 'Championship', closes_at: '2026-12-06T02:00:00Z', is_final: true, playing: [], ended: [], champion: [{ entry_id: ENTRY, pet: 'Biscuit', opponent: 'Gus' }], raised_cents: 1_234_500 },
+      LINKS,
+      `${LINKS.publicUrl}#/unsubscribe?bn=token`,
+    )],
+  ['free-vote-code', 'Free vote: the code', 'Only if the free daily vote is switched on: the emailed code.', () =>
+    renderFreeVoteCode({ code: '482913', petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', link: `${LINKS.publicUrl}#/pet/${ENTRY}?fv=l.token`, minutes: 15 })],
+  ['free-vote-reminder', 'Free vote: the morning reminder', 'Only if the free daily vote is on, and only to readers who asked.', () =>
+    renderFreeVoteReminder({ petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', roundName: 'Open Round', closesAt: CLOSES_OPEN, link: `${LINKS.publicUrl}#/pet/${ENTRY}?fv=r.token`, unsubscribe: `${LINKS.publicUrl}#/unsubscribe?fv=u.token` })],
+]
+
+async function captureEmails(browser, stamp) {
+  await mkdir(join(OUT, 'emails'), { recursive: true })
+  const context = await browser.newContext({ viewport: { width: 680, height: 800 } })
+  const page = await context.newPage()
+  const shots = []
+  for (const [slug, title, note, make] of EMAILS) {
+    console.log(`[snapshots] email: ${title}`)
+    const msg = make()
+    await writeFile(join(OUT, 'emails', `${slug}.html`), msg.html)
+    await page.setContent(msg.html)
+    await page.evaluate(() => document.fonts.ready)
+    const height = await page.evaluate(() => document.documentElement.scrollHeight)
+    await page.setViewportSize({ width: 680, height: Math.min(MAX_HEIGHT, Math.max(height, 400)) })
+    await sleep(150)
+    const file = `${stamp}-email-${slug}.jpg`
+    await page.screenshot({ path: join(OUT, file), type: 'jpeg', quality: 70 })
+    shots.push({ title, note: `${note} Subject: “${msg.subject}”`, file })
+  }
+  await context.close()
+  return shots
 }
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
@@ -165,6 +254,10 @@ async function html(sections, extras, date) {
   for (const [id, title, intro, shots] of sections) {
     body += `<section id="${id}"><h2>${esc(title)}</h2><p class="intro">${esc(intro)}</p>`
     for (const s of shots) {
+      if (s.file) {
+        body += `<figure class="shot card"><figcaption><strong>${esc(s.title)}</strong> ${esc(s.note)}</figcaption><img src="${await dataUri(s.file)}" alt="${esc(s.title)}" loading="lazy"></figure>`
+        continue
+      }
       body += `<figure class="shot"><figcaption><strong>${esc(s.title)}</strong> ${esc(s.note)}</figcaption><div class="pair"><img class="desktop" src="${await dataUri(s.files.desktop)}" alt="${esc(s.title)}, desktop" loading="lazy"><img class="phone" src="${await dataUri(s.files.phone)}" alt="${esc(s.title)}, phone" loading="lazy"></div></figure>`
     }
     body += '</section>'
@@ -225,7 +318,7 @@ async function main() {
   const mock = start([join(ROOT, 'scripts', 'mock-api.mjs')], { PORT: String(MOCK_PORT), PHASE: 'submissions' }, 'mock API')
   const vite = start(
     [join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'],
-    { VITE_SUPABASE_URL: MOCK, VITE_SUPABASE_ANON_KEY: 'mock-anon-key', VITE_STRIPE_PUBLISHABLE_KEY: '', VITE_PUBLIC_URL: '', VITE_IMAGE_TRANSFORMS: 'false', VITE_TURNSTILE_SITE_KEY: '' },
+    { VITE_SUPABASE_URL: MOCK, VITE_SUPABASE_ANON_KEY: 'mock-anon-key', VITE_STRIPE_PUBLISHABLE_KEY: '', VITE_PUBLIC_URL: '', VITE_IMAGE_TRANSFORMS: 'false', VITE_TURNSTILE_SITE_KEY: '', VITE_MOCK_CHECKOUT: 'true' },
     'dev server',
   )
   const cleanup = () => {
@@ -253,6 +346,12 @@ async function main() {
       }
       sections.push([phase, title, intro, shots])
     }
+    sections.push([
+      'emails',
+      'The emails',
+      'Every email the contest sends, rendered from the real templates with one family’s sample numbers. Entrants and buyers see more of these than of the pages. Each carries the legal line and, where it can, a share link; the tips and buyer notes carry a stop link.',
+      await captureEmails(browser, stamp),
+    ])
     await browser.close()
 
     const extras = []

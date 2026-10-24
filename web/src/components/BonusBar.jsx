@@ -26,6 +26,24 @@ function SponsorCredit({ w }) {
   )
 }
 
+// The match bar's sponsor on phones, where the explanation that names it is
+// hidden. (The bonus bars keep SponsorCredit, whose "by" survives there.)
+function SponsorShort({ name, url, slot }) {
+  if (!name) return null
+  return (
+    <span className="bonus-sponsor-short">
+      ·{' '}
+      {url ? (
+        <a href={withUtm(url)} target="_blank" rel="noopener noreferrer sponsored" onClick={() => track('Sponsor Click', { sponsor: name, slot })}>
+          {name}
+        </a>
+      ) : (
+        name
+      )}
+    </span>
+  )
+}
+
 // Site-wide strip for a live bonus window, or a teaser for one starting within
 // a day. Only while a round is open: a bonus with nothing to vote on is noise.
 export default function BonusBar() {
@@ -68,6 +86,7 @@ export default function BonusBar() {
             {ratio >= 1 ? `${ratio % 1 ? ratio : Math.round(ratio)}:1` : `${Math.round(ratio * 100)}¢`}
           </span>
           <strong>{hours <= 1.5 ? 'Match hour' : 'Sponsor match'}</strong>
+          <SponsorShort name={match.sponsor_name} url={match.sponsor_url} slot="match" />
           <span>
             <span className="bonus-explain">
               {match.sponsor_url ? (

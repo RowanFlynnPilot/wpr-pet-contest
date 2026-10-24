@@ -116,6 +116,13 @@ function contestState() {
     }
   }
 
+  // Toy purchases (mock-pay, below) land on the live totals and the feed.
+  for (const p of paid) {
+    const t = totals.find((t) => t.round_id === p.round_id && t.entry_id === p.entry_id)
+    if (t) t.votes += p.votes
+    else totals.push({ round_id: p.round_id, entry_id: p.entry_id, votes: p.votes })
+  }
+
   const live = totals.filter((t) => rounds.find((r) => r.id === t.round_id)?.status === 'open')
   const gross = totals.reduce((n, t) => n + t.votes * 80, 0)
   return {
@@ -141,7 +148,10 @@ function contestState() {
     contest_stats: submissions
       ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
       : [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: totals.reduce((n, t) => n + t.votes, 0), gross_cents: gross, shelter_cents: Math.round(gross * 0.3), match_cents: phase === 'bracket' ? 12500 : 0 }],
-    recent_activity: live.slice(0, 10).map((t, i) => ({ round_id: t.round_id, entry_id: t.entry_id, votes: 25, bonus_multiplier: 1, confirmed_at: iso(now - (i + 1) * 7 * 60e3) })),
+    recent_activity: [
+      ...paid.slice().reverse().map((p) => ({ round_id: p.round_id, entry_id: p.entry_id, votes: p.votes, bonus_multiplier: p.multiplier, confirmed_at: p.confirmed_at })),
+      ...live.slice(0, 10).map((t, i) => ({ round_id: t.round_id, entry_id: t.entry_id, votes: 25, bonus_multiplier: 1, confirmed_at: iso(now - (i + 1) * 7 * 60e3) })),
+    ],
     side_awards: phase === 'bracket' || phase === 'complete'
       ? ['dog', 'cat', 'other'].map((sp) => {
         const best = entries.filter((e) => e.species === sp)
@@ -195,6 +205,32 @@ const CORS = {
   'Access-Control-Allow-Headers': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Expose-Headers': 'Content-Range',
+}
+
+// The toy checkout: an intent with no Stripe behind it, "paid" by mock-pay,
+// so the whole flow through the thank-you screen can be walked. The front
+// end only takes this path with VITE_MOCK_CHECKOUT=true.
+const intents = new Map() // id -> { id, round_id, entry_id, votes, cents, multiplier }
+const paid = [] // settled intents, in order
+function createCheckout(b) {
+  const s = contestState()
+  const pack = s.vote_packs.find((p) => p.slug === b.pack_slug)
+  const entry = s.entries.find((e) => e.id === b.entry_id)
+  const round = s.rounds.find((r) => r.id === b.round_id)
+  if (!pack || !entry || !round) return { status: 400, body: { error: 'Choose a pack and a pet.' } }
+  if (round.status !== 'open') return { status: 409, body: { error: 'Voting is closed for this round.' } }
+  const t = Date.now()
+  const bonus = s.bonus_windows.find((w) => new Date(w.starts_at).getTime() <= t && t < new Date(w.ends_at).getTime())
+  const multiplier = bonus ? bonus.multiplier : 1
+  const id = `pi_mock_${intents.size + 1}`
+  intents.set(id, { id, round_id: round.id, entry_id: entry.id, votes: pack.votes * multiplier, cents: pack.cents, multiplier })
+  return { body: { mock: true, id, votes: pack.votes * multiplier, cents: pack.cents, multiplier, pet_name: entry.pet_name, client_secret: null } }
+}
+function mockPay(b) {
+  const i = intents.get(b.id)
+  if (!i) return { status: 404, body: { error: 'No such checkout.' } }
+  if (!paid.some((p) => p.id === i.id)) paid.push({ ...i, confirmed_at: iso(Date.now()) })
+  return { body: { ok: true, paid_at: iso(Date.now()) } }
 }
 
 // The toy free vote: enough to walk the sheet's steps by hand or in a test.
@@ -264,6 +300,18 @@ createServer((req, res) => {
       const b = JSON.parse(raw || '{}')
       res.writeHead(200, { ...CORS, 'Content-Type': 'application/json' })
       res.end(JSON.stringify(b.action === 'goal' ? { ok: true, goal: b.goal } : { ok: true }))
+    })
+    return
+  }
+
+  const toy = { '/functions/v1/create-checkout': createCheckout, '/functions/v1/mock-pay': mockPay }[url.pathname]
+  if (toy && req.method === 'POST') {
+    let raw = ''
+    req.on('data', (c) => (raw += c))
+    req.on('end', () => {
+      const out = toy(JSON.parse(raw || '{}'))
+      res.writeHead(out.status || 200, { ...CORS, 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(out.body))
     })
     return
   }
