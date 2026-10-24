@@ -132,12 +132,12 @@ export function matchupCards(matchups, round, totals, byId) {
 // One line under a matchup: who leads and by how much ("X votes behind" is
 // the most shareable fact in the contest).
 export function matchupLine(st, { status = 'open' } = {}) {
-  // A side with an id but no public entry was disqualified (see MatchupCard).
+  // A side with an id but no public entry was disqualified or withdrawn (see MatchupCard).
   const name = (side) => side.entry?.pet_name || (side.id ? 'Removed' : 'TBD')
   const lead = st.leader === 'a' ? st.a : st.b
   const trail = st.leader === 'a' ? st.b : st.a
   if (!st.winner && st.a.id && st.b.id && Boolean(st.a.entry) !== Boolean(st.b.entry)) {
-    return `${name(st.a.entry ? st.a : st.b)} advances: its opponent was disqualified`
+    return `${name(st.a.entry ? st.a : st.b)} advances: its opponent is out of the contest`
   }
   if (st.winner) {
     const w = st.winner === st.a.id ? st.a : st.b

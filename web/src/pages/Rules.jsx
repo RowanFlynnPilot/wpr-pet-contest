@@ -208,13 +208,20 @@ export default function Rules() {
           <li>Finalized results of a closed round are not reopened.</li>
         </ul>
 
-        <h2>{n(10)}. Disqualification</h2>
+        <h2>{n(10)}. Disqualification and withdrawal</h2>
         <p>
           If an entry is disqualified after voting has begun (for example, because its photo is not the entrant&rsquo;s own or the entrant is
           not eligible), <strong>every vote pack bought for that pet, in every round, is refunded in full</strong> to the original payment
           method. The pet is removed from the Contest. If it is in a matchup, its opponent advances regardless of the vote count. Results of
           rounds already finalized stand. Disqualification is not available once the Contest is complete.
           {free && ' Free votes for that pet in rounds not yet finalized are returned, and those voters may vote again that day.'}
+        </p>
+        <p>
+          An entrant may withdraw a pet at any time before the Contest ends by contacting WPR (for example, if the pet has died or been
+          rehomed). <strong>Vote packs already bought for a withdrawn pet are not refunded</strong>, and the shelters&rsquo; share of them
+          stands. The pet is removed from the Contest; if it is in a matchup, its opponent advances regardless of the vote count. A payment
+          completed after the withdrawal does not count and is refunded. Results of rounds already finalized stand.
+          {free && ' Free votes for a withdrawn pet in rounds not yet finalized are returned.'}
         </p>
 
         <h2>{n(11)}. Side awards</h2>

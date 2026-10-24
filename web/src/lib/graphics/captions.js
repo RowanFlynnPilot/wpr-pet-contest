@@ -72,7 +72,7 @@ const WRITERS = {
     if (Boolean(st.a.entry) !== Boolean(st.b.entry)) {
       const present = st.a.entry ? st.a : st.b
       return {
-        hook: `${petName(present)} advances in the ${label}: its opponent was disqualified.`,
+        hook: `${petName(present)} advances in the ${label}: its opponent is out of the contest.`,
         body: '',
         cta: 'See the bracket:',
         path: 'bracket',

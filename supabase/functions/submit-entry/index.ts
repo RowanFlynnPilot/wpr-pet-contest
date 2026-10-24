@@ -22,6 +22,17 @@ const MAX_THUMB_BYTES = 1024 * 1024;
 //
 // The type is read from the bytes, not from photo.type, which is whatever the
 // client claims.
+const STAFF_DOMAINS = (optionalEnv("STAFF_EMAIL_DOMAINS") ?? "wausaupilotandreview.com")
+  .split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+
+function notStaff(address: string): string {
+  const domain = address.split("@").pop()?.toLowerCase() ?? "";
+  if (STAFF_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))) {
+    throw badRequest("Wausau Pilot & Review staff and their households can't enter this contest.");
+  }
+  return address;
+}
+
 const SPECIES = ["dog", "cat", "other"] as const;
 
 // Enough for a household with several pets; low enough that one person cannot
@@ -40,6 +51,10 @@ serve(async (req) => {
   // it worked so they have no reason to adapt.
   if (form.get("website")) return { received: true };
 
+  // WPR staff and their households may not enter (rules, Eligibility). A
+  // personal address gets past this; moderation is the real check. This only
+  // stops the honest mistake of entering from a work address.
+
   const photo = form.get("photo");
   // Not just falsy: a text field named "photo" has no .size, and
   // `undefined > MAX_BYTES` is false, so it would slip the size check below.
@@ -53,7 +68,7 @@ serve(async (req) => {
     pet_name: requiredText(form.get("pet_name"), "Pet name", 40),
     species: oneOf(form.get("species"), SPECIES, "Species"),
     owner_name: requiredText(form.get("owner_name"), "Your name", 80),
-    owner_email: email(form.get("owner_email")),
+    owner_email: notStaff(email(form.get("owner_email"))),
     town: requiredText(form.get("town"), "Town", 60),
     caption: optionalText(form.get("caption"), "Caption", 280),
     newsletter_opt_in: form.get("newsletter_opt_in") === "true",

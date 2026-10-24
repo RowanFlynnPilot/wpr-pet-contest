@@ -20,7 +20,7 @@ export const RULES = {
   rulesApproved: false,
   contact: 'pets@wausaupilotandreview.com',
   eligibility:
-    'Entrants must be 18 or older and live in Wisconsin. One entry per pet. Employees of Wausau Pilot & Review and partner shelters may enter their pets but are not eligible for side awards.',
+    'Entrants must be 18 or older and live in Wisconsin. One entry per pet. Employees of Wausau Pilot & Review and members of their households may not enter. Employees of partner shelters may enter their own pets but are not eligible for side awards.',
 }
 
 // Sponsor slots. A slot is a sponsor object or null (null renders an upsell).

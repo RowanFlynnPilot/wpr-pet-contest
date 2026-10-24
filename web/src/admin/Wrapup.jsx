@@ -112,7 +112,7 @@ export default function Wrapup() {
         all(() =>
           admin.from('round_results').select('round_id, entry_id, votes, rounds!inner(contest_id)').eq('rounds.contest_id', cid).order('round_id').order('entry_id'),
         ),
-        all(() => admin.from('entries').select(PUBLIC_ENTRY_COLS).eq('contest_id', cid).in('status', ['approved', 'disqualified']).order('created_at').order('id')),
+        all(() => admin.from('entries').select(PUBLIC_ENTRY_COLS).eq('contest_id', cid).in('status', ['approved', 'disqualified', 'withdrawn']).order('created_at').order('id')),
         q(admin.from('side_awards').select('*').eq('contest_id', cid)),
         q(admin.from('vote_packs').select('label, votes, cents').eq('contest_id', cid).order('sort')),
       ])

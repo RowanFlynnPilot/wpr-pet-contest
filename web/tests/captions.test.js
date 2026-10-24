@@ -79,7 +79,7 @@ describe('captionsFor', () => {
   })
 
   it('handles a walkover and cards without captions', () => {
-    expect(captionsFor(cards.walkover, { publicUrl: URL_ }).hook).toMatch(/Luna advances.*opponent was disqualified/)
+    expect(captionsFor(cards.walkover, { publicUrl: URL_ }).hook).toMatch(/Luna advances.*opponent is out of the contest/)
     expect(captionsFor({ label: 'x' }, { publicUrl: URL_ })).toBeNull()
   })
 

@@ -60,6 +60,53 @@ function DisqualifyForm({ entry, busy, onSubmit, onCancel }) {
     </form>
   )
 }
+// The owner takes the pet out (it died, was rehomed, the family changed its
+// mind). Unlike a disqualification nobody is refunded: the published rules say
+// so, and the shelters' share stands.
+function WithdrawForm({ entry, busy, onSubmit, onCancel }) {
+  const [reason, setReason] = useState('')
+  const [typed, setTyped] = useState('')
+  const ok = reason.trim().length > 0 && typed.trim().toUpperCase() === 'WITHDRAW'
+  return (
+    <form
+      className="confirm"
+      role="dialog"
+      aria-modal="false"
+      aria-label={`Withdraw ${entry.pet_name}`}
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (ok && !busy) onSubmit(reason.trim())
+      }}
+    >
+      <h3 style={{ marginTop: 0 }}>Withdraw {entry.pet_name}?</h3>
+      <ul className="small" style={{ margin: '0 0 12px', paddingLeft: 18 }}>
+        <li>For an owner who asks to take the pet out. A pet that broke the rules is disqualified instead.</li>
+        <li>Vote packs already bought for {entry.pet_name} are not refunded, and the shelters&rsquo; share stands.</li>
+        <li>If it is in a matchup, its opponent advances whatever the count. Its free votes go back to their voters.</li>
+        <li>It leaves the public site and its photo is deleted. This cannot be undone.</li>
+      </ul>
+      <label className="field" style={{ marginBottom: 10 }}>
+        <span className="label">Reason (kept with the entry)</span>
+        <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} autoFocus />
+      </label>
+      <label className="field" style={{ marginBottom: 10 }}>
+        <span className="label">
+          Type <strong>WITHDRAW</strong> to confirm
+        </span>
+        <input type="text" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" spellCheck={false} />
+      </label>
+      <div className="tool-row">
+        <button type="submit" className="btn btn-danger" disabled={!ok || busy}>
+          {busy ? 'Withdrawing…' : 'Withdraw, no refunds'}
+        </button>
+        <button type="button" className="btn btn-quiet" onClick={onCancel} disabled={busy}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
+
 const TEXTY = new Set(['text', 'email', 'search', 'number', 'password', 'url', 'tel', 'datetime-local'])
 // Shortcuts stay out of the way while someone is typing, but not while a
 // radio button or checkbox merely has focus.
@@ -237,6 +284,7 @@ export default function Moderation() {
   const [index, setIndex] = useState(0)
   const [rejecting, setRejecting] = useState(null)
   const [disqualifying, setDisqualifying] = useState(null)
+  const [withdrawing, setWithdrawing] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const queue = pending.data || []
@@ -293,9 +341,31 @@ export default function Moderation() {
     }
   }
 
+  async function withdraw(entry, reason) {
+    setBusy(true)
+    setError(null)
+    try {
+      // As the staff member, so withdrawn_by is the real person.
+      await q(admin.rpc('withdraw_entry', { p_entry_id: entry.id, p_reason: reason }))
+      const res = await callAdmin('moderate', { entry_id: entry.id, decision: 'purge' }).catch(() => null)
+      say(
+        res?.photo_deleted === false || !res
+          ? `${entry.pet_name} withdrawn, but the photo was NOT deleted. Check the Health tab.`
+          : `${entry.pet_name} withdrawn · no refunds · photo deleted.`,
+      )
+      setWithdrawing(null)
+      await approved.reload()
+    } catch (err) {
+      if (err instanceof SessionError) onSessionLost(err.message)
+      else setError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   useEffect(() => {
     const on = (e) => {
-      if (rejecting || disqualifying || busy || typing(e.target) || e.metaKey || e.ctrlKey || e.altKey || !current) return
+      if (rejecting || disqualifying || withdrawing || busy || typing(e.target) || e.metaKey || e.ctrlKey || e.altKey || !current) return
       if (e.key === 'a') {
         e.preventDefault()
         decide(current, 'approve')
@@ -377,6 +447,9 @@ export default function Moderation() {
         {disqualifying && (
           <DisqualifyForm entry={disqualifying} busy={busy} onCancel={() => setDisqualifying(null)} onSubmit={(reason) => disqualify(disqualifying, reason)} />
         )}
+        {withdrawing && (
+          <WithdrawForm entry={withdrawing} busy={busy} onCancel={() => setWithdrawing(null)} onSubmit={(reason) => withdraw(withdrawing, reason)} />
+        )}
         {rejecting && rejecting.status === 'approved' && (
           <ReasonPicker pet={rejecting.pet_name} busy={busy} onCancel={() => setRejecting(null)} onSubmit={(reason) => decide(rejecting, 'reject', reason)} />
         )}
@@ -397,6 +470,11 @@ export default function Moderation() {
                 {voting && (
                   <button type="button" className="link-btn small" onClick={() => setDisqualifying(e)} disabled={busy}>
                     Disqualify…
+                  </button>
+                )}
+                {(voting || contest.status === 'submissions_open') && (
+                  <button type="button" className="link-btn small" onClick={() => setWithdrawing(e)} disabled={busy}>
+                    Withdraw…
                   </button>
                 )}
               </div>

@@ -420,6 +420,7 @@ export default function Enter() {
                 media to promote this contest, now and in future contest coverage, without payment to me.
               </p>
               <p>3. I am 18 or older.</p>
+              <p>4. I don&rsquo;t work for Wausau Pilot &amp; Review, and no one in my household does.</p>
               <p>My name and email address are never published.</p>
             </div>
             {errors.rights && <span className="error-text">{errors.rights}</span>}

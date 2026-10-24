@@ -23,8 +23,8 @@ serve(async (req) => {
     const { data, error } = await staff
       .from("entries").select("status").eq("id", entryId).single();
     if (error) throw error;
-    if (data.status !== "rejected" && data.status !== "disqualified") {
-      throw new HttpError(400, "Only a rejected or disqualified entry's photo can be purged.");
+    if (data.status !== "rejected" && data.status !== "disqualified" && data.status !== "withdrawn") {
+      throw new HttpError(400, "Only a rejected, disqualified or withdrawn entry's photo can be purged.");
     }
   } else {
     const { error } = await staff.rpc("moderate_entry", {

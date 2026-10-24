@@ -182,13 +182,13 @@ function BracketPanel({ c, entry, entries, byId, bracket, state }) {
     )
   }
 
-  // An opponent the public cannot see was disqualified: this pet advances
+  // An opponent the public cannot see was disqualified or withdrawn: this pet advances
   // whatever the count, so there is nothing to sell votes for.
   if (!m.winner_entry_id && opp.id && !opp.entry) {
     return (
       <Scoreboard label={label}>
         <p className="sb-note lead">
-          {entry.pet_name}&rsquo;s opponent in the {label} was disqualified, so {entry.pet_name} advances whatever the count. There is
+          {entry.pet_name}&rsquo;s opponent in the {label} is out of the contest, so {entry.pet_name} advances whatever the count. There is
           nothing to vote on in this matchup.
         </p>
       </Scoreboard>

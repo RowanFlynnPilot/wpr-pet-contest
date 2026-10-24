@@ -362,7 +362,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
           currentVotes={currentVotes}
           contestName={c.contest?.name}
           split={c.contest?.beneficiary_split_pct}
-          shelterName={c.shelters.length === 1 ? c.shelters[0].name : null}
+          shelter={c.shelters.length === 1 ? c.shelters[0] : null}
           canBuyAgain={!closed}
           onAgain={() => {
             request.current = null
@@ -382,7 +382,8 @@ function Legal({ split, label }) {
     <p className="legal">
       <strong>Vote pack purchases are not tax-deductible.</strong>{' '}
       {split != null ? `${split}% of proceeds go to the partner shelters.` : 'A share of proceeds goes to the partner shelters.'}{' '}
-      Votes count in the {label} only; totals reset every round. <a href="#/rules">Rules</a>
+      Votes count in the {label} only; totals reset every round. Vote packs aren&rsquo;t refunded if an owner withdraws a pet.{' '}
+      <a href="#/rules">Rules</a>
     </p>
   )
 }
@@ -448,7 +449,7 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
 // The peak of the whole contest for a reader: their pet, its count lighting
 // up as the votes land, and what the pack did for the shelters. A late
 // payment gets the plain truth instead of a celebration.
-function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestName, split, shelterName, canBuyAgain, onAgain, onClose }) {
+function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestName, split, shelter, canBuyAgain, onAgain, onClose }) {
   const votes = fmtInt(intent.votes)
   const late = outcome === 'late'
   const toShelters = split != null ? Math.round((intent.cents * split) / 100) : null
@@ -474,7 +475,19 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
       </div>
       {!late && toShelters > 0 && (
         <p className="done-impact">
-          Your pack sends <strong>{fmtMoney(toShelters)}</strong> to {shelterName || 'local animal shelters'}.
+          Your pack sends <strong>{fmtMoney(toShelters)}</strong> to{' '}
+          {shelter ? (
+            shelter.url ? (
+              <a href={shelter.url} target="_blank" rel="noopener noreferrer">
+                {shelter.name}
+              </a>
+            ) : (
+              shelter.name
+            )
+          ) : (
+            'local animal shelters'
+          )}
+          .
         </p>
       )}
       <div className="done-status">

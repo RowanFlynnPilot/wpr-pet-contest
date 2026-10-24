@@ -85,8 +85,9 @@ Work out which claim it is:
 - A sudden jump: the biggest pack is 600 votes, and a pack started during a
   Double Vote Hour counts twice. Check that the jump matches credited payments
   on the Money tab. If it doesn't, that's high severity: call the developer.
-- A staff member's pet: the rules let WPR employees enter, and their pets
-  can't win the side awards. They can win the title.
+- A staff member's pet: WPR employees and their households can't enter
+  (decided Oct. 24). If one slipped through, it is disqualified as an
+  ineligible entrant, and its buyers are refunded.
 - "WPR decides": votes come only from payments Stripe confirms, and ties
   follow published rules.
 
@@ -114,9 +115,9 @@ A sudden jump:
 
 A staff member's pet:
 
-> The rules let Wausau Pilot & Review employees enter their pets like anyone
-> else. Their votes come from the same paid packs, and employees' pets aren't
-> eligible for the side awards. [rules link]
+> Wausau Pilot & Review employees and their households can't enter the
+> contest. If you think an entry breaks that rule, email [contest inbox] and an
+> editor will look into it. [rules link]
 
 Medium, a pinned post once it spreads:
 
@@ -140,8 +141,8 @@ a person or accuses WPR of fraud and is spreading.
 Don't say cheating is impossible. Card fraud exists, which is why disputed
 payments come off the board. Don't share anyone's purchases.
 
-For the debrief: staff pets can win the title under the current rules. The
-newsroom may want to decide whether that stays for next year.
+Settled Oct. 24: staff and their households are not eligible. The entry
+form says so, and the entry function refuses work addresses.
 
 ## 2. A stolen photo
 
@@ -318,7 +319,7 @@ share anything about buyers.
 | Harassment of a pet or an owner | Hide it; ban repeat offenders; log it | SE |
 | A burst of small declined payments (card testing) | `docs/LAUNCH.md`, section 1: the Radar rule, and tell the developer | CE |
 | A sponsor becomes controversial | Pause posts that name the sponsor; Sales and EIC decide the rest | Sales, EIC |
-| A family asks to withdraw (the pet died or was rehomed) | Private and kind. The rules have no withdrawal clause, so removal during voting runs through disqualification, which refunds every buyer. Public line: "[Pet] has left the contest at the family's request." Add a withdrawal clause to next year's rules | CE, EIC |
+| A family asks to withdraw (the pet died or was rehomed) | Private and kind. Moderation tab → Approved → Withdraw…. Under the rules (Disqualification and withdrawal) vote packs already bought are not refunded and the shelters' share stands; its opponent advances. Never call that money a donation. Public line: "[Pet] has left the contest at the family's request." A buyer who asks: "The rules say packs aren't refunded when an owner withdraws a pet; the shelters' share of yours still goes to Moments Foster Care." | CE, EIC |
 | Serious local news breaks | Pause scheduled contest posts for the day. The widget and the newsletter block can stay | SE, EIC |
 
 ## After an incident

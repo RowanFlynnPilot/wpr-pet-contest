@@ -77,6 +77,14 @@ These are load-bearing. Do not soften them.
   photos and asks Stripe for the refunds) can do it, only while voting, and
   re-running it retries refunds still outstanding. A payment that lands for a
   disqualified pet afterward is marked `late` and refunded, never credited.
+- **A withdrawn pet's buyers are not refunded.** Published policy: when an
+  owner takes a pet out (it died, was rehomed), vote packs already bought for
+  it stand and the shelters' share of them stays. Otherwise it leaves as a
+  disqualified pet does: its opponent advances whatever the count, its free
+  votes go back, a payment that lands afterward is refunded as late, and its
+  photo is deleted. Only `withdraw_entry`, as the staff member, reason
+  required. A pet that broke the rules is disqualified, never withdrawn. The
+  money kept is still vote-pack revenue, never a donation.
 - **The shelters' share is of sales after refunds; card fees are WPR's.**
   `payout_statement` and `shelter_payouts` compute it, split by each
   shelter's `payout_weight`, rounded so the parts add up to the pool exactly.
@@ -168,7 +176,8 @@ the buttons call, for when the panel is not an option.
    While voting is open, keep `HEALTH_CHECKS` on (docs/LAUNCH.md, section 6):
    it is what tells staff a webhook has broken before readers do.
    To remove a pet mid-contest (stolen photo, ineligible entrant): Moderation
-   tab → Approved → Disqualify…. It refuses during the Open Round if the field
+   tab → Approved → Disqualify…. An owner asking to take a pet out:
+   Withdraw… (no refunds). It refuses during the Open Round if the field
    would drop below `bracket_size`.
 7. The final `close_round` returns null and flips the contest to `complete`.
    Side awards (`side_awards`) and the payout figures are ready the moment it
@@ -186,7 +195,7 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, free vote, hardening, health, lifecycle, moderation
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, free vote, hardening, health, lifecycle, moderation, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
@@ -219,5 +228,9 @@ Supabase does not. Test CORS in `cors_test.ts`, not through `functions serve`.
 - Checkout says **vote packs**, never "donation". Buying votes is not
   tax-deductible; the buyer receives something of value.
 - `entries.rights_accepted_at` is a legal artifact. Never backfill it.
+- WPR staff and their households may not enter (rules, Eligibility). The entry
+  form says so and `submit-entry` refuses work addresses
+  (`STAFF_EMAIL_DOMAINS`, default `wausaupilotandreview.com`); moderation is
+  the real check.
 - One-page MOU per shelter before launch: promotion, split, logo use, term.
 - WPR covering a partner shelter later carries a disclosure obligation.
