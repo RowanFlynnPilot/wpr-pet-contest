@@ -168,6 +168,7 @@ async function capture(browser, phase, route, petId, stamp) {
 // data, each with when it goes out. Saved as HTML beside the deck too.
 const LINKS = { publicUrl: 'https://wausaupilotandreview.com/pets/', shareBase: 'https://rowanflynnpilot.github.io/wpr-pet-contest/' }
 const ENTRY = '7a000000-0000-0000-0000-00000000000a'
+const MATCHUP = 'f3a0d1a2-5a8b-4d2c-9d6e-0b7c1f2e3a44'
 const OWNER = { token: '11111111-1111-1111-1111-111111111111' }
 const CLOSES_OPEN = '2026-11-28T02:00:00Z' // Friday, Nov. 27 at 8 p.m. Central
 const CLOSES_S16 = '2026-11-30T02:00:00Z'
@@ -195,8 +196,8 @@ const EMAILS = [
   ['tips-open', 'Tips: voting is open', 'In the first two days of the Open Round.', () => render(row({ kind: 'nurture_open', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 40, rank: 7, field_size: 212, goal_votes: 300 }), LINKS)],
   ['tips-halfway', 'Tips: halfway', 'Day three of the Open Round, with the standings and the cut.', () => render(row({ kind: 'nurture_halfway', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 88, rank: 14, field_size: 212, cut_margin: 12, goal_votes: 300 }), LINKS)],
   ['tips-last-day', 'Tips: last day', 'The morning of the Open Round’s deadline. This pet is six votes out of the bracket.', () => render(row({ kind: 'nurture_last_day', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 131, rank: 17, field_size: 212, cut_margin: -6, goal_votes: 300 }), LINKS)],
-  ['advanced', 'Made the Sweet 16', 'When a bracket round opens with the pet in it.', () => render(row({ kind: 'advanced', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16 }), LINKS)],
-  ['tips-matchup', 'Tips: matchup day', 'The morning a bracket round closes, with both counts.', () => render(row({ kind: 'nurture_matchup_last_day', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, my_votes: 111, opponent_votes: 118 }), LINKS)],
+  ['advanced', 'Made the Sweet 16', 'When a bracket round opens with the pet in it. The share button is the matchup page: both pets in the preview.', () => render(row({ kind: 'advanced', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, matchup_id: MATCHUP }), LINKS)],
+  ['tips-matchup', 'Tips: matchup day', 'The morning a bracket round closes, with both counts.', () => render(row({ kind: 'nurture_matchup_last_day', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, my_votes: 111, opponent_votes: 118, matchup_id: MATCHUP }), LINKS)],
   ['eliminated', 'Thank you for entering', 'After a lost matchup.', () => render(row({ kind: 'eliminated', round_name: 'Sweet 16', opponent_name: 'Luna' }), LINKS)],
   ['champion', 'Champion', 'To the winner, the night of the final.', () => render(row({ kind: 'champion', round_name: 'Championship', opponent_name: 'Gus', raised_cents: 1_234_500 }), LINKS)],
   ['tips-thanks', 'Thanks', 'Thirty-six hours after the final, to every owner but the champion’s.', () => render(row({ kind: 'nurture_thanks', champion_name: 'Gus', raised_cents: 1_234_500 }), LINKS)],
