@@ -17,6 +17,8 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
+/* global document -- inside page.evaluate, which runs in the browser */
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = resolve(ROOT, '..', 'docs', 'preview')
 const MOCK_PORT = 18795
