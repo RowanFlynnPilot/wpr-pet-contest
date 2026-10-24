@@ -250,8 +250,12 @@ export default function CheckoutModal({ entry, round, onClose }) {
                       <span className="dot" aria-hidden="true" />
                       <span>
                         <span className="pack-votes">
-                          {multiplier > 1 && <s>{fmtInt(p.votes)}</s>}
                           {fmtInt(votesWithBonus(p, multiplier))} votes
+                          {multiplier > 1 && (
+                            <span className="pack-was">
+                              ×{multiplier} from {fmtInt(p.votes)}
+                            </span>
+                          )}
                         </span>
                         <span className="pack-meta">
                           <span>{p.label}</span>

@@ -25,6 +25,8 @@ import { cheapestPerVote } from '../lib/packs.js'
 import { cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
 import { roadStops } from '../lib/road.js'
 import { roundLabel } from '../lib/rounds.js'
+import { entryPhotoUrl } from '../lib/photos.js'
+import { tintStyle, usePhotoTint } from '../lib/photoTint.js'
 
 const SPECIES = { dog: 'Dog', cat: 'Cat', other: 'Other' }
 const votesWord = (n) => (n === 1 ? 'vote' : 'votes')
@@ -368,6 +370,8 @@ export default function Pet({ route }) {
     [inBracket, entry, entries, c.rounds, bracket.matchups, c.bracketSize],
   )
   const state = (entry && states?.get(entry.id)) || null
+  // The hero takes the color of the pet's own photo; teal until it loads.
+  const tint = usePhotoTint(entry ? entryPhotoUrl(entry, { width: 200 }) : null)
   // Opened from an emailed free-vote link: the sheet opens ready to confirm.
   const freeRound =
     c.phase === 'voting' && (!inBracket || (state?.status === 'alive' && state.matchup && c.round?.id === state.matchup.round_id))
@@ -462,7 +466,7 @@ export default function Pet({ route }) {
   return (
     <div className="wrap pet-page">
       <article className="pet-stage">
-        <header className="pet-hero">
+        <header className="pet-hero" style={tintStyle(tint)}>
           <PetPhoto entry={entry} width={1200} contain eager />
           <a className="pet-back" href="#/gallery">
             <Arrow size={14} /> All pets

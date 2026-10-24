@@ -3,7 +3,7 @@
 /* The panel sits in the share buttons' flex row and takes a line of its own. */
 .gfx-panel {
   flex: 1 0 100%; margin-top: 6px; padding: 16px; background: var(--paper);
-  border: 1px solid var(--rule); border-top: 3px solid var(--teal); border-radius: var(--radius); box-shadow: var(--shadow);
+  border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow);
 }
 .gfx-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .gfx-panel-head h2 { font-size: 22px; outline: none; }

@@ -38,6 +38,15 @@ body {
 img { max-width: 100%; display: block; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--teal-ink); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+
+/* The parts the browser draws carry the design too: selection in the
+   contest's sun, the caret and native controls in teal, headings that
+   balance and paragraphs that never leave a word alone. */
+::selection { background: var(--sun-tint); color: var(--ink); }
+.scoreboard ::selection, .bonus-bar ::selection, .champion ::selection { background: rgba(255, 255, 255, 0.3); color: #fff; }
+html { caret-color: var(--teal-ink); accent-color: var(--teal-ink); scrollbar-color: var(--rule-strong) transparent; }
+h1, h2, h3 { text-wrap: balance; }
+p, .dek, figcaption { text-wrap: pretty; }
 @media (hover: hover) and (pointer: fine) { a:hover { text-decoration-thickness: 2px; } }
 h1, h2, h3, h4 { font-family: var(--display); font-weight: 600; line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
 p { margin: 0 0 0.8em; }
@@ -86,12 +95,12 @@ p { margin: 0 0 0.8em; }
 .masthead-flag .badge { width: 52px; height: 52px; flex: none; }
 .masthead-flag .wordmark { max-height: 44px; width: auto; height: auto; min-width: 0; max-width: 100%; object-fit: contain; }
 .masthead-tagline {
-  font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); margin-top: 8px;
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); margin-top: 8px;
 }
 .masthead-dateline {
   display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; max-width: 880px;
   margin: 6px auto 0; padding-top: 7px; border-top: 1px solid var(--rule);
-  font-size: 10.5px; letter-spacing: 0.04em; color: var(--muted);
+  font-size: 11.5px; letter-spacing: 0.04em; color: var(--muted);
 }
 .masthead-dateline span:last-child { text-transform: uppercase; letter-spacing: 0.1em; }
 @media (min-width: 720px) {
@@ -179,11 +188,11 @@ p { margin: 0 0 0.8em; }
 
 /* ------------------------------------------------------------------- cards */
 .card {
-  background: var(--paper); border: 1px solid var(--rule); border-top: 3px solid var(--teal);
+  background: var(--paper); border: 1px solid var(--rule);
   border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow);
 }
-.card.plain { border-top-width: 1px; border-top-color: var(--rule); }
-.card.sun { border-top-color: var(--sun); }
+/* A sun card is a warm surface, not a bar: the one place a notice is good news. */
+.card.sun { background: #fffaf0; border-color: #ecd9a6; }
 .card h3 { font-size: 21px; margin-bottom: 6px; }
 
 .notice {
@@ -232,7 +241,7 @@ p { margin: 0 0 0.8em; }
   border-radius: var(--radius-sm); text-align: center;
 }
 .countdown-unit .n { display: block; font-family: var(--mono); font-weight: 700; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
-.countdown-unit .u { display: block; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.countdown-unit .u { display: block; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
 .countdown.urgent .countdown-unit { border-color: #eec3bf; }
 .countdown.urgent .countdown-unit .n { color: var(--red); }
 .countdown-inline { font-family: var(--mono); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -261,7 +270,7 @@ p { margin: 0 0 0.8em; }
 /* --------------------------------------------------------- raised counter */
 .raised {
   display: grid; gap: 16px; align-items: center; background: var(--paper); border: 1px solid var(--rule);
-  border-top: 3px solid var(--sun); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+  border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
 }
 @media (min-width: 720px) { .raised { grid-template-columns: auto 1fr; gap: 28px; } }
 .raised-amount { font-family: var(--display-xl); font-weight: 700; font-size: clamp(40px, 9vw, 64px); line-height: 1; color: var(--teal-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-variation-settings: 'opsz' 144; }
@@ -513,11 +522,14 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
    Phones stack, full-bleed; desktop puts the photo beside the play. */
 .pet-page { padding-bottom: 8px; }
 .pet-stage { display: grid; grid-template-columns: minmax(0, 1fr); }
-.pet-hero { position: relative; margin: 0 calc(var(--pad-r) * -1) 0 calc(var(--pad-l) * -1); overflow: hidden; background: var(--teal-deep); min-height: 200px; }
+.pet-hero {
+  position: relative; margin: 0 calc(var(--pad-r) * -1) 0 calc(var(--pad-l) * -1); overflow: hidden; min-height: 200px;
+  background: var(--tint, var(--teal-deep)); transition: background-color 600ms var(--ease);
+}
 .pet-hero .photo { aspect-ratio: 2 / 1; }
 .pet-hero::after {
   content: ''; position: absolute; inset: auto 0 0; height: 70%; pointer-events: none;
-  background: linear-gradient(rgba(15, 42, 38, 0), rgba(15, 42, 38, 0.55) 45%, rgba(15, 42, 38, 0.9));
+  background: linear-gradient(var(--tint-0, rgba(15, 42, 38, 0)), var(--tint-55, rgba(15, 42, 38, 0.55)) 45%, var(--tint-90, rgba(15, 42, 38, 0.9)));
 }
 .pet-title { position: absolute; left: var(--pad-l); right: var(--pad-r); bottom: 14px; z-index: 1; color: #fff; }
 .pet-name {
@@ -527,11 +539,11 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .pet-meta { margin: 7px 0 0; font-size: 14px; font-weight: 700; letter-spacing: 0.01em; color: #f3eadb; }
 .pet-back {
   position: absolute; top: 12px; left: var(--pad-l); z-index: 1; display: inline-flex; align-items: center; gap: 6px;
-  min-height: 36px; padding: 6px 13px 6px 10px; border-radius: 999px; background: rgba(15, 42, 38, 0.78);
+  min-height: 36px; padding: 6px 13px 6px 10px; border-radius: 999px; background: var(--tint-90, rgba(15, 42, 38, 0.78));
   color: #fff; font-size: 13.5px; font-weight: 700; text-decoration: none;
 }
 .pet-back svg { transform: scaleX(-1); }
-@media (hover: hover) and (pointer: fine) { .pet-back:hover { background: var(--teal-deep); } }
+@media (hover: hover) and (pointer: fine) { .pet-back:hover { background: var(--tint-glow, var(--teal-deep)); } }
 .pet-play { display: grid; gap: 12px; padding-top: 12px; min-width: 0; }
 @media (min-width: 900px) {
   .pet-stage { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 36px; align-items: start; padding-top: 24px; }
@@ -835,7 +847,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 
 .awards { display: grid; gap: 12px; }
 @media (min-width: 720px) { .awards { grid-template-columns: repeat(3, 1fr); } }
-.award { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; background: var(--paper); border: 1px solid var(--rule); border-top: 3px solid var(--sun); border-radius: var(--radius); padding: 12px; text-decoration: none; color: inherit; }
+.award { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px; text-decoration: none; color: inherit; box-shadow: var(--shadow); }
 .award .photo { border-radius: 8px; }
 .award-title { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sun-ink); }
 .award-name { font-family: var(--display); font-weight: 600; font-size: 20px; }
@@ -894,7 +906,7 @@ input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='
 }
 .modal {
   position: relative; width: 100%; max-width: 520px; margin: auto 0; background: var(--paper); border-radius: 14px;
-  border-top: 4px solid var(--teal); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); outline: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); outline: none;
 }
 @media (max-width: 560px) {
   .modal-backdrop { padding: 0; align-items: flex-end; }
@@ -937,11 +949,12 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .pack input:checked + label .dot { border-color: var(--teal-ink); }
 .pack input:checked + label .dot::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--teal-ink); }
 .pack-votes { font-family: var(--mono); font-weight: 700; font-size: 18px; line-height: 1.1; }
-.pack-votes s { color: var(--muted); font-weight: 500; font-size: 14px; margin-right: 4px; }
+/* A doubled pack reads as what you get, then how: "1,200 votes ×2 from 600". */
+.pack-was { font-family: var(--sans); color: var(--sun-ink); font-weight: 700; font-size: 12.5px; margin-left: 6px; white-space: nowrap; }
 .pack-meta { font-size: 12.5px; color: var(--muted); display: flex; gap: 4px 10px; flex-wrap: wrap; margin-top: 2px; }
 .pack-meta .save { color: var(--teal-ink); font-weight: 800; }
 .pack-price { font-family: var(--display); font-weight: 700; font-size: 22px; }
-.pack-tag { position: absolute; top: -9px; right: 12px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--sun); color: var(--ink); padding: 2px 8px; border-radius: 99px; }
+.pack-tag { position: absolute; top: -9px; right: 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--sun); color: var(--ink); padding: 2px 8px; border-radius: 99px; }
 .pack-tag.value { background: var(--teal-ink); color: #fff; }
 
 .fine { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 12px 0 0; }
@@ -956,13 +969,13 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 /* --------------------------------------------------------------- sponsors */
 .sponsor-card {
   display: inline-block; max-width: 100%; text-align: left; text-decoration: none; background: #fff; color: var(--ink);
-  border: 1px solid var(--rule); border-top: 3px solid var(--sun); border-radius: 8px; padding: 10px 16px 12px; box-shadow: var(--shadow);
+  border: 1px solid var(--rule); border-radius: 8px; padding: 10px 16px 12px; box-shadow: var(--shadow);
 }
 .sponsor-card > span, .sponsor-card > img { display: block; }
 .sponsor-card > img { margin: 8px 0 2px; }
 .sponsor-card.full { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; width: 100%; }
 .sponsor-card.full > img { margin: 0; }
-.sponsor-eyebrow { font-size: 9.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sun-ink); }
+.sponsor-eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sun-ink); }
 .sponsor-card.full .sponsor-eyebrow { flex-basis: 100%; }
 .sponsor-card img { height: 46px; width: auto; max-width: 220px; object-fit: contain; }
 .sponsor-name { font-family: var(--display); font-size: 20px; font-weight: 600; }
@@ -996,7 +1009,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .inventory .inv-main { flex: 1 1 320px; min-width: 0; }
 .inventory .inv-name { font-family: var(--display); font-weight: 600; font-size: 19px; }
 .inventory .inv-desc { font-size: 14px; color: var(--muted); margin-top: 3px; }
-.status-pill { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--teal-ink); color: var(--teal-ink); margin-left: 8px; vertical-align: 3px; }
+.status-pill { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--teal-ink); color: var(--teal-ink); margin-left: 8px; vertical-align: 3px; }
 .status-pill.sold { border-color: var(--rule-strong); color: var(--muted); }
 
 /* ---------------------------------------------------------------- shelters */
@@ -1015,7 +1028,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .shelter.partner .shelter-link { margin-top: 2px; }
 .adoptable { display: grid; gap: 16px; align-items: center; }
 @media (min-width: 760px) { .adoptable { grid-template-columns: 280px 1fr; } }
-.adoptable img { width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); }
+.adoptable img { width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); background: var(--cream-deep); }
 
 /* ------------------------------------------------------------------- rules */
 .draft-ribbon { background: var(--sun); color: var(--ink); font-size: 13px; font-weight: 700; text-align: center; padding: 8px 14px; }

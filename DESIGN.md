@@ -332,10 +332,13 @@ Confident pills with a soft drop beneath.
 
 ### Cards / Containers
 - **Corner Style:** 10px.
-- **Background:** paper on cream.
+- **Background:** paper on cream. A sun card (`.card.sun`, good news: the entry confirmation, the thank-you after the final, the adoptable pet) is a warm surface, #fffaf0 inside a #ecd9a6 hairline.
 - **Shadow Strategy:** resting shadow; pet cards lift 2px with the lift shadow on hover.
-- **Border:** 1px rule.
+- **Border:** 1px rule, on every side. No card, counter, award, modal or sponsor placement carries a colored top bar: emphasis comes from what is inside (the amount in Display XL, the sun-ink award label, the modal's own head), never from a rail on the container.
 - **Internal Padding:** 18px; pet-card bodies 10 to 12px.
+
+### Browser Surfaces
+The parts the browser draws follow the palette: text selection is sun-tint on ink (white at 30% on the board and the bars), the caret and native checkboxes and radios are teal-ink (`caret-color`, `accent-color`), thin scrollbars are rule-strong on nothing, links underline 1px at 0.18em offset, headings balance (`text-wrap: balance`) and paragraphs never leave a word alone (`text-wrap: pretty`). Nothing is set under 11px.
 
 ### Inputs / Fields
 - **Style:** paper, 1px rule-strong, 8px radius, 46px minimum, 16px text (no iOS zoom). The admin's compact table and window fields run 14px, rising to 16px on coarse pointers.
@@ -371,7 +374,9 @@ The upset lamp is on the board whenever the two seeds differ, and lights the mom
 One row of stops from the open round to the crown, each with a short label and a mono result or date. Done stops are teal discs with a drawn check. The live stop is teal-deep with a sun ring and a sun-tint halo. Next has a teal ring, ahead a rule-strong ring, a knockout a red disc with a drawn cross, and a stop never reached a dashed ring.
 
 ### Pet Hero
-The photo with the pet's name in Display XL and seed, town and species in bold 14px warm white, over a teal scrim that rises from the bottom 70%. The back link is a translucent teal-deep pill with a drawn arrow.
+The photo with the pet's name in Display XL and seed, town and species in bold 14px warm white, over a scrim that rises from the bottom 70%. The scrim, the ground behind the photo and the back link take the pet's own color: `lib/photoTint.js` reads a small copy of the photo, keeps its hue, holds saturation between 24 and 52 percent and pins lightness at 20 percent, so white type reads at about 9:1 on any pet. Until the photo loads, or where the bucket sends no CORS headers, the arena teal stands in (`--tint`, `--tint-0/55/90`, `--tint-glow` on `.pet-hero`, each with the teal fallback). It is the one place the pets, the only asset that changes every year, drive the color.
+
+**The Pet's Color Rule.** The tint belongs to the hero on the pet's own page. It never reaches the board, the buttons or the cards, so a pet's color can never be mistaken for a state.
 
 ### Photo-First Gallery
 The grid leads with photos. While the Open Round is live and the grid is unfiltered and sorted by votes, the leader's card is featured: it spans two cells, its photo goes 16:10, and its name sets at 26px. The sponsor never comes first; it rides as a full-width break after the first full row of photos, whatever the column count. Search runs full width; on phones the town and sort selects share the row beneath it.
