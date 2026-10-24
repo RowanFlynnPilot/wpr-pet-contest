@@ -137,7 +137,7 @@ export default function Wrapup() {
     setError(null)
     try {
       const [res] = await q(admin.rpc('erase_personal_data', { p_contest_id: cid }))
-      say(`Erased: ${res.entries} entrant and ${res.votes} buyer records.`)
+      say(`Erased: ${res.entries} entrant, ${res.votes} buyer${res.free_voters != null ? ` and ${res.free_voters} free voter` : ''} records.`)
       setErasing(false)
       await reloadContest()
     } catch (err) {
@@ -181,7 +181,7 @@ export default function Wrapup() {
         ) : (
           <>
             <p className="small">
-              The rules promise that entrant and buyer email addresses are erased a year after the contest ends. Pets, towns, photos, results and
+              The rules promise that entrant, buyer and free voter email addresses are erased a year after the contest ends. Pets, towns, photos, results and
               the money are kept. It cannot be done until the {ERASE_AFTER_DAYS}-day chargeback window has closed
               {eraseFrom ? `, on ${apDate(eraseFrom, { year: true })}` : ''}. <strong>Export the newsletter list first</strong> (Newsletter
               tab): opt-ins are erased too.

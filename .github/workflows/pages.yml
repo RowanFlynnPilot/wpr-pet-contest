@@ -52,6 +52,7 @@ jobs:
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_PUBLIC_URL: ${{ vars.VITE_PUBLIC_URL }}
           VITE_IMAGE_TRANSFORMS: ${{ vars.VITE_IMAGE_TRANSFORMS }}
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
           # The 30-minute rebuild is only for share pages: if Supabase is
           # unreachable, fail it rather than deploy a site without them.
           SHARE_PAGES_REQUIRED: ${{ github.event_name == 'schedule' }}

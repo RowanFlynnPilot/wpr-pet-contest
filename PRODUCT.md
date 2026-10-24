@@ -31,6 +31,7 @@ A hometown newsroom's contest, with the honesty of a newsroom behind it: totals 
 ## Capabilities and Constraints
 
 - **Votes are credited only when Stripe confirms the payment, by webhook.** The deadline is when the buyer paid. Late payments and payments for disqualified pets are refunded, never credited.
+- **The free daily vote (built, off by default).** One free vote per verified email address per Central day, alongside vote packs. Paid stays the primary action; free votes raise no money and never touch the money figures. A contest turns it on as a draft, after counsel signs off (decided 2026-10-23: build now, switch on later; one a day for any pet; remembered browser plus optional morning reminders).
 - **Vote totals reset every round.** This is published in the rules and repeated on the site.
 - **Legal copy:**
   - They are "vote packs", never "donation".

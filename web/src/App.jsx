@@ -4,6 +4,7 @@ import { BACKEND_CONFIGURED, EMBEDDED } from './lib/env.js'
 import { useRoute } from './lib/router.js'
 import { ContestProvider, useContest } from './components/ContestContext.jsx'
 import { CheckoutProvider } from './components/Checkout.jsx'
+import { FreeVoteProvider, ReminderNotice } from './components/FreeVote.jsx'
 import Masthead from './components/Masthead.jsx'
 import Banner from './components/Banner.jsx'
 import Nav from './components/Nav.jsx'
@@ -19,12 +20,24 @@ import Rules from './pages/Rules.jsx'
 import Shelters from './pages/Shelters.jsx'
 import Results from './pages/Results.jsx'
 import Sponsors from './pages/Sponsors.jsx'
+import Unsubscribe from './pages/Unsubscribe.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 // Readers never download the admin desk.
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
 
-const PAGES = { home: Home, enter: Enter, gallery: Gallery, pet: Pet, bracket: Bracket, rules: Rules, shelters: Shelters, results: Results, sponsors: Sponsors }
+const PAGES = {
+  home: Home,
+  enter: Enter,
+  gallery: Gallery,
+  pet: Pet,
+  bracket: Bracket,
+  rules: Rules,
+  shelters: Shelters,
+  results: Results,
+  sponsors: Sponsors,
+  unsubscribe: Unsubscribe,
+}
 
 // Stripe returns here only for payment methods that leave the page (most
 // never do: cards and wallets confirm in place).
@@ -85,6 +98,7 @@ function Shell({ route }) {
       ) : (
         <>
           <BonusBar />
+          <ReminderNotice />
           {payment && (
             <div className="wrap" style={{ marginTop: 14 }} role="status">
               <div className={`notice${payment.status === 'failed' ? ' error' : ''}`}>
@@ -178,7 +192,9 @@ export default function App() {
   return (
     <ContestProvider>
       <CheckoutProvider>
-        <Shell route={route} />
+        <FreeVoteProvider>
+          <Shell route={route} />
+        </FreeVoteProvider>
       </CheckoutProvider>
     </ContestProvider>
   )

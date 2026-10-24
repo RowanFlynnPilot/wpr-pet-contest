@@ -1,6 +1,6 @@
 // deno test --allow-env --allow-read supabase/functions/_shared
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
-import { dollars, escape, formatWhen, type QueueRow, render } from "./templates.ts";
+import { dollars, escape, formatWhen, type QueueRow, render, renderFreeVoteCode, renderFreeVoteReminder } from "./templates.ts";
 
 const LINKS = {
   publicUrl: "https://wausaupilotandreview.com/pets/",
@@ -68,4 +68,41 @@ Deno.test("formatting helpers", () => {
   assertEquals(dollars(123_400), "$1,234");
   assertEquals(escape(`"'&`), "&quot;&#39;&amp;");
   assertStringIncludes(formatWhen("2026-10-15T01:00:00Z"), "8:00 PM");
+});
+
+Deno.test("the free-vote code email puts the code in the subject and offers the link", () => {
+  const msg = renderFreeVoteCode({
+    code: "042917",
+    petName: "Biscuit",
+    contestName: "Cutest Pet in Marathon County",
+    link: "https://wausaupilotandreview.com/pets/#/pet/x?fv=l.token",
+    minutes: 15,
+  });
+  assertEquals(msg.subject, "042917 is your free vote code");
+  assertStringIncludes(msg.text, "fv=l.token");
+  assertStringIncludes(msg.html, "Confirm my vote for Biscuit");
+  assertStringIncludes(msg.text, "asked to vote free");
+  assert(!msg.text.includes("Hi "), "voters gave no name, so the email greets no one");
+  assert(!msg.html.includes("<img"), "code emails carry no images");
+});
+
+Deno.test("the reminder names the pet when there is one, and carries an unsubscribe link", () => {
+  const base = {
+    contestName: "Cutest Pet in Marathon County",
+    roundName: "Sweet 16",
+    closesAt: "2026-10-30T23:15:00Z",
+    link: "https://wausaupilotandreview.com/pets/#/pet/x?fv=r.token",
+    unsubscribe: "https://wausaupilotandreview.com/pets/#/unsubscribe?fv=u.token",
+  };
+  const named = renderFreeVoteReminder({ ...base, petName: "Biscuit" });
+  assertEquals(named.subject, "Your free vote is ready: vote for Biscuit");
+  assertStringIncludes(named.text, "fv=u.token");
+  assertStringIncludes(named.html, "Stop these reminders");
+  const open = renderFreeVoteReminder({ ...base, petName: null });
+  assertEquals(open.subject, "Your free vote is ready");
+  assertStringIncludes(open.text, "your favorite");
+});
+
+Deno.test("entrant emails keep their footer", () => {
+  assertStringIncludes(render(base, LINKS).text, "Vote packs are not tax-deductible donations.");
 });

@@ -90,12 +90,61 @@ export function render(row: QueueRow, links: Links): Message {
   }
 }
 
+// The free daily vote. Plain on purpose: the code in the subject, so it shows
+// in the notification; no images, no tracking, no shorteners. The link is the
+// fallback for a reader who opens the email on another device. It opens a page
+// whose button confirms; following it alone casts nothing (mail scanners open
+// links).
+export function renderFreeVoteCode(p: {
+  code: string;
+  petName: string;
+  contestName: string;
+  link: string;
+  minutes: number;
+}): Message {
+  return compose(`${p.code} is your free vote code`, null, [
+    `Your code to vote free for ${p.petName} in ${p.contestName} is ${p.code}. It works for ${p.minutes} minutes.`,
+    `Type it where you asked for it, or open this link on any device:`,
+  ], { label: `Confirm my vote for ${p.petName}`, url: p.link }, [
+    `Didn't ask for this? You can ignore it. Nothing happens without the code.`,
+  ], FREE_VOTE_FOOTER);
+}
+
+// The morning reminder, for readers who opted in. No vote-pack pitch: the page
+// it opens does that.
+export function renderFreeVoteReminder(p: {
+  petName: string | null;
+  contestName: string;
+  roundName: string;
+  closesAt: string;
+  link: string;
+  unsubscribe: string;
+}): Message {
+  const who = p.petName ?? "your favorite";
+  return compose(
+    `Your free vote is ready${p.petName ? `: vote for ${p.petName}` : ""}`,
+    null,
+    [
+      `Your free daily vote in ${p.contestName} has reset. The ${p.roundName} closes ${formatWhen(p.closesAt)}.`,
+      `One tap casts it for ${who}:`,
+    ],
+    { label: p.petName ? `Vote for ${p.petName}` : "Cast my free vote", url: p.link },
+    [],
+    `${FREE_VOTE_FOOTER} Stop these reminders: ${p.unsubscribe}`,
+  );
+}
+
+const FREE_VOTE_FOOTER = "You are getting this because you asked to vote free in the contest.";
+const ENTRANT_FOOTER =
+  "You are getting this because you entered a pet in the contest. Vote packs are not tax-deductible donations.";
+
 function compose(
   subject: string,
-  first: string,
+  first: string | null,
   paragraphs: string[],
   button?: { label: string; url: string },
   after: string[] = [],
+  footer = ENTRANT_FOOTER,
 ): Message {
   const para = (p: string) =>
     `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">${escape(p)}</p>`;
@@ -103,19 +152,20 @@ function compose(
   const html = `<!doctype html><html><body style="margin:0;background:${CREAM}">
 <div style="max-width:560px;margin:0 auto;padding:32px 24px;background:#fff;border-top:4px solid #32373c">
 <p style="margin:0 0 20px;font:11px/1 -apple-system,Segoe UI,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#32373c">Wausau Pilot &amp; Review</p>
-<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">Hi ${escape(first)},</p>
+${first === null ? "" : `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">Hi ${escape(first)},</p>`}
 ${paragraphs.map(para).join("\n")}
 ${button ? `<p style="margin:24px 0"><a href="${escape(button.url)}" style="display:inline-block;padding:12px 20px;background:${TEAL};color:#fff;text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(button.label)}</a></p>` : ""}
 ${after.map(para).join("\n")}
-<p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #e3ddd0;font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#6b6b6b">You are getting this because you entered a pet in the contest. Vote packs are not tax-deductible donations.<br>Wausau Pilot &amp; Review · 715-301-5539</p>
+<p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #e3ddd0;font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#6b6b6b">${escape(footer)}<br>Wausau Pilot &amp; Review · 715-301-5539</p>
 </div></body></html>`;
 
   const text = [
-    `Hi ${first},`,
+    ...(first === null ? [] : [`Hi ${first},`]),
     ...paragraphs,
     ...(button ? [`${button.label}: ${button.url}`] : []),
     ...after,
     "--",
+    footer,
     "Wausau Pilot & Review · 715-301-5539",
   ].join("\n\n");
 

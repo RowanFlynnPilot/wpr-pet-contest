@@ -12,7 +12,7 @@
 // carries a fix that names the docs/LAUNCH.md section to work from, because a
 // red line nobody knows how to clear gets ignored.
 
-export const FUNCTIONS = ["submit-entry", "create-checkout", "stripe-webhook", "moderate", "notify", "health", "disqualify"];
+export const FUNCTIONS = ["submit-entry", "create-checkout", "stripe-webhook", "moderate", "notify", "health", "disqualify", "free-vote"];
 // Staff functions refuse a request with no session before touching anything.
 export const STAFF_FUNCTIONS = ["moderate", "notify", "health", "disqualify"];
 // Anonymous write paths: an empty body fails validation (or the rate limit).
@@ -22,6 +22,8 @@ export const REQUIRED_SECRETS = ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "
 export const RECOMMENDED_SECRETS = ["PUBLIC_URL", "SHARE_BASE_URL", "CRON_SECRET"];
 export const DEPLOY_SECRETS = ["SUPABASE_ACCESS_TOKEN", "SUPABASE_DB_PASSWORD", "SUPABASE_PROJECT_ID"];
 export const WEBHOOK_EVENTS = ["payment_intent.succeeded", "charge.refunded", "charge.dispute.created"];
+// What the free daily vote needs once a contest turns it on (docs/FREE-DAILY-VOTE.md).
+export const FREE_VOTE_SECRETS = ["FREE_VOTE_HASH_KEY", "TURNSTILE_SECRET_KEY", "RESEND_API_KEY"];
 
 const SB = "Supabase";
 const GH = "GitHub";
@@ -306,7 +308,7 @@ export function checkFunctionsDeployed(f) {
   const jwt = FUNCTIONS.filter((s) => bySlug.get(s)?.verifyJwt === true);
 
   if (missing.length === FUNCTIONS.length) {
-    return fail(id, SB, `No edge functions deployed (0 of ${FUNCTIONS.length}${paused(f) ? `; ${PAUSED_NOTE}` : ""})`, `Merge to main with the deploy secrets set; the deploy job ships all seven ${see(3)}`);
+    return fail(id, SB, `No edge functions deployed (0 of ${FUNCTIONS.length}${paused(f) ? `; ${PAUSED_NOTE}` : ""})`, `Merge to main with the deploy secrets set; the deploy job ships every one ${see(3)}`);
   }
   const problems = [];
   if (missing.length) problems.push(`not deployed: ${list(missing)}`);
@@ -314,7 +316,7 @@ export function checkFunctionsDeployed(f) {
   if (jwt.length) problems.push(`JWT verification on for ${list(jwt)}, so Stripe and anonymous readers get 401`);
   if (problems.length) {
     const fix = jwt.length && !missing.length
-      ? `Redeploy from the repo: config.toml turns verify_jwt off for all seven ${see(3)}`
+      ? `Redeploy from the repo: config.toml turns verify_jwt off for all of them ${see(3)}`
       : `Merge to main (the deploy job ships every function), or supabase functions deploy <name> ${see(3)}`;
     return fail(id, SB, `Edge functions ${problems.join("; ")}`, fix);
   }
@@ -479,6 +481,38 @@ export function checkContestData(f) {
 }
 
 // ------------------------------------------------------------------- GitHub --
+
+// Free voting is a contest setting. When the contest has it on, a missing key
+// means every reader who tries it gets "not available": block the launch.
+export function checkFreeVote(f) {
+  const id = "supabase.free_vote";
+  const d = f.supabase?.data;
+  const g = gate(d, id, SB, "Free daily vote", `Check the project's REST API ${PRE}`);
+  if (g) return g;
+  const contest = pickContest(d.contests);
+  if (!contest?.free_vote_enabled) return pass(id, SB, "Free daily vote is off for this contest");
+  const out = [];
+  const secrets = f.supabase?.secrets;
+  if (!secrets?.names) {
+    out.push(skip(`${id}.secrets`, SB, "Free daily vote secrets: not checked"));
+  } else {
+    const missing = FREE_VOTE_SECRETS.filter((n) => !secrets.names.includes(n));
+    out.push(
+      missing.length
+        ? fail(`${id}.secrets`, SB, `Free daily vote is on, but function secrets are missing: ${list(missing)}`, `supabase secrets set ${missing.map((n) => `${n}=…`).join(" ")} ${see(5)}`)
+        : pass(`${id}.secrets`, SB, `Free daily vote is on, with ${list(FREE_VOTE_SECRETS)} set`),
+    );
+  }
+  const site = f.github?.variables?.keys?.VITE_TURNSTILE_SITE_KEY;
+  if (f.github?.variables?.keys) {
+    out.push(
+      site?.present
+        ? pass(`${id}.turnstile`, GH, "VITE_TURNSTILE_SITE_KEY is set")
+        : fail(`${id}.turnstile`, GH, "Free daily vote is on, but VITE_TURNSTILE_SITE_KEY is not set: no reader could request a code", `Set the Actions variable from the Cloudflare Turnstile widget ${see(3)}`),
+    );
+  }
+  return out;
+}
 
 export function checkPages(f) {
   const id = "github.pages";
@@ -753,6 +787,7 @@ export const CHECKS = [
   [SB, checkMigrations],
   [SB, checkAuth],
   [SB, checkContestData],
+  [SB, checkFreeVote],
   [GH, checkPages],
   [GH, checkVariables],
   [GH, checkGithubSecrets],

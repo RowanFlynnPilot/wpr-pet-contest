@@ -30,8 +30,9 @@ export default function HowItWorks() {
           <h3>The Open Round</h3>
           <p>
             Every pet competes at once.{' '}
-            {from != null ? `Vote packs start at ${fmtMoney(from)}, as low as ${low} a vote in bulk.` : 'Buy vote packs for your favorites.'} The
-            top {bracketSize} make the bracket, seeded by their votes.
+            {from != null ? `Vote packs start at ${fmtMoney(from)}, as low as ${low} a vote in bulk.` : 'Buy vote packs for your favorites.'}
+            {contest?.free_vote_enabled && ' Everyone also gets one free vote a day.'} The top {bracketSize} make the bracket, seeded by their
+            votes.
           </p>
         </li>
         <li className="step">

@@ -28,6 +28,11 @@ Create a full-width page (no sidebar) on wausaupilotandreview.com, add a
     // .../pet-contest/#/pet/<id>. Pass the route into the iframe.
     if (location.hash.indexOf('#/') === 0) {
       frame.src = frame.src.split('#')[0] + location.hash;
+      // Free-vote email links carry a single-use token (fv=...). Once it is
+      // in the iframe, take it out of this page's address bar and history.
+      if (location.hash.indexOf('fv=') !== -1) {
+        history.replaceState(null, '', location.pathname + location.search + location.hash.replace(/[?&]fv=[^&]*/, ''));
+      }
     }
 
     window.addEventListener('message', function (event) {

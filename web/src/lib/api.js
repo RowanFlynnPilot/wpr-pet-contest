@@ -8,6 +8,7 @@ import { SUPABASE_URL } from './env.js'
 
 const CONTEST_COLS =
   'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at, bracket_size, bracket_round_hours'
+const CONTEST_FREE_COLS = `${CONTEST_COLS}, free_vote_enabled, free_vote_paused_at`
 const CONTEST_BASE_COLS = 'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at'
 const ENTRY_COLS = 'id, contest_id, pet_name, species, town, caption, photo_path, thumb_path, shelter_id, seed, created_at'
 const ENTRY_BASE_COLS = 'id, contest_id, pet_name, species, town, photo_path, shelter_id, seed, created_at'
@@ -66,11 +67,12 @@ async function withFallback(run, cols, baseCols) {
 
 export function fetchContests() {
   const db = need()
-  return withFallback(
-    (cols) => rows(db.from('contests').select(cols).order('year', { ascending: false })),
-    CONTEST_COLS,
-    CONTEST_BASE_COLS,
-  )
+  const run = (cols) => rows(db.from('contests').select(cols).order('year', { ascending: false }))
+  // Newest columns first; a backend a migration behind still loads.
+  return withFallback(run, CONTEST_FREE_COLS, CONTEST_COLS).catch((e) => {
+    if (isUnavailable(e)) return run(CONTEST_BASE_COLS)
+    throw e
+  })
 }
 
 export function fetchRounds(contestId) {
@@ -180,12 +182,12 @@ export function fetchEntriesByAge(contestId, limit, { newest = false } = {}) {
   return withFallback(run, ENTRY_COLS, ENTRY_BASE_COLS)
 }
 
-// Map<entry_id, { votes }> for one round.
+// Map<entry_id, { votes, free }> for one round. votes is paid plus free;
+// free is the free share, shown under the count.
 export async function fetchTotals(roundId) {
-  const data = await fetchAll(() =>
-    need().from('entry_round_totals').select('entry_id, votes').eq('round_id', roundId).order('entry_id'),
-  )
-  return new Map(data.map((r) => [r.entry_id, { votes: r.votes }]))
+  const run = (cols) => fetchAll(() => need().from('entry_round_totals').select(cols).eq('round_id', roundId).order('entry_id'))
+  const data = await withFallback(run, 'entry_id, votes, free_votes', 'entry_id, votes')
+  return new Map(data.map((r) => [r.entry_id, { votes: r.votes, free: r.free_votes || 0 }]))
 }
 
 // Map<round_id, Map<entry_id, { votes }>> for several (small) bracket rounds.

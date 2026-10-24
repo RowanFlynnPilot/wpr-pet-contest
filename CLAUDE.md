@@ -42,8 +42,9 @@ These are load-bearing. Do not soften them.
   buyer is shown a vote count before paying.
 - **`close_round` is run by hand, not by cron.** A human confirms a round is
   over before results become irreversible. Especially year one.
-- **Votes are credited by webhook only**, on `payment_intent.succeeded`. Never
-  on the browser redirect.
+- **Paid votes are credited by webhook only**, on `payment_intent.succeeded`.
+  Never on the browser redirect. (Free votes have their own single path; see
+  the free daily vote below.)
 - **The deadline is when Stripe says the buyer paid**, not when the webhook
   arrives. `confirm_vote` counts a payment made by `closes_at` plus a 2-minute
   grace, and marks anything later `late` (refunded by the webhook), even while
@@ -55,8 +56,9 @@ These are load-bearing. Do not soften them.
   (`contest_stats`), never a published result or a side award.
 - **The photo bucket is not listable.** Objects are served by public URL; only
   admins may list. Anything listable would expose unmoderated uploads.
-- **`votes` is never readable by anon.** It holds buyer emails. The public
-  leaderboard reads the `entry_round_totals` view instead.
+- **`votes` and the free-vote tables are never readable by anon.** They hold
+  buyer and voter emails, keyed connection hashes and token hashes. The
+  public leaderboard reads the `entry_round_totals` view instead.
 - **Nothing is public before moderation.** `submit-entry` inserts with
   `status = 'pending'` and returns no id.
 - **No HEIC, anywhere.** Browsers cannot render it. Keep it out of the bucket
@@ -79,12 +81,36 @@ These are load-bearing. Do not soften them.
   `payout_statement` and `shelter_payouts` compute it, split by each
   shelter's `payout_weight`, rounded so the parts add up to the pool exactly.
 - **Personal data is erased a year after the contest** (published on the
-  rules page): entrant names and emails, buyer emails, opt-ins. Pets, towns,
+  rules page): entrant names and emails, buyer emails, free voters' emails
+  with their codes, browser tokens and connection hashes, opt-ins. Pets, towns,
   photos, results and money stay. The archive export never contains owner or
   buyer details, so nothing kept outlives the promise.
 - **Moderation is audited.** Only `moderate_entry` changes an entry's status,
   run as the moderator (not the service role) so `moderated_by` is the real
   person. The `moderation_recorded` constraint backs it up.
+- **Free votes are written only by `free_vote_record`** (0019), reached
+  through the `free-vote` function once the voter has proved the address: an
+  emailed code, an emailed link, or a browser token issued after one. No API
+  role holds INSERT, UPDATE or DELETE on `free_votes`, not even service_role.
+  - One per verified address per Central calendar day, enforced by a unique
+    index on `(voter_id, vote_day)`. Addresses compare by `email_key()`.
+  - A free vote is exactly one vote, never multiplied, and never touches
+    money: no money view, payout, refund path or Stripe check reads
+    `free_votes`.
+  - Its deadline follows the paid side: cast by `closes_at`, or for a code,
+    requested by `closes_at` and confirmed within the 2-minute grace. It takes
+    the round FOR SHARE, and `close_round` snapshots free votes into
+    `round_results.free_votes`.
+  - A disqualified pet's free votes in unfinished rounds go back to their
+    voters (`returned`), who may vote again that day.
+  - Voids, blocks and pauses run only through `void_free_voters` and
+    `set_free_vote_paused`, as the staff member, reason required, logged in
+    `free_vote_staff_log`. Finished rounds keep their results.
+  - Free voting is a contest setting changed only by `set_free_vote_enabled`,
+    while the contest is a draft: it is in the published rules.
+  - Codes are stored as HMACs keyed by `FREE_VOTE_HASH_KEY`, tokens as
+    SHA-256. Emailed links never act on GET: they open a page whose button
+    confirms.
 - **Uploaded photos carry no metadata but orientation.** Phone EXIF holds GPS,
   which for most entrants is their house, and the bucket serves originals.
   `submit-entry` strips it server-side even though the front end re-encodes.
@@ -106,7 +132,9 @@ the buttons call, for when the panel is not an option.
    the shelters and their payout weights (per the MOUs), and any sponsored
    `bonus_windows` (Packs & bonuses tab). Everything is editable while it is a
    draft (`update_draft_contest`); the split is published on the rules page and
-   freezes when submissions open. The Setup checklist says what is missing.
+   freezes when submissions open. The free daily vote is a Setup switch too
+   (draft only, and only after counsel; docs/FREE-DAILY-VOTE.md). The Setup
+   checklist says what is missing.
 2. `select open_submissions('<contest-id>');` — refuses without an active vote
    pack. One week. It also stages round 1 (pending), scheduled to open when
    submissions close and to run a week; pass a second argument for a different
@@ -135,6 +163,8 @@ the buttons call, for when the panel is not an option.
    - Run the email sweep (Email tab) for advancement and elimination notices.
    - Newsletter tab → Build block, for the next edition: the new standings or
      matchups, ready to paste into the Noptin draft as one Custom HTML block.
+   - If the free daily vote is on, the Free votes tab, daily too: its watch
+     lists, and any `free_vote_*` warning on the Health tab.
    While voting is open, keep `HEALTH_CHECKS` on (docs/LAUNCH.md, section 6):
    it is what tells staff a webhook has broken before readers do.
    To remove a pet mid-contest (stolen photo, ineligible entrant): Moderation
@@ -156,7 +186,7 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, health, lifecycle, moderation
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, free vote, health, lifecycle, moderation
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after

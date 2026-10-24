@@ -259,8 +259,10 @@ async function contestRows(base, key) {
     return json(r.text) ?? [];
   };
   try {
+    const base = "contests?select=id,year,name,status,beneficiary_split_pct,bracket_size";
     const [contests, admins] = await Promise.all([
-      get("contests?select=id,year,name,status,beneficiary_split_pct,bracket_size&order=year.desc"),
+      // A project a migration behind has no free_vote_enabled column yet.
+      get(`${base},free_vote_enabled&order=year.desc`).catch(() => get(`${base}&order=year.desc`)),
       get("admins?select=user_id"),
     ]);
     const contest = pickContest(contests);

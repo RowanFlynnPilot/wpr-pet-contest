@@ -7,6 +7,8 @@ export const SUPABASE_URL = (env.VITE_SUPABASE_URL || '').replace(/\/+$/, '')
 export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || ''
 export const STRIPE_PUBLISHABLE_KEY = env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 export const IMAGE_TRANSFORMS = env.VITE_IMAGE_TRANSFORMS === 'true'
+// Cloudflare Turnstile, the bot check on free-vote code requests. Public by design.
+export const TURNSTILE_SITE_KEY = env.VITE_TURNSTILE_SITE_KEY || ''
 
 export const BACKEND_CONFIGURED = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
 

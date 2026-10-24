@@ -7,6 +7,7 @@ import { DeskContext, ErrorNote } from './shared.jsx'
 import Moderation from './Moderation.jsx'
 import Rounds from './Rounds.jsx'
 import Health from './Health.jsx'
+import FreeVotes from './FreeVotes.jsx'
 import Money from './Money.jsx'
 import Packs from './Packs.jsx'
 import Email from './Email.jsx'
@@ -20,6 +21,7 @@ const TABS = [
   ['moderation', 'Moderation', Moderation],
   ['rounds', 'Rounds', Rounds],
   ['health', 'Health', Health],
+  ['free', 'Free votes', FreeVotes],
   ['money', 'Money', Money],
   ['packs', 'Packs & bonuses', Packs],
   ['email', 'Email', Email],

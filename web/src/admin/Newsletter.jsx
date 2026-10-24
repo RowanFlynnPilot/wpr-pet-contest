@@ -44,7 +44,7 @@ export default function Newsletter() {
           <strong className="mono" style={{ fontSize: 28 }}>
             {count.data ?? '…'}
           </strong>{' '}
-          opt-ins from entries and vote pack purchases, one row per address. Every one ticked an unchecked box.
+          opt-ins from entries, vote pack purchases and confirmed free votes, one row per address. Every one ticked an unchecked box.
         </p>
         <div>
           <button type="button" className="btn btn-primary" onClick={exportCsv} disabled={busy || !count.data}>

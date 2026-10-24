@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 // Hash routing: GitHub Pages serves static files, and the WordPress embed can
 // forward its own hash straight into the iframe's src.
-const PAGES = ['enter', 'gallery', 'pet', 'bracket', 'rules', 'shelters', 'results', 'sponsors', 'admin']
+const PAGES = ['enter', 'gallery', 'pet', 'bracket', 'rules', 'shelters', 'results', 'sponsors', 'unsubscribe', 'admin']
 
 export function parseHash(hash = '') {
   const raw = hash.replace(/^#\/?/, '')

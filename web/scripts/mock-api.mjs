@@ -3,7 +3,8 @@
 // database: screenshots, accessibility and speed audits, sales demos. Serves
 // the public reads the front end makes (PostgREST-style filters on a fixed,
 // deterministic contest) and generated placeholder photos. Reads only; the
-// edge functions answer 503.
+// edge functions answer 503, except a toy free-vote: any address, code 123456,
+// one vote per browser per run.
 //
 //   node scripts/mock-api.mjs                     # http://127.0.0.1:8787, phase "open"
 //   VITE_SUPABASE_URL=http://127.0.0.1:8787 VITE_SUPABASE_ANON_KEY=mock npm run dev
@@ -57,6 +58,8 @@ function contestState() {
     beneficiary_split_pct: 30, bracket_size: 16, bracket_round_hours: 48,
     submissions_open_at: iso(submissions ? now - 3 * DAY : now - 14 * DAY),
     submissions_close_at: iso(submissions ? now + 4 * DAY : now - 7 * DAY),
+    free_vote_enabled: true,
+    free_vote_paused_at: null,
   }
 
   const totalsFor = (roundSeq, ids) => ids.map((eid, i) => ({
@@ -115,7 +118,7 @@ function contestState() {
     rounds,
     entries,
     matchups,
-    entry_round_totals: totals.map((t) => ({ ...t, amount_cents: t.votes * 80 })),
+    entry_round_totals: totals.map((t) => ({ ...t, amount_cents: t.votes * 80, free_votes: Math.round(t.votes * 0.08) })),
     vote_packs: [
       ['starter', 'Starter', 5, 500, false], ['fan', 'Fan', 25, 2000, true], ['superfan', 'Superfan', 75, 5000, false],
       ['champion', 'Champion', 200, 10000, false], ['legend', 'Legend', 600, 25000, false],
@@ -186,6 +189,36 @@ const CORS = {
   'Access-Control-Expose-Headers': 'Content-Range',
 }
 
+// The toy free vote: enough to walk the sheet's steps by hand or in a test.
+const devices = new Map() // token -> { email, voted }
+const challenges = new Map() // id -> email
+function freeVote(b) {
+  const masked = (e) => `${e[0]}•••@${e.split('@')[1]}`
+  const token = () => `mock${Math.random().toString(36).slice(2)}${'x'.repeat(40)}`.slice(0, 44)
+  if (b.action === 'request') {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email || '')) return { status: 400, body: { error: 'Please enter a valid email address.' } }
+    const cid = id('fc', challenges.size + 1)
+    challenges.set(cid, b.email)
+    return { body: { challenge_id: cid, masked_email: masked(b.email), expires_at: iso(Date.now() + 15 * 60e3) } }
+  }
+  if (b.action === 'verify') {
+    const email = challenges.get(b.challenge_id) || 'link@example.com'
+    if (b.kind === 'code' && b.code !== '123456') return { body: { outcome: 'wrong', message: "That code doesn't match. 4 tries left." } }
+    const t = token()
+    devices.set(t, { email, voted: b.kind !== 'reminder' })
+    return { body: { outcome: b.kind === 'reminder' ? 'verified' : 'cast', masked_email: masked(email), device_token: t, votes: 412 } }
+  }
+  const d = devices.get(b.device_token)
+  if (b.action === 'status') return { body: d ? { known: true, masked_email: masked(d.email), voted_today: d.voted, next_vote_at: iso(Date.now() + 6 * HOUR) } : { known: false } }
+  if (b.action === 'cast') {
+    if (!d) return { body: { outcome: 'unknown_device', message: 'Confirm your email address to vote free.' } }
+    if (d.voted) return { body: { outcome: 'already_voted', masked_email: masked(d.email) } }
+    d.voted = true
+    return { body: { outcome: 'cast', masked_email: masked(d.email), votes: 413 } }
+  }
+  return { body: { ok: true } }
+}
+
 createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`)
   if (req.method === 'OPTIONS') return res.writeHead(204, CORS).end()
@@ -209,6 +242,17 @@ createServer((req, res) => {
     const rows = query(data, url.searchParams)
     res.writeHead(200, { ...CORS, 'Content-Type': 'application/json', 'Content-Range': `0-${Math.max(0, rows.length - 1)}/${rows.length}` })
     return res.end(JSON.stringify(rows))
+  }
+
+  if (url.pathname === '/functions/v1/free-vote' && req.method === 'POST') {
+    let raw = ''
+    req.on('data', (c) => (raw += c))
+    req.on('end', () => {
+      const out = freeVote(JSON.parse(raw || '{}'))
+      res.writeHead(out.status || 200, { ...CORS, 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(out.body))
+    })
+    return
   }
 
   if (url.pathname.startsWith('/functions/v1/')) {

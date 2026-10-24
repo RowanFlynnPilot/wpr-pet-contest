@@ -34,6 +34,9 @@ export default function Money() {
         </button>
       </div>
       <ErrorNote error={data.error} />
+      {contest.free_vote_enabled && (
+        <p className="small muted">Free votes are not sales and are not in these figures. The Free votes tab counts them.</p>
+      )}
       <div className="stats">
         <Stat label="Vote pack sales" value={fmtMoney(gross)} sub="confirmed, net of refunds" />
         <Stat label={`Shelter payout (${split}%)`} value={fmtMoney(payout)} sub="sales × split" tone="good" />

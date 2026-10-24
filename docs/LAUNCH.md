@@ -114,6 +114,28 @@ pet is what sells votes, so this is worth the setup.
 - [ ] GitHub: variable `EMAIL_SWEEP=true`, secrets `NOTIFY_URL` and
       `CRON_SECRET` (same value). The sweep then runs every 15 minutes.
 
+### Free daily vote (only if the contest turns it on)
+
+Off unless Setup turns it on while the contest is a draft. Before that, get
+counsel's answers to the questions in `docs/FREE-DAILY-VOTE.md`, section 9;
+two of them (does a free path have to weigh as much as paid voting, and may
+it be paused) could stop it. With it on, the preflight fails until all of
+this is done.
+
+- [ ] Email (above) working. Better: send from a subdomain such as
+      `vote.wausaupilotandreview.com` with its own SPF, DKIM and DMARC, so
+      bounces from mistyped addresses never touch the newsroom's main domain.
+      Size the Resend plan for codes plus reminders (the doc has the
+      arithmetic).
+- [ ] Cloudflare Turnstile widget for the GitHub Pages host. GitHub variable
+      `VITE_TURNSTILE_SITE_KEY`; `supabase secrets set TURNSTILE_SECRET_KEY=...`
+- [ ] `supabase secrets set FREE_VOTE_HASH_KEY=<random, 32+ characters>`. It
+      keys the stored codes and connection hashes; never change it mid-contest.
+- [ ] The WordPress snippet from `web/EMBED.md`, including its line that
+      clears `fv=` tokens from the address bar.
+- [ ] Refresh `supabase/functions/_shared/disposable.ts` from the
+      disposable-email-domains list.
+
 ## 6. Live-contest alerts (do this before voting opens)
 
 If the Stripe webhook breaks at 9pm, buyers are charged and get no votes, and
@@ -168,6 +190,12 @@ succeeds then disputes.
 - [ ] Dispute a test payment: the votes leave the leaderboard.
 - [ ] Share a pet to Facebook: the preview shows that pet's photo.
       (developers.facebook.com/tools/debug to re-scrape.)
+- [ ] If the free daily vote is on: vote with a code on a phone inside the
+      WordPress page; vote again the same day (refused); open the emailed
+      link on another device; come back the next day (two taps); take a
+      morning reminder and unsubscribe from it; try a code at the deadline
+      plus three minutes (refused); disqualify a pet with free votes (they
+      come back); void a voter and pause and resume from the Free votes tab.
 - [ ] Play every round through to a champion.
 - [ ] Switch to live keys; delete the dry-run contest's rows.
 

@@ -1,6 +1,8 @@
 import { useMemo, useRef } from 'react'
 import { useContest } from '../components/ContestContext.jsx'
 import { Arrow } from '../components/Icons.jsx'
+import FavoriteButton from '../components/FavoriteButton.jsx'
+import { FreeVoteButton, useFreeVoteLanding } from '../components/FreeVote.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
 import PetCard from '../components/PetCard.jsx'
 import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
@@ -44,6 +46,7 @@ function VoteBlock({ entry, round, packs }) {
           Vote for {entry.pet_name}
         </VoteButton>
         <PriceHint packs={packs} />
+        <FreeVoteButton entry={entry} round={round} />
       </div>
       <StickyVote targetRef={ref}>
         <VoteButton entry={entry} round={round} className="btn btn-primary btn-block">
@@ -58,6 +61,7 @@ function OpenRoundPanel({ c, entry, entries }) {
   const { totals, known } = useRoundTotals(c.round.id)
   const ranked = useMemo(() => rankOpenRound(entries, totals), [entries, totals])
   const votes = totals.get(entry.id)?.votes || 0
+  const free = totals.get(entry.id)?.free || 0
   const line = known ? cutline(ranked, entry.id, c.bracketSize) : null
   const label = roundLabel(c.round.seq, c.bracketSize)
   const voting = c.phase === 'voting'
@@ -82,7 +86,9 @@ function OpenRoundPanel({ c, entry, entries }) {
         <div className="sb-solo">
           <div className="sb-solo-count">
             <Digits value={known ? votes : null} label={known ? `${fmtInt(votes)} ${votesWord(votes)} this round` : 'Votes loading'} />
-            <span className="sb-unit">{votesWord(votes)} this round</span>
+            <span className="sb-unit">
+              {votesWord(votes)} this round{free > 0 && `, including ${fmtInt(free)} free`}
+            </span>
           </div>
           {line && (
             <span className="sb-rank">
@@ -256,6 +262,12 @@ export default function Pet({ route }) {
     [inBracket, entry, entries, c.rounds, bracket.matchups, c.bracketSize],
   )
   const state = (entry && states?.get(entry.id)) || null
+  // Opened from an emailed free-vote link: the sheet opens ready to confirm.
+  const freeRound =
+    c.phase === 'voting' && (!inBracket || (state?.status === 'alive' && state.matchup && c.round?.id === state.matchup.round_id))
+      ? c.round
+      : null
+  useFreeVoteLanding(entry, freeRound, route.params)
 
   // What each stop on the road carries: the open-round seed, a decided
   // score, or the date a set matchup opens.
@@ -345,8 +357,11 @@ export default function Pet({ route }) {
             <Arrow size={14} /> All pets
           </a>
           <div className="pet-title">
-            <h1 className="pet-name">{name}</h1>
-            <p className="pet-meta">{meta}</p>
+            <div className="pet-title-text">
+              <h1 className="pet-name">{name}</h1>
+              <p className="pet-meta">{meta}</p>
+            </div>
+            <FavoriteButton entry={entry} size={24} />
           </div>
         </header>
 

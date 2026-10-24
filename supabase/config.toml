@@ -84,3 +84,9 @@ verify_jwt = false
 
 [functions.disqualify]
 verify_jwt = false
+
+# Anonymous readers, like create-checkout. It proves the voter's address on its
+# own terms (an emailed code, link or remembered browser), and mail clients
+# POST to its one-click unsubscribe without any token at all.
+[functions.free-vote]
+verify_jwt = false
