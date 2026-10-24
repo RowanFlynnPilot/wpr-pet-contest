@@ -592,6 +592,14 @@ test("config.js: rules approved, placeholders gone, analytics, presenting sponso
   assert.equal(status(run(checkConfig, (f) => (f.web.config = { found: false })), "web.config"), "fail");
 });
 
+test("a function that answers 503 because its feature is off is not a crash", () => {
+  const off = run(checkFunctionsHttp, (f) => (f.supabase.http.probes["free-vote"].post = { status: 503 }));
+  assert.equal(status(off, "supabase.http.free-vote"), "pass");
+  assert.match(byId(off, "supabase.http.free-vote").message, /switched off/);
+  const crashed = run(checkFunctionsHttp, (f) => (f.supabase.http.probes["links"].post = { status: 503 }));
+  assert.equal(status(crashed, "supabase.http.links"), "fail");
+});
+
 test("free daily vote: off passes; on needs its secrets and the Turnstile site key", () => {
   assert.equal(status(run(checkFreeVote), "supabase.free_vote"), "pass");
   const on = (f) => (f.supabase.data.contests[1].free_vote_enabled = true);

@@ -90,3 +90,8 @@ verify_jwt = false
 # POST to its one-click unsubscribe without any token at all.
 [functions.free-vote]
 verify_jwt = false
+
+# Anonymous readers acting on a link from an email: an owner's goal, an
+# opt-out. Each proves itself with the token in the link.
+[functions.links]
+verify_jwt = false

@@ -5,8 +5,16 @@
 // that can carry a share link does, because owners sharing their own pet is
 // what sells votes.
 
+export type NurtureKind =
+  | "nurture_ready"
+  | "nurture_open"
+  | "nurture_halfway"
+  | "nurture_last_day"
+  | "nurture_matchup_last_day"
+  | "nurture_thanks";
+
 export type QueueRow = {
-  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion";
+  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion" | NurtureKind;
   entry_id: string;
   round_id: string | null;
   to_email: string;
@@ -18,6 +26,16 @@ export type QueueRow = {
   closes_at: string | null;
   rejection_reason: string | null;
   raised_cents: number;
+  // The nurture emails quote standings and carry the owner's own link.
+  my_votes?: number | null;
+  rank?: number | null;
+  field_size?: number | null;
+  cut_margin?: number | null;
+  opponent_votes?: number | null;
+  goal_votes?: number | null;
+  owner_token?: string | null;
+  champion_name?: string | null;
+  opens_at?: string | null;
 };
 
 export type Links = {
@@ -33,6 +51,46 @@ export type Message = { subject: string; html: string; text: string };
 const TEAL = "#2b655d";
 const CREAM = "#f6f2e9";
 
+// The owner's own link: sets a goal, stops the tips. Only in mail to them.
+const ownerUrl = (links: Links, row: QueueRow) =>
+  row.owner_token ? `${links.publicUrl}#/pet/${row.entry_id}?owner=${row.owner_token}` : `${links.publicUrl}#/pet/${row.entry_id}`;
+const optOutUrl = (links: Links, row: QueueRow) => `${links.publicUrl}#/unsubscribe?owner=${row.entry_id}.${row.owner_token ?? ""}`;
+
+// Where a pet stands in the Open Round, for the halfway and last-day notes.
+// A big gap printed in an email reads as "don't bother", so past 50 votes
+// short the sentence points at the page instead.
+export function standingLine(row: QueueRow): string {
+  const pet = row.pet_name;
+  if (row.rank == null || row.cut_margin == null || row.field_size == null) {
+    return `${pet}'s page shows where ${pet} stands right now and how many votes it takes to pass the next pet.`;
+  }
+  const place = `${pet} is No. ${row.rank} of ${row.field_size}`;
+  if (row.cut_margin > 0) return `${place}, ${row.cut_margin} vote${row.cut_margin === 1 ? "" : "s"} above the cut for the bracket.`;
+  if (row.cut_margin === 0) return `${place}, tied at the cut and in on the tiebreak.`;
+  if (row.cut_margin >= -50) return `${place}, ${-row.cut_margin} vote${row.cut_margin === -1 ? "" : "s"} from the bracket.`;
+  return `${place}. ${pet}'s page shows how many votes it takes to pass the next pet.`;
+}
+
+// A matchup's score the morning of its last day.
+export function matchupLine(row: QueueRow): string {
+  const pet = row.pet_name;
+  const opp = row.opponent_name ?? "its opponent";
+  const mine = row.my_votes ?? 0;
+  const theirs = row.opponent_votes ?? 0;
+  if (mine === theirs) return `${pet} and ${opp} are tied at ${mine}. A tie goes to the better seed.`;
+  if (mine > theirs) return `${pet} leads ${opp}, ${mine} to ${theirs}.`;
+  if (theirs - mine > 50) return `The score is on ${pet}'s page.`;
+  return `${pet} trails ${opp}, ${mine} to ${theirs}.`;
+}
+
+const goalLine = (row: QueueRow): string | null => {
+  if (!row.goal_votes || row.my_votes == null) return null;
+  const left = row.goal_votes - row.my_votes;
+  return left > 0
+    ? `${row.pet_name}'s goal is ${row.goal_votes} votes this round; ${left} to go.`
+    : `${row.pet_name} has passed the ${row.goal_votes}-vote goal you set. Raise it on ${row.pet_name}'s page if you like.`;
+};
+
 export function render(row: QueueRow, links: Links): Message {
   const pet = row.pet_name;
   const first = row.owner_name.split(" ")[0] || "there";
@@ -40,6 +98,7 @@ export function render(row: QueueRow, links: Links): Message {
   const shareUrl = `${links.shareBase.replace(/\/$/, "")}/p/${row.entry_id}/`;
   const closes = row.closes_at ? formatWhen(row.closes_at) : null;
   const raised = dollars(row.raised_cents);
+  const stopLine = `These tips come with your entry; stop them here: ${optOutUrl(links, row)}`;
 
   switch (row.kind) {
     case "entry_received":
@@ -54,7 +113,67 @@ export function render(row: QueueRow, links: Links): Message {
         `Round 1 is open to every pet. The top vote-getters make the bracket, so the most useful thing you can do is share ${pet}'s page with friends, family and your local Facebook groups:`,
       ], { label: `Share ${pet}'s page`, url: shareUrl }, [
         `Every vote pack supports local animal shelters.`,
+        `Your own page for ${pet}, where you can set a vote goal and make share images: ${ownerUrl(links, row)}`,
       ]);
+
+    case "nurture_ready":
+      return compose(`${pet} is in. Voting opens ${row.opens_at ? formatWhen(row.opens_at) : "soon"}`, first, [
+        `${pet} is in the gallery, and voting opens ${row.opens_at ? formatWhen(row.opens_at) : "soon"}. Nobody can vote before then, but people can look, so this week is a good time to let them know.`,
+        `On ${pet}'s page, tap "Make a share image." You'll get an Instagram or Facebook story, a square post and a flyer to print. The flyer's QR code opens ${pet}'s page.`,
+        `When you post on Facebook, use this link, because it shows ${pet}'s photo in the preview: ${shareUrl}`,
+      ], { label: `Open ${pet}'s page`, url: ownerUrl(links, row) }, [
+        `When people ask: votes come in vote packs, starting at a few dollars. A pack is a purchase, so it isn't a donation and isn't tax-deductible. A share of vote pack sales after refunds goes to the contest's partner shelter.`,
+        stopLine,
+      ]);
+
+    case "nurture_open":
+      return compose(`Voting is open for ${pet}`, first, [
+        `The Open Round is open${closes ? `, and voting runs until ${closes}` : ""}. Every approved pet is in it, and the pets with the most votes make the bracket, seeded by their totals.`,
+        `Then vote totals reset. Open Round votes decide who makes the bracket and their seeds, and that's all they decide. Every bracket matchup starts at zero.`,
+        `The most useful thing you can do today is send ${pet}'s link to the people most likely to vote: family, close friends, coworkers.`,
+      ], { label: `Share ${pet}'s page`, url: shareUrl }, [stopLine]);
+
+    case "nurture_halfway": {
+      const goal = goalLine(row);
+      return compose(
+        row.rank != null ? `${pet} is No. ${row.rank} as of this morning` : "Halfway through the Open Round",
+        first,
+        [
+          `We're halfway through the Open Round. As of this morning, ${standingLine(row)}`,
+          `The top pets make the bracket when voting closes${closes ? ` ${closes}` : ""}. If two pets tie, the one entered earlier ranks higher.`,
+          ...(goal ? [goal] : []),
+          `It's a good moment for an update post.`,
+        ],
+        { label: `Share ${pet}'s page`, url: shareUrl },
+        [stopLine],
+      );
+    }
+
+    case "nurture_last_day": {
+      const goal = goalLine(row);
+      return compose(`The Open Round closes tonight${closes ? ` at ${closes.replace(/^.*? at /, "")}` : ""}`, first, [
+        `The Open Round closes tonight${closes ? `, ${closes}` : ""}. As of this morning, ${standingLine(row)}`,
+        `A vote counts if its payment goes through by the deadline. A payment already in progress gets a two-minute grace, and anything later is refunded automatically, so tell people not to wait for the last minute.`,
+        ...(goal ? [goal] : []),
+        `An editor finalizes the results shortly after the close, and we'll email you tonight with how ${pet} did.`,
+      ], { label: `Share ${pet}'s page`, url: shareUrl }, [stopLine]);
+    }
+
+    case "nurture_matchup_last_day": {
+      const goal = goalLine(row);
+      return compose(`${pet} vs. ${row.opponent_name ?? "its opponent"} closes tonight`, first, [
+        `${pet}'s ${row.round_name ?? "bracket"} matchup closes tonight${closes ? `, ${closes}` : ""}. As of this morning, ${matchupLine(row)}`,
+        `Both pets started this round at zero, and the one with more votes at the close moves on. Payments have to go through by the deadline; later ones are refunded automatically.`,
+        ...(goal ? [goal] : []),
+      ], { label: `Share ${pet}'s matchup`, url: shareUrl }, [stopLine]);
+    }
+
+    case "nurture_thanks":
+      return compose(`Thank you for entering ${pet}`, first, [
+        `The contest is over. ${row.champion_name ?? "The champion"} took the title, and the results page has the whole bracket and the side awards.`,
+        `Readers raised ${raised} for local animal shelters. Thank you for entering ${pet} and for every share.`,
+        `About your information: we erase entrants' names and email addresses 12 months after the contest. ${pet}'s photo, name and town stay in our coverage, as the rules say.`,
+      ], { label: "See the results", url: `${links.publicUrl}#/results` });
 
     case "entry_rejected":
       return compose(`About ${pet}'s entry`, first, [
@@ -88,6 +207,56 @@ export function render(row: QueueRow, links: Links): Message {
         `This year's contest raised ${raised} for local animal shelters. An editor will be in touch soon.`,
       ], { label: `See ${pet}'s page`, url: petUrl });
   }
+}
+
+// A buyer's note: the pets they backed play again, or their run ended, or
+// one is the champion. No name, since checkout collects only an address.
+export type BuyerNoteRow = {
+  email: string;
+  contest_name: string;
+  round_name: string;
+  closes_at: string;
+  is_final: boolean;
+  playing: { entry_id: string; pet: string; opponent: string | null }[];
+  ended: { pet: string; opponent: string | null; round: string }[];
+  champion: { entry_id: string; pet: string; opponent: string | null }[];
+  raised_cents: number;
+};
+
+export function renderBuyerNote(row: BuyerNoteRow, links: Links, unsubscribe: string): Message {
+  const raised = dollars(row.raised_cents);
+  const closes = formatWhen(row.closes_at);
+  const paras: string[] = [];
+  let subject: string;
+  let button: { label: string; url: string };
+  const footer = `You are getting this because you checked a box when you bought votes. One email a round, this contest only. Stop these emails: ${unsubscribe}`;
+
+  if (row.champion.length) {
+    const c = row.champion[0];
+    subject = `${c.pet} is the champion`;
+    paras.push(
+      `${c.pet} is the ${row.contest_name}${c.opponent ? `, after beating ${c.opponent} in the Championship` : ""}. Thank you for backing ${c.pet}. Readers raised ${raised} for local animal shelters.`,
+    );
+    button = { label: "See the results", url: `${links.publicUrl}#/results` };
+  } else if (row.playing.length) {
+    const p = row.playing;
+    subject = p.length === 1 ? `${p[0].pet} plays again: ${row.round_name}${p[0].opponent ? ` vs. ${p[0].opponent}` : ""}` : `${p.length} of your pets play again in the ${row.round_name}`;
+    paras.push(
+      p.length === 1
+        ? `You asked us to tell you when ${p[0].pet} plays again. ${p[0].pet} is in the ${row.round_name}${p[0].opponent ? `, facing ${p[0].opponent}` : ""}, and voting closes ${closes}.`
+        : `${p.length} of the pets you backed play again in the ${row.round_name}: ${p.map((x) => `${x.pet}${x.opponent ? ` faces ${x.opponent}` : ""}`).join("; ")}. Voting closes ${closes}.`,
+    );
+    paras.push(`Vote totals reset every round. The votes you bought counted in the round you bought them in, and every pet starts this one at zero.`);
+    button = p.length === 1 ? { label: "See the matchup", url: `${links.publicUrl}#/pet/${p[0].entry_id}` } : { label: "See the bracket", url: `${links.publicUrl}#/bracket` };
+  } else {
+    const e = row.ended[0];
+    subject = `Thanks for backing ${e.pet}`;
+    button = { label: "See the bracket", url: `${links.publicUrl}#/bracket` };
+  }
+  for (const e of row.ended) {
+    paras.push(`${e.pet}'s run ended in the ${e.round}${e.opponent ? `, against ${e.opponent}` : ""}. Thank you for your votes.${row.champion.length || row.playing.length ? "" : ` So far the contest has raised ${raised} for local animal shelters.`}`);
+  }
+  return compose(subject, null, paras, button, [], footer);
 }
 
 // The free daily vote. Plain on purpose: the code in the subject, so it shows

@@ -12,11 +12,13 @@
 // carries a fix that names the docs/LAUNCH.md section to work from, because a
 // red line nobody knows how to clear gets ignored.
 
-export const FUNCTIONS = ["submit-entry", "create-checkout", "stripe-webhook", "moderate", "notify", "health", "disqualify", "free-vote"];
+export const FUNCTIONS = ["submit-entry", "create-checkout", "stripe-webhook", "moderate", "notify", "health", "disqualify", "free-vote", "links"];
+// Functions that answer 503 on purpose until their feature is switched on.
+export const OPTIONAL_FUNCTIONS = { "free-vote": "the free daily vote is off (no FREE_VOTE_HASH_KEY)" };
 // Staff functions refuse a request with no session before touching anything.
 export const STAFF_FUNCTIONS = ["moderate", "notify", "health", "disqualify"];
 // Anonymous write paths: an empty body fails validation (or the rate limit).
-export const PUBLIC_FUNCTIONS = ["submit-entry", "create-checkout"];
+export const PUBLIC_FUNCTIONS = ["submit-entry", "create-checkout", "free-vote", "links"];
 
 export const REQUIRED_SECRETS = ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "ALLOWED_ORIGIN"];
 export const RECOMMENDED_SECRETS = ["PUBLIC_URL", "SHARE_BASE_URL", "CRON_SECRET"];
@@ -336,6 +338,10 @@ export function checkFunctionsHttp(f) {
     if (!probe) continue;
     const id = `supabase.http.${slug}`;
     const codes = [probe.options?.status, probe.post?.status].filter((c) => typeof c === "number");
+    if (OPTIONAL_FUNCTIONS[slug] && probe.post?.status === 503 && (probe.options?.status ?? 200) === 200) {
+      out.push(pass(id, SB, `${slug}: switched off, ${OPTIONAL_FUNCTIONS[slug]}`));
+      continue;
+    }
     const crashed = codes.find((c) => c >= 500);
     if (crashed) {
       out.push(fail(id, SB, `${slug} crashes at start (HTTP ${crashed})`, `Usually a missing secret; check the function's logs in the dashboard (Edge Functions → ${slug} → Logs) ${see(2)}`));

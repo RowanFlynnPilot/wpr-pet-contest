@@ -7,7 +7,7 @@
 import { requireAdmin } from "../_shared/db.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { serve } from "../_shared/http.ts";
-import { sweep, sweepReminders } from "../_shared/notify.ts";
+import { sweep, sweepBuyerNotes, sweepReminders } from "../_shared/notify.ts";
 import { safeEqual } from "../_shared/validate.ts";
 
 const CRON_SECRET = optionalEnv("CRON_SECRET");
@@ -21,5 +21,6 @@ serve(async (req) => {
   // Free-vote reminders ride the same schedule; the database decides when
   // each is due.
   const reminders = await sweepReminders(50);
-  return { ...entrants, reminders };
+  const buyers = await sweepBuyerNotes(50);
+  return { ...entrants, reminders, buyers };
 });

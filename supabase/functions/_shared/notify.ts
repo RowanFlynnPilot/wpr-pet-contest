@@ -8,7 +8,7 @@ import { service } from "./db.ts";
 import { emailEnabled, sendEmail } from "./email.ts";
 import { optionalEnv } from "./env.ts";
 import { bytea, centralDay, newToken, sha256 } from "./freevote.ts";
-import { type QueueRow, render, renderFreeVoteReminder } from "./templates.ts";
+import { type BuyerNoteRow, type QueueRow, render, renderBuyerNote, renderFreeVoteReminder } from "./templates.ts";
 
 const LINKS = {
   publicUrl: optionalEnv("PUBLIC_URL") ?? "https://wausaupilotandreview.com/",
@@ -71,6 +71,72 @@ export async function sweep(limit = 50): Promise<SweepResult> {
   }
 
   return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+// The buyer notes: whoever buyer_notice_queue() says is owed one, now that a
+// bracket round has opened or the final is decided. Claimed with a row per
+// buyer per round first, so overlapping sweeps send once.
+export async function sweepBuyerNotes(limit = 50): Promise<SweepResult> {
+  const { data, error } = await service.rpc("buyer_notice_queue", { p_limit: limit });
+  if (error) throw error;
+  const queue = (data ?? []) as (BuyerNoteRow & { round_id: string })[];
+
+  if (!emailEnabled) {
+    return { enabled: false, sent: 0, failed: 0, queued: queue.length, more: queue.length === limit };
+  }
+
+  const fnUrl = optionalEnv("SUPABASE_URL");
+  let sent = 0;
+  let failed = 0;
+
+  for (const [i, row] of queue.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
+
+    const unsubToken = newToken();
+    const kind = row.is_final ? "final" : "round";
+    const { error: claimError } = await service.from("buyer_notices").insert({
+      email: row.email,
+      round_id: row.round_id,
+      kind,
+      unsub_hash: bytea(await sha256(unsubToken)),
+      status: "pending",
+    });
+    if (claimError?.code === "23505") continue;
+    if (claimError) throw claimError;
+
+    const unsubscribe = `${LINKS.publicUrl}#/unsubscribe?bn=${unsubToken}`;
+    const msg = renderBuyerNote(row, LINKS, unsubscribe);
+    const result = await sendEmail({
+      to: row.email,
+      ...msg,
+      idempotencyKey: `buyer-note:${row.round_id}:${kind}:${await hexOf(row.email)}`,
+      headers: fnUrl
+        ? {
+          "List-Unsubscribe": `<${fnUrl}/functions/v1/links?unsubscribe=${unsubToken}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+        : { "List-Unsubscribe": `<${unsubscribe}>` },
+    });
+
+    const { error: settleError } = await service
+      .from("buyer_notices")
+      .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })
+      .eq("email", row.email)
+      .eq("round_id", row.round_id)
+      .eq("kind", kind);
+    if (settleError) throw settleError;
+
+    if (result.ok) sent++;
+    else failed++;
+  }
+
+  return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+// An idempotency key must not carry the address itself.
+async function hexOf(text: string): Promise<string> {
+  const bytes = await sha256(text.toLowerCase());
+  return [...bytes.slice(0, 12)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 type ReminderRow = {
