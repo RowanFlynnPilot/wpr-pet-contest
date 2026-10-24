@@ -466,13 +466,13 @@ export default function Home() {
             <div className="section-head">
               <div>
                 <h2 id="sh-title">Where the money goes</h2>
-                <p className="section-count">Our partner shelters</p>
+                <p className="section-count">{c.shelters.length === 1 ? 'Our partner shelter' : 'Our partner shelters'}</p>
               </div>
               <a className="more" href="#/shelters">
                 Adopt a pet <Arrow size={14} />
               </a>
             </div>
-            <ShelterList shelters={c.shelters} />
+            <ShelterList shelters={c.shelters} split={c.contest?.beneficiary_split_pct} />
           </section>
         )}
         {!SPONSORS.presenting && (

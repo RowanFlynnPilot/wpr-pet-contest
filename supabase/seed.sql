@@ -23,7 +23,7 @@ values ('00000000-0000-0000-0000-0000000000c1', 2026,
 insert into shelters (id, contest_id, name, url)
 values ('00000000-0000-0000-0000-00000000a5e1',
         '00000000-0000-0000-0000-0000000000c1',
-        'Example Humane Society', 'https://example.org');
+        'Moments Foster Care', 'https://www.facebook.com/search/top?q=Moments%20Foster%20Care');
 
 -- The recommended ladder. Per-vote price falls from $1.00 to about 42 cents,
 -- which is what makes the big packs worth it to the buyers who decide close

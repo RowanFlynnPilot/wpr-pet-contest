@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useContest } from '../components/ContestContext.jsx'
-import { Arrow, Paw } from '../components/Icons.jsx'
+import { Arrow, Facebook, Paw } from '../components/Icons.jsx'
 import { fetchFeaturedAdoptable } from '../lib/api.js'
 import { fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
@@ -24,7 +24,45 @@ function Logo({ shelter }) {
   )
 }
 
-export function ShelterList({ shelters }) {
+// A shelter's link is often its Facebook page, which deserves the name.
+export const isFacebook = (url) => /^https?:\/\/([a-z0-9-]+\.)*(facebook\.com|fb\.com)\//i.test(url || '')
+
+export function ShelterLink({ shelter, className = 'small shelter-link' }) {
+  if (!shelter.url) return null
+  const fb = isFacebook(shelter.url)
+  return (
+    <a href={shelter.url} target="_blank" rel="noopener noreferrer" className={className}>
+      {fb ? (
+        <>
+          <Facebook size={16} /> Follow {shelter.name} on Facebook
+        </>
+      ) : (
+        <>
+          Visit {shelter.name} <Arrow size={14} />
+        </>
+      )}
+    </a>
+  )
+}
+
+// One partner is the contest's partner: a featured card that says what each
+// pack does for it. Several are listed side by side.
+export function ShelterList({ shelters, split = null }) {
+  if (shelters.length === 1) {
+    const s = shelters[0]
+    return (
+      <div className="card plain shelter partner">
+        <Logo shelter={s} />
+        <div style={{ minWidth: 0 }}>
+          <div className="shelter-name">{s.name}</div>
+          <p className="shelter-note">
+            {split != null ? `${split}% of every vote pack` : 'A share of every vote pack'} goes to {s.name}.
+          </p>
+          <ShelterLink shelter={s} className="btn btn-ghost btn-sm shelter-link" />
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="shelters">
       {shelters.map((s) => (
@@ -32,11 +70,7 @@ export function ShelterList({ shelters }) {
           <Logo shelter={s} />
           <div style={{ minWidth: 0 }}>
             <div className="shelter-name">{s.name}</div>
-            {s.url && (
-              <a href={s.url} target="_blank" rel="noopener noreferrer" className="small" style={{ fontWeight: 700 }}>
-                Visit their site <Arrow size={14} />
-              </a>
-            )}
+            <ShelterLink shelter={s} />
           </div>
         </div>
       ))}
@@ -85,13 +119,14 @@ export default function Shelters() {
   const split = c.contest?.beneficiary_split_pct
   return (
     <div className="wrap section" style={{ paddingTop: 24 }}>
-      <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>Our partner shelters</h1>
+      <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>{c.shelters.length === 1 ? 'Our partner shelter' : 'Our partner shelters'}</h1>
       <p className="dek">
-        {split != null ? `${split}% of every vote pack` : 'A share of every vote pack'} goes to these local animal shelters
+        {split != null ? `${split}% of every vote pack` : 'A share of every vote pack'} goes to{' '}
+        {c.shelters.length === 1 ? c.shelters[0].name : 'these local animal shelters'}
         {c.stats ? `: ${fmtMoney(c.stats.shelter_cents, { whole: true })} so far this year` : ''}.
       </p>
       <div style={{ marginTop: 20 }}>
-        {c.shelters.length ? <ShelterList shelters={c.shelters} /> : <p className="muted">Partner shelters will be announced soon.</p>}
+        {c.shelters.length ? <ShelterList shelters={c.shelters} split={split} /> : <p className="muted">Partner shelters will be announced soon.</p>}
       </div>
       <Adoptable />
       <div className="card plain">

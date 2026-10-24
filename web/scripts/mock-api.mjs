@@ -127,8 +127,8 @@ function contestState() {
       ? [{ id: id('b1', 1), contest_id: contest.id, starts_at: iso(now - HOUR), ends_at: iso(now + HOUR), multiplier: 2, label: 'Double Vote Hour', sponsor_name: 'Example Pet Supply', sponsor_url: 'https://example.org' }]
       : [],
     shelters: [
-      { id: id('5e', 1), contest_id: contest.id, name: 'Humane Society of Marathon County', url: 'https://example.org', logo_path: null, payout_weight: 1 },
-      { id: id('5e', 2), contest_id: contest.id, name: 'Northwoods Rescue', url: 'https://example.org', logo_path: null, payout_weight: 1 },
+      // The real partner. Swap in its Facebook page address once confirmed.
+      { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/search/top?q=Moments%20Foster%20Care', logo_path: null, payout_weight: 1 },
     ],
     contest_stats: submissions
       ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]

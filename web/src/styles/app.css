@@ -984,6 +984,13 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .shelter-logo { width: 64px; height: 64px; flex: none; border-radius: 12px; background: var(--teal-wash); display: grid; place-items: center; overflow: hidden; }
 .shelter-logo img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
 .shelter-name { font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.2; }
+.shelter-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+/* The one partner: bigger, with what each pack does for it. */
+.shelter.partner { align-items: flex-start; padding: 18px; }
+.shelter.partner .shelter-logo { width: 84px; height: 84px; }
+.shelter.partner .shelter-name { font-size: 24px; }
+.shelter-note { margin: 4px 0 12px; font-size: 15px; color: var(--muted); }
+.shelter.partner .shelter-link { margin-top: 2px; }
 .adoptable { display: grid; gap: 16px; align-items: center; }
 @media (min-width: 760px) { .adoptable { grid-template-columns: 280px 1fr; } }
 .adoptable img { width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); }

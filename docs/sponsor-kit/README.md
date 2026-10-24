@@ -31,7 +31,7 @@ long single lines, but the text can still be searched.
 
 | Placeholder | What goes there | Where |
 | --- | --- | --- |
-| `[contest dates]` | Entry week through championship | pitch, leave-behind, email |
+| ~~`[contest dates]`~~ | Filled: Nov. 14 to Dec. 5, 2026 (entries open Saturday, Nov. 14; champion Saturday night, Dec. 5) | pitch, leave-behind, email |
 | `[shelter share %]` | The published share of vote-pack sales, after refunds, that goes to Moments Foster Care | pitch (twice), leave-behind, email |
 | `[number of Double Vote Hours]` | How many hours WPR will sell | pitch (twice), leave-behind |
 | `[newsletter block schedule]` | Which daily editions carry the contest block, and how often | pitch |

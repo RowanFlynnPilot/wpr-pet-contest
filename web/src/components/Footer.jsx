@@ -3,8 +3,9 @@ import { track } from '../lib/analytics.js'
 import { useContest } from './ContestContext.jsx'
 
 export default function Footer() {
-  const { contest } = useContest()
+  const { contest, shelters } = useContest()
   const split = contest?.beneficiary_split_pct
+  const partner = shelters?.length === 1 ? shelters[0] : null
   return (
     <footer className="footer">
       <div className="wrap">
@@ -17,8 +18,24 @@ export default function Footer() {
           </p>
           <p>
             Vote pack purchases are not tax-deductible donations.
-            {split != null &&
-              ` ${split}% of proceeds go to the contest's partner animal shelters; the remainder covers payment processing and supports Wausau Pilot & Review's nonprofit newsroom.`}{' '}
+            {split != null && (
+              <>
+                {' '}
+                {split}% of proceeds go to{' '}
+                {partner ? (
+                  partner.url ? (
+                    <a href={partner.url} target="_blank" rel="noopener noreferrer">
+                      {partner.name}
+                    </a>
+                  ) : (
+                    partner.name
+                  )
+                ) : (
+                  "the contest's partner animal shelters"
+                )}
+                ; the remainder covers payment processing and supports Wausau Pilot &amp; Review&rsquo;s nonprofit newsroom.
+              </>
+            )}{' '}
             Payments are processed by Stripe; WPR never sees your card number.
           </p>
           <p>
@@ -26,7 +43,7 @@ export default function Footer() {
           </p>
           <div className="footer-links">
             <a href="#/rules">Official rules</a>
-            <a href="#/shelters">Partner shelters</a>
+            <a href="#/shelters">{partner ? partner.name : 'Partner shelters'}</a>
             <a href="#/sponsors">Advertise on this contest</a>
             <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" onClick={() => track('Donate Click', { from: 'footer' })}>
               Support local news (tax-deductible)

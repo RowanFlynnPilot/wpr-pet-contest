@@ -24,6 +24,31 @@ D-14 is two weeks before it. All times are Central.
 | D23 | Champion morning | |
 | D24 to D29 | Thank-you, check presentation, wrap-up | |
 
+### The 2026 dates (decided Oct. 24: entries open Saturday, Nov. 14)
+
+| Day | Date | What happens |
+| --- | --- | --- |
+| D-14 | Sat., Oct. 31 (Halloween) | Announcement. The "before D-14" prep is the week of Oct. 26 |
+| D1 | Sat., Nov. 14 | Entries open |
+| D7 | Fri., Nov. 20 | Entries close at [time] |
+| D8 | Sat., Nov. 21 | Open Round opens (gun deer season opens the same day) |
+| D13 | Thu., Nov. 26 | Thanksgiving, inside the Open Round |
+| D14 | Fri., Nov. 27 | Open Round closes at 8 p.m.; Sweet 16 opens that night |
+| D16 | Sun., Nov. 29 | Sweet 16 closes at 8 p.m. |
+| D18 | Tue., Dec. 1 (Giving Tuesday) | Elite Eight closes at 8 p.m. |
+| D20 | Thu., Dec. 3 | Final Four closes at 8 p.m. |
+| D22 | Sat., Dec. 5 | Championship closes at 8 p.m. The champion that night |
+| D23 | Sun., Dec. 6 | Champion morning |
+| D29 | Sat., Dec. 12 | Wrap-up done |
+
+In Setup: submissions open Nov. 14 and close Nov. 20 at [time]; pass
+`2026-11-27 20:00 America/Chicago` as `open_submissions`' second argument so
+the Open Round closes at 8 p.m.
+
+Giving Tuesday lands on the Elite Eight's last day. The newsroom's own
+tax-deductible ask can run that day as long as it stays separate from vote
+packs (README, the hard rules): vote packs are never donations.
+
 The bracket runs evening to evening because that is what the database does:
 `close_round` schedules the next round from the previous close, for
 `bracket_round_hours` (48). If the desk would rather open each bracket round
