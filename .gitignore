@@ -32,3 +32,4 @@ Thumbs.db
 
 # Screenshot decks for the newsroom (npm --prefix web run snapshots)
 docs/preview/
+web/dist-demo/
