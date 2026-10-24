@@ -25,7 +25,15 @@ export const totalsKey = (roundId) => `totals:${roundId}`
 
 export function useRoundTotals(roundId, { live = true } = {}) {
   const res = useLive(roundId ? totalsKey(roundId) : null, () => fetchTotals(roundId), live ? 20000 : 0)
-  return { totals: res.data || EMPTY_MAP, loading: res.data === undefined && !res.error, error: res.error, updatedAt: res.updatedAt }
+  // `known` is false until one load has succeeded: a failed first load is
+  // not zero votes, and nothing should rank a pet on it.
+  return {
+    totals: res.data || EMPTY_MAP,
+    known: res.data !== undefined,
+    loading: res.data === undefined && !res.error,
+    error: res.error,
+    updatedAt: res.updatedAt,
+  }
 }
 
 // All bracket matchups for a contest, plus totals for the rounds they are in.

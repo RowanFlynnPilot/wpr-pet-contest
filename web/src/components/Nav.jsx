@@ -37,7 +37,7 @@ export default function Nav({ route }) {
             </li>
           ))}
         </ul>
-        {cta && current !== 'enter' && (
+        {cta && current !== 'enter' && route.name !== 'pet' && (
           <a className="btn btn-primary btn-sm nav-cta" href={cta.href}>
             {cta.label}
           </a>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useContest } from '../components/ContestContext.jsx'
-import { Paw } from '../components/Icons.jsx'
+import { Arrow, Paw } from '../components/Icons.jsx'
 import { fetchFeaturedAdoptable } from '../lib/api.js'
 import { fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
@@ -34,7 +34,7 @@ export function ShelterList({ shelters }) {
             <div className="shelter-name">{s.name}</div>
             {s.url && (
               <a href={s.url} target="_blank" rel="noopener noreferrer" className="small" style={{ fontWeight: 700 }}>
-                Visit their site <span aria-hidden="true">→</span>
+                Visit their site <Arrow size={14} />
               </a>
             )}
           </div>

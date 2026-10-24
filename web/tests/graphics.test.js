@@ -286,6 +286,11 @@ describe('matchups', () => {
     expect(matchupLine(first, { status: 'pending' })).toBe('Both pets start at zero when voting opens')
   })
 
+  it('names a walkover instead of selling it as a race', () => {
+    const [card] = matchupCards([m('m0', 'r2', 0, 'e1', 'gone')], r2, t, byId)
+    expect(matchupLine(card)).toBe('Pet 1 advances: its opponent was disqualified')
+  })
+
   it('reports a decided matchup as a final score', () => {
     const [card] = matchupCards([m('m0', 'r2', 0, 'e1', 'e16', 'e16')], r2, t, byId)
     expect(matchupLine(card)).toBe('Pet 16 wins, 52–40')

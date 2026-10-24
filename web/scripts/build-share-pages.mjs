@@ -23,6 +23,8 @@ const env = { ...loadEnv(process.env.MODE || 'production', ROOT, ''), ...process
 const SUPABASE_URL = (env.VITE_SUPABASE_URL || '').replace(/\/+$/, '')
 const KEY = env.VITE_SUPABASE_ANON_KEY || ''
 const TRANSFORMS = env.VITE_IMAGE_TRANSFORMS === 'true'
+// Set on the scheduled rebuild (pages.yml), whose only job is these pages.
+const REQUIRED = env.SHARE_PAGES_REQUIRED === 'true'
 const repo = env.GITHUB_REPOSITORY
 const SITE = (
   env.VITE_SITE_URL ||
@@ -142,6 +144,14 @@ async function main() {
     contests = await rest('contests?select=id,name,status')
     entries = await allEntries()
   } catch (err) {
+    if (REQUIRED) {
+      // A scheduled rebuild exists only to refresh these pages. Deploying
+      // without them would break every shared pet link until the next run,
+      // so fail and leave the last good deployment up.
+      console.error(`[share-pages] could not reach Supabase (${err.message}); failing so the last deployment stays up.`)
+      process.exitCode = 1
+      return
+    }
     console.warn(`[share-pages] could not reach Supabase (${err.message}); skipping per-pet share pages.`)
     return
   }
@@ -164,7 +174,9 @@ async function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
-    // A share-page problem must never take the site down with it.
+    // A share-page problem must never take the site down with it: a push
+    // still deploys, and a scheduled refresh keeps the last deployment.
     console.warn(`[share-pages] ${err.stack || err}`)
+    if (REQUIRED) process.exitCode = 1
   })
 }

@@ -102,5 +102,16 @@ export function apTime(date) {
 
 export const apDateTime = (date, opts) => `${apDate(date, opts)} at ${apTime(date)}`
 
+const AP_DAYS = { Sunday: 'Sun.', Monday: 'Mon.', Tuesday: 'Tue.', Wednesday: 'Wed.', Thursday: 'Thu.', Friday: 'Fri.', Saturday: 'Sat.' }
+
+// A deadline short enough to sit beside a clock: "Sat. at 8 p.m." within the
+// coming week, "Oct. 30 at 8 p.m." beyond it.
+export function apWhen(date, now) {
+  const p = centralParts(date)
+  const ahead = new Date(date).getTime() - now
+  const day = ahead >= 0 && ahead < 6 * 86400000 ? AP_DAYS[p.weekday] : `${AP_MONTHS[p.month - 1]} ${p.day}`
+  return `${day} at ${apTime(date)}`
+}
+
 // End a sentence without doubling the period after "p.m."
 export const period = (s) => (s.endsWith('.') ? s : `${s}.`)

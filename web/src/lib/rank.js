@@ -47,3 +47,11 @@ export function matchupStanding(matchup, totals, entriesById) {
   const toTake = lead.votes - trail.votes + (seedOf(trail) < seedOf(lead) ? 0 : 1)
   return { a, b, leader, tied: a.votes === b.votes, toTake: Math.max(0, toTake), winner: matchup.winner_entry_id || null }
 }
+
+// The worse seed is ahead on votes. A tie goes to the better seed, so it is
+// never an upset.
+export function isUpset(st) {
+  const lead = st.leader === 'a' ? st.a : st.b
+  const trail = st.leader === 'a' ? st.b : st.a
+  return !st.tied && lead.seed != null && trail.seed != null && lead.seed > trail.seed
+}

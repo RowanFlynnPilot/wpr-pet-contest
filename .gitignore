@@ -19,3 +19,11 @@ blob-report/
 # OS
 .DS_Store
 Thumbs.db
+
+# Impeccable design-session artifacts: screenshots, mockups and decision-page
+# state. The surface briefs and critiques are kept.
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/questions/
+.impeccable/live/
+.impeccable/config.local.json

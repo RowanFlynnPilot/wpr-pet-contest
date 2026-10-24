@@ -133,6 +133,8 @@ the buttons call, for when the panel is not an option.
      after that needs a manual refund in Stripe.
    - `select * from rejected_photos_live;` — must be zero rows.
    - Run the email sweep (Email tab) for advancement and elimination notices.
+   - Newsletter tab → Build block, for the next edition: the new standings or
+     matchups, ready to paste into the Noptin draft as one Custom HTML block.
    While voting is open, keep `HEALTH_CHECKS` on (docs/LAUNCH.md, section 6):
    it is what tells staff a webhook has broken before readers do.
    To remove a pet mid-contest (stolen photo, ineligible entrant): Moderation
@@ -158,6 +160,7 @@ supabase test db           # pgTAP: access, bracket, contest admin, disqualify, 
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
+npm --prefix web run audit # a11y + phone layout, against the mock API; no Docker
 supabase db reset && node --test supabase/tests/integration/functions.test.mjs
 cd web && npm run dev
 ```
@@ -173,6 +176,10 @@ migration that has reached production.
 `[auth.email] enable_signup` in config.toml must stay `true`: the CLI reads it
 as "email provider on", and `false` disables admin password login too. The
 global `[auth] enable_signup = false` is what refuses self-signup.
+
+Without Docker, `node web/scripts/mock-api.mjs` serves a read-only mock of the
+public API (`/__phase?set=submissions|open|bracket|complete`); point
+`VITE_SUPABASE_URL` at it for layout, widget and newsletter-block work.
 
 The local API gateway rewrites edge function CORS headers to `*`. Hosted
 Supabase does not. Test CORS in `cors_test.ts`, not through `functions serve`.

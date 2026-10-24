@@ -1,8 +1,11 @@
 import { WPR_BADGE, WPR_LOGO, WPR_TAGLINE, WPR_URL } from '../config.js'
+import { EMBEDDED } from '../lib/env.js'
 
 // WPR's flag, centered, over the thick-over-thin rule. The contest's own title
-// sits below it in the banner, never above.
+// sits below it in the banner, never above. Not drawn inside the WordPress
+// iframe: the page around it is already WPR's, masthead and all.
 export default function Masthead() {
+  if (EMBEDDED) return null
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',

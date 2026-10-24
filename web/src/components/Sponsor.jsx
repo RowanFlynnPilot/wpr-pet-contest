@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSOR_UTM } from '../config.js'
 import { track } from '../lib/analytics.js'
+import { Arrow, Check } from './Icons.jsx'
 
 export function withUtm(url) {
   if (!url) return url
@@ -30,19 +31,30 @@ export function useInquiry(slot) {
 
 export const inquiryHref = (subject) => `mailto:${SPONSOR_INQUIRY}?subject=${encodeURIComponent(subject)}`
 
+// An open slot asks quietly: its button must never look like Vote.
 export function Upsell({ slot, dark = false, pitch, full = false }) {
   const { onClick, copied } = useInquiry(slot)
   const info = SPONSOR_SLOTS[slot] || {}
   return (
     <div className={`upsell${dark ? ' dark' : ''}${full ? ' full' : ''}`}>
-      <div className="eyebrow">Sponsorship available</div>
-      <p className="pitch">{pitch || info.pitch || 'Put your business in front of every pet lover in Marathon County.'}</p>
+      <p className="pitch">
+        <b>Sponsorship available.</b>
+        {pitch || info.pitch || 'Put your business in front of every pet lover in Marathon County.'}
+      </p>
       <a
-        className={`btn btn-sm ${dark ? 'btn-sun' : 'btn-primary'}`}
+        className={`btn btn-sm ${dark ? 'btn-sun' : 'btn-quiet'}`}
         href={inquiryHref(`Pet contest sponsorship — ${info.name || slot}`)}
         onClick={onClick}
       >
-        {copied ? '✓ Address copied' : <>Book this placement <span aria-hidden="true">→</span></>}
+        {copied ? (
+          <>
+            <Check size={14} /> Address copied
+          </>
+        ) : (
+          <>
+            Book this placement <Arrow size={14} />
+          </>
+        )}
       </a>
       <div className="addr">{SPONSOR_INQUIRY}</div>
     </div>
@@ -82,7 +94,7 @@ export default function Sponsor({ sponsor, slot, full = false, dark = false, qui
       )}
       {sponsor.url && (
         <span className="sponsor-go">
-          Visit <span aria-hidden="true">→</span>
+          Visit <Arrow size={14} />
         </span>
       )}
     </Tag>

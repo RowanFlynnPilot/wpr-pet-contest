@@ -126,7 +126,10 @@ export default function Rounds() {
           </p>
           {action?.kind === 'submissions' ? (
             <TypedConfirm word="OPEN" title="Open submissions" busy={busy} danger={false} onCancel={() => setAction(null)} onConfirm={openSubmissions}>
-              <p>Entries open immediately and close {stamp(contest.submissions_close_at)}.</p>
+              <p>
+                Entries open {new Date(contest.submissions_open_at) > new Date() ? stamp(contest.submissions_open_at) : 'immediately'} and close{' '}
+                {stamp(contest.submissions_close_at)}.
+              </p>
             </TypedConfirm>
           ) : (
             <button type="button" className="btn btn-primary" onClick={() => setAction({ kind: 'submissions' })}>

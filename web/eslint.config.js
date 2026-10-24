@@ -25,7 +25,12 @@ export default [
     },
   },
   {
-    files: ['tests/**/*.js', 'e2e/**/*.js', 'scripts/**/*.mjs', '*.config.js'],
+    files: ['tests/**/*.js', 'e2e/**/*.js', 'audit/**/*.js', 'scripts/**/*.mjs', '*.config.js'],
     languageOptions: { ecmaVersion: 2023, sourceType: 'module', globals: { ...globals.node } },
+  },
+  {
+    // page.evaluate() callbacks run in the browser.
+    files: ['audit/**/*.js', 'e2e/**/*.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ]

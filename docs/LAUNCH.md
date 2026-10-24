@@ -185,9 +185,16 @@ an Instagram story, a square post, and a printable flyer with a QR code for
 shelter counters and shop windows. Tell entrants about it in the approval email
 and every post.
 
+Two standing placements carry the contest every day without anyone writing a
+post: the **article widget** (`web/EMBED.md`, Article widget) at the foot of
+every WPR story, and the **newsletter block** (admin Newsletter tab) in each
+morning and afternoon edition. Both follow the contest on their own: entries,
+the live top five, the closest matchup, the champion. Build the newsletter
+block when the edition is built; it says what time its numbers are from.
+
 | When | What |
 | --- | --- |
-| 2 weeks before | Announce: story, newsletter, social. Rules and split published. Sponsors signed. |
+| 2 weeks before | Announce: story, newsletter, social. Rules and split published. Sponsors signed. Widget added to the story template. |
 | Submissions week | Daily "new entries" social posts from the gallery. Shelters post their wildcards. Remind entrants to share once approved. |
 | Round 1 week | Daily leaderboard post ("the bubble": seeds 14 to 20). First Double Vote window midweek. |
 | Each bracket round | Matchup graphics per game. A Double Vote window each round, final evening. "X votes behind" is the most shareable fact in the contest. |

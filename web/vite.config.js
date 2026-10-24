@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -23,6 +24,15 @@ export default defineConfig(({ mode }) => ({
       transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl(mode)),
     },
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        // The article widget: its own page so an embed in a story stays small.
+        widget: fileURLToPath(new URL('./widget.html', import.meta.url)),
+      },
+    },
+  },
   server: { port: Number(process.env.PORT) || 5173, strictPort: false },
   test: {
     environment: 'node',

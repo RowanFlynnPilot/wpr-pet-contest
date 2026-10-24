@@ -104,6 +104,20 @@ export function fetchBonusWindows(contestId) {
   )
 }
 
+// Every contest's windows (a handful a year), so the page can ask for them
+// alongside the contest list instead of after it: a Double Votes bar that
+// lands after the page has painted shoves everything below it down.
+export function fetchAllBonusWindows() {
+  return optional(
+    need()
+      .from('bonus_windows')
+      .select('id, contest_id, starts_at, ends_at, multiplier, label, sponsor_name, sponsor_url')
+      .order('starts_at')
+      .limit(500),
+    [],
+  )
+}
+
 export async function fetchStats(contestId) {
   const data = await optional(
     need()
@@ -137,6 +151,32 @@ export async function fetchEntry(id) {
     const data = await rows(db.from('entries').select(cols).eq('id', id).eq('status', 'approved').limit(1))
     return data[0] || null
   }
+  return withFallback(run, ENTRY_COLS, ENTRY_BASE_COLS)
+}
+
+// A few entries by id, for views that show a handful (the article widget)
+// without loading the whole field.
+export function fetchEntriesByIds(ids) {
+  if (!ids.length) return Promise.resolve([])
+  const db = need()
+  const run = (cols) => rows(db.from('entries').select(cols).in('id', ids).eq('status', 'approved'))
+  return withFallback(run, ENTRY_COLS, ENTRY_BASE_COLS)
+}
+
+// The earliest (or newest) `limit` approved entries.
+export function fetchEntriesByAge(contestId, limit, { newest = false } = {}) {
+  const db = need()
+  const run = (cols) =>
+    rows(
+      db
+        .from('entries')
+        .select(cols)
+        .eq('contest_id', contestId)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: !newest })
+        .order('id')
+        .limit(limit),
+    )
   return withFallback(run, ENTRY_COLS, ENTRY_BASE_COLS)
 }
 

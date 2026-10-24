@@ -379,8 +379,19 @@ export default function Enter() {
           </div>
 
           <div className="honeypot" aria-hidden="true">
-            <label htmlFor="website">Website</label>
-            <input id="website" type="text" tabIndex={-1} autoComplete="off" value={v.website} onChange={(e) => set('website')(e.target.value)} />
+            <label htmlFor="hp-field">Leave this field empty</label>
+            <input
+              id="hp-field"
+              type="text"
+              tabIndex={-1}
+              autoComplete="one-time-code"
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-bwignore="true"
+              data-form-type="other"
+              value={v.website}
+              onChange={(e) => set('website')(e.target.value)}
+            />
           </div>
 
           <label className="check" style={{ marginBottom: 12 }}>

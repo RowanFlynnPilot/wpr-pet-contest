@@ -44,8 +44,10 @@ export function Champion({ c, byId }) {
       <Confetti />
       <PetPhoto entry={champ} width={800} eager />
       <div>
-        <p className="kicker">{c.contest.year} champion · seed {champ.seed}</p>
         <h2 id="champ-title">{champ.pet_name}</h2>
+        <p className="champ-meta">
+          {c.contest.year} champion · No. {champ.seed} seed
+        </p>
         <p>
           of {champ.town} is the {c.contest.name}
           {runnerUp ? `, beating ${runnerUp.pet_name} in the Championship` : ''}.

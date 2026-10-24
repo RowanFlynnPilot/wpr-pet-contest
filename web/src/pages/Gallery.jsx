@@ -53,11 +53,16 @@ export default function Gallery() {
   const ranked = useMemo(() => rankOpenRound(entries, r1.totals), [entries, r1.totals])
   const rankOf = useMemo(() => new Map(ranked.map((r) => [r.entry.id, r.rank])), [ranked])
   const states = useMemo(() => (inBracket ? entryStates(entries, c.rounds, matchups, c.bracketSize) : null), [inBracket, entries, c.rounds, matchups, c.bracketSize])
+  // Pets with something to vote on: both sides of a current matchup are in
+  // the field. A side that is not was disqualified, and the other walks over.
   const inCurrent = useMemo(() => {
+    const listed = new Set(entries.map((e) => e.id))
     const ids = new Set()
-    for (const m of matchups) if (m.round_id === bracketOpenId) ids.add(m.entry_a_id).add(m.entry_b_id)
+    for (const m of matchups) {
+      if (m.round_id === bracketOpenId && listed.has(m.entry_a_id) && listed.has(m.entry_b_id)) ids.add(m.entry_a_id).add(m.entry_b_id)
+    }
     return ids
-  }, [matchups, bracketOpenId])
+  }, [matchups, bracketOpenId, entries])
 
   const [q, setQ] = useState('')
   const [species, setSpecies] = useState('all')
@@ -147,11 +152,11 @@ export default function Gallery() {
     <div className="wrap section" style={{ paddingTop: 24 }}>
       <div className="section-head">
         <div>
-          <p className="kicker">
+          <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>{heading}</h1>
+          <p className="section-count">
             {fmtInt(entries.length)} {entries.length === 1 ? 'pet' : 'pets'}
             {openLive && ' · counts update live'}
           </p>
-          <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>{heading}</h1>
           {openLive && (
             <p className="dek">
               The top {cut} when the {currentLabel} closes make the bracket. Totals reset every round.

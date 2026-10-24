@@ -18,6 +18,7 @@ import PetPhoto from '../components/PetPhoto.jsx'
 import Sponsor from '../components/Sponsor.jsx'
 import { ShelterList } from './Shelters.jsx'
 import Results from './Results.jsx'
+import { Arrow } from '../components/Icons.jsx'
 
 function Polaroids({ entries }) {
   if (!entries.length) return null
@@ -178,7 +179,7 @@ function OpenRoundPreview({ c, entries, byId }) {
           <h2 id="lb-title">Who&rsquo;s in the top {c.bracketSize}</h2>
         </div>
         <a className="more" href="#/gallery">
-          All {fmtInt(entries.length)} pets →
+          All {fmtInt(entries.length)} pets <Arrow size={14} />
         </a>
       </div>
       <div className="split">
@@ -211,7 +212,7 @@ function BracketPreview({ c, byId, round }) {
           <h2 id="bp-title">The {label}</h2>
         </div>
         <a className="more" href="#/bracket">
-          Full bracket →
+          Full bracket <Arrow size={14} />
         </a>
       </div>
       {c.phase === 'voting' && (
@@ -246,7 +247,7 @@ function Newcomers({ entries }) {
           <h2 id="new-title">Meet the entrants</h2>
         </div>
         <a className="more" href="#/gallery">
-          See all {fmtInt(entries.length)} →
+          See all {fmtInt(entries.length)} <Arrow size={14} />
         </a>
       </div>
       <div className="grid">
@@ -270,6 +271,18 @@ export default function Home() {
     return [...entries].reverse()
   }, [entries, totals, openRound])
 
+  if (c.roundsError) {
+    return (
+      <div className="wrap section">
+        <div className="notice error" role="alert">
+          <span>
+            <strong>We can&rsquo;t reach the contest right now.</strong>
+            Check your connection. This page tries again on its own.
+          </span>
+        </div>
+      </div>
+    )
+  }
   if (c.loading || !c.roundsLoaded) {
     return (
       <div className="wrap section" aria-busy="true">
@@ -312,7 +325,7 @@ export default function Home() {
                 <h2 id="sh-title">Our partner shelters</h2>
               </div>
               <a className="more" href="#/shelters">
-                Adopt a pet →
+                Adopt a pet <Arrow size={14} />
               </a>
             </div>
             <ShelterList shelters={c.shelters} />

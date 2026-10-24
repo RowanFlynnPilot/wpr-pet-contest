@@ -15,8 +15,9 @@ function dek(c) {
     case 'submissions_closed':
       return `Entries are closed. Voting opens soon. ${cause}`
     case 'voting':
-    case 'counting':
       return `${roundLabel(c.round.seq, c.bracketSize)} voting is on. ${cause}`
+    case 'counting':
+      return `${roundLabel(c.round.seq, c.bracketSize)} voting has closed. Results are coming shortly. ${cause}`
     case 'intermission':
       return `${c.nextRound ? `The ${roundLabel(c.nextRound.seq, c.bracketSize)} opens soon.` : 'The next round opens soon.'} ${cause}`
     case 'complete':
@@ -26,13 +27,48 @@ function dek(c) {
   }
 }
 
-export default function Banner() {
+// One line for the slim banner: what the contest is doing right now.
+function status(c) {
+  const round = c.round ? roundLabel(c.round.seq, c.bracketSize) : null
+  switch (c.phase) {
+    case 'coming':
+      return `Entries open ${apDate(c.contest.submissions_open_at, { weekday: false })}`
+    case 'submissions':
+      return 'Entries open now'
+    case 'submissions_closed':
+      return 'Voting opens soon'
+    case 'voting':
+      return `${round} · voting now`
+    case 'counting':
+      return `${round} · final count`
+    case 'intermission':
+      return c.nextRound ? `${roundLabel(c.nextRound.seq, c.bracketSize)} next` : 'Next round soon'
+    case 'complete':
+      return `${c.contest.year} champion crowned`
+    default:
+      return null
+  }
+}
+
+export default function Banner({ compact = false }) {
   const c = useContest()
-  const year = c.contest?.year || new Date().getFullYear()
+  if (compact) {
+    const now = status(c)
+    return (
+      <div className="banner compact">
+        <div className="wrap banner-row">
+          <div className="banner-title">
+            <a href="#/">{c.contest?.name || 'Cutest Pet in Marathon County'}</a>
+          </div>
+          {now && <span className="banner-status">{now}</span>}
+          {SPONSORS.presenting && <span className="banner-status">Presented by {SPONSORS.presenting.name}</span>}
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="banner">
       <div className="wrap">
-        <p className="kicker">The {year} Pet Contest · Benefiting local shelters</p>
         {/* Not a heading: every page carries its own h1. */}
         <div className="banner-title">
           <a href="#/">{c.contest?.name || 'Cutest Pet in Marathon County'}</a>

@@ -247,7 +247,7 @@ function LockedSettings({ contest }) {
   )
 }
 
-function ShelterRow({ shelter, totalWeight, onSaved, onError }) {
+function ShelterRow({ shelter, totalWeight, locked, onSaved, onError }) {
   const [d, setD] = useState({ name: shelter.name, url: shelter.url || '', logo: shelter.logo_path || '', weight: shelter.payout_weight })
   const share = totalWeight ? Math.round((shelter.payout_weight / totalWeight) * 1000) / 10 : 0
   async function save(e) {
@@ -278,14 +278,24 @@ function ShelterRow({ shelter, totalWeight, onSaved, onError }) {
       <input type="text" aria-label="Shelter name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} required />
       <input type="url" aria-label="Shelter website" placeholder="https://" value={d.url} onChange={(e) => setD({ ...d, url: e.target.value })} />
       <input type="url" aria-label="Logo link" placeholder="Logo link (https://…)" value={d.logo} onChange={(e) => setD({ ...d, logo: e.target.value })} />
-      <input type="number" aria-label="Payout share weight" min="1" value={d.weight} onChange={(e) => setD({ ...d, weight: e.target.value })} title="Relative share of the shelter pool" />
+      <input
+        type="number"
+        aria-label="Payout share weight"
+        min="1"
+        value={d.weight}
+        onChange={(e) => setD({ ...d, weight: e.target.value })}
+        title={locked ? 'Locked since submissions opened' : 'Relative share of the shelter pool'}
+        disabled={locked}
+      />
       <span className="small muted">{share}% of pool</span>
       <button type="submit" className="btn btn-primary btn-sm">
         Save
       </button>
-      <button type="button" className="btn btn-quiet btn-sm" onClick={remove}>
-        Remove
-      </button>
+      {!locked && (
+        <button type="button" className="btn btn-quiet btn-sm" onClick={remove}>
+          Remove
+        </button>
+      )}
     </form>
   )
 }
@@ -295,6 +305,7 @@ function Shelters({ contest, shelters, onChange }) {
   const [d, setD] = useState({ name: '', url: '', logo: '', weight: 1 })
   const [error, setError] = useState(null)
   const total = shelters.reduce((n, s) => n + s.payout_weight, 0)
+  const locked = contest.status !== 'draft'
   const fail = (err) => (err instanceof SessionError ? onSessionLost(err.message) : setError(err))
 
   async function add(e) {
@@ -330,6 +341,7 @@ function Shelters({ contest, shelters, onChange }) {
           key={s.id}
           shelter={s}
           totalWeight={total}
+          locked={locked}
           onSaved={(msg) => {
             say(msg)
             onChange()
@@ -337,15 +349,19 @@ function Shelters({ contest, shelters, onChange }) {
           onError={fail}
         />
       ))}
-      <form className="add-row" onSubmit={add} style={{ marginTop: 8 }}>
-        <input type="text" placeholder="Shelter name" aria-label="New shelter name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} required />
-        <input type="url" placeholder="https://" aria-label="New shelter website" value={d.url} onChange={(e) => setD({ ...d, url: e.target.value })} />
-        <input type="url" placeholder="Logo link (https://…)" aria-label="New shelter logo link" value={d.logo} onChange={(e) => setD({ ...d, logo: e.target.value })} />
-        <input type="number" min="1" aria-label="New shelter payout weight" value={d.weight} onChange={(e) => setD({ ...d, weight: e.target.value })} />
-        <button type="submit" className="btn btn-primary btn-sm">
-          Add shelter
-        </button>
-      </form>
+      {locked ? (
+        <p className="small muted">Weights and the list are locked since submissions opened: they are the published split. Names, links and logos can still be fixed.</p>
+      ) : (
+        <form className="add-row" onSubmit={add} style={{ marginTop: 8 }}>
+          <input type="text" placeholder="Shelter name" aria-label="New shelter name" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} required />
+          <input type="url" placeholder="https://" aria-label="New shelter website" value={d.url} onChange={(e) => setD({ ...d, url: e.target.value })} />
+          <input type="url" placeholder="Logo link (https://…)" aria-label="New shelter logo link" value={d.logo} onChange={(e) => setD({ ...d, logo: e.target.value })} />
+          <input type="number" min="1" aria-label="New shelter payout weight" value={d.weight} onChange={(e) => setD({ ...d, weight: e.target.value })} />
+          <button type="submit" className="btn btn-primary btn-sm">
+            Add shelter
+          </button>
+        </form>
+      )}
     </section>
   )
 }

@@ -139,7 +139,7 @@ export default function Bracket() {
 
       {!hasBracket && !projected ? (
         <div className="empty card plain">
-          <h3>No bracket yet</h3>
+          <h2>No bracket yet</h2>
           <p>
             {c.phase === 'submissions' || c.phase === 'coming'
               ? 'Entries are still coming in. The bracket is built from the Open Round results.'

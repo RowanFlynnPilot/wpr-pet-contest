@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { apDate, apDateTime, apTime, countdownParts, describeCountdown, fmtInt, fmtMoney, formatCountdown, plural, timeAgo } from '../src/lib/format.js'
+import { apDate, apDateTime, apTime, apWhen, countdownParts, describeCountdown, fmtInt, fmtMoney, formatCountdown, plural, timeAgo } from '../src/lib/format.js'
 
 const S = 1000
 const M = 60 * S
@@ -68,5 +68,13 @@ describe('timeAgo', () => {
     expect(timeAgo(now - 2 * M, now)).toBe('2 min ago')
     expect(timeAgo(now - 3 * H, now)).toBe('3 hr ago')
     expect(timeAgo(now - 2 * D, now)).toBe('2 days ago')
+  })
+})
+
+describe('a deadline beside a clock', () => {
+  const now = Date.parse('2026-10-23T17:00:00Z') // Friday noon in Wausau
+  it('names the weekday within the week, the date beyond it', () => {
+    expect(apWhen('2026-10-25T01:00:00Z', now)).toBe('Sat. at 8 p.m.')
+    expect(apWhen('2026-10-31T01:00:00Z', now)).toBe('Oct. 30 at 8 p.m.')
   })
 })

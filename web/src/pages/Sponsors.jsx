@@ -4,6 +4,7 @@ import { inquiryHref, useInquiry } from '../components/Sponsor.jsx'
 import { apDateTime, fmtInt } from '../lib/format.js'
 import { useDocumentTitle, useNow } from '../lib/hooks.js'
 import { windowTitle } from '../lib/bonus.js'
+import { Arrow } from '../components/Icons.jsx'
 
 function Cta({ slot, subject, label, big }) {
   const { onClick, copied } = useInquiry(slot)
@@ -73,7 +74,7 @@ export default function Sponsors() {
                 <div className="inv-desc">{slot.pitch}</div>
               </div>
               <a className="small" style={{ fontWeight: 700 }} href={`?demo${slot.demo}`} target="_blank" rel="noopener">
-                See it live →
+                See it live <Arrow size={14} />
               </a>
               {!sold && <Cta slot={`media-kit-${key}`} subject={`Pet contest sponsorship — ${slot.name}`} label="Inquire" />}
             </li>

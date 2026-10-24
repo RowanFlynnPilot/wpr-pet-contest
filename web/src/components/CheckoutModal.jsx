@@ -1,15 +1,15 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import { NEWSLETTER_URL, SPONSORS, SUPPORT_URL } from '../config.js'
-import { createCheckout, fetchTotals } from '../lib/api.js'
+import { NEWSLETTER_URL, RULES, SPONSORS, SUPPORT_URL } from '../config.js'
+import { createCheckout, fetchActivity, fetchTotals } from '../lib/api.js'
 import { APP_BASE, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
-import { fmtInt, fmtMoney } from '../lib/format.js'
+import { apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
 import { bestValue, defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
 import { roundLabel } from '../lib/rounds.js'
 import { boostLive, useLive } from '../lib/live.js'
-import { totalsKey } from '../lib/data.js'
+import { totalsKey, useActivity } from '../lib/data.js'
 import { multiplierWord, windowTitle } from '../lib/bonus.js'
 import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
@@ -20,7 +20,26 @@ import PetPhoto from './PetPhoto.jsx'
 import ShareTools from './ShareTools.jsx'
 import Sponsor from './Sponsor.jsx'
 
-const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
+// Loaded with this chunk. A failed load is forgotten, so "Try again" really
+// tries again instead of handing back the same rejected promise.
+let stripeLoad = null
+function getStripe() {
+  if (!stripeLoad && STRIPE_PUBLISHABLE_KEY) {
+    stripeLoad = loadStripe(STRIPE_PUBLISHABLE_KEY).catch((err) => {
+      stripeLoad = null
+      throw err
+    })
+  }
+  return stripeLoad
+}
+getStripe()?.catch(() => {})
+
+// confirm_vote counts a payment made by closes_at plus this grace; anything
+// later is marked late and refunded by the webhook.
+const PAYMENT_GRACE_MS = 2 * 60 * 1000
+const CLOSING_SOON_MS = 5 * 60 * 1000
+const SLOW_CREDIT_MS = 3 * 60 * 1000
+const activityKey = (r) => `${r.entry_id}|${r.votes}|${r.confirmed_at}`
 
 const APPEARANCE = {
   theme: 'stripe',
@@ -48,13 +67,13 @@ export default function CheckoutModal({ entry, round, onClose }) {
   const [error, setError] = useState(null)
   const [emailError, setEmailError] = useState(null)
   const [intent, setIntent] = useState(null)
+  const [receipt, setReceipt] = useState(null)
   const request = useRef(null)
 
   const totals = useLive(totalsKey(round.id), () => fetchTotals(round.id), 20000)
   const currentVotes = totals.data?.get(entry.id)?.votes || 0
-  // Captured when checkout starts, so the success screen can tell when the
-  // webhook has credited this purchase. The browser never adds votes itself.
-  const [baseline, setBaseline] = useState(0)
+  const activity = useActivity(receipt ? round.id : null)
+  const [stripe, setStripe] = useState({ status: 'idle', value: null })
 
   const pack = packs.find((p) => p.slug === slug) || null
   const best = bestValue(packs)
@@ -64,8 +83,20 @@ export default function CheckoutModal({ entry, round, onClose }) {
   // The deadline is when payment must complete. Past it, nobody is offered a
   // Pay button: the server would refund the votes anyway.
   const now = useNow(1000)
-  const closed = now >= new Date(round.closes_at).getTime()
+  const closesAt = new Date(round.closes_at).getTime()
+  const closed = now >= closesAt
+  const closingSoon = !closed && closesAt - now <= CLOSING_SOON_MS
   const [paying, setPaying] = useState(false)
+
+  useEffect(() => {
+    if (step !== 'pay' || stripe.status !== 'idle') return
+    const load = getStripe()
+    if (!load) return
+    load.then(
+      (value) => setStripe({ status: 'ready', value }),
+      () => setStripe({ status: 'error', value: null }),
+    )
+  }, [step, stripe.status])
 
   async function begin(e) {
     e.preventDefault()
@@ -85,7 +116,14 @@ export default function CheckoutModal({ entry, round, onClose }) {
       newsletter_opt_in: optIn,
     }
     setBusy(true)
-    setBaseline(currentVotes)
+    // This pet's recent purchases before this one, so the success screen can
+    // tell when the webhook credits *this* payment (the pet's total also moves
+    // with everyone else's). Null when the feed could not be read: then the
+    // screen makes no claim. The browser never adds votes itself.
+    const before = fetchActivity(round.id).then(
+      (rows) => new Set(rows.filter((r) => r.entry_id === entry.id).map(activityKey)),
+      () => null,
+    )
     try {
       request.current = nextRequestId(request.current, attemptKey(body))
       let res
@@ -97,7 +135,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
         request.current = nextRequestId(null, attemptKey(body))
         res = await createCheckout({ ...body, request_id: request.current.id })
       }
-      setIntent({ ...res, pack })
+      setIntent({ ...res, pack, seen: await before })
       setStep('pay')
       track('Checkout Started', { pack: pack.slug, round: label, multiplier: String(res.multiplier || 1) })
     } catch (err) {
@@ -107,14 +145,28 @@ export default function CheckoutModal({ entry, round, onClose }) {
     }
   }
 
-  function paid() {
+  // The intent PayForm actually paid, not whatever is in state by now, and
+  // when Stripe said it went through.
+  function paid(paidIntent, paidAt) {
+    setReceipt({ ...paidIntent, paidAt })
     setStep('done')
     boostLive(totalsKey(round.id))
+    boostLive(`activity:${round.id}`)
     track(
       'Checkout Completed',
-      { pack: intent.pack.slug, round: label, votes: String(intent.votes) },
-      { currency: 'USD', amount: intent.cents / 100 },
+      { pack: paidIntent.pack.slug, round: label, votes: String(paidIntent.votes) },
+      { currency: 'USD', amount: paidIntent.cents / 100 },
     )
+  }
+
+  let outcome = null
+  if (receipt) {
+    const { seen } = receipt
+    const credited = seen && activity.some((r) => r.entry_id === entry.id && r.votes === receipt.votes && !seen.has(activityKey(r)))
+    if (credited) outcome = 'credited'
+    else if (receipt.paidAt > closesAt + PAYMENT_GRACE_MS) outcome = 'late'
+    else if (now - receipt.paidAt > SLOW_CREDIT_MS) outcome = 'slow'
+    else outcome = 'waiting'
   }
 
   const head = (
@@ -130,7 +182,17 @@ export default function CheckoutModal({ entry, round, onClose }) {
   )
 
   return (
-    <Modal label={step === 'done' ? 'Purchase complete' : `Vote for ${entry.pet_name}`} onClose={onClose} head={head}>
+    <Modal label={step === 'done' ? 'Purchase complete' : `Vote for ${entry.pet_name}`} onClose={onClose} head={head} locked={paying}>
+      {closingSoon && step !== 'done' && (
+        <div className="notice warn" style={{ marginBottom: 14 }}>
+          <span>
+            <strong>
+              The {label} closes in <span className="mono">{formatCountdown(closesAt - now)}</span>.
+            </strong>
+            A payment that completes after the deadline is refunded, not counted.
+          </span>
+        </div>
+      )}
       {closed && step !== 'done' && !paying && (
         <div className="notice warn" role="alert">
           <span>
@@ -244,7 +306,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
         </form>
       )}
 
-      {step === 'pay' && intent && stripePromise && (!closed || paying) && (
+      {step === 'pay' && intent && STRIPE_PUBLISHABLE_KEY && (!closed || paying) && (
         <>
           <div className="summary-line">
             <span>
@@ -258,27 +320,45 @@ export default function CheckoutModal({ entry, round, onClose }) {
             </span>
             <b>{fmtMoney(intent.cents)}</b>
           </div>
-          <Elements stripe={stripePromise} options={{ clientSecret: intent.client_secret, appearance: APPEARANCE, fonts: FONTS }}>
-            <PayForm intent={intent} entry={entry} email={email.trim()} onPaid={paid} onBusy={setPaying} split={split} label={label} />
-          </Elements>
+          {stripe.status === 'error' ? (
+            <div className="notice error" role="alert">
+              <span>
+                <strong>The payment form couldn&rsquo;t load.</strong>
+                Check your connection, then try again. You have not been charged.{' '}
+                <button type="button" className="link-btn" onClick={() => setStripe({ status: 'idle', value: null })}>
+                  Try again
+                </button>
+              </span>
+            </div>
+          ) : stripe.status === 'ready' ? (
+            <Elements stripe={stripe.value} options={{ clientSecret: intent.client_secret, appearance: APPEARANCE, fonts: FONTS }}>
+              <PayForm intent={intent} entry={entry} email={email.trim()} onPaid={paid} onBusy={setPaying} split={split} label={label} />
+            </Elements>
+          ) : (
+            <div className="stripe-slot skeleton" style={{ height: 220 }} role="status" aria-label="Loading the payment form" />
+          )}
           <p className="center" style={{ marginTop: 12 }}>
-            <button type="button" className="link-btn" onClick={() => setStep('pack')}>
+            <button type="button" className="link-btn" onClick={() => setStep('pack')} disabled={paying}>
               Change pack or email
             </button>
           </p>
         </>
       )}
 
-      {step === 'done' && intent && (
+      {step === 'done' && receipt && (
         <Done
           entry={entry}
-          intent={intent}
-          credited={currentVotes >= baseline + intent.votes}
+          intent={receipt}
+          outcome={outcome}
+          label={label}
+          closesAt={closesAt}
           currentVotes={currentVotes}
           contestName={c.contest?.name}
+          canBuyAgain={!closed}
           onAgain={() => {
             request.current = null
             setIntent(null)
+            setReceipt(null)
             setStep('pack')
           }}
           onClose={onClose}
@@ -328,7 +408,7 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
       return
     }
     if (paymentIntent && ['succeeded', 'processing', 'requires_capture'].includes(paymentIntent.status)) {
-      onPaid()
+      onPaid(intent, Date.now())
     } else {
       setError('Your payment did not go through. Please try another method.')
     }
@@ -356,7 +436,8 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
   )
 }
 
-function Done({ entry, intent, credited, currentVotes, contestName, onAgain, onClose }) {
+function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestName, canBuyAgain, onAgain, onClose }) {
+  const votes = fmtInt(intent.votes)
   return (
     <div>
       <div className="success-burst" style={{ padding: '8px 0 4px' }}>
@@ -365,13 +446,29 @@ function Done({ entry, intent, credited, currentVotes, contestName, onAgain, onC
         </div>
         <h2 style={{ fontSize: 26 }}>Payment received</h2>
         <p aria-live="polite">
-          {credited ? (
+          {outcome === 'credited' && (
             <>
-              <strong>Your {fmtInt(intent.votes)} votes are in.</strong> {entry.pet_name} now has{' '}
-              <span className="mono">{fmtInt(currentVotes)}</span> votes this round.
+              <strong>Your {votes} votes are in.</strong> {entry.pet_name} now has <span className="mono">{fmtInt(currentVotes)}</span> votes
+              this round.
             </>
-          ) : (
-            <>Your {fmtInt(intent.votes)} votes for {entry.pet_name} will appear within a minute. Your receipt is on its way by email.</>
+          )}
+          {outcome === 'late' && (
+            <>
+              <strong>This payment completed after the {label} closed at {apTime(closesAt)},</strong> so its votes can&rsquo;t count. Late
+              payments are refunded to your card automatically; you don&rsquo;t need to do anything. Your receipt is on its way by email.
+            </>
+          )}
+          {outcome === 'waiting' && (
+            <>
+              Your {votes} votes for {entry.pet_name} will appear within a minute. Your receipt is on its way by email.
+            </>
+          )}
+          {outcome === 'slow' && (
+            <>
+              Your {votes} votes are taking longer than usual to show here, which can happen when lots of people are voting. Your receipt is on
+              its way. If {entry.pet_name} doesn&rsquo;t seem to have them within the hour, email{' '}
+              <a href={`mailto:${RULES.contact}`}>{RULES.contact}</a>.
+            </>
           )}
         </p>
       </div>
@@ -379,9 +476,11 @@ function Done({ entry, intent, credited, currentVotes, contestName, onAgain, onC
       <ShareTools entry={entry} contestName={contestName} title={`Now get ${entry.pet_name} more votes`} compact />
 
       <div className="hero-actions" style={{ marginTop: 16 }}>
-        <button type="button" className="btn btn-ghost" onClick={onAgain}>
-          Buy another pack
-        </button>
+        {canBuyAgain && (
+          <button type="button" className="btn btn-ghost" onClick={onAgain}>
+            Buy another pack
+          </button>
+        )}
         <button type="button" className="btn btn-quiet" onClick={onClose}>
           Done
         </button>
@@ -401,7 +500,8 @@ function Done({ entry, intent, credited, currentVotes, contestName, onAgain, onC
       </div>
 
       <div style={{ marginTop: 14 }}>
-        <Sponsor sponsor={SPONSORS.thankyou} slot="thankyou" eyebrow="Thank-you screen presented by" />
+        {/* A buyer's thank-you screen never carries an ad for itself. */}
+        <Sponsor sponsor={SPONSORS.thankyou} slot="thankyou" eyebrow="Thank-you screen presented by" quiet />
       </div>
     </div>
   )
