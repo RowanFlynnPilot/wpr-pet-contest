@@ -74,6 +74,20 @@
         "web/dist-demo"
       ],
       "port": 5197
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5196",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "web/dist"
+      ],
+      "port": 5196
     }
   ]
 }

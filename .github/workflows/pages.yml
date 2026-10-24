@@ -70,6 +70,8 @@ jobs:
         run: |
           npm run demo
           mkdir -p dist/demo && cp -r dist-demo/. dist/demo/
+          # The page for other newsrooms, beside the demo it embeds.
+          mkdir -p dist/for-newsrooms && cp -r ../docs/newsroom-kit/. dist/for-newsrooms/
           if [ -z "${{ vars.VITE_SUPABASE_URL }}" ]; then
             printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=./demo/"><title>Cutest Pet in Marathon County</title><p><a href="./demo/">Open the demo</a></p>' > dist/index.html
           fi
