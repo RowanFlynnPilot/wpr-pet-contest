@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 import { refreshLive, useLive } from '../lib/live.js'
 import { useClock } from '../lib/hooks.js'
-import { fetchAllBonusWindows, fetchContests, fetchPacks, fetchRounds, fetchShelters, fetchStats } from '../lib/api.js'
+import { fetchAllBonusWindows, fetchAllSponsorMatches, fetchContests, fetchPacks, fetchRounds, fetchShelters, fetchStats } from '../lib/api.js'
 import { contestPhase, pickActiveContest } from '../lib/phase.js'
 import { activeWindow, upcomingWindow } from '../lib/bonus.js'
 
@@ -19,6 +19,7 @@ export function ContestProvider({ children }) {
   const sheltersRes = useLive(id ? `shelters:${id}` : null, () => fetchShelters(id), 0)
   const packsRes = useLive(id ? `packs:${id}` : null, () => fetchPacks(id), 300000)
   const windowsRes = useLive('windows', fetchAllBonusWindows, 120000)
+  const matchesRes = useLive('matches', fetchAllSponsorMatches, 120000)
   const statsRes = useLive(id ? `stats:${id}` : null, () => fetchStats(id), 30000)
 
   // close_round seeds the field and decides matchups in one transaction.
@@ -42,12 +43,14 @@ export function ContestProvider({ children }) {
     ms(contest?.submissions_close_at),
     ...(roundsRes.data || []).map((r) => ms(r.closes_at)),
     ...(windowsRes.data || []).filter((w) => w.contest_id === id).flatMap((w) => [ms(w.starts_at), ms(w.ends_at)]),
+    ...(matchesRes.data || []).filter((m) => m.contest_id === id).flatMap((m) => [ms(m.starts_at), ms(m.ends_at)]),
   ]
   const now = useClock(boundaries)
 
   const value = useMemo(() => {
     const rounds = roundsRes.data || EMPTY
     const windows = id ? (windowsRes.data || EMPTY).filter((w) => w.contest_id === id) : EMPTY
+    const matches = id ? (matchesRes.data || EMPTY).filter((m) => m.contest_id === id) : EMPTY
     const phaseInfo = contestPhase(contest, rounds, now)
     return {
       loading: contestsRes.data === undefined && !contestsRes.error,
@@ -64,12 +67,15 @@ export function ContestProvider({ children }) {
       windows,
       bonus: activeWindow(windows, now),
       upcomingBonus: upcomingWindow(windows, now),
+      matches,
+      match: activeWindow(matches, now),
+      upcomingMatch: upcomingWindow(matches, now),
       stats: statsRes.data || null,
       ...phaseInfo,
       phaseInfo,
       now,
     }
-  }, [contest, id, contestsRes.data, contestsRes.error, roundsRes.data, roundsRes.error, sheltersRes.data, packsRes.data, windowsRes.data, windowsRes.error, statsRes.data, now])
+  }, [contest, id, contestsRes.data, contestsRes.error, roundsRes.data, roundsRes.error, sheltersRes.data, packsRes.data, windowsRes.data, windowsRes.error, matchesRes.data, statsRes.data, now])
 
   return <ContestContext.Provider value={value}>{children}</ContestContext.Provider>
 }

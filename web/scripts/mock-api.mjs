@@ -47,6 +47,7 @@ function contestState() {
     thumb_path: `mock/${i + 1}.svg`,
     shelter_id: i === 7 ? id('5e', 1) : null,
     seed: null,
+    goal_votes: i === 0 ? 300 : null,
     status: 'approved',
     created_at: iso(now - 9 * DAY + i * HOUR),
   }))
@@ -124,6 +125,9 @@ function contestState() {
       ['starter', 'Starter', 5, 500, false], ['fan', 'Fan', 25, 2000, true], ['superfan', 'Superfan', 75, 5000, false],
       ['champion', 'Champion', 200, 10000, false], ['legend', 'Legend', 600, 25000, false],
     ].map(([slug, label, votes, cents, featured], i) => ({ id: id('a1', i + 1), contest_id: contest.id, slug, label, votes, cents, sort: i + 1, featured, active: true })),
+    sponsor_matches: phase === 'bracket'
+      ? [{ id: id('b2', 1), contest_id: contest.id, starts_at: iso(now - HOUR), ends_at: iso(now + 2 * HOUR), ratio: 1, cap_cents: 50000, sponsor_name: 'Example Pet Supply', sponsor_url: 'https://example.org' }]
+      : [],
     bonus_windows: phase === 'open'
       ? [{ id: id('b1', 1), contest_id: contest.id, starts_at: iso(now - HOUR), ends_at: iso(now + HOUR), multiplier: 2, label: 'Double Vote Hour', sponsor_name: 'Example Pet Supply', sponsor_url: 'https://example.org' }]
       : [],
@@ -133,7 +137,7 @@ function contestState() {
     ],
     contest_stats: submissions
       ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
-      : [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: totals.reduce((n, t) => n + t.votes, 0), gross_cents: gross, shelter_cents: Math.round(gross * 0.3) }],
+      : [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: totals.reduce((n, t) => n + t.votes, 0), gross_cents: gross, shelter_cents: Math.round(gross * 0.3), match_cents: phase === 'bracket' ? 12500 : 0 }],
     recent_activity: live.slice(0, 10).map((t, i) => ({ round_id: t.round_id, entry_id: t.entry_id, votes: 25, bonus_multiplier: 1, confirmed_at: iso(now - (i + 1) * 7 * 60e3) })),
     side_awards: phase === 'bracket' || phase === 'complete'
       ? ['dog', 'cat', 'other'].map((sp) => {
@@ -243,6 +247,17 @@ createServer((req, res) => {
     const rows = query(data, url.searchParams)
     res.writeHead(200, { ...CORS, 'Content-Type': 'application/json', 'Content-Range': `0-${Math.max(0, rows.length - 1)}/${rows.length}` })
     return res.end(JSON.stringify(rows))
+  }
+
+  if (url.pathname === '/functions/v1/links' && req.method === 'POST') {
+    let raw = ''
+    req.on('data', (c) => (raw += c))
+    req.on('end', () => {
+      const b = JSON.parse(raw || '{}')
+      res.writeHead(200, { ...CORS, 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(b.action === 'goal' ? { ok: true, goal: b.goal } : { ok: true }))
+    })
+    return
   }
 
   if (url.pathname === '/functions/v1/free-vote' && req.method === 'POST') {

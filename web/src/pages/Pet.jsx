@@ -1,9 +1,11 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useContest } from '../components/ContestContext.jsx'
 import { Arrow, Calendar as CalendarIcon } from '../components/Icons.jsx'
 import FavoriteButton from '../components/FavoriteButton.jsx'
 import { FreeVoteButton, useFreeVoteLanding } from '../components/FreeVote.jsx'
 import { deadlineIcs, icsHref } from '../lib/calendar.js'
+import { callLinks } from '../lib/api.js'
+import { goalProgress } from '../lib/goal.js'
 import { PUBLIC_URL } from '../lib/env.js'
 import PetPhoto from '../components/PetPhoto.jsx'
 import PetCard from '../components/PetCard.jsx'
@@ -35,6 +37,86 @@ function PriceHint({ packs }) {
       Vote packs from {fmtMoney(from)}, as low as {cheapestPerVote(packs)} a vote. Not tax-deductible; a share of every pack goes to
       local shelters.
     </p>
+  )
+}
+
+// The owner's goal, shown to everyone while a round is live: "Biscuit's goal:
+// 300 votes · 88 to go".
+function GoalLine({ entry, round }) {
+  const { totals, known } = useRoundTotals(round?.id || null)
+  const g = known ? goalProgress(totals.get(entry.id)?.votes || 0, entry.goal_votes) : null
+  if (!g) return null
+  const pct = Math.min(100, Math.round((g.raised / g.goal) * 100))
+  return (
+    <div className="goal-line" role="group" aria-label={`${entry.pet_name}'s goal`}>
+      <div className="goal-line-head">
+        <span>
+          <strong>{entry.pet_name}&rsquo;s goal:</strong> {fmtInt(g.goal)} votes this round
+        </span>
+        <span className="goal-line-left">{g.reached ? 'Reached' : `${fmtInt(g.remaining)} to go`}</span>
+      </div>
+      <div className="raised-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={`${pct}% of the goal`}>
+        <span style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+// What the owner's link from the approval email unlocks: a goal for the
+// page, and a way to stop the tips emails. The token proves the owner; it
+// never leaves this panel.
+function OwnerTools({ entry, token, round }) {
+  const [goal, setGoal] = useState(entry.goal_votes ? String(entry.goal_votes) : '')
+  const [saved, setSaved] = useState(entry.goal_votes || null)
+  const [state, setState] = useState('ready')
+  const [error, setError] = useState(null)
+  const live = round?.status === 'open'
+
+  async function save(e) {
+    e.preventDefault()
+    setState('busy')
+    setError(null)
+    try {
+      const res = await callLinks('goal', { entry_id: entry.id, token, goal: goal.trim() ? Number(goal) : null })
+      setSaved(res.goal)
+      track('Owner Goal', { pet: entry.pet_name, goal: res.goal })
+      setState('ready')
+    } catch (err) {
+      setError(err.message)
+      setState('ready')
+    }
+  }
+
+  return (
+    <section className="owner-tools" aria-labelledby="owner-tools-title">
+      <h2 id="owner-tools-title">Your tools for {entry.pet_name}</h2>
+      <form onSubmit={save} className="owner-goal">
+        <label htmlFor="owner-goal">
+          <strong>Set a vote goal.</strong> It shows on this page{live ? ' now' : ' while voting is open'}, and people like helping a pet
+          reach one.
+        </label>
+        <div className="tool-row">
+          <input id="owner-goal" type="text" inputMode="numeric" placeholder="300" value={goal} onChange={(e) => setGoal(e.target.value)} />
+          <button type="submit" className="btn btn-primary btn-sm" disabled={state === 'busy'}>
+            {state === 'busy' ? 'Saving…' : saved ? 'Update goal' : 'Set goal'}
+          </button>
+        </div>
+        {saved ? (
+          <p className="small" role="status">
+            Goal: {fmtInt(saved)} votes. Leave the box empty and save to remove it.
+          </p>
+        ) : null}
+      </form>
+      <p className="small">
+        Below: share buttons, and &ldquo;Make a share image&rdquo; for a story, a square post and a flyer with a QR code. The Facebook button
+        uses a link that shows {entry.pet_name}&rsquo;s photo in the preview.
+      </p>
+      {error && (
+        <div className="notice error" role="alert">
+          <span>{error}</span>
+        </div>
+      )}
+    </section>
   )
 }
 
@@ -371,6 +453,11 @@ export default function Pet({ route }) {
   else if (state?.status === 'champion') shareTitle = `Share ${name}’s win`
 
   const meta = [entry.seed != null && `No. ${entry.seed} seed`, entry.town, SPECIES[entry.species] || 'Pet'].filter(Boolean).join(' · ')
+  const ownerToken = /^[0-9a-f-]{36}$/i.test(route.params?.owner || '') ? route.params.owner : null
+  const liveRound = votable ? c.round : null
+  // The crawlers get the matchup card while a bracket round is live; `p`
+  // names the pet whose page a tap on the preview opens.
+  const sharePage = votable && inBracket && state?.matchup ? `m/${state.matchup.id}/?p=${entry.id}` : null
 
   return (
     <div className="wrap pet-page">
@@ -392,6 +479,8 @@ export default function Pet({ route }) {
         <div className="pet-play">
           <RoadStrip road={road} name={name} />
           {panel}
+          {entry.goal_votes && liveRound ? <GoalLine entry={entry} round={liveRound} /> : null}
+          {ownerToken && <OwnerTools entry={entry} token={ownerToken} round={liveRound} />}
           {entry.caption && <p className="caption">{entry.caption}</p>}
           {entry.shelter_id && (
             <div className="adopt-badge">
@@ -416,7 +505,7 @@ export default function Pet({ route }) {
               </span>
             </div>
           )}
-          <ShareTools entry={entry} contestName={c.contest?.name} title={shareTitle} extra={<ShareImageButton entry={entry} />} />
+          <ShareTools entry={entry} contestName={c.contest?.name} title={shareTitle} extra={<ShareImageButton entry={entry} />} sharePage={sharePage} />
         </div>
       </article>
 

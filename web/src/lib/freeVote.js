@@ -45,7 +45,7 @@ export function readLinkToken(params) {
 // see EMBED.md.)
 export function dropLinkToken() {
   const hash = window.location.hash
-  const next = hash.replace(/([?&])fv=[^&]*(&|$)/, (_, lead, tail) => (tail ? lead : '')).replace(/\?$/, '')
+  const next = hash.replace(/([?&])(?:fv|bn|owner)=[^&]*(&|$)/, (_, lead, tail) => (tail ? lead : '')).replace(/\?$/, '')
   if (next !== hash) {
     try {
       window.history.replaceState(window.history.state, '', next || '#/')

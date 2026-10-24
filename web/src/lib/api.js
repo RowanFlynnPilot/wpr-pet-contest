@@ -10,7 +10,7 @@ const CONTEST_COLS =
   'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at, bracket_size, bracket_round_hours'
 const CONTEST_FREE_COLS = `${CONTEST_COLS}, free_vote_enabled, free_vote_paused_at`
 const CONTEST_BASE_COLS = 'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at'
-const ENTRY_COLS = 'id, contest_id, pet_name, species, town, caption, photo_path, thumb_path, shelter_id, seed, created_at'
+const ENTRY_COLS = 'id, contest_id, pet_name, species, town, caption, photo_path, thumb_path, shelter_id, seed, created_at, goal_votes'
 const ENTRY_BASE_COLS = 'id, contest_id, pet_name, species, town, photo_path, shelter_id, seed, created_at'
 const ROUND_COLS = 'id, contest_id, seq, kind, status, opens_at, closes_at, resolved_at'
 const MATCHUP_COLS = 'id, round_id, slot, entry_a_id, entry_b_id, winner_entry_id'
@@ -105,6 +105,17 @@ export function fetchBonusWindows(contestId) {
       .from('bonus_windows')
       .select('id, starts_at, ends_at, multiplier, label, sponsor_name, sponsor_url')
       .eq('contest_id', contestId)
+      .order('starts_at'),
+    [],
+  )
+}
+
+// Sponsor matches: "X matches every vote pack from 6 to 7 p.m., up to $500."
+export function fetchAllSponsorMatches() {
+  return optional(
+    need()
+      .from('sponsor_matches')
+      .select('id, contest_id, starts_at, ends_at, ratio, cap_cents, sponsor_name, sponsor_url')
       .order('starts_at'),
     [],
   )
@@ -262,6 +273,8 @@ export async function callFunction(name, { json, form, token } = {}) {
 }
 
 export const submitEntry = (form) => callFunction('submit-entry', { form })
+// Acting on a link from an email: an owner's goal or opt-out, a buyer's unsubscribe.
+export const callLinks = (action, json) => callFunction('links', { json: { action, ...json } })
 export const createCheckout = (json) => callFunction('create-checkout', { json })
 
 const ADOPTABLE_URL = 'https://rowanflynnpilot.github.io/wpr-adopt-widget/snapshots/featured-pet.json'

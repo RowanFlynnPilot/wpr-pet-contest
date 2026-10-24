@@ -1040,3 +1040,14 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
   .confetti { display: none; }
 }
+
+/* The owner's goal on the pet page, and the owner's tools behind their link. */
+.goal-line { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
+.goal-line-head { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; margin-bottom: 6px; }
+.goal-line-left { font-family: var(--mono); font-weight: 700; color: var(--teal-ink); white-space: nowrap; }
+.owner-tools { margin-top: 14px; padding: 16px; border: 2px solid var(--teal); border-radius: 14px; background: var(--teal-wash); }
+.owner-tools h2 { font-size: 20px; margin: 0 0 8px; }
+.owner-goal label { display: block; font-size: 15px; margin-bottom: 8px; }
+.owner-goal input { max-width: 140px; }
+.raised-matched { margin-top: 4px; font-size: 13.5px; color: var(--muted); }
+.bonus-bar.match .bonus-badge { background: var(--teal-deep); color: #fff; }

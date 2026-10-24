@@ -30,6 +30,9 @@ serve(async (req) => {
   const packSlug = slug(body.pack_slug, "Vote pack");
   const buyerEmail = email(body.buyer_email);
   const optIn = body.newsletter_opt_in === true;
+  // "Tell me when this pet plays again": one email a round, enrolled only
+  // once the webhook credits the payment.
+  const playsAgain = body.plays_again_opt_in === true;
   // One per checkout attempt, from the browser. A double-click or a retried
   // request reuses it, and Stripe hands back the same payment intent instead
   // of a second one.
@@ -78,6 +81,7 @@ serve(async (req) => {
       p_buyer_email: buyerEmail,
       p_payment_intent: intent.id,
       p_newsletter_opt_in: optIn,
+      p_plays_again_opt_in: playsAgain,
     })
     .single<Parked>();
 

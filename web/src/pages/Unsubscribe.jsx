@@ -1,20 +1,41 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { callLinks } from '../lib/api.js'
 import { dropLinkToken, freeVote, readLinkToken } from '../lib/freeVote.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 
-// From the link in a free-vote reminder. A button, not the link itself:
-// mail scanners open links, and a scanner must not unsubscribe anyone.
+// Which email the link came from: free-vote reminders (fv=u.<token>), a
+// buyer's "plays again" notes (bn=<token>), or an owner's tips
+// (owner=<entry>.<token>).
+function readLink(params) {
+  const fv = readLinkToken(params)
+  if (fv?.kind === 'unsubscribe') return { kind: 'free', token: fv.token, title: 'Free vote reminders', what: 'the morning emails reminding you to cast your free vote' }
+  if (/^[A-Za-z0-9_-]{40,64}$/.test(params?.bn || '')) {
+    return { kind: 'buyer', token: params.bn, title: 'Emails about the pets you backed', what: 'the one-email-a-round notes about the pets you bought votes for' }
+  }
+  const m = /^([0-9a-f-]{36})\.([0-9a-f-]{36})$/i.exec(params?.owner || '')
+  if (m) return { kind: 'owner', entryId: m[1], token: m[2], title: 'Tips for your entry', what: 'the tips emails about sharing your pet (notices about your entry itself still come)' }
+  return null
+}
+
+// A button, not the link itself: mail scanners open links, and a scanner
+// must not unsubscribe anyone.
 export default function Unsubscribe({ route }) {
-  const [link] = useState(() => readLinkToken(route.params))
+  // Re-read when the address changes (one email's link after another's);
+  // `done` outlives the token, which leaves the address bar on success.
+  const [done, setDone] = useState(null)
+  const link = useMemo(() => readLink(route.params) || done, [route.params, done])
   const [state, setState] = useState('ready')
   const [error, setError] = useState(null)
-  useDocumentTitle('Free vote reminders — Wausau Pilot & Review')
+  useDocumentTitle(`${link?.title || 'Email'} — Wausau Pilot & Review`)
 
   async function stop() {
     setState('busy')
     setError(null)
     try {
-      await freeVote('unsubscribe', { token: link.token })
+      if (link.kind === 'free') await freeVote('unsubscribe', { token: link.token })
+      else if (link.kind === 'buyer') await callLinks('unsubscribe', { token: link.token })
+      else await callLinks('opt-out', { entry_id: link.entryId, token: link.token })
+      setDone(link)
       setState('done')
       dropLinkToken()
     } catch (e) {
@@ -25,16 +46,16 @@ export default function Unsubscribe({ route }) {
 
   return (
     <div className="wrap-narrow section" style={{ paddingTop: 24 }}>
-      <h1 style={{ fontSize: 'clamp(28px, 6vw, 40px)' }}>Free vote reminders</h1>
-      {!link || link.kind !== 'unsubscribe' ? (
-        <p>This link is incomplete. Use the &ldquo;Stop these reminders&rdquo; link at the bottom of a reminder email.</p>
+      <h1 style={{ fontSize: 'clamp(28px, 6vw, 40px)' }}>{link?.title || 'Email settings'}</h1>
+      {!link ? (
+        <p>This link is incomplete. Use the &ldquo;stop&rdquo; link at the bottom of the email.</p>
       ) : state === 'done' ? (
-        <p role="status">Done. You won&rsquo;t get any more free vote reminders for this contest.</p>
+        <p role="status">Done. You won&rsquo;t get any more of these for this contest.</p>
       ) : (
         <>
-          <p>Stop the morning emails reminding you to cast your free vote? You can still vote free on the site any day.</p>
+          <p>Stop {link.what}?</p>
           <button type="button" className="btn btn-primary" onClick={stop} disabled={state === 'busy'}>
-            {state === 'busy' ? 'Stopping…' : 'Stop reminders'}
+            {state === 'busy' ? 'Stopping…' : 'Stop these emails'}
           </button>
         </>
       )}

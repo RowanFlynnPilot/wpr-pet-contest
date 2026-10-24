@@ -63,6 +63,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
   const slug = picked ?? defaultPack(c.packs)?.slug ?? null
   const [email, setEmail] = useState('')
   const [optIn, setOptIn] = useState(false)
+  const [playsAgain, setPlaysAgain] = useState(false)
   const [step, setStep] = useState('pack')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -115,6 +116,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
       entry_id: entry.id,
       buyer_email: email.trim(),
       newsletter_opt_in: optIn,
+      plays_again_opt_in: playsAgain,
     }
     setBusy(true)
     // This pet's recent purchases before this one, so the success screen can
@@ -286,6 +288,10 @@ export default function CheckoutModal({ entry, round, onClose }) {
               </span>
             )}
           </div>
+          <label className="check" style={{ marginBottom: 10 }}>
+            <input type="checkbox" checked={playsAgain} onChange={(e) => setPlaysAgain(e.target.checked)} />
+            <span>Email me when {entry.pet_name} plays again (this contest only, one email a round).</span>
+          </label>
           <label className="check" style={{ marginBottom: 14 }}>
             <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
             <span>Send me Wausau Pilot &amp; Review&rsquo;s free daily newsletter.</span>
