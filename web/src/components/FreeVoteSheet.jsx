@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { NEWSROOM } from '../config.js'
 import { track } from '../lib/analytics.js'
-import { apTime, fmtInt, fmtMoney } from '../lib/format.js'
+import { apTime, fmtInt, fmtMoney, TIME_ZONE_NAME } from '../lib/format.js'
 import { dropLinkToken, freeVote, getDevice, setDevice } from '../lib/freeVote.js'
 import { roundLabel } from '../lib/rounds.js'
 import { useContest } from './ContestContext.jsx'
@@ -282,14 +283,14 @@ function EmailStep({ entry, round, busy, onSubmit }) {
       </label>
       <label className="check fv-check">
         <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
-        <span>Send me Wausau Pilot &amp; Review&rsquo;s free daily newsletter.</span>
+        <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
       </label>
       <Turnstile key={attempt} onToken={setToken} onError={() => setBotFailed(true)} />
       <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || waiting || !email.trim()}>
         {busy ? 'Sending…' : waiting ? 'Checking your browser…' : 'Email me a code'}
       </button>
       <p className="fv-fine">
-        One free vote per person per day, Central time. Your address is never published or sold, and it is erased a year after
+        One free vote per person per day, {TIME_ZONE_NAME}. Your address is never published or sold, and it is erased a year after
         the contest.
       </p>
     </form>

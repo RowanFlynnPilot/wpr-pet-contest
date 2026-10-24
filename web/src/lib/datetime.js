@@ -1,6 +1,7 @@
 // <input type="datetime-local"> speaks the browser's local time with no zone.
-// Staff are in Wausau, but convert through the browser either way so what
-// they type is what the database stores.
+// Staff are on the newsroom's clock, but convert through the browser either
+// way so what they type is what the database stores.
+import { TIME_ZONE } from './format.js'
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -24,7 +25,7 @@ export function stamp(value) {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-    timeZone: 'America/Chicago',
+    timeZone: TIME_ZONE,
     timeZoneName: 'short',
   })
 }

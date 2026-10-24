@@ -1,8 +1,14 @@
-/* WPR "Follow the Money" system with this contest's own accent.
-   Teal #3A867C is the typewriter in WPR's badge. It measures 3.9:1 on cream
-   and 4.3:1 under white text, so it is a FILL color (bars, rules, badges,
-   large display type). Text and button fills use --teal-ink (6.0:1 on cream,
-   6.7:1 under white). Same rule as Packers gold vs goldText. */
+/* The design tokens, by role. A newsroom is a theme: it sets brand, accent,
+   danger, the paper and the faces, and everything else derives from those.
+   WPR's "Follow the Money" system is the default: brand is the teal of the
+   typewriter in WPR's badge, accent is the sun held for the moments that
+   count. Teal #3A867C measures 3.9:1 on cream and 4.3:1 under white text, so
+   it is a FILL color (bars, rules, badges, large display type); text and
+   button fills use --brand-ink (6.0:1 on cream, 6.7:1 under white). Same
+   rule as Packers gold vs goldText.
+
+   The names the stylesheet grew up with (--teal, --sun, --red) stay as
+   aliases of the role tokens. New rules should use the roles. */
 :root {
   --ink: #1a1a1a;
   --ink-2: #3a3a3a;
@@ -14,19 +20,56 @@
   --rule-strong: #cfc6b3;
   --slate: #32373c;
 
-  --teal: #3a867c;
-  --teal-ink: #2b655d;
-  --teal-deep: #1f4b45;
-  --teal-tint: #e1edea;
-  --teal-wash: #eff5f3;
+  --brand: #3a867c;
+  --brand-ink: #2b655d;
+  --brand-deep: #1f4b45;
+  --brand-tint: #e1edea;
+  --brand-wash: #eff5f3;
 
-  /* Bonus windows and trophies. Fill only; text uses --sun-ink. */
-  --sun: #f4b942;
-  --sun-ink: #7a5500;
-  --sun-tint: #fcefd0;
+  /* Bonus windows and trophies. Fill only; text uses --accent-ink. */
+  --accent: #f4b942;
+  --accent-ink: #7a5500;
+  --accent-tint: #fcefd0;
 
-  --red: #9b2226;
-  --red-tint: #f8e6e4;
+  /* Loss and error only, never excitement. */
+  --danger: #9b2226;
+  --danger-tint: #f8e6e4;
+
+  --teal: var(--brand);
+  --teal-ink: var(--brand-ink);
+  --teal-deep: var(--brand-deep);
+  --teal-tint: var(--brand-tint);
+  --teal-wash: var(--brand-wash);
+  --sun: var(--accent);
+  --sun-ink: var(--accent-ink);
+  --sun-tint: var(--accent-tint);
+  --red: var(--danger);
+  --red-tint: var(--danger-tint);
+
+  /* The arena's own shades on the brand's deep: digit wells, rows, the
+     unlit lamp, labels and notes on the board. Derived, so a theme that
+     changes the brand gets a matching board. */
+  --board-cell: color-mix(in oklab, var(--brand-deep) 58%, black);
+  --board-row: color-mix(in oklab, var(--brand-deep) 82%, black);
+  --board-row-lead: color-mix(in oklab, var(--brand-deep) 88%, white);
+  --board-ring: color-mix(in oklab, var(--brand-deep) 76%, white);
+  --board-bulb: color-mix(in oklab, var(--brand-deep) 62%, white);
+  --board-label: color-mix(in oklab, var(--brand) 26%, white);
+  --board-text: color-mix(in oklab, var(--brand) 12%, white);
+  --board-dim: color-mix(in oklab, var(--brand) 42%, white);
+  --board-quiet: color-mix(in oklab, var(--brand) 40%, #b9b9b9);
+  --board-cell-55: color-mix(in oklab, var(--board-cell) 55%, transparent);
+  --board-cell-90: color-mix(in oklab, var(--board-cell) 90%, transparent);
+
+  /* Warm derivatives of the accent and the danger. */
+  --accent-rule: color-mix(in oklab, var(--accent) 45%, white);
+  --accent-wash: color-mix(in oklab, var(--accent) 8%, white);
+  --accent-soft: color-mix(in oklab, var(--accent) 70%, white);
+  --accent-light: color-mix(in oklab, var(--accent) 85%, white);
+  --danger-rule: color-mix(in oklab, var(--danger) 30%, white);
+  --danger-bright: color-mix(in oklab, var(--danger) 75%, #ff6a3d);
+  --danger-deep: color-mix(in oklab, var(--danger) 80%, black);
+  --danger-deeper: color-mix(in oklab, var(--danger) 60%, black);
 
   --display: 'Fraunces', 'Fraunces Fallback', Georgia, 'Times New Roman', serif;
   /* For text set at 'opsz' 144. */
@@ -45,6 +88,30 @@
 
 @media (min-width: 720px) {
   :root { --gutter: 24px; }
+}
+
+/* A second newsroom, for the sales demo (src/newsrooms.js: "The Example
+   Gazette"): navy and gold on a cooler paper, Newsreader over Source Sans.
+   Danger stays its own hue, so a red-leaning brand never reads as an error. */
+:root[data-theme='gazette'] {
+  --brand: #1d3557;
+  --brand-ink: #16304f;
+  --brand-deep: #10233d;
+  --brand-tint: #dfe6f0;
+  --brand-wash: #eef2f7;
+  --accent: #e0a81d;
+  --accent-ink: #6b4f00;
+  --accent-tint: #fbefcc;
+  --cream: #f7f4ee;
+  --cream-deep: #ebe6dc;
+  --rule: #e1dcd2;
+  --rule-strong: #cbc3b4;
+  --slate: #1f2a3a;
+  --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --display-xl: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --shadow: 0 1px 2px rgba(29, 53, 87, 0.06), 0 4px 14px rgba(29, 53, 87, 0.07);
+  --shadow-lift: 0 2px 4px rgba(29, 53, 87, 0.08), 0 12px 28px rgba(29, 53, 87, 0.14);
 }
 
 /* Georgia scaled to Fraunces' width, so a headline keeps its line breaks

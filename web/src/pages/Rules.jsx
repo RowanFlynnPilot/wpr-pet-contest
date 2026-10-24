@@ -1,6 +1,6 @@
-import { RULES, WPR_URL } from '../config.js'
+import { NEWSROOM, RULES } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
-import { apDate, apDateTime, fmtInt, fmtMoney, period } from '../lib/format.js'
+import { apDate, apDateTime, fmtInt, fmtMoney, period, TIME_ZONE_NAME } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { formatPerVote } from '../lib/packs.js'
 import { bracketRoundCount, roundLabel } from '../lib/rounds.js'
@@ -11,7 +11,7 @@ import { windowTitle } from '../lib/bonus.js'
 // until RULES.rulesApproved is flipped in config.js.
 export default function Rules() {
   const c = useContest()
-  useDocumentTitle('Official rules — Wausau Pilot & Review')
+  useDocumentTitle(`Official rules — ${NEWSROOM.name}`)
   const k = c.contest
   if (!k) return <div className="wrap section" aria-busy="true" />
 
@@ -31,7 +31,7 @@ export default function Rules() {
     <>
       {!RULES.rulesApproved && (
         <div className="draft-ribbon" role="note">
-          Draft: these rules are pending review by Wausau Pilot &amp; Review and are not yet final.
+          Draft: these rules are pending review by {NEWSROOM.name} and are not yet final.
         </div>
       )}
       <article className="wrap-narrow section rules">
@@ -45,10 +45,11 @@ export default function Rules() {
 
         <h2>1. The contest</h2>
         <p>
-          The {k.name} contest (the &ldquo;Contest&rdquo;) is run by Wausau Pilot &amp; Review (&ldquo;WPR&rdquo;), a nonprofit newsroom in
-          Wausau, Wisconsin. <strong>{k.beneficiary_split_pct}% of vote pack sales</strong>, after any refunds, is paid to the Contest&rsquo;s partner
+          The {k.name} contest (the &ldquo;Contest&rdquo;) is run by {NEWSROOM.legalEntity} (&ldquo;{NEWSROOM.shortName}&rdquo;),{' '}
+          {NEWSROOM.nonprofit ? 'a nonprofit newsroom' : 'a newsroom'} in {NEWSROOM.city}, {NEWSROOM.state}.{' '}
+          <strong>{k.beneficiary_split_pct}% of vote pack sales</strong>, after any refunds, is paid to the Contest&rsquo;s partner
           animal shelters{c.shelters.length ? ` (${c.shelters.map((s) => s.name).join(', ')})` : ''}. The remainder covers payment
-          processing and supports WPR.
+          processing and supports {NEWSROOM.shortName}.
         </p>
 
         <h2>2. Eligibility</h2>
@@ -58,12 +59,12 @@ export default function Rules() {
         <h2>3. How to enter</h2>
         <p>
           Entry is free at the Contest page between <strong>{apDateTime(k.submissions_open_at)}</strong> and{' '}
-          <strong>{apDateTime(k.submissions_close_at)}</strong> Central time. Each entry needs one photo (JPEG, PNG or WebP, up to 10 MB),
+          <strong>{apDateTime(k.submissions_close_at)}</strong> {TIME_ZONE_NAME}. Each entry needs one photo (JPEG, PNG or WebP, up to 10 MB),
           the pet&rsquo;s name, species and town, and the entrant&rsquo;s name and email address. The entrant&rsquo;s name and email are never
           published.
         </p>
         <p>
-          Every entry is reviewed by a WPR editor before it appears. WPR may decline any entry, with a reason, including a photo that is not a
+          Every entry is reviewed by an editor at {NEWSROOM.shortName} before it appears. {NEWSROOM.shortName} may decline any entry, with a reason, including a photo that is not a
           pet, is of low quality, duplicates another entry, is inappropriate, or is not the entrant&rsquo;s own photo. A declined photo is
           deleted.
         </p>
@@ -71,7 +72,7 @@ export default function Rules() {
         <h2>4. Photo release</h2>
         <p>
           By entering, the entrant confirms they took the photo or have the right to share it, that the pet lives with them or is in their
-          care, and that they are 18 or older; and grants WPR permission to publish the photo, the pet&rsquo;s name, town and caption in
+          care, and that they are 18 or older; and grants {NEWSROOM.shortName} permission to publish the photo, the pet&rsquo;s name, town and caption in
           print, online and on social media to promote the Contest, without payment.
         </p>
 
@@ -111,7 +112,7 @@ export default function Rules() {
         <p>
           <strong>The deadline.</strong> A vote counts if its payment completes by the round&rsquo;s posted closing time. A two-minute grace
           period covers a payment already in progress at the deadline. A payment completed later does not count and is refunded
-          automatically, even if the results have not been finalized yet. A WPR editor finalizes the results shortly after the deadline, and
+          automatically, even if the results have not been finalized yet. An editor at {NEWSROOM.shortName} finalizes the results shortly after the deadline, and
           finalized results are final.
           {free &&
             ' A free vote counts if it is cast by the closing time; one confirmed by emailed code counts if the code was requested by the closing time and confirmed within the same two-minute grace period.'}
@@ -126,7 +127,7 @@ export default function Rules() {
             <strong>Bracket rounds:</strong> the better (lower-numbered) seed advances.
           </li>
         </ul>
-        <p>Ties are never decided by a drawing or by WPR staff.</p>
+        <p>Ties are never decided by a drawing or by {NEWSROOM.shortName} staff.</p>
 
         <h2>7. Vote packs</h2>
         <p>
@@ -166,7 +167,7 @@ export default function Rules() {
             <h2>8. Free daily vote</h2>
             <ul>
               <li>
-                Every person may cast <strong>one free vote a day</strong> (midnight to midnight, Central time) for any pet in the round that is
+                Every person may cast <strong>one free vote a day</strong> (midnight to midnight, {TIME_ZONE_NAME}) for any pet in the round that is
                 open. <strong>No purchase is necessary.</strong> A free vote counts as one vote and is never multiplied by a bonus window.
               </li>
               <li>
@@ -174,7 +175,7 @@ export default function Rules() {
                 free votes without a new code.
               </li>
               <li>
-                Using more than one email address to cast more than one free vote a day breaks these rules. WPR may void free votes it reasonably
+                Using more than one email address to cast more than one free vote a day breaks these rules. {NEWSROOM.shortName} may void free votes it reasonably
                 believes were cast in breach of these rules or obtained by fraud, before a round&rsquo;s results are finalized. Finalized results
                 stand.
               </li>
@@ -185,7 +186,7 @@ export default function Rules() {
 
         <h2>{n(8)}. Bonus windows</h2>
         <p>
-          WPR may announce bonus windows (for example, &ldquo;Double Votes&rdquo;), sometimes presented by a sponsor, during which every vote pack
+          {NEWSROOM.shortName} may announce bonus windows (for example, &ldquo;Double Votes&rdquo;), sometimes presented by a sponsor, during which every vote pack
           counts two to five times over. A bonus applies to vote packs <strong>whose checkout begins during the window</strong>. The vote count
           shown at checkout is the count the buyer receives.{free && ' Free votes are not multiplied.'}
         </p>
@@ -221,7 +222,7 @@ export default function Rules() {
           {free && ' Free votes for that pet in rounds not yet finalized are returned, and those voters may vote again that day.'}
         </p>
         <p>
-          An entrant may withdraw a pet at any time before the Contest ends by contacting WPR (for example, if the pet has died or been
+          An entrant may withdraw a pet at any time before the Contest ends by contacting {NEWSROOM.shortName} (for example, if the pet has died or been
           rehomed). <strong>Vote packs already bought for a withdrawn pet are not refunded</strong>, and the shelters&rsquo; share of them
           stands. The pet is removed from the Contest; if it is in a matchup, its opponent advances regardless of the vote count. A payment
           completed after the withdrawal does not count and is refunded. Results of rounds already finalized stand.
@@ -236,23 +237,23 @@ export default function Rules() {
 
         <h2>{n(12)}. General</h2>
         <p>
-          WPR may disqualify an entry (section {n(10)}) or void votes that break these rules or that it reasonably believes were obtained by fraud, and may
-          modify or cancel the Contest if it cannot run as planned. Decisions of WPR are final. Adoptable shelter pets may be entered by a
+          {NEWSROOM.shortName} may disqualify an entry (section {n(10)}) or void votes that break these rules or that it reasonably believes were obtained by fraud, and may
+          modify or cancel the Contest if it cannot run as planned. Decisions of {NEWSROOM.shortName} are final. Adoptable shelter pets may be entered by a
           partner shelter as wildcards and compete under the same rules.
         </p>
 
         <h2>{n(13)}. Privacy</h2>
         <p>
           Entrants&rsquo; names and email addresses, and buyers&rsquo; email addresses, are used only to run the Contest: moderation, receipts,
-          contest notices and, for those who opt in, WPR&rsquo;s newsletter. They are never published or sold. They are erased 12 months after
-          the Contest ends. Pet names, towns, photos and results are kept as part of WPR&rsquo;s coverage. A buyer who checks the box at
+          contest notices and, for those who opt in, {NEWSROOM.shortName}&rsquo;s newsletter. They are never published or sold. They are erased 12 months after
+          the Contest ends. Pet names, towns, photos and results are kept as part of {NEWSROOM.shortName}&rsquo;s coverage. A buyer who checks the box at
           checkout gets one email per bracket round about the pets they backed, and can stop them from any such email. Entrants get a
           few tips about sharing during the Contest, and can stop those from any such email.
         </p>
         {free && (
           <p>
             Free voters&rsquo; email addresses are used to confirm free votes, to send reminders to those who ask for them and, for those who opt
-            in, WPR&rsquo;s newsletter. To prevent fraud, WPR keeps a scrambled code derived from each voter&rsquo;s internet connection, never the
+            in, {NEWSROOM.shortName}&rsquo;s newsletter. To prevent fraud, {NEWSROOM.shortName} keeps a scrambled code derived from each voter&rsquo;s internet connection, never the
             address itself, and uses Cloudflare Turnstile, which checks the browser for automated traffic. All of it is erased 12 months after
             the Contest ends.
           </p>
@@ -260,9 +261,9 @@ export default function Rules() {
 
         <h2>{n(14)}. Contact</h2>
         <p>
-          Questions: <a href={`mailto:${RULES.contact}`}>{RULES.contact}</a> or 715-301-5539 ·{' '}
-          <a href={WPR_URL} target="_blank" rel="noopener noreferrer">
-            Wausau Pilot &amp; Review
+          Questions: <a href={`mailto:${RULES.contact}`}>{RULES.contact}</a> or {NEWSROOM.phone} ·{' '}
+          <a href={NEWSROOM.url} target="_blank" rel="noopener noreferrer">
+            {NEWSROOM.name}
           </a>
         </p>
       </article>

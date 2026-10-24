@@ -66,8 +66,11 @@ export function query(rows, params) {
 
 // One mock: a phase, a vote scale (VOTE_SCALE: how do five-figure counts
 // fit?), and the toys' memory for as long as it lives.
-export function createMock({ phase = 'open', scale = 1 } = {}) {
+export function createMock({ phase = 'open', scale = 1, region = 'Marathon County', towns = TOWNS, photos = 'svg' } = {}) {
   let current = PHASES.includes(phase) ? phase : 'open'
+  const townList = towns && towns.length ? towns : TOWNS
+  // 'jpg': the sample photos in public/sample-pets; 'svg': the drawn faces.
+  const ext = photos === 'jpg' ? 'jpg' : 'svg'
   const voteScale = Math.max(1, Number(scale) || 1)
   const intents = new Map() // id -> { id, round_id, entry_id, votes, cents, multiplier }
   const paid = [] // settled intents, in order
@@ -81,10 +84,10 @@ export function createMock({ phase = 'open', scale = 1 } = {}) {
       contest_id: id('c1', 1),
       pet_name: name,
       species: SPECIES[i % SPECIES.length],
-      town: TOWNS[i % TOWNS.length],
+      town: townList[i % townList.length],
       caption: i % 3 === 0 ? 'Sleeps 20 hours a day and guards the couch for the other four.' : null,
-      photo_path: `mock/${i + 1}.svg`,
-      thumb_path: `mock/${i + 1}.svg`,
+      photo_path: `mock/${i + 1}.${ext}`,
+      thumb_path: `mock/${i + 1}.${ext}`,
       shelter_id: i === 7 ? id('5e', 1) : null,
       seed: null,
       goal_votes: i === 0 ? 300 : null,
@@ -94,7 +97,7 @@ export function createMock({ phase = 'open', scale = 1 } = {}) {
 
     const submissions = current === 'submissions'
     const contest = {
-      id: id('c1', 1), year: 2026, name: 'Cutest Pet in Marathon County',
+      id: id('c1', 1), year: 2026, name: `Cutest Pet in ${region}`,
       status: submissions ? 'submissions_open' : current === 'complete' ? 'complete' : 'voting',
       beneficiary_split_pct: 30, bracket_size: 16, bracket_round_hours: 48,
       submissions_open_at: iso(submissions ? now - 3 * DAY : now - 14 * DAY),

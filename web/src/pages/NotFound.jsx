@@ -1,7 +1,8 @@
+import { NEWSROOM } from '../config.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 
 export default function NotFound() {
-  useDocumentTitle('Page not found — Wausau Pilot & Review')
+  useDocumentTitle(`Page not found — ${NEWSROOM.name}`)
   return (
     <div className="wrap section">
       <div className="card">

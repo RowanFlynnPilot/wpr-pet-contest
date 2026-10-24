@@ -240,9 +240,16 @@ cards (`web/scripts/matchup-cards.py`, Pillow). The Pages workflow sets it;
 without it the matchup pages carry the first pet's photo.
 
 `npm --prefix web run demo` builds the site with its backend inside the
-browser (`web/src/demo/`): placeholder pets, every phase, a pretend checkout,
+browser (`web/src/demo/`): sample pets, every phase, a pretend checkout,
 no server. The Pages workflow publishes it at `/demo/` for the newsroom, and
-the site's root forwards there until `VITE_SUPABASE_URL` is set.
+the site's root forwards there until `VITE_SUPABASE_URL` is set. The page
+for other newsrooms (`docs/newsroom-kit/`) is published beside it at
+`/for-newsrooms/`.
+
+The newsroom is a setting (`web/src/newsrooms.js`, a theme block in
+`tokens.css`, `VITE_NEWSROOM`); docs/NEWSROOM.md says how to add one. The
+stylesheet carries no brand literal: tokens are named by role (brand,
+accent, danger) and the old names (teal, sun, red) are aliases.
 
 Migrations use `create function`, not `create or replace`. To change a
 function, add a new numbered migration (which may `create or replace`, or

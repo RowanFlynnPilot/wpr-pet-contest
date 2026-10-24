@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { NEWSROOM } from '../config.js'
 import { callLinks } from '../lib/api.js'
 import { dropLinkToken, freeVote, readLinkToken } from '../lib/freeVote.js'
 import { useDocumentTitle } from '../lib/hooks.js'
@@ -26,7 +27,7 @@ export default function Unsubscribe({ route }) {
   const link = useMemo(() => readLink(route.params) || done, [route.params, done])
   const [state, setState] = useState('ready')
   const [error, setError] = useState(null)
-  useDocumentTitle(`${link?.title || 'Email'} — Wausau Pilot & Review`)
+  useDocumentTitle(`${link?.title || 'Email'} — ${NEWSROOM.name}`)
 
   async function stop() {
     setState('busy')

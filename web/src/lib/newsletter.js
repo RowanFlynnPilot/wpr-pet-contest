@@ -1,6 +1,6 @@
-// The newsletter block: a contest section for WPR's daily newsletters, built
-// from the live contest and pasted into a Noptin draft as one Custom HTML
-// block.
+// The newsletter block: a contest section for the newsroom's daily
+// newsletters, built from the live contest and pasted into a Noptin draft as
+// one Custom HTML block.
 //
 // Email HTML: tables and inline styles only. It wears the newsletter's look
 // (Oswald, Merriweather, Source Sans 3, the site teal), not the contest's,
@@ -11,6 +11,7 @@
 // Thursday at 8 p.m."), never "5 hours left", and stamps its standings.
 // Everything a reader submitted (pet names, towns) is escaped.
 
+import { NEWSROOM } from '../config.js'
 import { windowTitle } from './bonus.js'
 import { apDate, apDateTime, apTime, fmtInt, fmtMoney, period, plural } from './format.js'
 import { roundLabel } from './rounds.js'
@@ -55,7 +56,7 @@ export function contestLink(base, route, campaign) {
 
 function sponsorLink(url) {
   if (url.includes('utm_source=')) return url
-  return `${url}${url.includes('?') ? '&' : '?'}utm_source=wausaupilotandreview&utm_medium=email&utm_campaign=pet-contest`
+  return `${url}${url.includes('?') ? '&' : '?'}utm_source=${NEWSROOM.utmSource}&utm_medium=email&utm_campaign=pet-contest`
 }
 
 const COUNTS = { 2: 'double', 3: 'triple' }
@@ -214,7 +215,7 @@ const ENDS = ' Totals reset every round, so every pet started this one at zero.'
 const PHASES = {
   coming: ({ contest }) => ({
     kicker: 'Entries open soon',
-    headline: 'Is your pet the cutest in Marathon County?',
+    headline: `Is your pet the cutest in ${NEWSROOM.region}?`,
     body: esc(
       `Entries open ${period(apDateTime(contest.submissions_open_at))} Entering is free, and every vote pack sold helps local animal shelters.`,
     ),
@@ -225,7 +226,7 @@ const PHASES = {
     const n = stats?.entries || 0
     return {
       kicker: 'Entries open',
-      headline: 'Is your pet the cutest in Marathon County?',
+      headline: `Is your pet the cutest in ${NEWSROOM.region}?`,
       body: esc(
         `Entering is free, and every vote pack sold helps local animal shelters. ` +
           `${n ? `${plural(n, 'pet is', 'pets are')} in so far. ` : ''}` +

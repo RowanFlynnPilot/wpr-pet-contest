@@ -1,7 +1,17 @@
-// Numbers, money and dates. Dates are AP style in Central time, because the
-// contest runs on Wausau's clock no matter where a share link is opened.
+// Numbers, money and dates. Dates are AP style in the newsroom's time zone,
+// because the contest runs on the newsroom's clock no matter where a share
+// link is opened. Imported by Node scripts too: nothing here touches the DOM.
+import { NEWSROOM } from '../config.js'
 
-export const TIME_ZONE = 'America/Chicago'
+export const TIME_ZONE = NEWSROOM.timeZone
+
+// The zone's everyday name for copy beside a clock time: "Central time",
+// "Mountain time". Same words in winter and summer.
+export function timeZoneName(timeZone = TIME_ZONE) {
+  const part = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'long' }).formatToParts(new Date()).find((p) => p.type === 'timeZoneName')
+  return `${(part?.value || 'local').replace(/ (Standard|Daylight) Time$/, '').replace(/ Time$/, '')} time`
+}
+export const TIME_ZONE_NAME = timeZoneName()
 
 const intFmt = new Intl.NumberFormat('en-US')
 export const fmtInt = (n) => intFmt.format(Math.round(n || 0))

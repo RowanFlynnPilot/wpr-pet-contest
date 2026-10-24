@@ -1,4 +1,4 @@
-import { SUPPORT_URL, WPR_BADGE, WPR_PHONE } from '../config.js'
+import { NEWSROOM, SUPPORT_URL } from '../config.js'
 import { track } from '../lib/analytics.js'
 import { useContest } from './ContestContext.jsx'
 import { ShelterMark } from './ShelterLogo.jsx'
@@ -11,12 +11,12 @@ export default function Footer() {
     <footer className="footer">
       <div className="wrap">
         <div className="footer-marks">
-          <img src={WPR_BADGE} alt="" width="44" height="44" loading="lazy" decoding="async" />
+          {NEWSROOM.badge && <img src={NEWSROOM.badge} alt="" width="44" height="44" loading="lazy" decoding="async" />}
           {partner && <ShelterMark shelter={partner} size={44} />}
         </div>
         <div className="footer-text">
           <p>
-            Photos are submitted by readers and reviewed by a Wausau Pilot &amp; Review editor before they appear.
+            Photos are submitted by readers and reviewed by an editor at {NEWSROOM.name} before they appear.
             Vote counts come straight from confirmed payments and refresh every 20 seconds; vote totals reset at
             the start of every round.
           </p>
@@ -37,20 +37,21 @@ export default function Footer() {
                 ) : (
                   "the contest's partner animal shelters"
                 )}
-                ; the remainder covers payment processing and supports Wausau Pilot &amp; Review&rsquo;s nonprofit newsroom.
+                ; the remainder covers payment processing and supports{' '}
+                {NEWSROOM.nonprofit ? <>{NEWSROOM.name}&rsquo;s nonprofit newsroom</> : NEWSROOM.name}.
               </>
             )}{' '}
-            Payments are processed by Stripe; WPR never sees your card number.
+            Payments are processed by Stripe; {NEWSROOM.shortName} never sees your card number.
           </p>
           <p>
-            Wausau Pilot &amp; Review · {WPR_PHONE} · a nonprofit newsroom serving Marathon County.
+            {NEWSROOM.name} · {NEWSROOM.phone} · {NEWSROOM.nonprofit ? 'a nonprofit newsroom' : 'a newsroom'} serving {NEWSROOM.region}.
           </p>
           <div className="footer-links">
             <a href="#/rules">Official rules</a>
             <a href="#/shelters">{partner ? partner.name : 'Partner shelters'}</a>
             <a href="#/sponsors">Advertise on this contest</a>
             <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" onClick={() => track('Donate Click', { from: 'footer' })}>
-              Support local news (tax-deductible)
+              {NEWSROOM.nonprofit ? 'Support local news (tax-deductible)' : `Subscribe to ${NEWSROOM.shortName}`}
             </a>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSOR_UTM } from '../config.js'
+import { NEWSROOM, SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSOR_UTM } from '../config.js'
 import { track } from '../lib/analytics.js'
 import { Arrow, Check } from './Icons.jsx'
 
@@ -50,7 +50,7 @@ export function Upsell({ slot, dark = false, pitch, full = false, line = false }
     <div className={`upsell${dark ? ' dark' : ''}${full ? ' full' : ''}`}>
       <p className="pitch">
         <b>Sponsorship available.</b>
-        {pitch || info.pitch || 'Put your business in front of every pet lover in Marathon County.'}
+        {pitch || info.pitch || `Put your business in front of every pet lover in ${NEWSROOM.region}.`}
       </p>
       <a
         className={`btn btn-sm ${dark ? 'btn-sun' : 'btn-quiet'}`}

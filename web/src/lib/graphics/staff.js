@@ -1,6 +1,7 @@
 // The newsroom's daily posts: leaderboard, the bubble, matchups, results,
 // champion and money raised. Every card comes in 1080x1080 and 1080x1350 and
 // is laid out from the edges in, so both sizes share one drawing function.
+import { NEWSROOM } from '../../config.js'
 import { apDateTime, fmtMoney } from '../format.js'
 import { C, F, doubleRule, drawBlock, drawFlag, drawPhoto, fillRect, fitBlock, loadPhoto, pawTexture, render, roundRect, runs, sampleBands, textBlock, trackedMeasurer } from './draw.js'
 import { fileName, fmtCount, timeLeft } from './layout.js'
@@ -444,7 +445,7 @@ export function buildCards(s) {
     where: s.where,
     splitPct: s.contest.beneficiary_split_pct,
     year: s.contest.year,
-    contestName: s.contest.name || 'Cutest Pet in Marathon County',
+    contestName: s.contest.name || `Cutest Pet in ${NEWSROOM.region}`,
     bracketSize: s.bracketSize,
     now: s.now,
     shelterCents: s.stats?.shelter_cents || 0,

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import { NEWSLETTER_URL, RULES, SUPPORT_URL } from '../config.js'
+import { NEWSLETTER_URL, NEWSROOM, RULES, SUPPORT_URL } from '../config.js'
+import { tokenColor, tokenFont } from '../lib/theme.js'
 import { createCheckout, fetchActivity, fetchTotals, mockPay } from '../lib/api.js'
 import { APP_BASE, MOCK_CHECKOUT, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
 import { apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
@@ -43,18 +44,19 @@ const CLOSING_SOON_MS = 5 * 60 * 1000
 const SLOW_CREDIT_MS = 3 * 60 * 1000
 const activityKey = (r) => `${r.entry_id}|${r.votes}|${r.confirmed_at}`
 
-const APPEARANCE = {
+// The card form in the theme's colors and face, read when the form opens.
+const appearance = () => ({
   theme: 'stripe',
   variables: {
-    colorPrimary: '#2b655d',
-    colorText: '#1a1a1a',
-    colorDanger: '#9b2226',
-    fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    colorPrimary: tokenColor('--brand-ink', '#2b655d'),
+    colorText: tokenColor('--ink', '#1a1a1a'),
+    colorDanger: tokenColor('--danger', '#9b2226'),
+    fontFamily: tokenFont('--sans', '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
     fontSizeBase: '16px',
     borderRadius: '8px',
   },
-}
-const FONTS = [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap' }]
+})
+const FONTS = [{ cssSrc: NEWSROOM.fonts || 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap' }]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 export default function CheckoutModal({ entry, round, onClose }) {
@@ -301,7 +303,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
           </label>
           <label className="check" style={{ marginBottom: 14 }}>
             <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
-            <span>Send me Wausau Pilot &amp; Review&rsquo;s free daily newsletter.</span>
+            <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
           </label>
 
           {error && (
@@ -353,7 +355,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
               </span>
             </div>
           ) : stripe.status === 'ready' ? (
-            <Elements stripe={stripe.value} options={{ clientSecret: intent.client_secret, appearance: APPEARANCE, fonts: FONTS }}>
+            <Elements stripe={stripe.value} options={{ clientSecret: intent.client_secret, appearance: appearance(), fonts: FONTS }}>
               <PayForm intent={intent} entry={entry} email={email.trim()} onPaid={paid} onBusy={setPaying} split={split} label={label} />
             </Elements>
           ) : (
@@ -585,9 +587,9 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
       </div>
 
       <p className="done-support">
-        Your vote pack isn&rsquo;t a donation. WPR is a nonprofit newsroom:{' '}
+        Your vote pack isn&rsquo;t a donation. {NEWSROOM.nonprofit ? `${NEWSROOM.shortName} is a nonprofit newsroom:` : `Support ${NEWSROOM.shortName}:`}{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" onClick={() => track('Donate Click', { from: 'post-purchase' })}>
-          make a tax-deductible gift
+          {NEWSROOM.nonprofit ? 'make a tax-deductible gift' : 'subscribe'}
         </a>{' '}
         or{' '}
         <a href={NEWSLETTER_URL} target="_blank" rel="noopener noreferrer">

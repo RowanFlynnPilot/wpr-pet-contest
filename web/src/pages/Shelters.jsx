@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { Arrow, Facebook } from '../components/Icons.jsx'
 import Logo from '../components/ShelterLogo.jsx'
@@ -90,7 +91,7 @@ function Adoptable() {
           <a className="btn btn-primary" href={pet.petUrl} target="_blank" rel="noopener noreferrer" style={{ marginTop: 12 }}>
             See {pet.name}&rsquo;s profile
           </a>
-          <p className="fine">From Wausau Pilot &amp; Review&rsquo;s daily adoptable-pet feature.</p>
+          <p className="fine">From {NEWSROOM.name}&rsquo;s daily adoptable-pet feature.</p>
         </div>
       </div>
     </section>
@@ -99,7 +100,7 @@ function Adoptable() {
 
 export default function Shelters() {
   const c = useContest()
-  useDocumentTitle('Partner shelters — Wausau Pilot & Review')
+  useDocumentTitle(`Partner shelters — ${NEWSROOM.name}`)
   const split = c.contest?.beneficiary_split_pct
   return (
     <div className="wrap section" style={{ paddingTop: 24 }}>
@@ -118,7 +119,8 @@ export default function Shelters() {
         <p style={{ margin: '8px 0 0' }}>
           Vote packs are a purchase, not a donation, so they aren&rsquo;t tax-deductible.{' '}
           {split != null ? `${split}% of what readers spend on vote packs` : 'The published share of vote pack sales'} is paid to the partner
-          shelters after the contest; the rest covers payment processing and supports Wausau Pilot &amp; Review, a nonprofit newsroom.
+          shelters after the contest; the rest covers payment processing and supports {NEWSROOM.name}
+          {NEWSROOM.nonprofit ? ', a nonprofit newsroom' : ''}.
           Adoptable shelter pets entered as wildcards compete like everyone else.
         </p>
       </div>

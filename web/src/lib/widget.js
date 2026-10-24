@@ -4,7 +4,17 @@
 // Taps leave the article and land on the contest. Only WPR's own pages are
 // acceptable destinations: anyone can put this widget in an iframe with any
 // ?to=, and it must never become a branded link to somewhere else.
-export const WIDGET_HOSTS = ['wausaupilotandreview.com', 'www.wausaupilotandreview.com']
+import { NEWSROOM } from '../config.js'
+
+// The widget's ?to= allowlist: the newsroom's own site, with and without www.
+const site = (() => {
+  try {
+    return new URL(NEWSROOM.url).hostname.replace(/^www\./, '')
+  } catch {
+    return 'wausaupilotandreview.com'
+  }
+})()
+export const WIDGET_HOSTS = [site, `www.${site}`]
 
 export const VIEWS = ['auto', 'enter', 'leaderboard', 'matchup', 'champion']
 

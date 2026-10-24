@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { SPONSORS } from '../config.js'
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
 import { useFavorites } from '../lib/favorites.js'
@@ -177,7 +177,7 @@ function Arena({ c, entries, byId, totals }) {
   const openRound = round?.kind === 'open' && ['voting', 'counting'].includes(phase)
   const cutest = (
     <>
-      Is your pet the <em>cutest</em> in Marathon County?
+      Is your pet the <em>cutest</em> in {NEWSROOM.region}?
     </>
   )
   let title, lede, actions, board
@@ -213,7 +213,7 @@ function Arena({ c, entries, byId, totals }) {
   } else if (openRound) {
     title = (
       <>
-        Vote for the <em>cutest</em> pet in Marathon County
+        Vote for the <em>cutest</em> pet in {NEWSROOM.region}
       </>
     )
     lede = `Every pet is in the running. The top ${bracketSize} when the ${label} closes make the bracket, seeded by votes.`
@@ -399,7 +399,7 @@ export default function Home() {
   const { entries, byId } = useEntries(c.contest?.id)
   const openRound = c.round?.kind === 'open' && ['voting', 'counting'].includes(c.phase)
   const { totals } = useRoundTotals(openRound ? c.round.id : null)
-  useDocumentTitle(c.contest ? `${c.contest.name} — Wausau Pilot & Review` : 'Pet contest — Wausau Pilot & Review')
+  useDocumentTitle(`${c.contest ? c.contest.name : 'Pet contest'} — ${NEWSROOM.name}`)
 
   if (c.roundsError) {
     return (

@@ -253,7 +253,9 @@ The palette is a newsroom's warm paper and ink, one teal family carrying the bra
 
 **The One Sun Field Rule.** The champion panel is the only panel filled with sun. Everywhere else sun is a ring, a bar, a lamp, a pill or a crown.
 
-**The White-Label Line.** The teal family, the sun family, cream and the three font faces belong to this brand; another newsroom would swap them. Ink, ink-2, muted, paper, rule, rule-strong and red are role-like and carry over unchanged. Slate and the masthead belong to WPR's identity, not the contest's. The board shades are derived from teal-deep and would have to move with it.
+**The White-Label Line.** The tokens are named by role in `styles/tokens.css`: `brand` (with `-ink`, `-deep`, `-tint`, `-wash`), `accent` (with `-ink`, `-tint`), `danger` (with `-tint`), the paper family and the three faces. The names this document uses (teal, sun, red) are aliases of those roles, kept so the stylesheet reads as it always has. The board shades (`--board-cell`, `--board-row`, `--board-row-lead`, `--board-ring`, `--board-bulb`, `--board-label`, `--board-text`, `--board-dim`, `--board-quiet`) and the warm derivatives (`--accent-rule`, `--accent-wash`, `--accent-soft`, `--accent-light`, `--danger-rule`, `--danger-bright`, `--danger-deep`, `--danger-deeper`) are mixed from the roles with `color-mix()`, so a newsroom that sets its brand gets a matching arena for free. The stylesheet carries no brand literal; the canvas share images, confetti and the Stripe form read the resolved tokens through `lib/theme.js`.
+
+A newsroom is a theme block on `:root[data-theme='…']` plus an entry in `src/newsrooms.js` (name, region, towns, clock, lockup, faces). The sales demo carries a second one, "The Example Gazette": navy and gold on a cooler paper, Newsreader over Source Sans 3. Danger keeps its own hue in every theme, so a red-leaning brand never reads as an error. Slate and the masthead rule belong to the newsroom's identity, not the contest's.
 
 ## Typography
 

@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { SPONSORS } from '../config.js'
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import PetCard from '../components/PetCard.jsx'
 import Sponsor from '../components/Sponsor.jsx'
@@ -85,7 +85,7 @@ export default function Gallery() {
     setFavKept(favOnly ? null : favSet)
     setFavOnly(!favOnly)
   }
-  useDocumentTitle('The pets — Wausau Pilot & Review')
+  useDocumentTitle(`The pets — ${NEWSROOM.name}`)
 
   const towns = useMemo(() => [...new Set(entries.map((e) => e.town))].sort((a, b) => a.localeCompare(b)), [entries])
   const speciesCount = useMemo(() => {

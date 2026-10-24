@@ -1,6 +1,7 @@
 // Share links. Readers land on the WordPress page (publicUrl), which forwards
 // its hash into the iframe. Facebook and X get the per-pet share page instead,
 // because a crawler cannot run the app to find the pet's photo.
+import { NEWSROOM } from '../config.js'
 
 const stripHash = (u) => String(u || '').replace(/#.*$/, '')
 
@@ -19,7 +20,7 @@ export const petSharePageUrl = (appBase, id) => sharePageUrl(appBase, `p/${id}/`
 // each round, since social sites cache previews.
 export const matchupSharePageUrl = (appBase, id) => sharePageUrl(appBase, `m/${id}/`)
 
-export function shareText(petName, contestName = 'Cutest Pet in Marathon County') {
+export function shareText(petName, contestName = `Cutest Pet in ${NEWSROOM.region}`) {
   return `Vote for ${petName} in the ${contestName} contest! Every vote pack helps local animal shelters.`
 }
 

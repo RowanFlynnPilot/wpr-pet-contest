@@ -1,3 +1,4 @@
+import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import Confetti from '../components/Confetti.jsx'
 import { CrownMark } from '../components/Scoreboard.jsx'
@@ -11,6 +12,9 @@ import { BracketBoard } from './Bracket.jsx'
 
 // On the sun field, pieces that show against it.
 const ON_SUN = ['#1f4b45', '#3a867c', '#ffffff', '#2b655d', '#fcefd0']
+
+// Addressed directly: "Thank you, Marathon County", never "Thank you, the Example Valley".
+const PLACE = NEWSROOM.region.replace(/^the /i, '')
 
 // The story of the win in a line, under the name.
 function story(seed, size) {
@@ -91,7 +95,7 @@ export function SideAwards({ c, byId }) {
 export default function Results() {
   const c = useContest()
   const { byId } = useEntries(c.contest?.id)
-  useDocumentTitle('Results — Wausau Pilot & Review')
+  useDocumentTitle(`Results — ${NEWSROOM.name}`)
 
   if (c.phase !== 'complete') {
     return (
@@ -110,7 +114,7 @@ export default function Results() {
   return (
     <div className="wrap">
       <div className="section" style={{ paddingBottom: 12 }}>
-        <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', marginBottom: 18 }}>And the cutest pet in Marathon County is…</h1>
+        <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', marginBottom: 18 }}>And the cutest pet in {NEWSROOM.region} is…</h1>
         <Champion c={c} byId={byId} />
       </div>
       <div className="section" style={{ paddingTop: 12 }}>
@@ -125,7 +129,7 @@ export default function Results() {
       </section>
       <section className="section">
         <div className="card sun">
-          <h2 style={{ fontSize: 22 }}>Thank you, Marathon County</h2>
+          <h2 style={{ fontSize: 22 }}>Thank you, {PLACE}</h2>
           <p style={{ margin: '8px 0 0' }}>
             Every vote pack sent {c.contest.beneficiary_split_pct}% to our partner shelters. See you next year, and in the meantime,{' '}
             <a href="#/shelters">meet some pets who need a home</a>.

@@ -1,5 +1,6 @@
 // The owner's share images: the pet first, then its name, then what to do
 // about it. Drawn at export size; render() scales for previews.
+import { NEWSROOM } from '../../config.js'
 import { C, F, doubleRule, drawBlock, drawFlag, drawPhoto, fillRect, fitBlock, loadPhoto, pawTexture, render, runs, textBlock } from './draw.js'
 import { fmtCount } from './layout.js'
 import { shelterLine } from './content.js'
@@ -200,7 +201,7 @@ async function flyer(ctx, d, { brand }) {
   runs(ctx, voteAt(d, 34), { x: M, y: y + 34, maxWidth: colW })
   y += 34 + 26
   y = textBlock(ctx, shelterLine(d.splitPct), { x: M, y, maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 28, floor: 24, minSize: 20, maxLines: 2, leading: 1.25 }).bottom
-  textBlock(ctx, 'A Wausau Pilot & Review reader contest · 715-301-5539', { x: M, y: Math.max(y + 18, H - 62), maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 20, minSize: 16, maxLines: 1 })
+  textBlock(ctx, `A reader contest from ${NEWSROOM.name} · ${NEWSROOM.phone}`, { x: M, y: Math.max(y + 18, H - 62), maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 20, minSize: 16, maxLines: 1 })
 }
 
 export const OWNER_FORMATS = [

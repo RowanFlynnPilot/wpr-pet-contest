@@ -1,7 +1,7 @@
-// The article widget: a compact card for any WPR story or sidebar that turns
-// the pageview into a way into the contest. Reads only what its card shows,
-// refreshes once a minute, and links out to the contest page.
-import { SPONSORS, WPR_BADGE } from '../config.js'
+// The article widget: a compact card for any of the newsroom's stories or
+// sidebars that turns the pageview into a way into the contest. Reads only
+// what its card shows, refreshes once a minute, and links out to the contest page.
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { withUtm } from '../components/Sponsor.jsx'
 import { track } from '../lib/analytics.js'
 import {
@@ -65,7 +65,7 @@ function Enter({ contest, stats, to, now }) {
   const left = timeLeft(contest.submissions_close_at, now)
   return (
     <>
-      <p className="w-headline">Is your pet the cutest in Marathon County?</p>
+      <p className="w-headline">Is your pet the cutest in {NEWSROOM.region}?</p>
       <p className="w-sub">
         Entering is free. {stats?.entries ? `${fmtInt(stats.entries)} pets are in so far.` : 'Be one of the first.'}
         {left ? ` Entries close in ${left.replace(' left', '')}.` : ''}
@@ -297,7 +297,7 @@ export default function Widget({ params }) {
     // heading for screen reader users who land in it.
     <main className="w-card">
       <header className="w-head">
-        <img src={WPR_BADGE} alt="" width="28" height="28" />
+        {NEWSROOM.badge && <img src={NEWSROOM.badge} alt="" width="28" height="28" />}
         <h1 className="w-kicker">
           {d.contest.name}
           {round && (phase === 'voting' || phase === 'counting') && (
@@ -333,7 +333,7 @@ export default function Widget({ params }) {
             )}
           </span>
         )}
-        <span className="w-by">A Wausau Pilot &amp; Review contest</span>
+        <span className="w-by">A contest from {NEWSROOM.name}</span>
       </footer>
     </main>
   )

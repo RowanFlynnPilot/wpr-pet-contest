@@ -34,7 +34,16 @@ export default defineConfig(({ mode }) => ({
         // Vite folds a page's module scripts into one entry, in order, so the
         // shim's fetch patch is in place before the app's client is built.
         handler: (html) =>
-          mode === 'demo' ? html.replace('<script type="module" src="/src/', '<script type="module" src="/src/demo/shim.js"></script>\n    <script type="module" src="/src/') : html,
+          mode === 'demo'
+            ? html.replace(
+                '<script type="module" src="/src/',
+                // The newsroom choice has to be on <html> before any module runs
+                // (shared chunks evaluate ahead of the shim), so a classic
+                // script sets it first; the shim does the rest.
+                '<script>try{var s=JSON.parse(localStorage.getItem("wpr-demo")||"{}");var n=new URLSearchParams(location.search).get("newsroom")||s.newsroom;if(n)document.documentElement.dataset.newsroom=n}catch(e){}</script>\n' +
+                  '    <script type="module" src="/src/demo/shim.js"></script>\n    <script type="module" src="/src/',
+              )
+            : html,
       },
     },
   ],

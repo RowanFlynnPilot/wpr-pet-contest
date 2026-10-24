@@ -9,11 +9,14 @@
 //     Instagram, where they are not; a few local hashtags on Instagram only.
 // And the contest's own: vote packs are never donations, totals reset every
 // round, nothing names an owner, nothing invents urgency.
+import { NEWSROOM } from '../../config.js'
 import { apDateTime, fmtInt, fmtMoney, plural } from '../format.js'
 import { isUpset } from '../rank.js'
 
 export const FOLD = { facebook: 80, instagram: 125 }
-const TAGS = '#Wausau #MarathonCounty #CentralWisconsin'
+// The newsroom's places as hashtags: "#Wausau #MarathonCounty #Wisconsin".
+const tag = (s) => `#${String(s).replace(/^the /i, '').replace(/[^A-Za-z0-9]/g, '')}`
+const TAGS = (NEWSROOM.hashtags || [NEWSROOM.city, NEWSROOM.region, NEWSROOM.state]).map(tag).join(' ')
 
 const petName = (s) => s?.entry?.pet_name || 'TBD'
 const seeded = (s) => (s?.seed != null ? `No. ${s.seed} ${petName(s)}` : petName(s))

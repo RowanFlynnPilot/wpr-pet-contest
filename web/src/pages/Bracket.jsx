@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { SPONSORS } from '../config.js'
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import MatchupCard from '../components/MatchupCard.jsx'
 import Sponsor from '../components/Sponsor.jsx'
@@ -136,7 +136,7 @@ export default function Bracket() {
     const pairs = projectedPairings(ranked, c.bracketSize)
     return pairs.length ? pairs : null
   }, [projecting, entries, r1.totals, c.bracketSize])
-  useDocumentTitle('The bracket — Wausau Pilot & Review')
+  useDocumentTitle(`The bracket — ${NEWSROOM.name}`)
 
   const liveBracketRound = c.phase === 'voting' && c.round?.kind === 'bracket' ? c.round : null
   const label = c.round ? roundLabel(c.round.seq, c.bracketSize) : null

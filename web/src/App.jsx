@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { DEMO, SPONSOR_INQUIRY } from './config.js'
+import { DEMO, NEWSROOM, SPONSOR_INQUIRY } from './config.js'
 import { BACKEND_CONFIGURED, EMBEDDED } from './lib/env.js'
 import { useRoute } from './lib/router.js'
 import { ContestProvider, useContest } from './components/ContestContext.jsx'
@@ -152,7 +152,7 @@ function NotConfigured() {
           <h1 style={{ fontSize: 28 }}>The pet contest is almost here.</h1>
           <p style={{ marginTop: 10 }}>
             This page isn&rsquo;t connected to the contest yet. Check back soon, or visit{' '}
-            <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a>.
+            <a href={NEWSROOM.url}>{NEWSROOM.name}</a>.
           </p>
           <p className="small muted">Developers: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (see web/.env.example).</p>
         </div>

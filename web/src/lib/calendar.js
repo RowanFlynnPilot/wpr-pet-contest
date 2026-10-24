@@ -2,6 +2,9 @@
 // with a reminder two hours before. The reminder that works inside the
 // WordPress iframe, where browsers refuse push notifications; on a phone the
 // link opens the calendar's own "add event" sheet. Pure, so it is unit-tested.
+import { NEWSROOM } from '../config.js'
+
+const HOST = new URL(NEWSROOM.url).hostname
 
 const stamp = (d) => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 
@@ -24,11 +27,11 @@ export function deadlineIcs({ uid, title, closesAt, url, description, now = Date
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Wausau Pilot & Review//Pet contest//EN',
+    `PRODID:-//${NEWSROOM.name}//Pet contest//EN`,
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:${uid}@wausaupilotandreview.com`,
+    `UID:${uid}@${HOST}`,
     `DTSTAMP:${stamp(now)}`,
     `DTSTART:${stamp(start)}`,
     `DTEND:${stamp(end)}`,

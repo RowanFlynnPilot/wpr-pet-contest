@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import Countdown from '../components/Countdown.jsx'
 import { Camera, Check } from '../components/Icons.jsx'
@@ -168,7 +169,7 @@ export default function Enter() {
   const [serverError, setServerError] = useState(null)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(null)
-  useDocumentTitle('Enter your pet — Wausau Pilot & Review')
+  useDocumentTitle(`Enter your pet — ${NEWSROOM.name}`)
 
   const set = (key) => (value) => setV((prev) => ({ ...prev, [key]: value }))
 
@@ -396,7 +397,7 @@ export default function Enter() {
 
           <label className="check" style={{ marginBottom: 12 }}>
             <input type="checkbox" checked={v.newsletter} onChange={(e) => set('newsletter')(e.target.checked)} />
-            <span>Send me Wausau Pilot &amp; Review&rsquo;s free daily newsletter.</span>
+            <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
           </label>
 
           <div className="field" id="field-rights">
@@ -416,11 +417,11 @@ export default function Enter() {
               <p>By entering, I confirm that:</p>
               <p>1. I took this photo or have the right to share it, and the pet in it lives with me or is in my care.</p>
               <p>
-                2. Wausau Pilot &amp; Review may publish the photo, my pet&rsquo;s name, my town and my caption in print, online and on social
+                2. {NEWSROOM.name} may publish the photo, my pet&rsquo;s name, my town and my caption in print, online and on social
                 media to promote this contest, now and in future contest coverage, without payment to me.
               </p>
               <p>3. I am 18 or older.</p>
-              <p>4. I don&rsquo;t work for Wausau Pilot &amp; Review, and no one in my household does.</p>
+              <p>4. I don&rsquo;t work for {NEWSROOM.name}, and no one in my household does.</p>
               <p>My name and email address are never published.</p>
             </div>
             {errors.rights && <span className="error-text">{errors.rights}</span>}

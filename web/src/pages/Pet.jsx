@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { Arrow, Calendar as CalendarIcon } from '../components/Icons.jsx'
 import FavoriteButton from '../components/FavoriteButton.jsx'
@@ -361,7 +362,7 @@ export default function Pet({ route }) {
   const fromList = byId.get(route.id)
   const single = useLive(fromList ? null : `entry:${route.id}`, () => fetchEntry(route.id), 0)
   const entry = fromList || single.data || null
-  useDocumentTitle(entry ? `Vote for ${entry.pet_name} — Wausau Pilot & Review` : 'Pet — Wausau Pilot & Review')
+  useDocumentTitle(`${entry ? `Vote for ${entry.pet_name}` : 'Pet'} — ${NEWSROOM.name}`)
 
   const inBracket = c.rounds.some((r) => r.kind === 'bracket')
   const bracket = useBracket(inBracket ? c.rounds : [], { openRoundId: c.phase === 'voting' ? c.round?.id : null })

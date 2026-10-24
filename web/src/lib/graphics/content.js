@@ -3,6 +3,7 @@
 //   * vote counts are always this round's: totals reset every round
 //   * the public sees the pet, never the owner: entries here carry only the
 //     public columns (pet_name, town, photo_path, seed)
+import { NEWSROOM } from '../../config.js'
 import { apDate, apDateTime, plural } from '../format.js'
 import { matchupStanding, votesToPass } from '../rank.js'
 import { bracketSeedOrder, finalSeq, roundLabel, roundShortLabel } from '../rounds.js'
@@ -36,7 +37,7 @@ const closes = (at) => glue(`Voting closes ${apDateTime(at)}`)
 export function ownerCopy({ name, phase, round, nextRound, state, seed, bracketSize = 16, year, contestName, opensAt, now = Date.now() }) {
   const pet = String(name || 'this pet').trim()
   const label = round ? roundLabel(round.seq, bracketSize) : null
-  const base = { kicker: contestName || 'Cutest Pet in Marathon County', showVotes: false, votesLabel: null, closesAt: null, urlLead: 'Vote at' }
+  const base = { kicker: contestName || `Cutest Pet in ${NEWSROOM.region}`, showVotes: false, votesLabel: null, closesAt: null, urlLead: 'Vote at' }
   const thanks = (urlLead = 'Follow along at') => {
     if (state?.status === 'out' && state.label) {
       return { ...base, urlLead, tone: 'thanks', headline: `What a run, ${pet}!`, detail: `Made it to the ${state.label}` }
