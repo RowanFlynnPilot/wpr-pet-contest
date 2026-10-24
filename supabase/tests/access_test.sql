@@ -66,7 +66,7 @@ select results_eq(
   $$ select name from our_relations where has_table_privilege('anon', oid, 'SELECT') order by 1 $$,
   $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_round_totals'),
             ('matchups'), ('recent_activity'), ('rounds'), ('shelters'), ('side_awards'),
-            ('vote_packs') $$,
+            ('sponsor_matches'), ('vote_packs') $$,
   'anon can read exactly the public tables and views');
 
 select results_eq(
@@ -74,7 +74,7 @@ select results_eq(
      where a.attrelid = 'public.entries'::regclass and a.attnum > 0 and not a.attisdropped
        and has_column_privilege('anon', a.attrelid, a.attnum, 'SELECT')
      order by 1 $$,
-  $$ values ('caption'), ('contest_id'), ('created_at'), ('id'), ('pet_name'), ('photo_path'),
+  $$ values ('caption'), ('contest_id'), ('created_at'), ('goal_votes'), ('id'), ('pet_name'), ('photo_path'),
             ('seed'), ('shelter_id'), ('species'), ('status'), ('thumb_path'), ('town') $$,
   'anon sees the pet on an entry, never the owner');
 
@@ -110,7 +110,7 @@ select ok(
 
 select is_empty(
   $$ select t from unnest(array['free_voters', 'free_vote_challenges', 'free_voter_devices', 'free_votes',
-                                'free_vote_reminders', 'free_vote_staff_log']) t
+                                'free_vote_reminders', 'free_vote_staff_log', 'buyer_notices', 'round_tally']) t
      where has_table_privilege('authenticated', 'public.' || t, 'INSERT, UPDATE, DELETE')
      union all
      select t from unnest(array['free_votes', 'free_voters', 'free_voter_devices', 'free_vote_challenges',
@@ -139,18 +139,20 @@ select results_eq(
   $$ select name from our_functions where has_function_privilege('authenticated', oid, 'EXECUTE') order by 1 $$,
   $$ values ('close_round'), ('create_contest'), ('delete_draft_contest'), ('disqualify_entry'),
             ('erase_personal_data'), ('is_admin'), ('moderate_entry'), ('open_round'),
-            ('open_submissions'), ('round_label'), ('set_free_vote_enabled'), ('set_free_vote_paused'), ('set_shelter_goal'),
-            ('update_draft_contest'), ('void_free_voters'), ('withdraw_entry') $$,
+            ('open_submissions'), ('rebuild_round_tally'), ('round_label'), ('set_free_vote_enabled'), ('set_free_vote_paused'),
+            ('set_shelter_goal'), ('sponsor_match_cents'), ('update_draft_contest'), ('void_free_voters'), ('withdraw_entry') $$,
   'signed-in sessions reach only the admin actions, each of which checks is_admin()');
 
 select results_eq(
   $$ select name from our_functions where has_function_privilege('service_role', oid, 'EXECUTE') order by 1 $$,
-  $$ values ('confirm_vote'), ('contest_health'), ('create_pending_vote'), ('free_vote_cast'),
+  $$ values ('buyer_notice_queue'), ('buyer_notice_unsubscribe'), ('confirm_vote'), ('contest_health'),
+            ('create_pending_vote'), ('entrant_opt_out'), ('free_vote_cast'),
             ('free_vote_challenge'), ('free_vote_challenge_sent'), ('free_vote_device_status'),
             ('free_vote_preferences'), ('free_vote_reminder_queue'), ('free_vote_unsubscribe'),
             ('free_vote_verify'), ('hit_rate_limit'), ('insert_entry'), ('is_admin'), ('mark_dispute_won'),
             ('mark_intent_canceled'), ('mark_vote_disputed'), ('notification_queue'), ('record_health'),
-            ('record_partial_refund'), ('refund_vote'), ('round_label'), ('stale_pending_intents'), ('vote_quote') $$,
+            ('record_partial_refund'), ('refund_vote'), ('round_label'), ('set_entry_goal'), ('sponsor_match_cents'),
+            ('stale_pending_intents'), ('vote_quote') $$,
   'the edge functions reach exactly the vote lifecycle, free-vote steps, entry insert, rate limiter, mail queue and health checks');
 
 
