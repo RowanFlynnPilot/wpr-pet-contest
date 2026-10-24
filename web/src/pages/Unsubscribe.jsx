@@ -10,10 +10,10 @@ function readLink(params) {
   const fv = readLinkToken(params)
   if (fv?.kind === 'unsubscribe') return { kind: 'free', token: fv.token, title: 'Free vote reminders', what: 'the morning emails reminding you to cast your free vote' }
   if (/^[A-Za-z0-9_-]{40,64}$/.test(params?.bn || '')) {
-    return { kind: 'buyer', token: params.bn, title: 'Emails about the pets you backed', what: 'the one-email-a-round notes about the pets you bought votes for' }
+    return { kind: 'buyer', token: params.bn, title: 'Emails about the pets you backed', what: 'the once-a-round emails about the pets you bought votes for' }
   }
   const m = /^([0-9a-f-]{36})\.([0-9a-f-]{36})$/i.exec(params?.owner || '')
-  if (m) return { kind: 'owner', entryId: m[1], token: m[2], title: 'Tips for your entry', what: 'the tips emails about sharing your pet (notices about your entry itself still come)' }
+  if (m) return { kind: 'owner', entryId: m[1], token: m[2], title: 'Tips for your entry', what: 'the emails with tips on sharing your pet (notices about your entry itself still come)' }
   return null
 }
 

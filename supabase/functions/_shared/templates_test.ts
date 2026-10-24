@@ -139,7 +139,7 @@ Deno.test("buyer notes: plays again, the run ends, the champion; never a name, a
   assertStringIncludes(again.text, "Stop these emails: https://u/1");
   assert(!again.text.includes("Hi "));
   const two = renderBuyerNote({ ...base2, playing: [{ entry_id: "x", pet: "Biscuit", opponent: "Luna" }, { entry_id: "y", pet: "Gus", opponent: "Moose" }], ended: [{ pet: "Otis", opponent: "Hazel", round: "Sweet 16" }], champion: [] }, LINKS, "https://u/2");
-  assertEquals(two.subject, "2 of your pets play again in the Elite Eight");
+  assertEquals(two.subject, "Two of your pets play again in the Elite Eight");
   assertStringIncludes(two.text, "Otis's run ended in the Sweet 16, against Hazel");
   const champ = renderBuyerNote({ ...base2, is_final: true, playing: [], ended: [], champion: [{ entry_id: "x", pet: "Gus", opponent: "Luna" }] }, LINKS, "https://u/3");
   assertEquals(champ.subject, "Gus is the champion");

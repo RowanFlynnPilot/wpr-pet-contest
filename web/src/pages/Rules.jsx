@@ -245,7 +245,7 @@ export default function Rules() {
         <p>
           Entrants&rsquo; names and email addresses, and buyers&rsquo; email addresses, are used only to run the Contest: moderation, receipts,
           contest notices and, for those who opt in, WPR&rsquo;s newsletter. They are never published or sold. They are erased 12 months after
-          the Contest ends. Pet names, towns, photos and results are kept as part of WPR&rsquo;s coverage. A buyer who ticks the box at
+          the Contest ends. Pet names, towns, photos and results are kept as part of WPR&rsquo;s coverage. A buyer who checks the box at
           checkout gets one email per bracket round about the pets they backed, and can stop them from any such email. Entrants get a
           few tips about sharing during the Contest, and can stop those from any such email.
         </p>

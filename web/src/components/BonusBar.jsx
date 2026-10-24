@@ -59,17 +59,30 @@ export default function BonusBar() {
   if (match && voting) {
     const endsFirst = round && new Date(round.closes_at) < new Date(match.ends_at)
     const ratio = Number(match.ratio)
+    // "Match hour" only when it is one; a sponsor may match a whole evening.
+    const hours = (new Date(match.ends_at) - new Date(match.starts_at)) / 3600000
     return (
       <div className="bonus-bar match" role="status">
         <div className="wrap">
           <span className="bonus-badge" aria-hidden="true">
             {ratio >= 1 ? `${ratio % 1 ? ratio : Math.round(ratio)}:1` : `${Math.round(ratio * 100)}¢`}
           </span>
-          <strong>Match hour</strong>
+          <strong>{hours <= 1.5 ? 'Match hour' : 'Sponsor match'}</strong>
           <span>
             <span className="bonus-explain">
-              <SponsorCredit w={{ sponsor_name: match.sponsor_name, sponsor_url: match.sponsor_url }} /> matches every vote pack for the
-              shelters, up to {fmtMoney(match.cap_cents, { whole: true })}.{' '}
+              {match.sponsor_url ? (
+                <a
+                  href={withUtm(match.sponsor_url)}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  onClick={() => track('Sponsor Click', { sponsor: match.sponsor_name, slot: 'match' })}
+                >
+                  {match.sponsor_name}
+                </a>
+              ) : (
+                <b>{match.sponsor_name}</b>
+              )}{' '}
+              matches every vote pack for the shelters, up to {fmtMoney(match.cap_cents, { whole: true })}.{' '}
             </span>
             <span className="bonus-ends">Ends in </span>
             <InlineCountdown to={endsFirst ? round.closes_at : match.ends_at} />

@@ -153,7 +153,7 @@ export function render(row: QueueRow, links: Links): Message {
       const goal = goalLine(row);
       return compose(`The Open Round closes tonight${closes ? ` at ${closes.replace(/^.*? at /, "")}` : ""}`, first, [
         `The Open Round closes tonight${closes ? `, ${closes}` : ""}. As of this morning, ${standingLine(row)}`,
-        `A vote counts if its payment goes through by the deadline. A payment already in progress gets a two-minute grace, and anything later is refunded automatically, so tell people not to wait for the last minute.`,
+        `A vote counts if its payment goes through by the deadline. A payment already in progress gets a two-minute grace period, and anything later is refunded automatically, so tell people not to wait for the last minute.`,
         ...(goal ? [goal] : []),
         `An editor finalizes the results shortly after the close, and we'll email you tonight with how ${pet} did.`,
       ], { label: `Share ${pet}'s page`, url: shareUrl }, [stopLine]);
@@ -223,6 +223,9 @@ export type BuyerNoteRow = {
   raised_cents: number;
 };
 
+// AP style: a sentence or a subject line never starts with a numeral.
+const spelled = (n: number) => ["Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"][n - 2] ?? String(n);
+
 export function renderBuyerNote(row: BuyerNoteRow, links: Links, unsubscribe: string): Message {
   const raised = dollars(row.raised_cents);
   const closes = formatWhen(row.closes_at);
@@ -240,11 +243,11 @@ export function renderBuyerNote(row: BuyerNoteRow, links: Links, unsubscribe: st
     button = { label: "See the results", url: `${links.publicUrl}#/results` };
   } else if (row.playing.length) {
     const p = row.playing;
-    subject = p.length === 1 ? `${p[0].pet} plays again: ${row.round_name}${p[0].opponent ? ` vs. ${p[0].opponent}` : ""}` : `${p.length} of your pets play again in the ${row.round_name}`;
+    subject = p.length === 1 ? `${p[0].pet} plays again: ${row.round_name}${p[0].opponent ? ` vs. ${p[0].opponent}` : ""}` : `${spelled(p.length)} of your pets play again in the ${row.round_name}`;
     paras.push(
       p.length === 1
         ? `You asked us to tell you when ${p[0].pet} plays again. ${p[0].pet} is in the ${row.round_name}${p[0].opponent ? `, facing ${p[0].opponent}` : ""}, and voting closes ${closes}.`
-        : `${p.length} of the pets you backed play again in the ${row.round_name}: ${p.map((x) => `${x.pet}${x.opponent ? ` faces ${x.opponent}` : ""}`).join("; ")}. Voting closes ${closes}.`,
+        : `${spelled(p.length)} of the pets you backed play again in the ${row.round_name}:${p.map((x) => `${x.pet}${x.opponent ? ` faces ${x.opponent}` : ""}`).join("; ")}. Voting closes ${closes}.`,
     );
     paras.push(`Vote totals reset every round. The votes you bought counted in the round you bought them in, and every pet starts this one at zero.`);
     button = p.length === 1 ? { label: "See the matchup", url: `${links.publicUrl}#/pet/${p[0].entry_id}` } : { label: "See the bracket", url: `${links.publicUrl}#/bracket` };

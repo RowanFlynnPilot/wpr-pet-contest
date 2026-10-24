@@ -108,7 +108,7 @@ function OwnerTools({ entry, token, round }) {
         ) : null}
       </form>
       <p className="small">
-        Below: share buttons, and &ldquo;Make a share image&rdquo; for a story, a square post and a flyer with a QR code. The Facebook button
+        Below: share buttons and &ldquo;Make a share image&rdquo; for a story, a square post and a flyer with a QR code. The Facebook button
         uses a link that shows {entry.pet_name}&rsquo;s photo in the preview.
       </p>
       {error && (
