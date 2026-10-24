@@ -29,4 +29,6 @@ export const APP_BASE =
 // on the bare GitHub Pages URL.
 export const PUBLIC_URL = (env.VITE_PUBLIC_URL || APP_BASE).replace(/#.*$/, '')
 
-export const EMBEDDED = typeof window !== 'undefined' && window.parent !== window
+// Inside the WordPress iframe. The demo build (src/demo/shim.js) is framed by
+// its host too, but shows the whole site.
+export const EMBEDDED = typeof window !== 'undefined' && window.parent !== window && !window.WPR_DEMO

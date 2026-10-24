@@ -27,6 +27,25 @@ async function main() {
   for (let n = 1; n <= PHOTO_COUNT; n++) await writeFile(join(pets, 'mock', `${n}.svg`), photo(n))
   await writeFile(join(pets, 'shelters', 'moments-foster-care.png'), await readFile(join(ROOT, 'public', 'moments-foster-care.png')))
 
+  // artifact.html: the same page for a host that wraps it in its own document
+  // (claude.ai artifacts): no doctype, html, head or body of its own; the
+  // title, the fonts and the stylesheet inline at the top, then the app.
+  const html = await readFile(join(OUT, 'index.html'), 'utf8')
+  const pick = (re) => (html.match(re) || []).join('\n')
+  const css = await Promise.all((html.match(/href="\.\/assets\/[^"]+\.css"/g) || []).map((m) => readFile(join(OUT, m.slice(8, -1)), 'utf8')))
+  const artifact = [
+    '<title>Cutest Pet Contest Demo</title>',
+    '<meta name="claude:viewport-fit-sides" content="cover">',
+    pick(/<link rel="preconnect"[^>]*>/g),
+    pick(/<link[^>]*fonts\.googleapis\.com[^>]*>/g),
+    `<style>${css.join('\n')}</style>`,
+    '<div id="root"></div>',
+    pick(/<link rel="modulepreload"[^>]*>/g),
+    pick(/<script type="module"[^>]*><\/script>/g),
+    '',
+  ].join('\n')
+  await writeFile(join(OUT, 'artifact.html'), artifact)
+
   // Every file, relative, for whoever publishes the folder.
   const files = []
   async function walk(dir) {

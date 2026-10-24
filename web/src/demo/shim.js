@@ -11,6 +11,10 @@ import { createMock, PHASES } from './contest.js'
 const HOST = 'demo.invalid'
 const KEY = 'wpr-demo'
 
+// The demo is shown inside other pages (a hosted preview frames it); it is
+// still the whole site, masthead and all, not the WordPress embed.
+window.WPR_DEMO = true
+
 function settings() {
   try {
     const q = new URLSearchParams(window.location.search)
