@@ -186,7 +186,7 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, free vote, health, lifecycle, moderation
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, free vote, hardening, health, lifecycle, moderation
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after

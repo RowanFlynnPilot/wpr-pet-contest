@@ -21,7 +21,7 @@ export const PUBLIC_FUNCTIONS = ["submit-entry", "create-checkout"];
 export const REQUIRED_SECRETS = ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "ALLOWED_ORIGIN"];
 export const RECOMMENDED_SECRETS = ["PUBLIC_URL", "SHARE_BASE_URL", "CRON_SECRET"];
 export const DEPLOY_SECRETS = ["SUPABASE_ACCESS_TOKEN", "SUPABASE_DB_PASSWORD", "SUPABASE_PROJECT_ID"];
-export const WEBHOOK_EVENTS = ["payment_intent.succeeded", "charge.refunded", "charge.dispute.created"];
+export const WEBHOOK_EVENTS = ["payment_intent.succeeded", "charge.refunded", "charge.dispute.created", "charge.dispute.closed"];
 // What the free daily vote needs once a contest turns it on (docs/FREE-DAILY-VOTE.md).
 export const FREE_VOTE_SECRETS = ["FREE_VOTE_HASH_KEY", "TURNSTILE_SECRET_KEY", "RESEND_API_KEY"];
 

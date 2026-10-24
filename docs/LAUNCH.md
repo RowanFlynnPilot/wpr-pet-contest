@@ -60,7 +60,9 @@ deals and the dry run in section 8.
       "Block if :card_count_for_ip_address_hourly: > 3" and tell the developer.
 - [ ] Webhook endpoint:
       `https://<project>.supabase.co/functions/v1/stripe-webhook`, events
-      `payment_intent.succeeded`, `charge.refunded`, `charge.dispute.created`.
+      `payment_intent.succeeded`, `charge.refunded`, `charge.dispute.created`,
+      `charge.dispute.closed` (a won dispute puts the votes and the shelters'
+      share back).
       Copy the signing secret for the next step.
 
 ## 2. Supabase secrets
@@ -74,6 +76,16 @@ supabase secrets set \
   SHARE_BASE_URL=https://rowanflynnpilot.github.io/wpr-pet-contest/
 ```
 
+- [ ] Recommended: one restricted Stripe key per function (Dashboard →
+      Developers → API keys → Create restricted key), so a leaked key can do
+      only its function's job. Each falls back to `STRIPE_SECRET_KEY` while
+      unset.
+      | Secret | Permissions |
+      | --- | --- |
+      | `STRIPE_KEY_CHECKOUT` | PaymentIntents: write |
+      | `STRIPE_KEY_WEBHOOK` | Refunds: write; PaymentIntents: read |
+      | `STRIPE_KEY_DISQUALIFY` | Refunds: write; PaymentIntents: write |
+      | `STRIPE_KEY_HEALTH` | PaymentIntents: write; Charges: read |
 - [ ] Auth → Providers → Email: **enabled**. Auth → "Allow new users to sign
       up": **off**. (Two separate switches; the first must stay on or staff
       cannot log in.)

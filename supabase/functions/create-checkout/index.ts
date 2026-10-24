@@ -7,16 +7,14 @@
 // Order matters: vote_quote validates the vote before Stripe is touched, so a
 // request for a closed round or an eliminated pet creates no payment intent.
 
-import Stripe from "npm:stripe@17";
 import { service as db } from "../_shared/db.ts";
-import { requireEnv } from "../_shared/env.ts";
+import { Stripe, stripeClient } from "../_shared/stripe.ts";
 import { HttpError, readJson, serve } from "../_shared/http.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 import { email, slug, uuid } from "../_shared/validate.ts";
 
-const stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
-  httpClient: Stripe.createFetchHttpClient(),
-});
+// Restricted key: PaymentIntents write.
+const stripe = stripeClient("STRIPE_KEY_CHECKOUT");
 
 type Quote = { contest_id: string; pet_name: string; votes: number; cents: number; multiplier: number };
 type Parked = { votes: number; cents: number; multiplier: number };
