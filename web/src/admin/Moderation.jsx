@@ -281,6 +281,10 @@ export default function Moderation() {
     () => q(admin.from('entries').select('id, pet_name, owner_email, disqualification_reason, disqualified_at').eq('contest_id', cid).eq('status', 'disqualified').order('disqualified_at', { ascending: false })),
     [cid],
   )
+  const withdrawn = useAsync(
+    () => q(admin.from('entries').select('id, pet_name, owner_email, withdrawal_reason, withdrawn_at').eq('contest_id', cid).eq('status', 'withdrawn').order('withdrawn_at', { ascending: false })),
+    [cid],
+  )
   const [index, setIndex] = useState(0)
   const [rejecting, setRejecting] = useState(null)
   const [disqualifying, setDisqualifying] = useState(null)
@@ -354,7 +358,7 @@ export default function Moderation() {
           : `${entry.pet_name} withdrawn · no refunds · photo deleted.`,
       )
       setWithdrawing(null)
-      await approved.reload()
+      await Promise.all([approved.reload(), withdrawn.reload()])
     } catch (err) {
       if (err instanceof SessionError) onSessionLost(err.message)
       else setError(err)
@@ -482,6 +486,22 @@ export default function Moderation() {
           ))}
         </div>
       </section>
+
+      {(withdrawn.data || []).length > 0 && (
+        <section>
+          <div className="panel-head">
+            <h2>Withdrawn</h2>
+            <span className="small muted">Taken out at the owner&rsquo;s request. No refunds; the shelters&rsquo; share stands.</span>
+          </div>
+          <ul className="plain-list">
+            {withdrawn.data.map((e) => (
+              <li key={e.id}>
+                <strong>{e.pet_name}</strong> · {e.withdrawal_reason} · <span className="muted">{stamp(e.withdrawn_at)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {(disqualified.data || []).length > 0 && (
         <section>

@@ -1,8 +1,10 @@
 import { useMemo, useRef } from 'react'
 import { useContest } from '../components/ContestContext.jsx'
-import { Arrow } from '../components/Icons.jsx'
+import { Arrow, Calendar as CalendarIcon } from '../components/Icons.jsx'
 import FavoriteButton from '../components/FavoriteButton.jsx'
 import { FreeVoteButton, useFreeVoteLanding } from '../components/FreeVote.jsx'
+import { deadlineIcs, icsHref } from '../lib/calendar.js'
+import { PUBLIC_URL } from '../lib/env.js'
 import PetPhoto from '../components/PetPhoto.jsx'
 import PetCard from '../components/PetCard.jsx'
 import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
@@ -10,6 +12,7 @@ import { CountdownCells, CrownMark, Digits, GameClock, Lamp, RoadStrip, Scoreboa
 import ShareTools from '../components/ShareTools.jsx'
 import ShareImageButton from '../components/ShareImageButton.jsx'
 import VoteButton from '../components/VoteButton.jsx'
+import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
 import { entryStates } from '../lib/bracketState.js'
 import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
@@ -35,6 +38,26 @@ function PriceHint({ packs }) {
   )
 }
 
+// A calendar event at the round's deadline with a two-hour reminder: the
+// reminder that works inside the WordPress iframe, where push cannot.
+function DeadlineReminder({ entry, round }) {
+  const c = useContest()
+  if (!round?.closes_at || round.status !== 'open') return null
+  const label = roundLabel(round.seq, c.bracketSize)
+  const ics = deadlineIcs({
+    uid: `${round.id}-${entry.id}`,
+    title: `Voting closes: ${label}, ${c.contest?.name || 'pet contest'}`,
+    closesAt: round.closes_at,
+    url: `${PUBLIC_URL}#/pet/${entry.id}`,
+    description: `Last call to vote for ${entry.pet_name}. Totals reset every round.`,
+  })
+  return (
+    <a className="deadline-link" href={icsHref(ics)} download={`vote-${entry.pet_name}.ics`} onClick={() => track('Calendar', { pet: entry.pet_name })}>
+      <CalendarIcon size={16} /> Remind me before voting closes
+    </a>
+  )
+}
+
 // The page's one action, inside the first screen; on phones a pinned copy
 // takes over whenever it is off screen.
 function VoteBlock({ entry, round, packs }) {
@@ -47,6 +70,7 @@ function VoteBlock({ entry, round, packs }) {
         </VoteButton>
         <PriceHint packs={packs} />
         <FreeVoteButton entry={entry} round={round} />
+        <DeadlineReminder entry={entry} round={round} />
       </div>
       <StickyVote targetRef={ref}>
         <VoteButton entry={entry} round={round} className="btn btn-primary btn-block">

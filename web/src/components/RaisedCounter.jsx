@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { fmtInt, fmtMoney } from '../lib/format.js'
+import { goalProgress } from '../lib/goal.js'
 import { useReducedMotion } from '../lib/hooks.js'
 import { useContest } from './ContestContext.jsx'
 
@@ -31,11 +32,12 @@ function useRollingNumber(target, ms = 1200) {
 }
 
 export default function RaisedCounter() {
-  const { stats, contest, phase } = useContest()
+  const { stats, contest, phase, shelters } = useContest()
   const cents = stats?.shelter_cents ?? 0
   const shown = useRollingNumber(Number(cents))
   if (!contest) return null
   const split = stats?.beneficiary_split_pct ?? contest.beneficiary_split_pct
+  const goal = goalProgress(cents, contest.shelter_goal_cents)
   return (
     <section className="raised" aria-label="Money raised for shelters">
       <div>
@@ -46,10 +48,29 @@ export default function RaisedCounter() {
           <span className="sr-only">{fmtMoney(Number(cents), { whole: true })} </span>
           raised for local animal shelters
         </div>
+        {goal && (
+          <div className="raised-goal">
+            <div
+              className="raised-bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={goal.pct}
+              aria-label={`${goal.pct}% of the ${fmtMoney(goal.goal, { whole: true })} goal`}
+            >
+              <span style={{ width: `${goal.pct}%` }} />
+            </div>
+            <div className="raised-goal-label">
+              {goal.reached
+                ? `Goal of ${fmtMoney(goal.goal, { whole: true })} reached. Thank you.`
+                : `${goal.pct}% of our ${fmtMoney(goal.goal, { whole: true })} goal`}
+            </div>
+          </div>
+        )}
       </div>
       <div>
         <p style={{ margin: '0 0 8px', fontSize: 15 }}>
-          {split}% of every vote pack goes straight to our partner shelters.
+          {split}% of every vote pack goes straight to {shelters?.length === 1 ? shelters[0].name : 'our partner shelters'}.
           {phase === 'complete' ? ' The final total, after refunds.' : ' The counter updates as votes come in.'}
         </p>
         <div className="raised-facts">

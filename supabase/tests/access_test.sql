@@ -139,7 +139,7 @@ select results_eq(
   $$ select name from our_functions where has_function_privilege('authenticated', oid, 'EXECUTE') order by 1 $$,
   $$ values ('close_round'), ('create_contest'), ('delete_draft_contest'), ('disqualify_entry'),
             ('erase_personal_data'), ('is_admin'), ('moderate_entry'), ('open_round'),
-            ('open_submissions'), ('round_label'), ('set_free_vote_enabled'), ('set_free_vote_paused'),
+            ('open_submissions'), ('round_label'), ('set_free_vote_enabled'), ('set_free_vote_paused'), ('set_shelter_goal'),
             ('update_draft_contest'), ('void_free_voters'), ('withdraw_entry') $$,
   'signed-in sessions reach only the admin actions, each of which checks is_admin()');
 

@@ -90,6 +90,13 @@ export const XLogo = ({ size = 16 }) => (
   </svg>
 )
 
+export const Calendar = ({ size = 18 }) => (
+  <svg {...base(size)}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </svg>
+)
+
 export const Clock = ({ size = 18 }) => (
   <svg {...base(size)}>
     <circle cx="12" cy="12" r="9" />

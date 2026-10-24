@@ -65,14 +65,18 @@ async function withFallback(run, cols, baseCols) {
   }
 }
 
-export function fetchContests() {
+const CONTEST_COL_SETS = [`${CONTEST_FREE_COLS}, shelter_goal_cents`, CONTEST_FREE_COLS, CONTEST_COLS, CONTEST_BASE_COLS]
+
+export async function fetchContests() {
   const db = need()
-  const run = (cols) => rows(db.from('contests').select(cols).order('year', { ascending: false }))
-  // Newest columns first; a backend a migration behind still loads.
-  return withFallback(run, CONTEST_FREE_COLS, CONTEST_COLS).catch((e) => {
-    if (isUnavailable(e)) return run(CONTEST_BASE_COLS)
-    throw e
-  })
+  // Newest columns first; a backend a few migrations behind still loads.
+  for (const [i, cols] of CONTEST_COL_SETS.entries()) {
+    try {
+      return await rows(db.from('contests').select(cols).order('year', { ascending: false }))
+    } catch (e) {
+      if (!isUnavailable(e) || i === CONTEST_COL_SETS.length - 1) throw e
+    }
+  }
 }
 
 export function fetchRounds(contestId) {

@@ -6,7 +6,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(26);
+select plan(31);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),
@@ -180,6 +180,30 @@ select results_eq(
   $$ select sales_cents, net_cents from payout_statement where contest_id = (select id from made) $$,
   $$ values (5300::bigint, 1500::bigint) $$,
   'the money and results are untouched');
+
+
+-- ------------------------------------------------------------ shelter goal --
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111"}';
+insert into contests (id, year, name, beneficiary_split_pct, submissions_open_at, submissions_close_at, status)
+values ('9a000000-0000-0000-0000-00000000009a', 2099, 'Goal draft', 30, now() + interval '5 days', now() + interval '12 days', 'draft'),
+       ('9b000000-0000-0000-0000-00000000009b', 2100, 'Goal live', 30, now() - interval '5 days', now() + interval '2 days', 'submissions_open');
+select set_shelter_goal('9a000000-0000-0000-0000-00000000009a', 500000);
+select set_shelter_goal('9a000000-0000-0000-0000-00000000009a', 300000);
+select is((select shelter_goal_cents from contests where id = '9a000000-0000-0000-0000-00000000009a'), 300000::bigint,
+  'a draft''s goal can be set and changed freely');
+update contests set shelter_goal_cents = 300000 where id = '9b000000-0000-0000-0000-00000000009b';
+select throws_ok($$ select set_shelter_goal('9b000000-0000-0000-0000-00000000009b', 200000) $$,
+  'WP400', 'Readers have seen the goal, so it can only be raised. Announce the new goal when you do.',
+  'once readers have seen a goal it cannot be lowered');
+select throws_ok($$ select set_shelter_goal('9b000000-0000-0000-0000-00000000009b', null) $$,
+  'WP400', 'Readers have seen the goal, so it can only be raised. Announce the new goal when you do.',
+  'or quietly removed');
+select set_shelter_goal('9b000000-0000-0000-0000-00000000009b', 400000);
+select is((select shelter_goal_cents from contests where id = '9b000000-0000-0000-0000-00000000009b'), 400000::bigint,
+  'it can be raised');
+set local request.jwt.claims = '{"sub":"44444444-4444-4444-4444-444444444444"}';
+select throws_ok($$ select set_shelter_goal('9a000000-0000-0000-0000-00000000009a', 100) $$, 'not authorized',
+  'only an admin sets the goal');
 
 
 select * from finish();

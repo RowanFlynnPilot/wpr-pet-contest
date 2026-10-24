@@ -60,6 +60,7 @@ function contestState() {
     submissions_close_at: iso(submissions ? now + 4 * DAY : now - 7 * DAY),
     free_vote_enabled: true,
     free_vote_paused_at: null,
+    shelter_goal_cents: 500000,
   }
 
   const totalsFor = (roundSeq, ids) => ids.map((eid, i) => ({

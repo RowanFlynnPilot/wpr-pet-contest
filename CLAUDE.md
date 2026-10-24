@@ -141,7 +141,9 @@ the buttons call, for when the panel is not an option.
    `bonus_windows` (Packs & bonuses tab). Everything is editable while it is a
    draft (`update_draft_contest`); the split is published on the rules page and
    freezes when submissions open. The free daily vote is a Setup switch too
-   (draft only, and only after counsel; docs/FREE-DAILY-VOTE.md). The Setup
+   (draft only, and only after counsel; docs/FREE-DAILY-VOTE.md). So is an
+   optional shelter goal, shown as a meter under the money counter; once
+   entries open it can only be raised (`set_shelter_goal`). The Setup
    checklist says what is missing.
 2. `select open_submissions('<contest-id>');` — refuses without an active vote
    pack. One week. It also stages round 1 (pending), scheduled to open when
