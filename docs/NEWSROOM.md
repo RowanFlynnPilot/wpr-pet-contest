@@ -25,7 +25,10 @@ A block on `:root[data-theme='<key>']` that sets the role tokens: `--brand`
 `--danger` if the default red collides with your brand, the paper family
 (`--cream`, `--cream-deep`, `--rule`, `--rule-strong`, `--slate`), and the
 faces (`--display`, `--display-xl`, `--sans`). Everything else, the arena's
-board shades included, derives from those with `color-mix()`.
+board shades included, derives from those with `color-mix()`. Each face has
+a `size-adjust`ed local fallback in `tokens.css` so the page holds still
+while the web font arrives; give yours the same (measure the width ratio in
+a browser canvas) or the layout shifts on a slow connection.
 
 Two rules worth keeping: brand and accent are fills, and text in either
 family uses the `-ink` partner (check 4.5:1 on your paper); danger stays its

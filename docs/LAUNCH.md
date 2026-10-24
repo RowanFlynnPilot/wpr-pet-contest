@@ -92,8 +92,10 @@ supabase secrets set \
 - [ ] Invite each moderator (Auth → Users → Invite), then add them:
       `insert into admins (user_id) select id from auth.users where email = '...';`
 - [ ] Storage image transformations require the Pro plan. Without it, set
-      `VITE_IMAGE_TRANSFORMS=false` and the gallery serves originals (slower on
-      phones; the front end resizes before upload, so originals are ~2048px).
+      `VITE_IMAGE_TRANSFORMS=false`: cards and lists serve the 800px copy made
+      at upload (about 100 KB a photo, so a list of 16 pets is 1.5 MB on a
+      phone), the pet page the 2048px original. The Pro plan's resizing makes
+      a list avatar a few KB; worth the $25 for the contest month.
 
 ## 3. GitHub
 

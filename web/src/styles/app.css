@@ -93,7 +93,10 @@ p { margin: 0 0 0.8em; }
 }
 .masthead-flag { display: inline-flex; align-items: center; gap: 14px; max-width: 94%; text-decoration: none; }
 .masthead-flag .badge { width: 52px; height: 52px; flex: none; }
-.masthead-flag .wordmark { max-height: 44px; width: auto; height: auto; min-width: 0; max-width: 100%; object-fit: contain; }
+/* An explicit height: with the width/height attributes' ratio the box is
+   reserved before the image arrives, so the flag does not re-center and the
+   page does not move when it lands. */
+.masthead-flag .wordmark { height: 44px; width: auto; min-width: 0; max-width: 100%; object-fit: contain; }
 .masthead-name { font-family: var(--display); font-size: clamp(26px, 6vw, 40px); font-weight: 700; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
 .masthead-tagline {
   font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); margin-top: 8px;
@@ -106,7 +109,7 @@ p { margin: 0 0 0.8em; }
 .masthead-dateline span:last-child { text-transform: uppercase; letter-spacing: 0.1em; }
 @media (min-width: 720px) {
   .masthead-flag .badge { width: 62px; height: 62px; }
-  .masthead-flag .wordmark { max-height: 54px; }
+  .masthead-flag .wordmark { height: 54px; }
 }
 /* On a phone the flag is one compact line; the tagline and dateline wait for
    a screen with room for them. */
@@ -114,7 +117,7 @@ p { margin: 0 0 0.8em; }
   .masthead { padding: 6px var(--pad-r) 6px var(--pad-l); border-top-width: 3px; }
   .masthead-flag { gap: 10px; }
   .masthead-flag .badge { width: 34px; height: 34px; }
-  .masthead-flag .wordmark { max-height: 26px; }
+  .masthead-flag .wordmark { height: 26px; }
   .masthead-tagline, .masthead-dateline { display: none; }
 }
 

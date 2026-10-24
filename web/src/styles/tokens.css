@@ -74,8 +74,8 @@
   --display: 'Fraunces', 'Fraunces Fallback', Georgia, 'Times New Roman', serif;
   /* For text set at 'opsz' 144. */
   --display-xl: 'Fraunces', 'Fraunces Display Fallback', Georgia, 'Times New Roman', serif;
-  --sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --sans: 'Public Sans', 'Public Sans Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', 'JetBrains Mono Fallback', 'JetBrains Mono Fallback Menlo', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
   --radius: 10px;
   --radius-sm: 6px;
@@ -126,3 +126,13 @@
 /* At optical size 144, the big display lines, Fraunces is far narrower. */
 @font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 78.5%; }
 @font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold Italic'), local('Georgia-BoldItalic'); font-style: italic; font-weight: 600 800; size-adjust: 73%; }
+/* Public Sans is 4-5% wider than Segoe UI, Arial and Roboto at text weights
+   and within 1% at bold (measured in Edge); without the adjustment the match
+   bar wrapped to a second line when the font arrived on a phone. Arial is on
+   iOS too, so an iPhone takes it ahead of San Francisco. */
+@font-face { font-family: 'Public Sans Fallback'; src: local('Segoe UI'), local('SegoeUI'), local('Arial'), local('ArialMT'), local('Roboto'); font-weight: 400 500; size-adjust: 104.5%; }
+@font-face { font-family: 'Public Sans Fallback'; src: local('Segoe UI Bold'), local('SegoeUI-Bold'), local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 100.5%; }
+/* JetBrains Mono advances 0.6em; Consolas 0.55, Menlo and Courier New 0.6.
+   One family per platform face, since a rule's size-adjust is one value. */
+@font-face { font-family: 'JetBrains Mono Fallback'; src: local('Consolas'); font-weight: 100 900; size-adjust: 109.1%; }
+@font-face { font-family: 'JetBrains Mono Fallback Menlo'; src: local('Menlo'), local('Menlo-Regular'), local('Courier New'), local('CourierNewPSMT'); font-weight: 100 900; size-adjust: 99.7%; }
