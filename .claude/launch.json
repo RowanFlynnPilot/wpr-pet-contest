@@ -60,6 +60,20 @@
         "docs/preview"
       ],
       "port": 5198
+    },
+    {
+      "name": "demo",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5197",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "web/dist-demo"
+      ],
+      "port": 5197
     }
   ]
 }

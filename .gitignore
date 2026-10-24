@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+# The demo build's settings hold no secret (web/scripts/build-demo.mjs).
+!web/.env.demo
 
 # Supabase CLI local state
 supabase/.temp/

@@ -23,6 +23,20 @@ export default defineConfig(({ mode }) => ({
       name: 'wpr-site-url',
       transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl(mode)),
     },
+    {
+      // The demo build (scripts/build-demo.mjs): the backend runs inside the
+      // browser, loaded ahead of the app so it owns fetch before the client
+      // is built. A normal build never includes it.
+      name: 'wpr-demo-shim',
+      transformIndexHtml: {
+        // Before Vite rewrites the entry tag, so the shim becomes an entry too.
+        order: 'pre',
+        // Vite folds a page's module scripts into one entry, in order, so the
+        // shim's fetch patch is in place before the app's client is built.
+        handler: (html) =>
+          mode === 'demo' ? html.replace('<script type="module" src="/src/', '<script type="module" src="/src/demo/shim.js"></script>\n    <script type="module" src="/src/') : html,
+      },
+    },
   ],
   build: {
     rollupOptions: {

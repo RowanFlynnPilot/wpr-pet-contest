@@ -1,4 +1,4 @@
-import { IMAGE_TRANSFORMS, SUPABASE_URL } from './env.js'
+import { IMAGE_TRANSFORMS, STORAGE_URL } from './env.js'
 
 // Photo URLs for the public `pets` bucket. The render endpoint needs a paid
 // Supabase plan; without it, raw objects (re-encoded to <=2048px at upload).
@@ -15,7 +15,7 @@ export function buildPhotoUrl(base, path, { width, height, quality = 75, resize 
 }
 
 export function photoUrl(path, opts = {}) {
-  return buildPhotoUrl(SUPABASE_URL, path, { ...opts, transforms: IMAGE_TRANSFORMS })
+  return buildPhotoUrl(STORAGE_URL, path, { ...opts, transforms: IMAGE_TRANSFORMS })
 }
 
 // The 800px copy made at upload is plenty for a card or a thumbnail; anything
@@ -33,5 +33,5 @@ export function pickEntryPhoto(entry, { width, transforms }) {
 
 export function entryPhotoUrl(entry, opts = {}) {
   const pick = pickEntryPhoto(entry, { width: opts.width, transforms: IMAGE_TRANSFORMS })
-  return buildPhotoUrl(SUPABASE_URL, pick.path, { ...opts, transforms: pick.resize })
+  return buildPhotoUrl(STORAGE_URL, pick.path, { ...opts, transforms: pick.resize })
 }

@@ -5,6 +5,9 @@ const env = import.meta.env
 
 export const SUPABASE_URL = (env.VITE_SUPABASE_URL || '').replace(/\/+$/, '')
 export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || ''
+// Where the photo bucket is served from: Supabase itself unless a build says
+// otherwise (the demo build serves the placeholders as files beside the page).
+export const STORAGE_URL = (env.VITE_STORAGE_URL || SUPABASE_URL).replace(/\/+$/, '')
 export const STRIPE_PUBLISHABLE_KEY = env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 export const IMAGE_TRANSFORMS = env.VITE_IMAGE_TRANSFORMS === 'true'
 // The mock API's toy checkout (no Stripe, no charge), for demos and the
