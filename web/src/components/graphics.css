@@ -35,3 +35,13 @@
 .gfx-card .gfx-frame { width: 100%; box-shadow: none; border: 1px solid var(--rule); }
 .gfx-card figcaption { font-size: 13.5px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .gfx-card .btn { align-self: flex-start; }
+
+/* The caption that goes with each card: platform, the words, copy. */
+.gfx-caption summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--teal-ink); }
+.gfx-caption[open] { display: grid; gap: 8px; }
+.gfx-caption[open] summary { margin-bottom: 2px; }
+.gfx-caption .chips { gap: 6px; }
+.gfx-caption textarea {
+  width: 100%; min-height: 9em; padding: 8px 10px; border: 1px solid var(--rule-strong); border-radius: 8px;
+  font: 13px/1.45 var(--sans); color: var(--ink); background: var(--cream); resize: vertical;
+}

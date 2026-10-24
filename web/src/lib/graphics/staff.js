@@ -139,6 +139,7 @@ async function table(ctx, rows, { x, y, w, h, cut = null, second, rows: slots = 
 function leaderboard({ ranked, round, final }, o) {
   return {
     key: `leaderboard-${round.id}`,
+    meta: { kind: 'leaderboard', ranked, round, final, o },
     label: final ? 'Open Round final standings' : 'Leaderboard, top 10',
     file: 'leaderboard-top-10',
     async draw(ctx, W, H, { brand }) {
@@ -172,6 +173,7 @@ function leaderboard({ ranked, round, final }, o) {
 function bubble({ rows, cut, round }, o) {
   return {
     key: `bubble-${round.id}`,
+    meta: { kind: 'bubble', rows, cut, round, o },
     label: `On the bubble (${rows[0].rank} to ${rows[rows.length - 1].rank})`,
     file: 'leaderboard-bubble',
     async draw(ctx, W, H, { brand }) {
@@ -205,6 +207,7 @@ function matchup(st, round, label, o) {
   const name = (s) => s.entry?.pet_name || 'TBD'
   return {
     key: `matchup-${st.matchup.id}`,
+    meta: { kind: 'matchup', st, round, label, o },
     label: `${name(st.a)} vs. ${name(st.b)}`,
     file: `matchup-${st.index}-${name(st.a)}-vs-${name(st.b)}`,
     async draw(ctx, W, H, { brand }) {
@@ -307,6 +310,7 @@ function winner(w, results, o) {
   const lines = winnerLines(w, results)
   return {
     key: `winner-${results.round.id}-${w.entry.id}`,
+    meta: { kind: 'winner', w, results, o },
     label: `${w.entry.pet_name} ${lines.headline}`,
     file: `${results.label}-winner-${w.entry.pet_name}`,
     draw: (ctx, W, H, { brand }) =>
@@ -327,6 +331,7 @@ function field(results, o) {
   const n = results.winners.length
   return {
     key: `field-${results.round.id}`,
+    meta: { kind: 'field', results, o },
     label: `The ${results.nextLabel} is set (${n} pets)`,
     file: `${results.nextLabel}-field`,
     async draw(ctx, W, H, { brand }) {
@@ -376,6 +381,7 @@ function field(results, o) {
 function champion(c, o) {
   return {
     key: `champion-${c.entry.id}`,
+    meta: { kind: 'champion', c, o },
     label: `Champion: ${c.entry.pet_name}`,
     file: `champion-${c.entry.pet_name}`,
     draw: (ctx, W, H, { brand }) =>
@@ -401,6 +407,7 @@ function milestone({ cents, exact, shelters }, o) {
   const rounded = cents < exact
   return {
     key: `raised-${cents}`,
+    meta: { kind: 'milestone', cents, exact, shelters, o },
     label: `${rounded ? 'More than ' : ''}${money} raised`,
     file: `raised-${money}`,
     async draw(ctx, W, H, { brand }) {

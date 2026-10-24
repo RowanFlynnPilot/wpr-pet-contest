@@ -8,6 +8,7 @@ import { roundLabel } from '../lib/rounds.js'
 import { bubbleRows, currentBracketRound, lastDecidedRound, matchupCards, milestoneCents, roundResults, sampleScenario } from '../lib/graphics/content.js'
 import { displayUrl } from '../lib/graphics/layout.js'
 import { STAFF_SIZES, buildCards, cardFile, renderCard } from '../lib/graphics/staff.js'
+import { captionsFor } from '../lib/graphics/captions.js'
 import { toPng } from '../lib/graphics/draw.js'
 import { downloadBlob, pause } from '../lib/graphics/save.js'
 import { ErrorNote, useAsync, useDesk } from './shared.jsx'
@@ -83,6 +84,50 @@ const queue = (job) => {
   return p
 }
 
+const PLATFORMS = [
+  ['facebook', 'Facebook'],
+  ['instagram', 'Instagram'],
+  ['short', 'X and Threads'],
+]
+
+// The post's words, from the same numbers as the image: a hook inside the
+// platform's fold, the facts, one action. Staff edit before posting.
+function CaptionBox({ card, sample }) {
+  const captions = useMemo(() => captionsFor(card, { publicUrl: PUBLIC_URL }), [card])
+  const [platform, setPlatform] = useState('facebook')
+  const [copied, setCopied] = useState(false)
+  const box = useRef(null)
+  if (!captions) return null
+  const text = sample ? `SAMPLE NUMBERS: DO NOT POST\n\n${captions[platform]}` : captions[platform]
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      box.current?.select()
+    }
+  }
+
+  return (
+    <details className="gfx-caption">
+      <summary>Caption</summary>
+      <div className="chips" role="group" aria-label={`Caption for ${card.label}: platform`}>
+        {PLATFORMS.map(([id, name]) => (
+          <button key={id} type="button" className="chip" aria-pressed={platform === id} onClick={() => setPlatform(id)}>
+            {name}
+          </button>
+        ))}
+      </div>
+      <textarea ref={box} readOnly rows={6} value={text} aria-label={`${PLATFORMS.find(([id]) => id === platform)[1]} caption for ${card.label}`} />
+      <button type="button" className="btn btn-quiet btn-sm" onClick={copy}>
+        {copied ? 'Copied' : 'Copy caption'}
+      </button>
+    </details>
+  )
+}
+
 function CardPreview({ card, size, sample, onDownload, busy }) {
   const frame = useRef(null)
   const [drawn, setDrawn] = useState(false)
@@ -112,6 +157,7 @@ function CardPreview({ card, size, sample, onDownload, busy }) {
       <button type="button" className="btn btn-quiet btn-sm" onClick={() => onDownload([card])} disabled={busy}>
         Download
       </button>
+      <CaptionBox card={card} sample={sample} />
     </figure>
   )
 }
@@ -174,7 +220,8 @@ export default function SocialDesk() {
         </div>
       </div>
       <p className="small muted" style={{ margin: 0 }}>
-        Posts for the promotion calendar, drawn from the public numbers. Vote counts are as of{' '}
+        Posts for the promotion calendar, drawn from the public numbers, each with a caption to copy for Facebook, Instagram, or X
+        and Threads. Vote counts are as of{' '}
         {data.data ? stamp(data.data.at) : '…'}; refresh right before you download.
       </p>
       <div className="gfx-toolbar">
