@@ -136,7 +136,7 @@ function contestState() {
       : [],
     shelters: [
       // The real partner. Swap in its Facebook page address once confirmed.
-      { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/p/Moments-Foster-Care-Inc-100064839574671/', logo_path: 'shelters/moments-foster-care.jpg', payout_weight: 1 },
+      { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/p/Moments-Foster-Care-Inc-100064839574671/', logo_path: 'shelters/moments-foster-care.png', payout_weight: 1 },
     ],
     contest_stats: submissions
       ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
@@ -245,8 +245,8 @@ createServer((req, res) => {
   }
   // The partner's logo, the committed copy the live site serves from Pages.
   if (/\/storage\/v1\/(?:object|render\/image)\/public\/pets\/shelters\/moments-foster-care\.jpg$/.test(url.pathname)) {
-    res.writeHead(200, { ...CORS, 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=3600' })
-    return res.end(readFileSync(new URL('../public/moments-foster-care.jpg', import.meta.url)))
+    res.writeHead(200, { ...CORS, 'Content-Type': 'image/png', 'Cache-Control': 'max-age=3600' })
+    return res.end(readFileSync(new URL('../public/moments-foster-care.png', import.meta.url)))
   }
 
   const table = url.pathname.match(/\/rest\/v1\/([a-z_]+)$/)?.[1]

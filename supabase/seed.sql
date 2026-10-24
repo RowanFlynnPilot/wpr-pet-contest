@@ -20,13 +20,13 @@ values ('00000000-0000-0000-0000-0000000000c1', 2026,
         'Cutest Pet in Marathon County', 30,
         now() - interval '7 days', now() + interval '7 days', 'submissions_open');
 
--- The partner's page and its logo (web/public/moments-foster-care.jpg, served
+-- The partner's page and its logo (web/public/moments-foster-care.png, served
 -- by the Pages site). Logo use is in the MOU.
 insert into shelters (id, contest_id, name, url, logo_path)
 values ('00000000-0000-0000-0000-00000000a5e1',
         '00000000-0000-0000-0000-0000000000c1',
         'Moments Foster Care', 'https://www.facebook.com/p/Moments-Foster-Care-Inc-100064839574671/',
-        'https://rowanflynnpilot.github.io/wpr-pet-contest/moments-foster-care.jpg');
+        'https://rowanflynnpilot.github.io/wpr-pet-contest/moments-foster-care.png');
 
 -- The recommended ladder. Per-vote price falls from $1.00 to about 42 cents,
 -- which is what makes the big packs worth it to the buyers who decide close
