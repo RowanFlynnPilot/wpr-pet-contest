@@ -25,7 +25,7 @@ async function main() {
   await mkdir(join(pets, 'mock'), { recursive: true })
   await mkdir(join(pets, 'shelters'), { recursive: true })
   for (let n = 1; n <= PHOTO_COUNT; n++) await writeFile(join(pets, 'mock', `${n}.svg`), photo(n))
-  await writeFile(join(pets, 'shelters', 'moments-foster-care.png'), await readFile(join(ROOT, 'public', 'moments-foster-care.png')))
+  await writeFile(join(pets, 'shelters', 'moments-foster-care.jpg'), await readFile(join(ROOT, 'public', 'moments-foster-care.jpg')))
 
   // artifact.html: the same page for a host that wraps it in its own document
   // (claude.ai artifacts): no doctype, html, head or body of its own; the

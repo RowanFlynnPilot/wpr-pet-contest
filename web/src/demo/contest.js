@@ -179,8 +179,8 @@ export function createMock({ phase = 'open', scale = 1 } = {}) {
         ? [{ id: id('b1', 1), contest_id: contest.id, starts_at: iso(now - HOUR), ends_at: iso(now + HOUR), multiplier: 2, label: 'Double Vote Hour', sponsor_name: 'Example Pet Supply', sponsor_url: 'https://example.org' }]
         : [],
       shelters: [
-        // The real partner, its page and its logo (web/public/moments-foster-care.png).
-        { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/p/Moments-Foster-Care-Inc-100064839574671/', logo_path: 'shelters/moments-foster-care.png', payout_weight: 1 },
+        // The real partner, its page and its logo (web/public/moments-foster-care.jpg).
+        { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/p/Moments-Foster-Care-Inc-100064839574671/', logo_path: 'shelters/moments-foster-care.jpg', payout_weight: 1 },
       ],
       contest_stats: submissions
         ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
