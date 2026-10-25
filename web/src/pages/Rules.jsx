@@ -5,6 +5,8 @@ import { useDocumentTitle } from '../lib/hooks.js'
 import { formatPerVote } from '../lib/packs.js'
 import { bracketRoundCount, roundLabel } from '../lib/rounds.js'
 import { windowTitle } from '../lib/bonus.js'
+import FairPlay from '../components/FairPlay.jsx'
+import { sprintTitle, sprintWhen } from '../lib/sprints.js'
 
 // Generated from the contest row, the packs table and the bonus schedule, so
 // the published rules cannot drift from what checkout actually does. DRAFT
@@ -19,6 +21,8 @@ export default function Rules() {
   const hours = k.bracket_round_hours || 48
   // The free daily vote adds section 8; every later section moves down one.
   const free = Boolean(k.free_vote_enabled)
+  const sprints = Boolean(k.sprints_enabled)
+  const liveSprints = c.sprints.filter((s) => !s.cancelled_at)
   const n = (num) => (free && num >= 8 ? num + 1 : num)
   const round1 = c.rounds.find((r) => r.seq === 1)
   const packs = [...c.packs].sort((a, b) => a.cents - b.cents)
@@ -42,6 +46,8 @@ export default function Rules() {
             ? 'Free to enter. Vote free once a day, or buy vote packs. Vote packs are not tax-deductible.'
             : 'Free to enter. Voting is by vote pack purchase. Vote packs are not tax-deductible.'}
         </p>
+
+        <FairPlay id="rules-fair-play" />
 
         <h2>1. The contest</h2>
         <p>
@@ -184,7 +190,7 @@ export default function Rules() {
           </>
         )}
 
-        <h2>{n(8)}. Bonus windows</h2>
+        <h2>{n(8)}. Bonus windows{sprints ? ' and sprints' : ''}</h2>
         <p>
           {NEWSROOM.shortName} may announce bonus windows (for example, &ldquo;Double Votes&rdquo;), sometimes presented by a sponsor, during which every vote pack
           counts two to five times over. A bonus applies to vote packs <strong>whose checkout begins during the window</strong>. The vote count
@@ -202,6 +208,30 @@ export default function Rules() {
               </li>
             ))}
           </ul>
+        )}
+        {sprints && (
+          <>
+            <p>
+              <strong>Sprints.</strong> A sponsor may offer a prize to the owner of the pet that receives the most votes during a set window of
+              30 minutes to 24 hours within a round. Each sprint is announced at least 24 hours before it starts, with its prize and sponsor, and
+              sprints never overlap. Sprint votes are ordinary votes and count toward the round as usual; a sprint changes no vote count, price or
+              share for the shelters. A vote pack counts toward a sprint when its checkout begins during the sprint and its payment is completed
+              within 10 minutes after the sprint ends.{free && ' A free vote counts when it is cast during the sprint.'} Ties are broken as in the
+              round. {NEWSROOM.shortName} confirms the result shortly after the sprint ends; once confirmed it is final, and later refunds do not
+              change it. The prize is provided by the sponsor, has no cash alternative unless the sponsor offers one, and is delivered to the
+              owner of the winning pet. A sprint may be cancelled before it starts.
+            </p>
+            {liveSprints.length > 0 && (
+              <ul>
+                {liveSprints.map((s) => (
+                  <li key={s.id}>
+                    {sprintTitle(s)}: {sprintWhen(s)}. {s.prize}, from {s.sponsor_name}
+                    {s.settled_at ? '. Result confirmed.' : '.'}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
 
         <h2>{n(9)}. Late, refunded and disputed payments</h2>

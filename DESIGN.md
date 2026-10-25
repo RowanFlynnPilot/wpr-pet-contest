@@ -556,3 +556,13 @@ aside: it disappears on dark paper.
   `?via=o`, the share pages keep it on the way through, and the panel shows
   the count from `entry_referrals`. Attribution only: nothing about the pack
   changes, and nothing is won.
+- **Fair play.** The rules and money pages open with the promises the code
+  keeps, each a check and one sentence: one field with real ranks (no small
+  groups where every pet leads its own), totals that reset, half to the
+  shelters after refunds with card fees on the newsroom, a purchase never a
+  donation, one price list, results that stand, staff who stay out.
+- **Sprints.** A sun card on Home (the surface kept for good news): coming
+  up with a countdown, running with the top three and their counts, being
+  counted, then the winner's photo for half a day. A one-line notice on the
+  pet pages while one runs. Every card says sprint votes count toward the
+  round like any other.

@@ -4,6 +4,7 @@ import { fmtMoney } from '../lib/format.js'
 import { formatPerVote } from '../lib/packs.js'
 import { admin, q, view } from './adminClient.js'
 import { ErrorNote, useAsync, useDesk } from './shared.jsx'
+import { SprintsPanel } from './Sprints.jsx'
 
 const toCents = (dollars) => Math.round(Number(String(dollars).replace(/[$,]/g, '')) * 100)
 const toDollars = (cents) => (cents / 100).toFixed(2)
@@ -425,6 +426,8 @@ export default function Packs() {
           </div>
         </div>
       </section>
+
+      <SprintsPanel contest={contest} />
     </div>
   )
 }

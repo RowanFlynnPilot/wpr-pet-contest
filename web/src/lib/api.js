@@ -66,7 +66,13 @@ async function withFallback(run, cols, baseCols) {
   }
 }
 
-const CONTEST_COL_SETS = [`${CONTEST_FREE_COLS}, shelter_goal_cents`, CONTEST_FREE_COLS, CONTEST_COLS, CONTEST_BASE_COLS]
+const CONTEST_COL_SETS = [
+  `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled`,
+  `${CONTEST_FREE_COLS}, shelter_goal_cents`,
+  CONTEST_FREE_COLS,
+  CONTEST_COLS,
+  CONTEST_BASE_COLS,
+]
 
 export async function fetchContests() {
   const db = need()
@@ -236,6 +242,28 @@ export async function fetchReferrals(entryId) {
   } catch {
     return null
   }
+}
+
+// Sprints (0030), cancelled ones included: the page skips them, and the
+// rules list what was scheduled.
+export function fetchSprints(contestId) {
+  return optional(
+    need()
+      .from('sprints')
+      .select('id, contest_id, round_id, label, prize, sponsor_name, sponsor_url, starts_at, ends_at, cancelled_at, settled_at, winner_entry_id, winner_votes')
+      .eq('contest_id', contestId)
+      .order('starts_at'),
+    [],
+  )
+}
+
+// The top of one sprint: [{ entry_id, votes, place }], live until it is
+// settled and the frozen snapshot after.
+export function fetchSprintStandings(sprintId, limit = 3) {
+  return optional(
+    need().from('sprint_standings').select('entry_id, votes, place').eq('sprint_id', sprintId).order('place').limit(limit),
+    [],
+  )
 }
 
 export function fetchMatchups(roundIds) {

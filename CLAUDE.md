@@ -148,6 +148,15 @@ These are load-bearing. Do not soften them.
   the owner; moderators may correct or clear one (column UPDATE grant), and
   `entry_round_momentum` (0027) publishes 24-hour counts per pet for open
   rounds only, never a voter.
+- **Sprints are the sponsor's prize, never votes** (0030, docs/SPRINTS.md).
+  Off unless switched on while the contest is a draft
+  (`set_sprints_enabled`), and only after counsel. `add_sprint` needs a
+  day's notice and a window inside one round; sprints never overlap. A pack
+  counts when its checkout began in the window and it was credited within
+  10 minutes of the end; a free vote when cast in it. `settle_sprint`, run by
+  a person, snapshots `sprint_results`; a settled sprint never moves. No
+  session writes `sprints` or `sprint_results` directly, and a sprint changes
+  no count, price or money.
 - **Owner-link attribution is a count, never a prize.** An owner's links
   (panel posts, share buttons, share images, owner emails) carry `?via=o`;
   the browser remembers it for a week (`lib/referral.js`) and the checkout
@@ -180,7 +189,8 @@ the buttons call, for when the panel is not an option.
    be added mid-contest, since it changes money, not votes). Everything is editable while it is a
    draft (`update_draft_contest`); the split is published on the rules page and
    freezes when submissions open. The free daily vote is a Setup switch too
-   (draft only, and only after counsel; docs/FREE-DAILY-VOTE.md). So is an
+   (draft only, and only after counsel; docs/FREE-DAILY-VOTE.md), and so are
+   sprints (docs/SPRINTS.md). So is an
    optional shelter goal, shown as a meter under the money counter; once
    entries open it can only be raised (`set_shelter_goal`). The Setup
    checklist says what is missing.
@@ -216,6 +226,8 @@ the buttons call, for when the panel is not an option.
      matchups, ready to paste into the Noptin draft as one Custom HTML block.
    - If the free daily vote is on, the Free votes tab, daily too: its watch
      lists, and any `free_vote_*` warning on the Health tab.
+   - After each sprint, Packs & bonuses → Settle (10 minutes after it ends),
+     then deliver the prize.
    While voting is open, keep `HEALTH_CHECKS` on (docs/LAUNCH.md, section 6):
    it is what tells staff a webhook has broken before readers do.
    To remove a pet mid-contest (stolen photo, ineligible entrant): Moderation

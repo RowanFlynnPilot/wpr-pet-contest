@@ -10,12 +10,10 @@
 // this kind of kit; owners sharing their own pet is what sells votes.
 import { NEWSROOM } from '../config.js'
 import { clubLabel } from './milestones.js'
+import { period } from './format.js'
 
 const tag = (s) => `#${String(s).replace(/^the /i, '').replace(/[^A-Za-z0-9]/g, '')}`
 const TAGS = (NEWSROOM.hashtags || [NEWSROOM.city, NEWSROOM.region, NEWSROOM.state]).filter(Boolean).map(tag).join(' ')
-
-// "8 p.m." already ends a sentence; don't give it a second period.
-const stop = (s) => (/[.!?]$/.test(String(s)) ? s : `${s}.`)
 
 function shelterLine(split, short = false) {
   if (split === 50) return short ? 'half of every vote pack helps local shelters' : 'Half of every vote pack goes to local animal shelters.'
@@ -40,12 +38,12 @@ export function ownerPosts(o) {
   let facebook, instagram, text
   switch (o.stage) {
     case 'before':
-      facebook = `${name} is entered in ${contest}! Voting opens ${stop(o.opens)} ${share} Meet ${name}: ${url}`
-      instagram = `${name} is entered in ${contest} 🐾 Voting opens ${stop(o.opens)} ${share} Link in bio. ${TAGS}`
-      text = `${name} is in ${contest}! Voting opens ${stop(o.opens)} ${url}`
+      facebook = `${name} is entered in ${contest}! Voting opens ${period(o.opens)} ${share} Meet ${name}: ${url}`
+      instagram = `${name} is entered in ${contest} 🐾 Voting opens ${period(o.opens)} ${share} Link in bio. ${TAGS}`
+      text = `${name} is in ${contest}! Voting opens ${period(o.opens)} ${url}`
       break
     case 'matchup':
-      facebook = `${name} made the ${o.round} and is head to head with ${o.opponent} until ${stop(o.closes)} Every matchup starts at zero, so every vote counts. ${share} Vote for ${name}: ${url}`
+      facebook = `${name} made the ${o.round} and is head to head with ${o.opponent} until ${period(o.closes)} Every matchup starts at zero, so every vote counts. ${share} Vote for ${name}: ${url}`
       instagram = `${name} made the ${o.round} 🐾 It's ${name} against ${o.opponent} until ${o.closes}, and every matchup starts at zero. ${share} Link in bio. ${TAGS}`
       text = `${name} is up against ${o.opponent} in the ${o.round}! Voting closes ${o.closes}, and ${shareShort}. ${url}`
       break
@@ -66,9 +64,9 @@ export function ownerPosts(o) {
       break
     default:
       // The Open Round, or any round this pet is in without a matchup yet.
-      facebook = `Vote for ${name} in ${contest}! The top ${o.bracketSize} make the bracket, and voting closes ${stop(o.closes)} ${share} ${url}`
-      instagram = `${name} is in the running for ${contest} 🐾 The top ${o.bracketSize} make the bracket, and voting closes ${stop(o.closes)} ${share} Link in bio. ${TAGS}`
-      text = `Would you vote for ${name}? It's ${contest}, and ${shareShort}. Voting closes ${stop(o.closes)} ${url}`
+      facebook = `Vote for ${name} in ${contest}! The top ${o.bracketSize} make the bracket, and voting closes ${period(o.closes)} ${share} ${url}`
+      instagram = `${name} is in the running for ${contest} 🐾 The top ${o.bracketSize} make the bracket, and voting closes ${period(o.closes)} ${share} Link in bio. ${TAGS}`
+      text = `Would you vote for ${name}? It's ${contest}, and ${shareShort}. Voting closes ${period(o.closes)} ${url}`
   }
   return { facebook, instagram, text }
 }

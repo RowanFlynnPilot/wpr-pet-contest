@@ -113,6 +113,7 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       submissions_close_at: iso(submissions ? now + 4 * DAY : now - 7 * DAY),
       free_vote_enabled: true,
       free_vote_paused_at: null,
+      sprints_enabled: true,
       shelter_goal_cents: 500000,
     }
 
@@ -178,6 +179,26 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const order = new Map(entries.map((e, i) => [e.id, i]))
     const momentum = live.map((t) => ({ round_id: t.round_id, entry_id: t.entry_id, votes_24h: Math.round(t.votes * (order.get(t.entry_id) % 5 === 2 ? 0.2 : 0.04)) }))
     const gross = totals.reduce((n, t) => n + t.votes * 80, 0)
+    const sprintRows = () => {
+      const open = rounds.find((r) => r.status === 'open')
+      if (!open || submissions) return { sprints: [], sprint_standings: [] }
+      const base = { contest_id: contest.id, round_id: open.id, sponsor_name: 'Example Pet Supply', sponsor_url: 'https://example.org', cancelled_at: null }
+      const ranked = live.filter((t) => t.round_id === open.id).slice().sort((x, y) => y.votes - x.votes)
+      if (current === 'open') {
+        const sp = { ...base, id: id('5f', 1), label: 'Tuesday night sprint', prize: 'a $50 gift card', starts_at: iso(now - HOUR), ends_at: iso(now + 2 * HOUR), settled_at: null, winner_entry_id: null, winner_votes: null }
+        const top = [ranked[3], ranked[0], ranked[6]].filter(Boolean)
+        return {
+          sprints: [sp],
+          sprint_standings: top.map((t, i) => ({ sprint_id: sp.id, entry_id: t.entry_id, votes: [140, 115, 90][i], place: i + 1 })),
+        }
+      }
+      const done = { ...base, id: id('5f', 2), label: 'Sprint', prize: 'a bag of treats and a toy', starts_at: iso(now - 6 * HOUR), ends_at: iso(now - 3 * HOUR), settled_at: iso(now - 2.5 * HOUR), winner_entry_id: ranked[1]?.entry_id || null, winner_votes: 210 }
+      const next = { ...base, id: id('5f', 3), label: 'Lunch hour sprint', prize: 'a $25 gift card', starts_at: iso(now + 20 * HOUR), ends_at: iso(now + 21 * HOUR), settled_at: null, winner_entry_id: null, winner_votes: null }
+      return {
+        sprints: [done, next],
+        sprint_standings: done.winner_entry_id ? [{ sprint_id: done.id, entry_id: done.winner_entry_id, votes: 210, place: 1 }] : [],
+      }
+    }
     return {
       contests: [contest],
       rounds,
@@ -185,6 +206,9 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       matchups,
       entry_round_totals: totals.map((t) => ({ ...t, amount_cents: t.votes * 80, free_votes: Math.round(t.votes * 0.08) })),
       entry_round_momentum: momentum,
+      // Sprints (0030): one running in the Open Round; in the bracket, last
+      // night's settled and tomorrow's coming up.
+      ...sprintRows(),
       // Packs bought through owners' links (0029): a few pets whose owners share.
       entry_referrals: submissions
         ? []

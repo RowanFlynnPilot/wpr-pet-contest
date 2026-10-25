@@ -7,6 +7,7 @@ import AdoptButton from '../components/AdoptButton.jsx'
 import { fetchFeaturedAdoptable } from '../lib/api.js'
 import { fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
+import FairPlay from '../components/FairPlay.jsx'
 
 export { shelterLogoUrl } from '../components/ShelterLogo.jsx'
 
@@ -126,6 +127,7 @@ export default function Shelters() {
           Adoptable shelter pets entered as wildcards compete like everyone else.
         </p>
       </div>
+      <FairPlay id="money-fair-play" wide />
     </div>
   )
 }

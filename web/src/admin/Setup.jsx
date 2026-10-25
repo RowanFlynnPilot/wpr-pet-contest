@@ -10,6 +10,7 @@ import { useNow } from '../lib/hooks.js'
 import { admin, q, SessionError } from './adminClient.js'
 import { ErrorNote, TypedConfirm, useAsync, useDesk } from './shared.jsx'
 import { FreeVoteSetting } from './FreeVotes.jsx'
+import { SprintSetting } from './Sprints.jsx'
 
 const BRACKETS = [8, 16, 32]
 const ROUND_HOURS = [24, 48, 72]
@@ -471,6 +472,7 @@ export default function Setup() {
       {d && (contest.status === 'draft' || contest.status === 'submissions_open') && <Readiness contest={contest} {...d} />}
       {draft ? <DraftSettings key={cid} contest={contest} onSaved={reloadContest} /> : <LockedSettings contest={contest} />}
       <FreeVoteSetting contest={contest} draft={draft} onSaved={reloadContest} />
+      <SprintSetting contest={contest} draft={draft} onSaved={reloadContest} />
       <ShelterGoalSetting contest={contest} draft={draft} onSaved={reloadContest} />
       {d && <Shelters contest={contest} shelters={d.shelters} onChange={data.reload} />}
 

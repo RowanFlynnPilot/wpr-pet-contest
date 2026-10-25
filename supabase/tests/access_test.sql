@@ -15,7 +15,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(31);
+select plan(33);
 
 -- ---------------------------------------------------------------- fixtures --
 insert into auth.users (id) values
@@ -66,7 +66,7 @@ select results_eq(
   $$ select name from our_relations where has_table_privilege('anon', oid, 'SELECT') order by 1 $$,
   $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_referrals'), ('entry_round_momentum'), ('entry_round_totals'),
             ('matchups'), ('recent_activity'), ('rounds'), ('shelters'), ('side_awards'),
-            ('sponsor_matches'), ('vote_packs') $$,
+            ('sponsor_matches'), ('sprint_standings'), ('sprints'), ('vote_packs') $$,
   'anon can read exactly the public tables and views');
 
 select results_eq(
@@ -146,16 +146,30 @@ select results_eq(
   'the owner-link counts carry numbers per pet, never a buyer');
 
 select results_eq(
+  $$ select a.attname::text collate "default" from pg_attribute a
+     where a.attrelid = 'public.sprint_standings'::regclass and a.attnum > 0 and not a.attisdropped
+     order by a.attnum $$,
+  $$ values ('sprint_id'), ('entry_id'), ('votes'), ('place') $$,
+  'the sprint standings carry a count per pet, never a voter');
+
+select ok(
+  not has_column_privilege('authenticated', 'public.contests', 'sprints_enabled', 'UPDATE')
+  and not has_table_privilege('authenticated', 'public.sprints', 'INSERT, UPDATE, DELETE')
+  and not has_table_privilege('authenticated', 'public.sprint_results', 'INSERT, UPDATE, DELETE'),
+  'sprints change only through their functions: no hand-scheduled, hand-edited or hand-settled sprint');
+
+select results_eq(
   $$ select name from our_functions where has_function_privilege('anon', oid, 'EXECUTE') order by 1 $$,
   $$ values ('is_admin'), ('round_label') $$,
   'anon can execute only pure, cheap helpers');
 
 select results_eq(
   $$ select name from our_functions where has_function_privilege('authenticated', oid, 'EXECUTE') order by 1 $$,
-  $$ values ('close_round'), ('create_contest'), ('delete_draft_contest'), ('disqualify_entry'),
+  $$ values ('add_sprint'), ('cancel_sprint'), ('close_round'), ('create_contest'), ('delete_draft_contest'), ('disqualify_entry'),
             ('erase_personal_data'), ('is_admin'), ('moderate_entry'), ('open_round'),
             ('open_submissions'), ('rebuild_round_tally'), ('round_label'), ('set_free_vote_enabled'), ('set_free_vote_paused'),
-            ('set_shelter_goal'), ('sponsor_match_cents'), ('update_draft_contest'), ('void_free_voters'), ('withdraw_entry') $$,
+            ('set_shelter_goal'), ('set_sprints_enabled'), ('settle_sprint'), ('sponsor_match_cents'), ('update_draft_contest'),
+            ('void_free_voters'), ('withdraw_entry') $$,
   'signed-in sessions reach only the admin actions, each of which checks is_admin()');
 
 select results_eq(

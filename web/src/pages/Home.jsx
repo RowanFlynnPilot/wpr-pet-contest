@@ -10,6 +10,7 @@ import { climbers, cutline, matchupStanding, rankOpenRound } from '../lib/rank.j
 import { roundLabel } from '../lib/rounds.js'
 import { closestMatchup } from '../lib/widget.js'
 import RaisedCounter from '../components/RaisedCounter.jsx'
+import SprintCard from '../components/SprintCard.jsx'
 import HowItWorks from '../components/HowItWorks.jsx'
 import AdoptButton from '../components/AdoptButton.jsx'
 import Leaderboard from '../components/Leaderboard.jsx'
@@ -448,6 +449,11 @@ export default function Home() {
     <>
       <Arena c={c} entries={entries} byId={byId} totals={totals} />
       <div className="wrap">
+        {c.sprint && (
+          <div className="section" style={{ paddingTop: 20 }}>
+            <SprintCard byId={byId} />
+          </div>
+        )}
         {raised && (
           <div className="section" style={{ paddingTop: 20 }}>
             <RaisedCounter />

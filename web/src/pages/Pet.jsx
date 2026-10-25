@@ -17,6 +17,7 @@ import ShareImageButton from '../components/ShareImageButton.jsx'
 import PhotoLightbox from '../components/PhotoLightbox.jsx'
 import LinkPreview from '../components/LinkPreview.jsx'
 import PetAbout from '../components/PetAbout.jsx'
+import { SprintLine } from '../components/SprintCard.jsx'
 import VoteButton from '../components/VoteButton.jsx'
 import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
@@ -650,6 +651,7 @@ export default function Pet({ route }) {
           <PetAbout entry={entry} />
           <RoadStrip road={road} name={name} />
           {panel}
+          {liveRound && <SprintLine roundId={liveRound.id} />}
           {entry.goal_votes && liveRound ? <GoalLine entry={entry} round={liveRound} /> : null}
           <Milestones name={name} total={contestTotals.get(entry.id)} started={c.rounds.some((r) => r.status !== 'pending')} />
           {ownerToken && (

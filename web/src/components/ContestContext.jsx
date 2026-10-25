@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 import { refreshLive, useLive } from '../lib/live.js'
 import { useClock } from '../lib/hooks.js'
-import { fetchAllBonusWindows, fetchAllSponsorMatches, fetchContests, fetchPacks, fetchRounds, fetchShelters, fetchStats } from '../lib/api.js'
+import { fetchAllBonusWindows, fetchAllSponsorMatches, fetchContests, fetchPacks, fetchRounds, fetchShelters, fetchSprints, fetchStats } from '../lib/api.js'
 import { contestPhase, pickActiveContest } from '../lib/phase.js'
 import { activeWindow, upcomingWindow } from '../lib/bonus.js'
+import { pickSprint } from '../lib/sprints.js'
 
 const ContestContext = createContext(null)
 const EMPTY = []
@@ -21,6 +22,9 @@ export function ContestProvider({ children }) {
   const windowsRes = useLive('windows', fetchAllBonusWindows, 120000)
   const matchesRes = useLive('matches', fetchAllSponsorMatches, 120000)
   const statsRes = useLive(id ? `stats:${id}` : null, () => fetchStats(id), 30000)
+  // Sprints change rarely (a day's notice), but a settled winner should show
+  // within a minute or two.
+  const sprintsRes = useLive(id ? `sprints:${id}` : null, () => fetchSprints(id), 90000)
 
   // close_round seeds the field and decides matchups in one transaction.
   // When any round changes status, refetch what it wrote at once, or an open
@@ -44,6 +48,7 @@ export function ContestProvider({ children }) {
     ...(roundsRes.data || []).map((r) => ms(r.closes_at)),
     ...(windowsRes.data || []).filter((w) => w.contest_id === id).flatMap((w) => [ms(w.starts_at), ms(w.ends_at)]),
     ...(matchesRes.data || []).filter((m) => m.contest_id === id).flatMap((m) => [ms(m.starts_at), ms(m.ends_at)]),
+    ...(sprintsRes.data || []).flatMap((s) => [ms(s.starts_at), ms(s.ends_at), ms(s.ends_at) + 12 * 3600e3, ms(s.starts_at) - 48 * 3600e3]),
   ]
   const now = useClock(boundaries)
 
@@ -71,11 +76,13 @@ export function ContestProvider({ children }) {
       match: activeWindow(matches, now),
       upcomingMatch: upcomingWindow(matches, now),
       stats: statsRes.data || null,
+      sprints: sprintsRes.data || EMPTY,
+      sprint: pickSprint(sprintsRes.data || EMPTY, now),
       ...phaseInfo,
       phaseInfo,
       now,
     }
-  }, [contest, id, contestsRes.data, contestsRes.error, roundsRes.data, roundsRes.error, sheltersRes.data, packsRes.data, windowsRes.data, windowsRes.error, matchesRes.data, statsRes.data, now])
+  }, [contest, id, contestsRes.data, contestsRes.error, roundsRes.data, roundsRes.error, sheltersRes.data, packsRes.data, windowsRes.data, windowsRes.error, matchesRes.data, statsRes.data, sprintsRes.data, now])
 
   return <ContestContext.Provider value={value}>{children}</ContestContext.Provider>
 }
