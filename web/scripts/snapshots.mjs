@@ -34,7 +34,8 @@ const PHONE = { width: 390, height: 844 }
 const PHASES = [
   ['submissions', 'Week 1: entries open', 'Owners enter one photo, a name and a town. Nothing is public until staff approve it. The money counter sits at zero and the site explains how the contest works.'],
   ['open', 'Week 2: the Open Round', 'Every approved pet is on the board. Readers buy vote packs (or cast the free daily vote, if that is switched on); the top 16 make the bracket. A sponsored Double Vote Hour is running in these shots.'],
-  ['bracket', 'Weeks 3 and 4: the bracket', 'Sweet 16, Elite Eight, Final Four, Championship: two days a round, head to head, and every total starts over. A sponsor match hour is running in these shots.'],
+  ['lastchance', 'If switched on: Last Chance', 'Off unless WPR turns it on before entries open. When the Open Round’s clock runs out, the top 15 are in and places 16 to 20 get about 24 more hours, with their Open Round votes carried over. The most votes at the end takes seed 16.'],
+  ['bracket', 'Weeks 3 and 4: the bracket', 'Sweet 16, Elite Eight, Final Four, Championship: two days a round, head to head, and every total starts over. A sponsor match hour is running in these shots, last night’s sprint has a winner, and the finale is two days out.'],
   ['complete', 'After the final', 'The champion, the full results, the side awards and the final total for the shelters. The site stays up as the record of the year.'],
 ]
 
@@ -47,7 +48,7 @@ const SHOTS = {
     ['shelters', 'Shelters', 'Moments Foster Care, called out with a Follow on Facebook button, and where the money goes.'],
   ],
   open: [
-    ['', 'Home', 'The live top 16 with the cut line, the money counter, the bonus bar for the Double Vote Hour, and recent activity.'],
+    ['', 'Home', 'The live top 16 with the cut line, a sponsor’s sprint with its top three (only if sprints are on), the money counter, the bonus bar for the Double Vote Hour, and recent activity.'],
     ['gallery', 'All pets', 'Every pet, with a heart to save favorites on this phone, a share button on each card, and filters by species and town.'],
     ['pet', 'A pet page', 'The Open Round scoreboard: this pet’s votes, its rank, how far it is from the cut, the vote button, the free daily vote, and “Remind me before voting closes.”'],
     ['checkout', 'Checkout', 'Vote packs, never a donation. The receipt email, the “tell me when this pet plays again” box (unchecked), and the newsletter box.'],
@@ -56,14 +57,19 @@ const SHOTS = {
     ['widget', 'The article widget', 'The compact version that sits inside a WordPress article: the leaders and a vote button.'],
   ],
   bracket: [
-    ['', 'Home', 'The round’s matchups, the closest race, the money counter with the sponsor match included, and the match hour bar.'],
+    ['', 'Home', 'The countdown to the live finale, the round’s matchups, the closest race, last night’s sprint winner, the money counter with the sponsor match included, and the match hour bar.'],
     ['bracket', 'The bracket', 'All four rounds, winners carried forward, the live round lit.'],
     ['pet', 'A pet page in a matchup', 'Head to head with the opponent, the tug bar, the road through the bracket, the owner’s vote goal, and sharing that previews both pets.'],
-    ['owner', 'The owner’s panel', 'What the link in the approval email opens: set or change the goal, and a reminder of the share tools.'],
+    ['owner', 'The owner’s panel', 'What the link in the approval email opens: set or change the goal, ready-made posts for Facebook, Instagram and a text, and how many vote packs the owner’s own links have brought.'],
     ['shelters', 'Shelters', 'The same page during voting, with the running total.'],
   ],
+  lastchance: [
+    ['', 'Home during Last Chance', 'The five pets racing for the last seed, best first, on the scoreboard; below, the standings with the line drawn above them.'],
+    ['poolpet', 'A pet in Last Chance', 'Its place in the race, the votes to the lead, and the vote button. A pet already in reads “Finished No. 7 and is in the bracket,” with no button.'],
+  ],
   complete: [
-    ['', 'Home after the final', 'The champion, the final total, and thanks.'],
+    ['', 'Home after the final', '“Live now” for the finale, the champion, the final total, and thanks.'],
+    ['keepsake', 'The keepsake', 'Once a pet’s run is over, the image maker opens on a certificate to print or post: the photo and club, what the pet did, its votes over the whole contest and what voters raised.'],
     ['results', 'Results', 'The full bracket, the Open Round standings and the side awards (biggest upset, best comeback, hometown favorite).'],
     ['sponsors', 'Sponsors', 'Where sponsors are credited, and the open slots.'],
   ],
@@ -129,7 +135,7 @@ async function capture(browser, phase, route, petId, stamp) {
     const context = await browser.newContext({ viewport, deviceScaleFactor: mobile ? 1.5 : 1, isMobile: mobile, hasTouch: mobile, reducedMotion: 'reduce' })
     const page = await context.newPage()
     let url = `${SITE}/#/${route}`
-    if (route === 'pet' || route === 'checkout' || route === 'thanks') url = `${SITE}/#/pet/${petId}`
+    if (route === 'pet' || route === 'poolpet' || route === 'keepsake' || route === 'checkout' || route === 'thanks') url = `${SITE}/#/pet/${petId}`
     if (route === 'owner') url = `${SITE}/#/pet/${petId}?owner=${OWNER_TOKEN}`
     if (route === 'widget') url = `${SITE}/widget.html`
     await page.goto(url)
@@ -155,6 +161,14 @@ async function capture(browser, phase, route, petId, stamp) {
     if (route === 'owner') {
       await page.locator('.owner-tools').scrollIntoViewIfNeeded()
       await sleep(200)
+    }
+    if (route === 'keepsake') {
+      // The image maker, opened on the certificate (its first choice at the finish).
+      await page.getByRole('button', { name: /Make a share image/ }).first().click()
+      await page.locator('.gfx-canvas').waitFor({ timeout: 30000 })
+      await sleep(1200)
+      await page.locator('.gfx-panel').scrollIntoViewIfNeeded()
+      fullPage = false
     }
     const name = `${stamp}-${phase}-${route || 'home'}-${kind}.jpg`
     await shoot(page, join(OUT, name), { fullPage })
@@ -197,6 +211,7 @@ const EMAILS = [
   ['tips-before', 'Tips: before voting opens', 'The day after approval, while the Open Round is still a week away.', () => render(row({ kind: 'nurture_ready', round_name: 'Open Round', opens_at: '2026-11-21T14:00:00Z' }), LINKS)],
   ['tips-open', 'Tips: voting is open', 'In the first two days of the Open Round.', () => render(row({ kind: 'nurture_open', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 40, rank: 7, field_size: 212, goal_votes: 300 }), LINKS)],
   ['tips-halfway', 'Tips: halfway', 'Day three of the Open Round, with the standings and the cut.', () => render(row({ kind: 'nurture_halfway', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 88, rank: 14, field_size: 212, cut_margin: 12, goal_votes: 300 }), LINKS)],
+  ['last-chance', 'Last Chance', 'Only if Last Chance is on: to each owner whose pet is racing for the last seed, as it starts. Sent whatever the tips opt-out says, since it is about the entry itself.', () => render(row({ kind: 'last_chance', round_name: 'Last Chance', closes_at: '2026-11-29T02:00:00Z', my_votes: 131, rank: 17, field_size: 5, cut_margin: 18 }), LINKS)],
   ['tips-last-day', 'Tips: last day', 'The morning of the Open Round’s deadline. This pet is six votes out of the bracket.', () => render(row({ kind: 'nurture_last_day', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 131, rank: 17, field_size: 212, cut_margin: -6, goal_votes: 300 }), LINKS)],
   ['club', 'Joined a club', 'When a pet passes 100, 500, 1,000 or 5,000 votes over the whole contest; only the highest club reached, and none for owners who stopped the tips.', () => render(row({ kind: 'club_500', my_votes: 512 }), LINKS)],
   ['advanced', 'Made the Sweet 16', 'When a bracket round opens with the pet in it. The share button is the matchup page: both pets in the preview.', () => render(row({ kind: 'advanced', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, matchup_id: MATCHUP }), LINKS)],
@@ -343,10 +358,13 @@ async function main() {
       await fetch(`${MOCK}/__phase?set=${phase}`)
       const rows = await (await fetch(`${MOCK}/rest/v1/entries?select=id&status=eq.approved&order=created_at&limit=1`)).json()
       const petId = rows[0]?.id
+      // Last Chance: a pet in the race, from the snapshot.
+      const pool = phase === 'lastchance' ? await (await fetch(`${MOCK}/rest/v1/last_chance_field?select=entry_id&pool=eq.true&order=place&limit=1`)).json() : []
       const shots = []
       for (const [route, shotTitle, note] of SHOTS[phase]) {
         console.log(`[snapshots] ${phase}: ${shotTitle}`)
-        shots.push({ title: shotTitle, note, files: await capture(browser, phase, route, petId, stamp) })
+        const id = route === 'poolpet' ? pool[0]?.entry_id || petId : petId
+        shots.push({ title: shotTitle, note, files: await capture(browser, phase, route, id, stamp) })
       }
       sections.push([phase, title, intro, shots])
     }
