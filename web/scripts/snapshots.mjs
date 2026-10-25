@@ -16,7 +16,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
-import { render, renderBuyerNote, renderFreeVoteCode, renderFreeVoteReminder } from '../../supabase/functions/_shared/templates.ts'
+import { render, renderBuyerNote, renderCheckoutReminder, renderFreeVoteCode, renderFreeVoteReminder } from '../../supabase/functions/_shared/templates.ts'
 
 /* global document, window -- inside page.evaluate, which runs in the browser */
 
@@ -51,8 +51,8 @@ const SHOTS = {
     ['', 'Home', 'The live top 16 with the cut line, a sponsor’s sprint with its top three (only if sprints are on), the money counter, the bonus bar for the Double Vote Hour, and recent activity.'],
     ['gallery', 'All pets', 'Every pet, with a heart to save favorites on this phone, a share button on each card, and filters by species and town.'],
     ['pet', 'A pet page', 'The Open Round scoreboard: this pet’s votes, its rank, how far it is from the cut, the vote button, the free daily vote, and “Remind me before voting closes.”'],
-    ['checkout', 'Checkout', 'Vote packs, never a donation. The receipt email, the “tell me when this pet plays again” box (unchecked), and the newsletter box.'],
-    ['thanks', 'The thank-you screen', 'After the card goes through: the pet’s new total with this pack in it, what the pack sent to Moments Foster Care, and share buttons. Not sold to sponsors. (The demo build’s pretend payment stands in for the card form here.)'],
+    ['checkout', 'Checkout', 'Vote packs, never a donation. The receipt email, an optional cheer with a first name (opened here), the “tell me when this pet plays again” box, the one-time reminder box if the checkout doesn’t finish, and the newsletter box. All unchecked.'],
+    ['thanks', 'The thank-you screen', 'After the card goes through: the pet’s new total with this pack in it, what the pack sent to Moments Foster Care, the buyer’s cheer going up on the pet’s page, and share buttons. Not sold to sponsors. (The demo build’s pretend payment stands in for the card form here.)'],
     ['bracket', 'The bracket, projected', 'If voting ended now: who would be seeded where. It fills in for real when the Open Round closes.'],
     ['widget', 'The article widget', 'The compact version that sits inside a WordPress article: the leaders and a vote button.'],
   ],
@@ -70,7 +70,7 @@ const SHOTS = {
   complete: [
     ['', 'Home after the final', '“Live now” for the finale, the champion, the final total, and thanks.'],
     ['keepsake', 'The keepsake', 'Once a pet’s run is over, the image maker opens on a certificate to print or post: the photo and club, what the pet did, its votes over the whole contest and what voters raised.'],
-    ['results', 'Results', 'The full bracket, the Open Round standings and the side awards (biggest upset, best comeback, hometown favorite).'],
+    ['results', 'Results', 'The champion’s reveal, the money raised for the shelters, the side awards (best dog, best cat, best other pet), the milestone clubs and the final bracket.'],
     ['sponsors', 'Sponsors', 'Where sponsors are credited, and the open slots.'],
   ],
 }
@@ -144,6 +144,11 @@ async function capture(browser, phase, route, petId, stamp) {
     if (route === 'checkout' || route === 'thanks') {
       await page.getByRole('button', { name: /^Vote for/ }).first().click()
       await page.getByRole('dialog').waitFor()
+      // The cheer picker, opened, with one picked and a first name.
+      const dialog = page.getByRole('dialog')
+      await dialog.locator('.cheer-box summary').click()
+      await dialog.locator('.cheer-pick .chip').nth(1).click()
+      await dialog.getByLabel(/first name/i).fill('Jo')
       await sleep(400)
       fullPage = false
     }
@@ -233,6 +238,8 @@ const EMAILS = [
     )],
   ['free-vote-code', 'Free vote: the code', 'Only if the free daily vote is switched on: the emailed code.', () =>
     renderFreeVoteCode({ code: '482913', petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', link: `${LINKS.publicUrl}#/pet/${ENTRY}?fv=l.token`, minutes: 15 })],
+  ['checkout-reminder', 'The checkout reminder', 'Only to a buyer who ticked the box at checkout, an hour after that checkout stalled, once per round, and never close to the deadline.', () =>
+    renderCheckoutReminder({ petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', roundName: 'Open Round', closesAt: CLOSES_OPEN, votes: 75, cents: 5000, link: `${LINKS.publicUrl}#/pet/${ENTRY}?vote=superfan` })],
   ['free-vote-reminder', 'Free vote: the morning reminder', 'Only if the free daily vote is on, and only to readers who asked.', () =>
     renderFreeVoteReminder({ petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', roundName: 'Open Round', closesAt: CLOSES_OPEN, link: `${LINKS.publicUrl}#/pet/${ENTRY}?fv=r.token`, unsubscribe: `${LINKS.publicUrl}#/unsubscribe?fv=u.token` })],
 ]
