@@ -232,6 +232,12 @@ Run a whole contest in Stripe test mode, on the real deploy, with staff as
 entrants. Test cards: `4242 4242 4242 4242` succeeds; `4000 0000 0000 0259`
 succeeds then disputes.
 
+- [ ] Open submissions with the opening time a few hours ahead, as on
+      announcement day. Home counts down, the Enter page lists what to have
+      ready, "Add to my calendar" opens the phone's add-event sheet, the story
+      widget says when entries open (no Enter button), and a submission before
+      the opening is refused. Then let the opening pass: the form opens by
+      itself.
 - [ ] Submit from an iPhone (photo library) and an Android phone. Both appear
       right way up in the moderation queue.
 - [ ] Approve, reject (photo URL stops loading), and check approval emails.
@@ -242,8 +248,15 @@ succeeds then disputes.
       "payments not credited" alert arrives within twenty minutes. Re-enable
       it: Stripe redelivers, the votes appear, and a "resolved" alert follows.
 - [ ] Dispute a test payment: the votes leave the leaderboard.
-- [ ] Share a pet to Facebook: the preview shows that pet's photo.
+- [ ] Share a pet to Facebook: the preview shows that pet's photo. During
+      the bracket, a matchup link shows both pets and the deadline.
       (developers.facebook.com/tools/debug to re-scrape.)
+- [ ] On an iPhone, in Safari, heart two pets inside the WordPress page, leave,
+      and come back through the same story: the favorites are still there.
+- [ ] Optional, for numbers on the hosted hardware: the live tally load test
+      against a throwaway copy of the staging database
+      (`supabase/loadtest/README.md`). CI already runs it on every migration
+      change.
 - [ ] If the free daily vote is on: vote with a code on a phone inside the
       WordPress page; vote again the same day (refused); open the emailed
       link on another device; come back the next day (two taps); take a

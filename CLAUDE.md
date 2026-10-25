@@ -298,6 +298,7 @@ deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
 npm --prefix web run audit # a11y + phone layout, against the mock API; no Docker
 supabase db reset && node --test supabase/tests/integration/functions.test.mjs
+bash supabase/loadtest/run.sh  # the live tally under load (pgbench); writes votes, scratch DBs only
 cd web && npm run dev
 ```
 
