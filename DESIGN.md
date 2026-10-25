@@ -711,3 +711,19 @@ aside: it disappears on dark paper.
 - **A 30-second walkthrough** (`docs/video/`): a cover, four real screens in
   a phone (enter, the Open Round, checkout, a matchup) and an end card, in
   two cuts, WPR's teaser and the pitch to other newsrooms.
+
+## Launch cards, the poster and the film (Oct. 25, 2026)
+
+- **Launch cards** on the Social desk, from the draft until the field is
+  set: the announcement, a countdown that says "Tomorrow" and "Today" on the
+  newsroom's clock, how it works in three cards, entries open, the field so
+  far and the field set, and a last call inside 48 hours.
+- **A Story size** (1080 x 1920) for every card. Tables, matchups and the
+  hero grow into it and center, rather than leaving a band of empty cream.
+- **The poster** is a letter-size flyer (1275 x 1650) on white paper, with a
+  QR code to the contest page. It keeps its size whatever the size chips
+  say, and appears only once `PUBLIC_URL` gives the code a real address.
+- **The walkthrough in 16:9 and square**, from the same source: the words on
+  the left, the phone on the right at 0.76 or 0.74. The newsroom cut plays
+  on `/for-newsrooms/` under "What it looks like": no autoplay, a poster
+  frame, nothing loaded until play.

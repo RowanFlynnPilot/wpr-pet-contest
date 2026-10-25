@@ -39,8 +39,9 @@
 
   .masthead { background: var(--paper); border-top: 4px solid var(--slate); border-bottom: 1px solid var(--slate); text-align: center; padding-block: 14px 10px; }
   .masthead a { display: inline-flex; align-items: center; gap: 14px; text-decoration: none; }
-  .masthead img.badge { width: 52px; height: 52px; }
-  .masthead img.word { height: 44px; width: auto; }
+  /* Scale with the screen: at full size the flag is 410px, wider than a phone. */
+  .masthead img.badge { width: clamp(40px, 12vw, 52px); height: auto; }
+  .masthead img.word { height: clamp(30px, 9vw, 44px); width: auto; }
   .masthead .tag { margin-top: 8px; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); }
 
   .hero { padding-block: 44px 36px; display: grid; gap: 28px; align-items: center; }
@@ -76,6 +77,8 @@
   figure { margin: 0; }
   figure img { border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); box-shadow: 0 1px 2px rgba(31, 43, 40, 0.06), 0 4px 14px rgba(31, 43, 40, 0.06); }
   figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .film { margin-bottom: 22px; }
+  .film video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 10px; background: var(--teal-deep); box-shadow: 0 1px 2px rgba(31, 43, 40, 0.06), 0 4px 14px rgba(31, 43, 40, 0.06); }
   .shots { display: grid; gap: 18px; align-items: start; }
   .shots > figure { min-width: 0; }
   .shots img { width: 100%; height: auto; }
@@ -85,6 +88,8 @@
   th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
   th { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
   td.n { font-family: var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  /* On a phone the costs wrap rather than push the page sideways. */
+  @media (max-width: 560px) { td.n { white-space: normal; } }
   .ladder { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
   .ladder li { list-style: none; font-family: var(--mono); font-size: 14px; background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 999px; padding: 6px 12px; }
   .ladder { padding: 0; }
@@ -154,6 +159,12 @@
   <section class="wrap sec" id="look">
     <h2>What it looks like</h2>
     <p class="lede">Placeholder pets, the real design. Each pet's page takes the color of its own photo.</p>
+    <figure class="film">
+      <video controls muted playsinline preload="none" poster="img/walkthrough-poster.jpg" width="1280" height="720" aria-describedby="film-cap">
+        <source src="img/walkthrough.mp4" type="video/mp4">
+      </video>
+      <figcaption id="film-cap">The contest in 30 seconds: entering, the Open Round, checkout and the shelter's share, the bracket. Real screens with sample pets, numbers and dates. No sound.</figcaption>
+    </figure>
     <div class="shots">
       <figure><img src="img/home-desktop.jpg" alt="The home page on a laptop during the bracket: the live scoreboard and the money counter" width="1280" height="800"><figcaption>Home during the bracket: the closest race on the board, the money counter with the sponsor's match, every matchup below.</figcaption></figure>
       <figure><img src="img/pet-phone.jpg" alt="A pet's page on a phone: the photo, the matchup scoreboard and the Vote button" width="390" height="1100"><figcaption>A pet's page on a phone, where a share link lands.</figcaption></figure>
@@ -187,7 +198,7 @@
     <table>
       <thead><tr><th>Account</th><th>For</th><th>Cost</th></tr></thead>
       <tbody>
-        <tr><td><b>Stripe</b></td><td>Checkout, receipts, refunds. A separate account for the contest, so vote packs never mix with donations.</td><td class="n">2.9% + 30¢ per card payment</td></tr>
+        <tr><td><b>Stripe</b></td><td>Checkout, receipts, refunds. A separate account for the contest, so vote packs never mix with donations.</td><td class="n">2.9%&nbsp;+&nbsp;30¢ per card payment</td></tr>
         <tr><td><b>Supabase</b></td><td>The database, photo storage, the edge functions. The free plan works; the Pro plan adds image resizing and never pauses.</td><td class="n">$0 or $25/mo</td></tr>
         <tr><td><b>Resend</b></td><td>The emails. The free tier is 100 a day; a 300-entry contest needs the next plan for its month.</td><td class="n">$20 for the month</td></tr>
         <tr><td><b>GitHub</b></td><td>Hosts the site (GitHub Pages) and runs the deploys, tests and the email sweep.</td><td class="n">$0</td></tr>

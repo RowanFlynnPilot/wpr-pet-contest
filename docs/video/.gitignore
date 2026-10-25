@@ -1,5 +1,5 @@
 # Rebuilt by capture.mjs and build.mjs; rendered with the html-video skill.
 shots/
 out/
-walkthrough.html
-walkthrough-newsrooms.html
+walkthrough*.html
+!walkthrough.src.html

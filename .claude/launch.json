@@ -88,6 +88,20 @@
         "web/dist"
       ],
       "port": 5196
+    },
+    {
+      "name": "newsroom-kit",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5195",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "docs/newsroom-kit"
+      ],
+      "port": 5195
     }
   ]
 }

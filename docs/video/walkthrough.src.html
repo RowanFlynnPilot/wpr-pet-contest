@@ -8,7 +8,8 @@
 /* A 30-second walkthrough of the contest, phone first: a cover, four real
    screens in a phone (enter, the Open Round, checkout, a matchup), an end
    card. Every frame is a pure function of time (seek). build.mjs inlines the
-   capture's rects and writes the two cuts (data-cut: contest | newsroom). */
+   capture's rects and writes the two cuts (data-cut: contest | newsroom) in
+   three formats (data-format: portrait | wide | square). */
 :root {
   --brand: #3a867c; --deep: #1f4b45; --cream: #f6f2e9; --ink: #1a1a1a; --ink-2: #3d3a35; --sun: #f4b942;
   --muted: #6b6560; --paper: #ffffff;
@@ -71,9 +72,55 @@ html, body { margin: 0; background: var(--deep) }
 .e-mast img.badge { width: 84px; height: 84px; border-radius: 50%; background: #fff }
 .e-mast img.word { height: 40px; filter: invert(1) }
 [data-cut="contest"] .only-newsroom, [data-cut="newsroom"] .only-contest { display: none }
+
+/* 16:9 (decks, the pitch page, YouTube): the words on the left, the phone
+   on the right at 0.76 (PHONE_SCALE). */
+[data-format="wide"] #stage, [data-format="wide"] .scene, [data-format="wide"] .paws { width: 1920px; height: 1080px }
+[data-format="wide"] .mast { left: 140px; top: 84px }
+[data-format="wide"] .c-rule { left: 140px; top: 214px; width: 1640px }
+[data-format="wide"] .c-stack { left: 140px; top: 330px; width: 1500px; gap: 30px }
+[data-format="wide"] .c-h { font-size: 190px }
+[data-format="wide"] .c-h .sm { font-size: 100px }
+[data-format="wide"] .c-sub { font-size: 44px; max-width: 1250px }
+[data-format="wide"] .c-foot { left: 140px; bottom: 84px; width: 1640px }
+[data-format="wide"] .cap-band { left: 140px; top: 50%; width: 860px; gap: 24px; transform: translateY(-50%) }
+[data-format="wide"] .cap { font-size: 84px }
+[data-format="wide"] .note { font-size: 38px }
+[data-format="wide"] .phone { left: 1130px; top: 64px }
+[data-format="wide"] .sample { left: 140px; bottom: 56px; width: 860px; text-align: left }
+[data-format="wide"] .e-stack { left: 140px; top: 50%; width: 1500px; transform: translateY(-58%) }
+[data-format="wide"] .e-h { font-size: 150px }
+[data-format="wide"] .e-mast { left: 140px; bottom: 84px }
+
+/* Square (feeds): the same split as 16:9, tighter, the phone at 0.74. */
+[data-format="square"] #stage, [data-format="square"] .scene, [data-format="square"] .paws { width: 1080px; height: 1080px }
+[data-format="square"] .mast { left: 70px; top: 64px }
+[data-format="square"] .mast img.badge { width: 80px; height: 80px }
+[data-format="square"] .mast img.word { height: 40px }
+[data-format="square"] .c-rule { left: 70px; top: 184px; width: 940px }
+[data-format="square"] .c-stack { left: 70px; top: 270px; width: 940px; gap: 26px }
+[data-format="square"] .kick { font-size: 26px }
+[data-format="square"] .c-h { font-size: 150px }
+[data-format="square"] .c-h .sm { font-size: 84px }
+[data-format="square"] .c-sub { font-size: 38px }
+[data-format="square"] .c-foot { left: 70px; bottom: 64px; width: 940px; font-size: 28px }
+[data-format="square"] .cap-band { left: 64px; top: 50%; width: 470px; gap: 18px; transform: translateY(-50%) }
+[data-format="square"] .step { font-size: 26px }
+[data-format="square"] .cap { font-size: 60px }
+[data-format="square"] .note { font-size: 32px }
+[data-format="square"] .phone { left: 511px; top: 77px }
+[data-format="square"] .sample { left: 64px; bottom: 40px; width: 470px; text-align: left; font-size: 18px }
+[data-format="square"] .e-stack { left: 70px; top: 50%; width: 940px; gap: 24px; transform: translateY(-58%) }
+[data-format="square"] .e-h { font-size: 124px }
+[data-format="square"] .e-p { font-size: 40px }
+[data-format="square"] .e-url { font-size: 44px; margin-top: 18px; padding-top: 24px }
+[data-format="square"] .e-url small { font-size: 28px }
+[data-format="square"] .e-mast { left: 70px; bottom: 64px }
+[data-format="square"] .e-mast img.badge { width: 72px; height: 72px }
+[data-format="square"] .e-mast img.word { height: 36px }
 </style>
 </head>
-<body data-cut="__CUT__">
+<body data-cut="__CUT__" data-format="__FORMAT__">
 <div id="stage">
 
   <section class="scene cover" id="s0">
@@ -81,7 +128,7 @@ html, body { margin: 0; background: var(--deep) }
     <div class="abs mast"><img class="badge" src="../../web/public/wpr-typewriter-badge.png" alt=""><img class="word" src="../../web/public/wpr-wordmark.png" alt="Wausau Pilot &amp; Review"></div>
     <span class="abs c-rule"></span>
     <div class="abs c-stack">
-      <p class="kick fx" id="c-kick">A reader contest · Nov. 14 to Dec. 5</p>
+      <p class="kick fx" id="c-kick">A reader contest · Nov.&nbsp;14 to Dec.&nbsp;5</p>
       <h1 class="c-h"><span><em>Cutest</em> Pet</span><span class="sm">in Marathon County</span></h1>
       <p class="c-sub fx" id="c-sub">Readers enter their pets free, back them with vote packs, and half the money goes to a local shelter.</p>
     </div>
@@ -122,7 +169,7 @@ html, body { margin: 0; background: var(--deep) }
     <div class="abs cap-band">
       <p class="step">04 · THE BRACKET</p>
       <h2 class="cap fx" id="cap4">Then the top 16 go head to head.</h2>
-      <p class="note fx" id="note4">Every matchup starts at zero. The champion is crowned Dec. 5.</p>
+      <p class="note fx" id="note4">Every matchup starts at zero. The champion is crowned Dec.&nbsp;5.</p>
     </div>
     <div class="abs phone fx" id="ph4"><div class="screen"><span class="notch"></span><span class="status"><b>9:41</b><i></i></span><div class="viewport"><img id="img4" src="shots/bracket.png" alt=""><span class="ring" id="ring4"></span></div></div></div>
     <p class="abs sample">Sample pets, numbers and dates</p>
@@ -133,7 +180,7 @@ html, body { margin: 0; background: var(--deep) }
     <div class="abs e-stack only-contest">
       <p class="kick fx" id="e-kick">Entries open</p>
       <h2 class="e-h fx" id="e-h"><em>Saturday,</em><br>Nov. 14</h2>
-      <p class="e-p fx" id="e-p">Enter free. Vote all the way to the champion, Dec. 5.</p>
+      <p class="e-p fx" id="e-p">Enter free. Vote all the way to the champion, Dec.&nbsp;5.</p>
       <p class="e-url fx" id="e-url">wausaupilotandreview.com<small>Vote packs are not donations; half of every pack goes to Moments Foster Care.</small></p>
     </div>
     <div class="abs e-stack only-newsroom">
@@ -147,7 +194,10 @@ html, body { margin: 0; background: var(--deep) }
 
 </div>
 <script>
-window.COMPOSITION = { width: 1080, height: 1920, fps: 30, duration: 30 };
+// The canvas and the phone's scale for each format (data-format, set by build.mjs).
+const FORMATS = { portrait: [1080, 1920, 1], wide: [1920, 1080, 0.76], square: [1080, 1080, 0.74] };
+const [W, H, PHONE_SCALE] = FORMATS[document.body.dataset.format] || FORMATS.portrait;
+window.COMPOSITION = { width: W, height: H, fps: 30, duration: 30 };
 // The capture's sizes and rects, in CSS px (build.mjs inlines shots/shots.json).
 const SHOTS = __SHOTS__;
 
@@ -190,14 +240,15 @@ function scrollTo(img, rings, cssY) {
 // A phone arriving: rises and straightens as the page lands.
 function phoneIn(el, k) {
   el.style.opacity = Math.min(1, k * 1.6).toFixed(3);
-  el.style.transform = 'translateY(' + ((1 - k) * 120).toFixed(1) + 'px) rotate(' + ((1 - k) * -2.5).toFixed(2) + 'deg)';
+  el.style.transform = 'translateY(' + ((1 - k) * 120).toFixed(1) + 'px) rotate(' + ((1 - k) * -2.5).toFixed(2) + 'deg)' + (PHONE_SCALE === 1 ? '' : ' scale(' + PHONE_SCALE + ')');
 }
 
 // Paw prints: rows of four ovals and a pad, spread from an index.
 function drawPaws(svg) {
   let out = '';
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   for (let i = 0; i < 22; i++) {
-    const x = 60 + ((i * 397) % 980), y = 80 + ((i * 263) % 1780), r = ((i * 47) % 50) - 25, s = 0.8 + ((i * 13) % 5) / 10;
+    const x = 60 + ((i * 397) % (W - 100)), y = 80 + ((i * 263) % (H - 140)), r = ((i * 47) % 50) - 25, s = 0.8 + ((i * 13) % 5) / 10;
     out += `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})" fill="#fff"><ellipse cx="0" cy="18" rx="22" ry="18"/><ellipse cx="-24" cy="-8" rx="8" ry="11"/><ellipse cx="-8" cy="-18" rx="8" ry="11"/><ellipse cx="8" cy="-18" rx="8" ry="11"/><ellipse cx="24" cy="-8" rx="8" ry="11"/></g>`;
   }
   svg.innerHTML = out;
@@ -213,7 +264,7 @@ function seek(t) {
     const outK = tout === null ? 0 : p(t, tout, tout + TURN, INOUT);
     el.style.visibility = (tin === null || t >= tin) && (tout === null || t < tout + TURN) ? 'visible' : 'hidden';
     el.style.zIndex = i;
-    el.style.transform = 'translateX(' + (inK < 1 ? lerp(1080, 0, inK) : -240 * outK).toFixed(2) + 'px)';
+    el.style.transform = 'translateX(' + (inK < 1 ? lerp(W, 0, inK) : -(W * 2) / 9 * outK).toFixed(2) + 'px)';
     el.classList.toggle('turning', inK > 0 && inK < 1);
   });
 
