@@ -11,6 +11,7 @@ import { roundLabel } from '../lib/rounds.js'
 import { closestMatchup } from '../lib/widget.js'
 import RaisedCounter from '../components/RaisedCounter.jsx'
 import HowItWorks from '../components/HowItWorks.jsx'
+import AdoptButton from '../components/AdoptButton.jsx'
 import Leaderboard from '../components/Leaderboard.jsx'
 import ActivityTicker from '../components/ActivityTicker.jsx'
 import MatchupCard from '../components/MatchupCard.jsx'
@@ -469,10 +470,11 @@ export default function Home() {
                 <p className="section-count">{c.shelters.length === 1 ? 'Our partner shelter' : 'Our partner shelters'}</p>
               </div>
               <a className="more" href="#/shelters">
-                Adopt a pet <Arrow size={14} />
+                {c.shelters.length === 1 ? 'More about the shelter' : 'More about the shelters'} <Arrow size={14} />
               </a>
             </div>
             <ShelterList shelters={c.shelters} split={c.contest?.beneficiary_split_pct} />
+            <AdoptButton className="adopt-button-home" />
           </section>
         )}
         {!SPONSORS.presenting && (

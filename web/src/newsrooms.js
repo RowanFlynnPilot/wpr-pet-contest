@@ -26,6 +26,12 @@ export const NEWSROOMS = {
     nonprofit: true,
     badge: `${BASE}wpr-typewriter-badge.png`,
     wordmark: `${BASE}wpr-wordmark.png`,
+    // The newsroom's adoption page (the "Meet a pet" button opens it), the
+    // feed its pets come from (built into adoptables.json at deploy by
+    // scripts/adoptables.mjs) and the area the button names.
+    adoptUrl: 'https://wausaupilotandreview.com/adopt-a-pet-central-wisconsin-pet-finder/?utm_source=pet-contest&utm_medium=adopt-button',
+    adoptablesFeed: 'https://rowanflynnpilot.github.io/wpr-adopt-widget/pet-data.json',
+    adoptRegion: 'Central Wisconsin',
     supportUrl: 'https://wausaupilotandreview.com/support-our-publication/?utm_source=pet-contest&utm_medium=widget&utm_campaign=post-purchase',
     newsletterUrl: 'https://wausaupilotandreview.com/sign-up/?utm_source=pet-contest',
     contact: 'pets@wausaupilotandreview.com',
@@ -56,6 +62,10 @@ export const NEWSROOMS = {
     nonprofit: false,
     badge: null,
     wordmark: null,
+    // No adoption page: the button does not render.
+    adoptUrl: null,
+    adoptablesFeed: null,
+    adoptRegion: null,
     supportUrl: 'https://example.org/subscribe/',
     newsletterUrl: 'https://example.org/newsletter/',
     contact: 'pets@example.org',

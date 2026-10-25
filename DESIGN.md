@@ -476,3 +476,20 @@ the word is the name). On a phone it is a tab bar, emoji over the word; from
 720px one row with the call to action at the end. The current section is
 washed and underlined across its share. The paw was tried for Pets and set
 aside: it disappears on dark paper.
+
+## Meet a pet, and the nameplate in the dark (Oct. 25, 2026)
+
+- **"Meet a pet."** One of the newsroom's adoptable pets, at random, as the
+  way into its adoption page (`AdoptButton`; WPR's is the Central Wisconsin
+  pet finder). The pets come from `adoptables.json`, which the deploy builds
+  from the adoption tool's feed (`scripts/adoptables.mjs`: name, breed, age
+  and a 120px square from Adopt-a-Pet's CDN, shelter notes like "*Barn
+  Cat*" stripped; 275 of 286 pets have real photos). The page fetches it
+  only when the button nears the screen; without it, the featured pet;
+  without that, a plain invitation. A warm card: the photo in a white ring
+  that straightens on hover, a heart on its shoulder, a teal arrow. On Home
+  under the partner shelter and on the Shelters page. A newsroom without an
+  adoption page (`adoptUrl: null`) gets no button.
+- **The nameplate in dark mode** is the brand's ink (`--masthead-bg`), a
+  step lighter than the contest bar, with the wordmark in white: the paper's
+  name never sits on near-black. Light mode keeps newsprint.

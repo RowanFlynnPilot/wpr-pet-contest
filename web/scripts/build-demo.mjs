@@ -14,6 +14,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'vite'
 import { photo, PHOTO_COUNT } from '../src/demo/contest.js'
+import { writeAdoptables } from './adoptables.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'dist-demo')
@@ -41,6 +42,8 @@ async function main() {
     for (const w of widths) await writeFile(join(pets, 'mock', `${n}.w${w}.jpg`), await readFile(join(samples, `w${w}`, `${n}.jpg`)))
   }
   await writeFile(join(pets, 'shelters', 'moments-foster-care.jpg'), await readFile(join(ROOT, 'public', 'moments-foster-care.jpg')))
+  // The "Meet a pet" button's pets, from the adoption tool's feed.
+  await writeAdoptables(OUT, 'wpr')
 
   // artifact.html: the same page for a host that wraps it in its own document
   // (claude.ai artifacts): no doctype, html, head or body of its own; the

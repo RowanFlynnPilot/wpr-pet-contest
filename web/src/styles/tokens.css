@@ -42,6 +42,14 @@
   --slate: var(--slate-light);
   /* The wordmark is black type on nothing; dark mode inverts it. */
   --wordmark-invert: 0;
+  /* The masthead: newsprint in light mode; the dark blocks give it the
+     brand's ink, so the paper's name never sits on near-black. */
+  --masthead-bg: var(--paper);
+  --masthead-ink: var(--ink);
+  --masthead-ink-2: var(--slate);
+  --masthead-muted: var(--muted);
+  --masthead-rule: var(--rule);
+  --masthead-rule-strong: var(--slate);
 
   --brand: #3a867c;
   --brand-ink: #2b655d;
@@ -158,6 +166,12 @@
     --danger-text: color-mix(in oklab, var(--danger) 55%, white);
     --danger-tint: color-mix(in oklab, var(--danger) 22%, var(--paper-dark));
     --wordmark-invert: 1;
+    --masthead-bg: var(--brand-ink);
+    --masthead-ink: #fff;
+    --masthead-ink-2: rgba(255, 255, 255, 0.86);
+    --masthead-muted: rgba(255, 255, 255, 0.78);
+    --masthead-rule: rgba(255, 255, 255, 0.24);
+    --masthead-rule-strong: var(--brand-deep);
   }
 }
 :root[data-mode='dark'] {
@@ -179,6 +193,12 @@
   --danger-text: color-mix(in oklab, var(--danger) 55%, white);
   --danger-tint: color-mix(in oklab, var(--danger) 22%, var(--paper-dark));
   --wordmark-invert: 1;
+  --masthead-bg: var(--brand-ink);
+  --masthead-ink: #fff;
+  --masthead-ink-2: rgba(255, 255, 255, 0.86);
+  --masthead-muted: rgba(255, 255, 255, 0.78);
+  --masthead-rule: rgba(255, 255, 255, 0.24);
+  --masthead-rule-strong: var(--brand-deep);
 }
 /* A subtree that stays light whatever the mode: the admin desk, and the
    probe the share images read their colors from (lib/theme.js). */
@@ -201,6 +221,12 @@
   --danger-text: var(--danger);
   --danger-tint: var(--danger-tint-light);
   --wordmark-invert: 0;
+  --masthead-bg: var(--paper);
+  --masthead-ink: var(--ink);
+  --masthead-ink-2: var(--slate);
+  --masthead-muted: var(--muted);
+  --masthead-rule: var(--rule);
+  --masthead-rule-strong: var(--slate);
 }
 
 /* A second newsroom, for the sales demo (src/newsrooms.js: "The Example

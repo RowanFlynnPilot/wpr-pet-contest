@@ -3,6 +3,7 @@ import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { Arrow, Facebook } from '../components/Icons.jsx'
 import Logo from '../components/ShelterLogo.jsx'
+import AdoptButton from '../components/AdoptButton.jsx'
 import { fetchFeaturedAdoptable } from '../lib/api.js'
 import { fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
@@ -113,6 +114,7 @@ export default function Shelters() {
       <div style={{ marginTop: 20 }}>
         {c.shelters.length ? <ShelterList shelters={c.shelters} split={split} /> : <p className="muted">Partner shelters will be announced soon.</p>}
       </div>
+      <AdoptButton className="adopt-button-shelters" />
       <Adoptable />
       <div className="card plain">
         <h2 style={{ fontSize: 20 }}>How the split works</h2>

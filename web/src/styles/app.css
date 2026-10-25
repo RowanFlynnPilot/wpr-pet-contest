@@ -87,8 +87,11 @@ p { margin: 0 0 0.8em; }
 .dek { font-family: var(--display); font-weight: 400; color: var(--muted); font-size: 17px; line-height: 1.45; margin: 6px 0 0; max-width: 62ch; }
 
 /* ---------------------------------------------------------------- masthead */
+/* The masthead reads from its own tokens (tokens.css): newsprint in light
+   mode; in dark mode a nameplate in the brand's ink, a step lighter than the
+   contest bar under it, with the wordmark in white. */
 .masthead {
-  background: var(--paper); border-top: 4px solid var(--slate); border-bottom: 1px solid var(--slate);
+  background: var(--masthead-bg); border-top: 4px solid var(--masthead-rule-strong); border-bottom: 1px solid var(--masthead-rule-strong);
   padding: 14px var(--pad-r) 10px var(--pad-l); text-align: center;
 }
 .masthead-flag { display: inline-flex; align-items: center; gap: 14px; max-width: 94%; text-decoration: none; }
@@ -97,14 +100,14 @@ p { margin: 0 0 0.8em; }
    reserved before the image arrives, so the flag does not re-center and the
    page does not move when it lands. */
 .masthead-flag .wordmark { height: 44px; width: auto; min-width: 0; max-width: 100%; object-fit: contain; filter: invert(var(--wordmark-invert)); }
-.masthead-name { font-family: var(--display); font-size: clamp(26px, 6vw, 40px); font-weight: 700; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
+.masthead-name { font-family: var(--display); font-size: clamp(26px, 6vw, 40px); font-weight: 700; letter-spacing: -0.01em; color: var(--masthead-ink); white-space: nowrap; }
 .masthead-tagline {
-  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); margin-top: 8px;
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--masthead-ink-2); margin-top: 8px;
 }
 .masthead-dateline {
   display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; max-width: 880px;
-  margin: 6px auto 0; padding-top: 7px; border-top: 1px solid var(--rule);
-  font-size: 11.5px; letter-spacing: 0.04em; color: var(--muted);
+  margin: 6px auto 0; padding-top: 7px; border-top: 1px solid var(--masthead-rule);
+  font-size: 11.5px; letter-spacing: 0.04em; color: var(--masthead-muted);
 }
 .masthead-dateline span:last-child { text-transform: uppercase; letter-spacing: 0.1em; }
 @media (min-width: 720px) {
@@ -1107,6 +1110,56 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .shelter.partner .shelter-name { font-size: 24px; }
 .shelter-note { margin: 4px 0 12px; font-size: 15px; color: var(--muted); }
 .shelter.partner .shelter-link { margin-top: 2px; }
+/* "Meet a pet": one of the newsroom's adoptable pets, at random, as the way
+   into its adoption page. A warm card that lifts, the photo in a white ring
+   that straightens on hover, a heart on its shoulder. */
+.adopt-button {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px;
+  margin-top: 16px; padding: 12px 18px 12px 12px; max-width: 560px;
+  border: 1px solid var(--accent-rule); border-radius: 20px; background: var(--accent-wash);
+  color: var(--ink); text-decoration: none; box-shadow: var(--shadow);
+  transition: transform 180ms var(--ease), box-shadow 180ms var(--ease), border-color 180ms var(--ease);
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.adopt-button-photo { position: relative; width: 64px; height: 64px; flex: none; }
+.adopt-button-photo img, .adopt-button-paw {
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+  border: 3px solid var(--paper); box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.35); background: var(--accent-tint);
+  transform: rotate(-4deg); transition: transform 220ms var(--ease);
+}
+.adopt-button-paw { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; font-size: 28px; }
+.adopt-button-heart {
+  position: absolute; right: -4px; top: -4px; width: 24px; height: 24px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--paper); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; font-size: 13px; line-height: 1;
+}
+.adopt-button-text { display: grid; gap: 1px; min-width: 0; }
+.adopt-button-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-text); }
+.adopt-button-title { font-family: var(--display); font-size: 21px; font-weight: 700; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adopt-button-sub { font-size: 13.5px; line-height: 1.35; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.adopt-button-go {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--brand-ink); color: #fff; transition: transform 180ms var(--ease);
+}
+.adopt-button.has-pet .adopt-button-photo img { animation: adopt-in 360ms var(--ease) both; }
+@keyframes adopt-in { from { opacity: 0; transform: rotate(-12deg) scale(0.85); } }
+@media (hover: hover) and (pointer: fine) {
+  .adopt-button:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: var(--sun); }
+  .adopt-button:hover .adopt-button-photo img, .adopt-button:hover .adopt-button-paw { transform: rotate(0deg) scale(1.04); }
+  .adopt-button:hover .adopt-button-go { transform: translateX(3px); }
+}
+.adopt-button:active { transform: scale(0.98); }
+.adopt-button:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+@media (max-width: 420px) {
+  .adopt-button { gap: 12px; padding-right: 12px; }
+  .adopt-button-title { font-size: 19px; }
+  .adopt-button-go { width: 34px; height: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adopt-button, .adopt-button-photo img, .adopt-button-paw, .adopt-button-go { transition: none; }
+  .adopt-button.has-pet .adopt-button-photo img { animation: none; }
+}
+
 .adoptable { display: grid; gap: 16px; align-items: center; }
 @media (min-width: 760px) { .adoptable { grid-template-columns: 280px 1fr; } }
 .adoptable img { width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); background: var(--cream-deep); }
