@@ -3,8 +3,8 @@
 These 24 photographs are public-domain or CC0 pictures from Wikimedia Commons,
 used as sample entries for the product demo. They are not contest entries and
 the animals pictured are not Wausau-area pets. Each file is a centre-cropped
-800x800 JPEG of the Commons original, with metadata stripped. `w160/` and
-`w320/` hold the same pictures at those widths (`scripts/sample-renditions.py`),
+800x800 JPEG of the Commons original, with metadata stripped. `w160/`, `w320/`
+and `w640/` hold the same pictures at those widths (`scripts/sample-renditions.py`),
 for the demo and the mock, which have no render endpoint.
 
 | # | Species | Commons file | Author | License | Source |

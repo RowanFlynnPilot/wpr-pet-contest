@@ -8,7 +8,7 @@ VITE_STORAGE_RENDITIONS names the widths (see src/lib/photos.js).
 from pathlib import Path
 from PIL import Image
 
-WIDTHS = (160, 320)
+WIDTHS = (160, 320, 640)
 ROOT = Path(__file__).resolve().parents[1] / "public" / "sample-pets"
 
 total = 0
