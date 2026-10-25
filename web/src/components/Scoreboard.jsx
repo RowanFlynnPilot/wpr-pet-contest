@@ -1,4 +1,4 @@
-import { Children, useEffect, useState } from 'react'
+import { Children, Fragment, useEffect, useState } from 'react'
 import { EMBEDDED } from '../lib/env.js'
 import { countdownParts, describeCountdown } from '../lib/format.js'
 import { useNow } from '../lib/hooks.js'
@@ -13,13 +13,23 @@ export function Digits({ value, min = 3, label, dim = false, zero = false, decor
   const known = value != null
   const text = known ? String(Math.max(0, Math.round(value))) : ''
   const cells = text.padStart(Math.max(min, text.length), zero && known ? '0' : ' ').split('')
+  // A thousands comma between lit digits, as everywhere else on the site
+  // (AP: 1,204). Never on a clock, never beside an unlit cell.
+  const comma = (i) => !zero && i > 0 && (cells.length - i) % 3 === 0 && cells[i - 1] !== ' '
   const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': label }
   return (
     <span className={`sb-digits${dim ? ' dim' : ''}`} data-cells={cells.length} {...a11y}>
       {cells.map((ch, i) => (
-        <span key={`${cells.length - i}:${ch}`} className={`sb-cell${ch === ' ' ? ' ghost' : ''}`} aria-hidden="true">
-          {ch === ' ' ? '0' : ch}
-        </span>
+        <Fragment key={`${cells.length - i}:${ch}`}>
+          {comma(i) && (
+            <span className="sb-sep" aria-hidden="true">
+              ,
+            </span>
+          )}
+          <span className={`sb-cell${ch === ' ' ? ' ghost' : ''}`} aria-hidden="true">
+            {ch === ' ' ? '0' : ch}
+          </span>
+        </Fragment>
       ))}
     </span>
   )

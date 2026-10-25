@@ -674,6 +674,14 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .sb-cell::before { content: '8'; position: absolute; inset: 0; color: rgba(255, 255, 255, 0.055); }
 .sb-cell.ghost { color: transparent; }
 .sb-digits.dim .sb-cell:not(.ghost) { color: var(--board-dim); }
+/* The thousands comma: narrow, in the gap between two cells and drawn over
+   them, its tail ending at the cells' bottom edge, so a five-figure count is
+   barely wider than before. */
+.sb-sep {
+  position: relative; z-index: 1; align-self: flex-end; width: 0.26em; margin: 0 -1px;
+  font-family: var(--mono); font-weight: 700; line-height: 1; text-align: center; color: #fff;
+}
+.sb-digits.dim .sb-sep { color: var(--board-dim); }
 @media (prefers-reduced-motion: no-preference) {
   .sb-cell:not(.ghost) { animation: sb-ignite 420ms cubic-bezier(0.16, 1, 0.3, 1); }
 }

@@ -667,3 +667,11 @@ aside: it disappears on dark paper.
 - **One kicker, one radius.** The sprint, finale and Coming up kickers use
   the house kicker (11.5px, 0.16em); inline panels and rows use the card
   radius; the finale's live dot is the ticker's red and pulse.
+- **Commas on the scoreboards.** The arena digits take a thousands comma
+  between lit cells ("39,500"), as every other number on the site does: a
+  narrow glyph in the gap, drawn over the cells, never on a clock or beside
+  an unlit cell.
+- **Packs smallest first** at checkout, like the rules page's price list, so
+  the sheet opens on a few votes at a time rather than on the $250 pack.
+  The featured pack ("Most popular") is still the one preselected; staff
+  choose it in the Packs tab.
