@@ -722,7 +722,8 @@ export default function Pet({ route }) {
       <article className="pet-stage">
         <header className="pet-hero" style={tintStyle(tint)}>
           <button type="button" className="pet-hero-open" onClick={() => setPhotoOpen(true)} aria-label={`See ${name}'s photo full size`}>
-            <PetPhoto entry={entry} width={1200} contain eager />
+            {/* Keyed, so a new pet gets a fresh element carrying the morph name. */}
+            <PetPhoto key={entry.id} entry={entry} width={1200} contain eager className="vt-photo" />
           </button>
           <a className="pet-back" href="#/gallery">
             <Arrow size={14} /> All pets

@@ -46,7 +46,7 @@ a { color: var(--brand-text); text-underline-offset: 0.18em; text-decoration-thi
 .scoreboard ::selection, .bonus-bar ::selection, .champion ::selection { background: rgba(255, 255, 255, 0.3); color: #fff; }
 html { caret-color: var(--brand-text); accent-color: var(--brand-text); scrollbar-color: var(--rule-strong) transparent; }
 h1, h2, h3 { text-wrap: balance; }
-p, .dek, figcaption { text-wrap: pretty; }
+p, li, .dek, figcaption { text-wrap: pretty; }
 @media (hover: hover) and (pointer: fine) { a:hover { text-decoration-thickness: 2px; } }
 h1, h2, h3, h4 { font-family: var(--display); font-weight: 600; line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
 p { margin: 0 0 0.8em; }
@@ -1437,3 +1437,26 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .sb-row-hold { min-height: 52px; }
 .sb-hold-bar { grid-column: 2 / 4; height: 18px; border-radius: 6px; background: var(--board-cell-55, rgba(255, 255, 255, 0.12)); }
 .sb-note-hold { visibility: hidden; }
+
+/* Page changes: a quick crossfade, and a pet card's photo growing into the
+   pet page's hero (lib/router.js, lib/morph.js). Only the photo is named:
+   the masthead scrolls with the page, so a named one would fly in from
+   wherever the old page had left it. Never for readers who ask for less
+   motion (the router skips the transition for them). */
+.vt-photo { view-transition-name: pet-photo; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 180ms; }
+::view-transition-group(pet-photo) { animation-duration: 340ms; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+::view-transition-old(pet-photo), ::view-transition-new(pet-photo) { height: 100%; object-fit: cover; }
+
+/* The cheer picker opens and closes smoothly where the browser can animate
+   to its natural height; elsewhere it opens at once, as before. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (interpolate-size: allow-keywords) {
+    .cheer-box { interpolate-size: allow-keywords; }
+    .cheer-box::details-content {
+      block-size: 0; overflow: clip;
+      transition: block-size 220ms var(--ease), content-visibility 220ms allow-discrete;
+    }
+    .cheer-box[open]::details-content { block-size: auto; }
+  }
+}

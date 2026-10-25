@@ -24,6 +24,30 @@ export default defineConfig(({ mode }) => ({
       transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl(mode)),
     },
     {
+      // Open the connection to the data and photo host while the scripts
+      // download: on a phone that is a DNS lookup and a TLS handshake saved
+      // before the first data request and the first photo. Two links: data
+      // requests are CORS, photos are not, and browsers keep them apart.
+      name: 'wpr-preconnect',
+      transformIndexHtml: (html) => {
+        const env = loadEnv(mode, process.cwd(), '')
+        const origins = [env.VITE_SUPABASE_URL, env.VITE_STORAGE_URL]
+          .filter(Boolean)
+          .map((u) => {
+            try {
+              return new URL(u).origin
+            } catch {
+              return null
+            }
+          })
+          .filter(Boolean)
+        const unique = [...new Set(origins)]
+        if (!unique.length) return html
+        const links = unique.map((o) => `    <link rel="preconnect" href="${o}" crossorigin />\n    <link rel="preconnect" href="${o}" />`).join('\n')
+        return html.replace('</head>', `${links}\n  </head>`)
+      },
+    },
+    {
       // The demo build (scripts/build-demo.mjs): the backend runs inside the
       // browser, loaded ahead of the app so it owns fetch before the client
       // is built. A normal build never includes it.

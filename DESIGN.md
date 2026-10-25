@@ -622,3 +622,13 @@ aside: it disappears on dark paper.
   the photo beside the words when above them it would be a sliver.
 - **Owner images, the widget and the newsletter block know Last Chance**;
   the newsletter block also carries a sprint on its way and the finale.
+- **The photo morph.** A tap on a pet card grows its photo into the pet
+  page's hero while the page crossfades (a same-document view transition;
+  all four engines since Firefox 144). Only the photo is named, the router
+  renders and scrolls inside the transition so the hero lands where it will
+  stay, a transition that cannot start within 300 ms is skipped rather than
+  left to freeze the page, and readers who ask for less motion get none.
+- The cheer picker opens and closes smoothly where the browser can animate
+  to its natural height; list items wrap "pretty" like paragraphs; the
+  production build opens its connection to the data and photo host while
+  the scripts download.

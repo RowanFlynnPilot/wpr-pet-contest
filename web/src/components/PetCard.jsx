@@ -6,6 +6,7 @@ import PetPhoto from './PetPhoto.jsx'
 import VoteButton from './VoteButton.jsx'
 import { Climb } from './Leaderboard.jsx'
 import { clubLabel } from '../lib/milestones.js'
+import { nameForMorph } from '../lib/morph.js'
 
 const SPECIES = { dog: 'Dog', cat: 'Cat', other: 'Other' }
 
@@ -24,7 +25,7 @@ function PetCard({ entry, votes, rank, seed, cut = 16, voteRound, state, eager, 
   const Name = `h${level}`
   return (
     <article className={`pet-card${state?.out ? ' is-out' : ''}${featured ? ' featured' : ''}`}>
-      <a className="pet-card-link" href={href}>
+      <a className="pet-card-link" href={href} onClick={(e) => nameForMorph(e.currentTarget)}>
         <div style={{ position: 'relative' }}>
           {rank != null && (
             <span className={rankClass(rank, cut)}>
