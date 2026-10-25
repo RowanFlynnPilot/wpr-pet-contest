@@ -447,3 +447,23 @@ A slate-ruled paper masthead carries WPR's badge and wordmark, then the teal-dee
   door), a native share and a copy button, and a calendar note for the day
   voting opens. The demo takes an entry so the screen can be seen; a pending
   entry is private either way.
+
+## Dark mode and the bracket that draws itself (Oct. 25, 2026)
+
+- **Dark mode follows the OS.** The paper family has a light and a dark cut
+  (`--paper-light` / `--paper-dark` and so on in `tokens.css`); the mode
+  picks. Brand-colored text uses `--brand-text` (the ink in light, the brand
+  lifted toward white on dark paper), and the tints are mixed into the dark
+  paper; fills and buttons keep `--brand-ink`. `<html data-mode="light|dark">`
+  overrides the OS: the WordPress embed and the article widget are always
+  light, because they sit inside a light page; the admin desk stays light;
+  the demo's bar switches. The share images read the light tokens through a
+  light probe, so a poster is the brand's look whatever the screen. The
+  badge and wordmark are transparent PNGs now; dark mode inverts the
+  wordmark. The audit runs five pages in the dark as well.
+- **The bracket draws itself.** Each column's links draw in left to right
+  (`clip-path`), the names slide in behind them, a won side lights up, the
+  crown lands last; `--col` and `--row` on the markup set the stagger. A
+  round resolving while the page is open mounts the next column's names,
+  and they arrive the same way. On a phone, one round at a time, the column
+  delay is zero. Reduced motion turns it all off.

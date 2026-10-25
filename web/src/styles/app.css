@@ -37,14 +37,14 @@ body {
 
 img { max-width: 100%; display: block; }
 button, input, select, textarea { font: inherit; color: inherit; }
-a { color: var(--teal-ink); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a { color: var(--brand-text); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
 
 /* The parts the browser draws carry the design too: selection in the
    contest's sun, the caret and native controls in teal, headings that
    balance and paragraphs that never leave a word alone. */
 ::selection { background: var(--sun-tint); color: var(--ink); }
 .scoreboard ::selection, .bonus-bar ::selection, .champion ::selection { background: rgba(255, 255, 255, 0.3); color: #fff; }
-html { caret-color: var(--teal-ink); accent-color: var(--teal-ink); scrollbar-color: var(--rule-strong) transparent; }
+html { caret-color: var(--brand-text); accent-color: var(--brand-text); scrollbar-color: var(--rule-strong) transparent; }
 h1, h2, h3 { text-wrap: balance; }
 p, .dek, figcaption { text-wrap: pretty; }
 @media (hover: hover) and (pointer: fine) { a:hover { text-decoration-thickness: 2px; } }
@@ -59,7 +59,7 @@ p { margin: 0 0 0.8em; }
 }
 
 .skip-link {
-  position: absolute; left: 8px; top: -60px; z-index: 100; background: var(--ink); color: #fff;
+  position: absolute; left: 8px; top: -60px; z-index: 100; background: var(--ink); color: var(--paper);
   padding: 10px 14px; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none;
 }
 .skip-link:focus { top: 8px; }
@@ -71,9 +71,9 @@ p { margin: 0 0 0.8em; }
 
 .kicker {
   font-family: var(--sans); font-size: 11.5px; font-weight: 700; letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--teal-ink); margin: 0 0 6px;
+  text-transform: uppercase; color: var(--brand-text); margin: 0 0 6px;
 }
-.kicker.sun { color: var(--sun-ink); }
+.kicker.sun { color: var(--accent-text); }
 
 .section { padding-top: 36px; padding-bottom: 36px; }
 .section + .section { padding-top: 8px; }
@@ -96,7 +96,7 @@ p { margin: 0 0 0.8em; }
 /* An explicit height: with the width/height attributes' ratio the box is
    reserved before the image arrives, so the flag does not re-center and the
    page does not move when it lands. */
-.masthead-flag .wordmark { height: 44px; width: auto; min-width: 0; max-width: 100%; object-fit: contain; }
+.masthead-flag .wordmark { height: 44px; width: auto; min-width: 0; max-width: 100%; object-fit: contain; filter: invert(var(--wordmark-invert)); }
 .masthead-name { font-family: var(--display); font-size: clamp(26px, 6vw, 40px); font-weight: 700; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
 .masthead-tagline {
   font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); margin-top: 8px;
@@ -151,8 +151,8 @@ p { margin: 0 0 0.8em; }
   display: flex; align-items: center; height: 48px; padding: 0 10px; font-size: 14px; font-weight: 700;
   color: var(--ink-2); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap;
 }
-@media (hover: hover) and (pointer: fine) { .nav-links a:hover { color: var(--teal-ink); } }
-.nav-links a[aria-current='page'] { color: var(--teal-ink); border-bottom-color: var(--teal); }
+@media (hover: hover) and (pointer: fine) { .nav-links a:hover { color: var(--brand-text); } }
+.nav-links a[aria-current='page'] { color: var(--brand-text); border-bottom-color: var(--teal); }
 .nav .nav-cta { display: none; align-self: center; flex: none; }
 @media (max-width: 400px) {
   .nav-links { justify-content: space-between; }
@@ -176,9 +176,9 @@ p { margin: 0 0 0.8em; }
 .btn-primary { background: var(--teal-ink); color: #fff; box-shadow: 0 6px 14px -7px rgba(31, 75, 69, 0.7); }
 .btn-primary:active, .btn-sun:active { box-shadow: 0 2px 5px -2px rgba(31, 43, 40, 0.45); }
 @media (hover: hover) and (pointer: fine) { .btn-primary:hover:not(:disabled) { background: var(--teal-deep); } }
-.btn-sun { background: var(--sun); color: var(--ink); box-shadow: 0 6px 14px -7px rgba(122, 85, 0, 0.55); }
+.btn-sun { background: var(--sun); color: var(--on-accent); box-shadow: 0 6px 14px -7px rgba(122, 85, 0, 0.55); }
 @media (hover: hover) and (pointer: fine) { .btn-sun:hover:not(:disabled) { background: var(--accent-light); } }
-.btn-ghost { background: transparent; color: var(--teal-ink); border-color: var(--teal-ink); }
+.btn-ghost { background: transparent; color: var(--brand-text); border-color: var(--brand-text); }
 @media (hover: hover) and (pointer: fine) { .btn-ghost:hover:not(:disabled) { background: var(--teal-wash); } }
 .btn-quiet { background: var(--paper); color: var(--ink); border-color: var(--rule-strong); }
 @media (hover: hover) and (pointer: fine) { .btn-quiet:hover:not(:disabled) { border-color: var(--ink-2); } }
@@ -188,7 +188,7 @@ p { margin: 0 0 0.8em; }
 .btn-sm { min-height: 36px; padding: 6px 14px; font-size: 14px; }
 /* "Vote for (a 40-letter name with no spaces)" wraps rather than widening the page. */
 .btn-block { width: 100%; overflow-wrap: anywhere; text-align: center; }
-.link-btn { background: none; border: 0; padding: 0; color: var(--teal-ink); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 0.18em; }
+.link-btn { background: none; border: 0; padding: 0; color: var(--brand-text); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 0.18em; }
 
 /* ------------------------------------------------------------------- cards */
 .card {
@@ -220,7 +220,7 @@ p { margin: 0 0 0.8em; }
   grid-area: title; font-family: var(--display-xl); font-size: clamp(34px, 9vw, 64px); font-weight: 650;
   letter-spacing: -0.025em; line-height: 0.98; font-variation-settings: 'opsz' 96; text-wrap: balance;
 }
-.home-title em { font-style: normal; color: var(--teal-ink); font-weight: 760; }
+.home-title em { font-style: normal; color: var(--brand-text); font-weight: 760; }
 .home-board { grid-area: board; min-width: 0; }
 .home-actions { grid-area: actions; margin-top: 0; }
 .home-lede { grid-area: lede; margin: 0; }
@@ -247,7 +247,7 @@ p { margin: 0 0 0.8em; }
 .countdown-unit .n { display: block; font-family: var(--mono); font-weight: 700; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
 .countdown-unit .u { display: block; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
 .countdown.urgent .countdown-unit { border-color: var(--danger-rule); }
-.countdown.urgent .countdown-unit .n { color: var(--red); }
+.countdown.urgent .countdown-unit .n { color: var(--danger-text); }
 .countdown-inline { font-family: var(--mono); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* Fridge-door photo stack */
@@ -277,7 +277,7 @@ p { margin: 0 0 0.8em; }
   border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
 }
 @media (min-width: 720px) { .raised { grid-template-columns: auto 1fr; gap: 28px; } }
-.raised-amount { font-family: var(--display-figure); font-weight: 700; font-size: clamp(40px, 9vw, 64px); line-height: 1; color: var(--teal-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-variation-settings: 'opsz' 96; }
+.raised-amount { font-family: var(--display-figure); font-weight: 700; font-size: clamp(40px, 9vw, 64px); line-height: 1; color: var(--brand-text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-variation-settings: 'opsz' 96; }
 .raised-label { font-weight: 700; font-size: 15px; margin-top: 4px; }
 .raised-facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--muted); }
 .raised-facts b { font-family: var(--mono); color: var(--ink); font-size: 16px; }
@@ -287,10 +287,10 @@ p { margin: 0 0 0.8em; }
 /* Under the vote buttons: quiet, because it is a convenience, not an action. */
 .deadline-link {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 44px;
-  margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--teal-ink); text-decoration: none;
+  margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--brand-text); text-decoration: none;
 }
 @media (hover: hover) and (pointer: fine) { .deadline-link:hover { text-decoration: underline; } }
-.raised-goal-label { margin-top: 6px; font-size: 13.5px; font-weight: 700; color: var(--teal-ink); }
+.raised-goal-label { margin-top: 6px; font-size: 13.5px; font-weight: 700; color: var(--brand-text); }
 
 /* --------------------------------------------------------------- steps */
 .steps { display: grid; gap: 14px; counter-reset: step; list-style: none; padding: 0; margin: 0; }
@@ -310,10 +310,10 @@ p { margin: 0 0 0.8em; }
 .reset-callout svg { flex: none; margin-top: 2px; }
 
 /* ------------------------------------------------------------ bonus banner */
-.bonus-bar { background: var(--sun); color: var(--ink); }
+.bonus-bar { background: var(--sun); color: var(--on-accent); }
 .bonus-bar .wrap { display: flex; align-items: center; justify-content: center; gap: 8px 14px; flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; text-align: center; font-size: 14.5px; }
 .bonus-bar strong { font-family: var(--display); font-size: 18px; font-weight: 700; }
-.bonus-bar a { color: var(--ink); font-weight: 700; }
+.bonus-bar a { color: var(--on-accent); font-weight: 700; }
 .bonus-bar .countdown-inline { background: rgba(255, 255, 255, 0.55); padding: 2px 8px; border-radius: 6px; }
 .bonus-bar.upcoming { background: var(--sun-tint); border-bottom: 1px solid var(--accent-soft); }
 .bonus-sponsor-short { display: none; }
@@ -325,7 +325,7 @@ p { margin: 0 0 0.8em; }
   .bonus-sponsor-short { display: inline; font-weight: 600; }
 }
 .bonus-badge {
-  display: inline-flex; align-items: center; gap: 6px; background: var(--sun); color: var(--ink);
+  display: inline-flex; align-items: center; gap: 6px; background: var(--sun); color: var(--on-accent);
   font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 999px; white-space: nowrap;
 }
 
@@ -350,7 +350,7 @@ p { margin: 0 0 0.8em; }
   display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 14px; border-radius: 999px;
   border: 1px solid var(--rule-strong); background: var(--paper); font-size: 14px; font-weight: 700; cursor: pointer; color: var(--ink-2);
 }
-.chip[aria-pressed='true'], .chip.is-on { background: var(--teal-ink); border-color: var(--teal-ink); color: #fff; }
+.chip[aria-pressed='true'], .chip.is-on { background: var(--teal-ink); border-color: var(--brand-text); color: #fff; }
 .chip:has(input:focus-visible), .btn:has(input:focus-visible) { outline: 3px solid var(--teal); outline-offset: 2px; }
 .chip .count { font-family: var(--mono); font-size: 12px; opacity: 0.8; }
 .tool-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -397,7 +397,7 @@ p { margin: 0 0 0.8em; }
   font-family: var(--mono); font-weight: 700; font-size: 13px; padding: 3px 8px; border-radius: 999px;
   background: rgba(255, 255, 255, 0.94); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
-.rank-badge.top3 { background: var(--sun); }
+.rank-badge.top3 { background: var(--sun); color: var(--on-accent); }
 .rank-badge.qual { background: var(--teal-ink); color: #fff; }
 .state-badge {
   position: absolute; top: 8px; right: 8px; z-index: 2; max-width: calc(100% - 90px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
@@ -406,7 +406,7 @@ p { margin: 0 0 0.8em; }
 .state-badge.alive { background: var(--teal-ink); color: #fff; }
 .adopt-flag {
   position: absolute; bottom: 8px; left: 8px; z-index: 2; font-size: 11.5px; font-weight: 800; padding: 3px 9px;
-  border-radius: 999px; background: var(--sun); color: var(--ink);
+  border-radius: 999px; background: var(--sun); color: var(--on-accent);
 }
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin: 0 0 12px; }
@@ -431,7 +431,7 @@ p { margin: 0 0 0.8em; }
 
 /* The heart: teal-ink on a paper disc over photos, filled when kept. Not sun:
    a favorite is the reader's, not a pet's standing. */
-.fav-btn { color: var(--teal-ink); }
+.fav-btn { color: var(--brand-text); }
 .fav-btn::before { background: rgba(255, 255, 255, 0.94); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
 @media (hover: hover) and (pointer: fine) {
   .fav-btn:hover { color: var(--teal-deep); }
@@ -452,7 +452,7 @@ p { margin: 0 0 0.8em; }
    share and Vote cannot share a line, Vote takes its own, full width. */
 .icon-btn { margin: -4px; color: var(--ink-2); }
 .icon-btn::before { background: var(--paper); border: 1px solid var(--rule-strong); }
-.icon-btn.done { color: var(--teal-ink); }
+.icon-btn.done { color: var(--brand-text); }
 @media (hover: hover) and (pointer: fine) { .icon-btn:hover::before { border-color: var(--ink-2); } }
 .pet-card-foot { position: relative; }
 .pet-card-foot .votes { margin-right: auto; }
@@ -517,7 +517,7 @@ p { margin: 0 0 0.8em; }
    not shove it down the screen. Not in the iframe: the frame must be able to
    shrink to a short page. */
 html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 100vh; }
-.skeleton { background: linear-gradient(90deg, var(--cream-deep), #f3eee3, var(--cream-deep)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 6px; }
+.skeleton { background: linear-gradient(90deg, var(--cream-deep), color-mix(in oklab, var(--cream-deep) 55%, var(--paper)), var(--cream-deep)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 6px; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
 /* ------------------------------------------------------------- pet page */
@@ -586,16 +586,16 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .road-stop.done .road-dot { background: var(--teal); border-color: var(--teal); }
 .road-stop.live .road-dot { background: var(--teal-deep); border-color: var(--sun); box-shadow: 0 0 0 4px var(--sun-tint); }
 .road-stop.next .road-dot { border-color: var(--teal); }
-.road-stop.out .road-dot { background: var(--red); border-color: var(--red); }
+.road-stop.out .road-dot { background: var(--red); border-color: var(--danger-text); }
 .road-stop.gone .road-dot { border-style: dashed; }
 .road-label { font-size: 11.5px; font-weight: 800; line-height: 1.25; letter-spacing: 0.03em; color: var(--muted); white-space: nowrap; }
 .road-detail { font-family: var(--mono); font-size: 11px; line-height: 1.2; color: var(--ink-2); white-space: nowrap; }
-.road-stop.done .road-label, .road-stop.live .road-label, .road-stop.next .road-label { color: var(--teal-ink); }
-.road-stop.out .road-label { color: var(--red); }
+.road-stop.done .road-label, .road-stop.live .road-label, .road-stop.next .road-label { color: var(--brand-text); }
+.road-stop.out .road-label { color: var(--danger-text); }
 .road-stop.crown .road-dot { width: auto; border: 0; background: none; box-shadow: none; }
 .road-stop.crown .crown-mark { fill: var(--cream); stroke: var(--sun-ink); }
 .road-stop.crown.won .crown-mark { fill: var(--sun); }
-.road-stop.crown.won .road-label { color: var(--sun-ink); }
+.road-stop.crown.won .road-label { color: var(--accent-text); }
 
 /* The scoreboard: deep teal, digits in fixed cells over ghost 8s. An unlit
    lamp is a ghost too: the housing shows, the word only when it lights (the
@@ -658,7 +658,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .sb-lamp { transition: background-color 360ms var(--ease), color 360ms var(--ease); }
 .sb-lamp svg { fill: var(--board-bulb); transition: fill 360ms var(--ease); }
 .sb-lamp-ghost::after { content: attr(data-word); color: rgba(255, 255, 255, 0.075); }
-.sb-lamp.on { background: var(--sun); color: var(--ink); }
+.sb-lamp.on { background: var(--sun); color: var(--on-accent); }
 .sb-lamp.on svg { fill: #b23a16; }
 @media (prefers-reduced-motion: no-preference) {
   .sb-lamp.on { animation: lamp-ignite 900ms cubic-bezier(0.16, 1, 0.3, 1); }
@@ -715,7 +715,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 }
 @media (hover: hover) and (pointer: fine) { .share-btn:hover { border-color: var(--ink-2); } }
 .share-btn svg { flex: none; }
-.share-btn.primary { background: var(--teal-ink); border-color: var(--teal-ink); color: #fff; }
+.share-btn.primary { background: var(--teal-ink); border-color: var(--brand-text); color: #fff; }
 .copy-fallback { margin-top: 8px; }
 
 /* The link as a friend sees it: the share page's picture, site, title and
@@ -739,7 +739,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .board-town { font-size: 12.5px; color: var(--muted); }
 .board-votes { font-family: var(--mono); font-weight: 700; font-size: 17px; text-align: right; }
 .board-gap { text-align: center; color: var(--muted); font-size: 13px; padding: 4px; letter-spacing: 0.3em; }
-.board-cut { background: var(--teal-wash); color: var(--teal-ink); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 5px; }
+.board-cut { background: var(--teal-wash); color: var(--brand-text); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 5px; }
 
 .ticker { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 6px 8px 6px 14px; font-size: 14px; min-height: 42px; overflow: hidden; }
 .ticker .live-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--danger-bright); box-shadow: 0 0 0 0 rgba(214, 69, 69, 0.5); animation: pulse 2s infinite; }
@@ -756,7 +756,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
   flex: none; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--rule-strong);
   background: var(--paper); font-weight: 700; font-size: 14px; cursor: pointer; color: var(--ink-2);
 }
-.round-tab[aria-selected='true'] { background: var(--teal-ink); color: #fff; border-color: var(--teal-ink); }
+.round-tab[aria-selected='true'] { background: var(--teal-ink); color: #fff; border-color: var(--brand-text); }
 .round-tab .live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--danger-bright); margin-left: 6px; vertical-align: 1px; }
 
 /* minmax(0, 1fr): an auto column grows to fit nowrap "Vote (long name)" buttons
@@ -774,6 +774,26 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
   border: 2px solid var(--rule-strong); border-left: 0; border-radius: 0 8px 8px 0;
 }
 .bracket.poster .bracket-pair.solo::after { top: 50%; bottom: auto; height: 0; border-width: 2px 0 0; border-radius: 0; }
+/* The bracket draws itself: each column's links draw in left to right, the
+   names slide in behind them, a won side lights up, the crown lands last.
+   Live, too: a round resolving while the page is open mounts the next
+   column's names, and they arrive the same way. --col and --row come from
+   the markup; on a phone, where one round shows at a time, --col is 0. */
+@keyframes draw-link { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes slot-in { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+@keyframes won-glow { 0% { box-shadow: inset 0 0 0 0 transparent; } 35% { box-shadow: inset 0 0 0 2px var(--teal); } 100% { box-shadow: inset 0 0 0 0 transparent; } }
+@keyframes crown-land { from { opacity: 0; transform: translateY(10px) scale(0.94); } to { opacity: 1; transform: none; } }
+.bracket-slot { display: contents; }
+.bracket.poster .bracket-pair::after { animation: draw-link 520ms var(--ease) both; animation-delay: calc(var(--col, 0) * 160ms + 220ms); }
+.bracket .matchup-side { animation: slot-in 420ms var(--ease) both; animation-delay: calc(var(--col, 0) * 160ms + var(--row, 0) * 40ms + 60ms); }
+.bracket .matchup-side.won {
+  animation: slot-in 420ms var(--ease) both, won-glow 900ms var(--ease) both;
+  animation-delay: calc(var(--col, 0) * 160ms + var(--row, 0) * 40ms + 60ms), calc(var(--col, 0) * 160ms + var(--row, 0) * 40ms + 520ms);
+}
+.bracket .crown-slot.won { animation: crown-land 520ms var(--ease) both; animation-delay: calc(var(--col, 0) * 160ms + 260ms); }
+@media (prefers-reduced-motion: reduce) {
+  .bracket.poster .bracket-pair::after, .bracket .matchup-side, .bracket .matchup-side.won, .bracket .crown-slot.won { animation: none; }
+}
 .bracket-crown .bracket-col-body { justify-content: center; }
 .crown-slot { display: grid; justify-items: center; gap: 10px; padding: 18px 12px; border-radius: 14px; background: var(--teal-deep); color: #fff; text-align: center; box-shadow: 0 14px 28px -18px rgba(15, 42, 38, 0.75); }
 .crown-slot .crown-mark { fill: var(--board-ring); stroke: var(--board-quiet); }
@@ -806,7 +826,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 @media (hover: hover) and (pointer: fine) { .matchup-name a:hover { text-decoration: underline; } }
 .matchup-votes { font-family: var(--mono); font-weight: 700; font-size: 15px; text-align: right; }
 .matchup-side.won { background: var(--teal-wash); }
-.matchup-name svg { display: inline-block; margin-left: 4px; vertical-align: -1px; color: var(--teal-ink); }
+.matchup-name svg { display: inline-block; margin-left: 4px; vertical-align: -1px; color: var(--brand-text); }
 .matchup-side.lost { color: var(--muted); }
 .matchup-side.lost .photo img.main { filter: grayscale(1); opacity: 0.7; }
 .matchup-side .bar { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--teal); transition: width 600ms var(--ease); }
@@ -819,7 +839,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 /* The champion: the one sun field in the contest, where the road ends. */
 .champion {
   position: relative; isolation: isolate; overflow: hidden; display: grid; gap: 22px; align-items: center;
-  background: var(--sun); color: var(--ink); border-radius: 14px; padding: 22px;
+  background: var(--sun); color: var(--on-accent); border-radius: 14px; padding: 22px;
   box-shadow: 0 16px 32px -20px rgba(122, 85, 0, 0.6);
 }
 @media (min-width: 760px) { .champion { grid-template-columns: 300px 1fr; padding: 30px; gap: 32px; } }
@@ -863,14 +883,14 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 @media (min-width: 720px) { .awards { grid-template-columns: repeat(3, 1fr); } }
 .award { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px; text-decoration: none; color: inherit; box-shadow: var(--shadow); }
 .award .photo { border-radius: 8px; }
-.award-title { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sun-ink); }
+.award-title { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-text); }
 .award-name { font-family: var(--display); font-weight: 600; font-size: 20px; }
 
 /* ----------------------------------------------------------------- forms */
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .field > label, .field > .label, legend.label { font-weight: 700; font-size: 15px; }
 .field .hint { font-size: 13px; color: var(--muted); margin-top: -2px; }
-.field .error-text { font-size: 13.5px; color: var(--red); font-weight: 700; }
+.field .error-text { font-size: 13.5px; color: var(--danger-text); font-weight: 700; }
 .opt { font-weight: 400; color: var(--muted); font-size: 13px; }
 input[type='text'], input[type='email'], input[type='password'], input[type='search'], input[type='number'], input[type='datetime-local'], select, textarea {
   width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--rule-strong); border-radius: 8px;
@@ -878,11 +898,11 @@ input[type='text'], input[type='email'], input[type='password'], input[type='sea
 }
 textarea { min-height: 96px; resize: vertical; }
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--teal); outline-offset: 0; border-color: var(--teal); }
-input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: var(--red); }
+input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: var(--danger-text); }
 .row-2 { display: grid; gap: 0 14px; }
 @media (min-width: 640px) { .row-2 { grid-template-columns: 1fr 1fr; } }
 .check { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; font-size: 15px; cursor: pointer; }
-.check input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--teal-ink); }
+.check input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--brand-text); }
 .release { background: var(--cream); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--ink-2); margin: 8px 0 0 34px; }
 .release p { margin: 0 0 6px; }
 .release p:last-child { margin: 0; }
@@ -989,18 +1009,18 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
   transition: border-color 120ms var(--ease), background-color 120ms var(--ease);
 }
 @media (hover: hover) and (pointer: fine) { .pack label:hover { border-color: var(--teal); } }
-.pack input:checked + label { border-color: var(--teal-ink); background: var(--teal-wash); box-shadow: 0 0 0 1px var(--teal-ink); }
+.pack input:checked + label { border-color: var(--brand-text); background: var(--teal-wash); box-shadow: 0 0 0 1px var(--teal-ink); }
 .pack input:focus-visible + label { outline: 3px solid var(--teal); outline-offset: 2px; }
-.pack .dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--rule-strong); display: grid; place-items: center; background: #fff; }
-.pack input:checked + label .dot { border-color: var(--teal-ink); }
+.pack .dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--rule-strong); display: grid; place-items: center; background: var(--paper); }
+.pack input:checked + label .dot { border-color: var(--brand-text); }
 .pack input:checked + label .dot::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--teal-ink); }
 .pack-votes { font-family: var(--mono); font-weight: 700; font-size: 18px; line-height: 1.1; }
 /* A doubled pack reads as what you get, then how: "1,200 votes ×2 from 600". */
-.pack-was { font-family: var(--sans); color: var(--sun-ink); font-weight: 700; font-size: 12.5px; margin-left: 6px; white-space: nowrap; }
+.pack-was { font-family: var(--sans); color: var(--accent-text); font-weight: 700; font-size: 12.5px; margin-left: 6px; white-space: nowrap; }
 .pack-meta { font-size: 12.5px; color: var(--muted); display: flex; gap: 4px 10px; flex-wrap: wrap; margin-top: 2px; }
-.pack-meta .save { color: var(--teal-ink); font-weight: 800; }
+.pack-meta .save { color: var(--brand-text); font-weight: 800; }
 .pack-price { font-family: var(--display); font-weight: 700; font-size: 22px; }
-.pack-tag { position: absolute; top: -9px; right: 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--sun); color: var(--ink); padding: 2px 8px; border-radius: 99px; }
+.pack-tag { position: absolute; top: -9px; right: 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--sun); color: var(--on-accent); padding: 2px 8px; border-radius: 99px; }
 .pack-tag.value { background: var(--teal-ink); color: #fff; }
 
 .fine { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 12px 0 0; }
@@ -1021,13 +1041,13 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .sponsor-card > img { margin: 8px 0 2px; }
 .sponsor-card.full { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; width: 100%; }
 .sponsor-card.full > img { margin: 0; }
-.sponsor-eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sun-ink); }
+.sponsor-eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-text); }
 .sponsor-card.full .sponsor-eyebrow { flex-basis: 100%; }
 .sponsor-card img { height: 46px; width: auto; max-width: 220px; object-fit: contain; }
 .sponsor-name { font-family: var(--display); font-size: 20px; font-weight: 600; }
 .sponsor-tag { font-size: 13px; color: var(--muted); flex: 1 1 200px; }
 .sponsor-tag b { display: block; color: var(--ink); font-size: 14.5px; }
-.sponsor-go { font-size: 13px; font-weight: 800; color: var(--teal-ink); margin-left: auto; white-space: nowrap; }
+.sponsor-go { font-size: 13px; font-weight: 800; color: var(--brand-text); margin-left: auto; white-space: nowrap; }
 .upsell { border: 1.5px dashed var(--rule-strong); border-radius: 10px; padding: 14px 16px; background: var(--paper); text-align: left; }
 .upsell.dark { background: transparent; border-color: rgba(255, 255, 255, 0.45); color: #fff; }
 .upsell .pitch b { font-family: var(--sans); font-size: 13px; font-weight: 800; letter-spacing: 0.04em; color: var(--ink-2); margin-right: 4px; }
@@ -1046,7 +1066,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .upsell.full .btn { margin: 0; grid-row: 2 / span 2; grid-column: 2; }
 .upsell.full .addr { margin: 0; }
 @media (max-width: 560px) { .upsell.full { grid-template-columns: 1fr; } .upsell.full .btn { grid-row: auto; grid-column: 1; justify-self: start; margin-top: 6px; } }
-.demo-ribbon { background: var(--sun); color: var(--ink); text-align: center; font-size: 13px; font-weight: 700; padding: 7px 14px; }
+.demo-ribbon { background: var(--sun); color: var(--on-accent); text-align: center; font-size: 13px; font-weight: 700; padding: 7px 14px; }
 .demo-ribbon a { color: var(--ink); }
 
 .inventory { list-style: none; margin: 0; padding: 0; }
@@ -1055,7 +1075,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .inventory .inv-main { flex: 1 1 320px; min-width: 0; }
 .inventory .inv-name { font-family: var(--display); font-weight: 600; font-size: 19px; }
 .inventory .inv-desc { font-size: 14px; color: var(--muted); margin-top: 3px; }
-.status-pill { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--teal-ink); color: var(--teal-ink); margin-left: 8px; vertical-align: 3px; }
+.status-pill { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--teal-ink); color: var(--brand-text); margin-left: 8px; vertical-align: 3px; }
 .status-pill.sold { border-color: var(--rule-strong); color: var(--muted); }
 
 /* ---------------------------------------------------------------- shelters */
@@ -1077,7 +1097,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .adoptable img { width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); background: var(--cream-deep); }
 
 /* ------------------------------------------------------------------- rules */
-.draft-ribbon { background: var(--sun); color: var(--ink); font-size: 13px; font-weight: 700; text-align: center; padding: 8px 14px; }
+.draft-ribbon { background: var(--sun); color: var(--on-accent); font-size: 13px; font-weight: 700; text-align: center; padding: 8px 14px; }
 .rules h2 { font-size: 22px; margin: 30px 0 8px; }
 .rules p, .rules li { font-size: 16px; line-height: 1.65; }
 .rules ul { padding-left: 22px; }
@@ -1105,7 +1125,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .split { display: grid; gap: 18px; }
 @media (min-width: 900px) { .split { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 28px; align-items: start; } }
 .toast {
-  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: #fff;
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--paper);
   padding: 10px 16px; border-radius: 10px; font-size: 14.5px; font-weight: 700; box-shadow: var(--shadow-lift); max-width: calc(100% - 32px);
 }
 html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
@@ -1118,7 +1138,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 /* The owner's goal on the pet page, and the owner's tools behind their link. */
 .goal-line { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
 .goal-line-head { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; margin-bottom: 6px; }
-.goal-line-left { font-family: var(--mono); font-weight: 700; color: var(--teal-ink); white-space: nowrap; }
+.goal-line-left { font-family: var(--mono); font-weight: 700; color: var(--brand-text); white-space: nowrap; }
 .owner-tools { margin-top: 14px; padding: 16px; border: 2px solid var(--teal); border-radius: 14px; background: var(--teal-wash); }
 .owner-tools h2 { font-size: 20px; margin: 0 0 8px; }
 .owner-goal label { display: block; font-size: 15px; margin-bottom: 8px; }
@@ -1131,3 +1151,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .shelter-mark { display: inline-block; vertical-align: middle; border-radius: 6px; background: #fff; object-fit: contain; border: 1px solid var(--rule); }
 .done-impact .shelter-mark { margin: -6px 6px -6px 0; }
 .shelter-lockup { white-space: nowrap; }
+
+/* The admin desk keeps the light paper whatever the reader's mode; the
+   tokens re-light under [data-mode='light'] (tokens.css). */
+.admin-mode { min-height: 100vh; background: var(--cream); color: var(--ink); }

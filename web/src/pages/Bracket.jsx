@@ -33,25 +33,22 @@ export function BracketBoard({ c, byId, projected = null }) {
 
   // Slots two at a time, so a poster can join each pair toward the next round.
   const pairs = (slots) => slots.reduce((out, m, i) => (i % 2 ? out[out.length - 1].push([m, i]) : out.push([[m, i]]), out), [])
-  const renderSlot = (col, m, slot) =>
-    projected && col.seq === 2 ? (
-      <MatchupCard key={slot} projected={projected[slot]} byId={byId} />
-    ) : (
-      <MatchupCard
-        key={m?.id || slot}
-        matchup={m}
-        totals={m ? totalsByRound.get(m.round_id) : null}
-        byId={byId}
-        round={col.round}
-        live={Boolean(m) && col.round?.id === openId}
-      />
-    )
+  // The wrapper is display: contents; it only carries --row for the stagger.
+  const renderSlot = (col, m, slot) => (
+    <div className="bracket-slot" style={{ '--row': slot }} key={m?.id || slot}>
+      {projected && col.seq === 2 ? (
+        <MatchupCard projected={projected[slot]} byId={byId} />
+      ) : (
+        <MatchupCard matchup={m} totals={m ? totalsByRound.get(m.round_id) : null} byId={byId} round={col.round} live={Boolean(m) && col.round?.id === openId} />
+      )}
+    </div>
+  )
   const finalCol = cols[cols.length - 1]
   const finalMatch = finalCol?.slots[0]
   const champion = finalMatch?.winner_entry_id ? byId.get(finalMatch.winner_entry_id) : null
 
-  const renderCol = (col) => (
-    <div className="bracket-col" key={col.seq} role={wide ? undefined : 'tabpanel'} id={`round-panel-${col.seq}`} aria-labelledby={wide ? undefined : `round-tab-${col.seq}`}>
+  const renderCol = (col, i = 0) => (
+    <div className="bracket-col" key={col.seq} style={{ '--col': wide ? i : 0 }} role={wide ? undefined : 'tabpanel'} id={`round-panel-${col.seq}`} aria-labelledby={wide ? undefined : `round-tab-${col.seq}`}>
       <div className="bracket-col-head">
         <span>{col.label}</span>
         <span className="when">{projected && col.seq === 2 ? 'If voting ended now' : when(col, c.phase)}</span>
@@ -76,7 +73,7 @@ export function BracketBoard({ c, byId, projected = null }) {
         style={{ gridTemplateColumns: `minmax(0, 1.3fr) repeat(${cols.length - 1}, minmax(0, 1fr)) minmax(0, 0.8fr)` }}
       >
         {cols.map(renderCol)}
-        <div className="bracket-col bracket-crown">
+        <div className="bracket-col bracket-crown" style={{ '--col': cols.length }}>
           <div className="bracket-col-head">
             <span>The crown</span>
           </div>

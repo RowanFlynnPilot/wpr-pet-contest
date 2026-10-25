@@ -12,7 +12,8 @@ import { coverRect, ellipsize, fitText } from './layout.js'
 // variants. Every pairing measures AA or better in the default theme.
 export const C = {}
 for (const key of ['ink', 'ink2', 'muted', 'paper', 'cream', 'creamDeep', 'rule', 'ruleStrong', 'slate', 'teal', 'tealInk', 'tealDeep', 'tealTint', 'sun', 'sunInk', 'sunTint', 'red', 'onDeep']) {
-  Object.defineProperty(C, key, { enumerable: true, get: () => palette()[key] })
+  // The brand's light look, whatever the reader's mode: a share image is a poster.
+  Object.defineProperty(C, key, { enumerable: true, get: () => palette({ light: true })[key] })
 }
 
 const DISPLAY = "'Bricolage Grotesque', Arial, sans-serif"

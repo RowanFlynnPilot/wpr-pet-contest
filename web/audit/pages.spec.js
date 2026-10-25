@@ -65,3 +65,21 @@ test('staff sign-in', async ({ page }) => {
   await expect(page.getByLabel(/email/i)).toBeVisible()
   await audit(page)
 })
+
+// Dark mode: the same bar, on the dark paper. The five routes here carry
+// every surface (the arena, a pet page, the bracket, a form, long text).
+test.describe('dark mode', () => {
+  test.beforeAll(async ({ request }) => {
+    await request.get(`${MOCK}/__phase?set=bracket`)
+    const rows = await (await request.get(`${MOCK}/rest/v1/entries?select=id&status=eq.approved&order=created_at&limit=1`)).json()
+    petId = rows[0]?.id
+  })
+  for (const route of ['', 'pet', 'bracket', 'enter', 'rules']) {
+    test(`#/${route} in the dark`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: 'dark' })
+      await page.goto(`/#/${route === 'pet' ? `pet/${petId}` : route}`)
+      await settle(page)
+      await audit(page)
+    })
+  }
+})

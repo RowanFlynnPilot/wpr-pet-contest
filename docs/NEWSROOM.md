@@ -23,7 +23,9 @@ bottom; a real build is one newsroom.
 A block on `:root[data-theme='<key>']` that sets the role tokens: `--brand`
 (with `-ink`, `-deep`, `-tint`, `-wash`), `--accent` (with `-ink`, `-tint`),
 `--danger` if the default red collides with your brand, the paper family
-(`--cream`, `--cream-deep`, `--rule`, `--rule-strong`, `--slate`), and the
+(the light cut: `--cream-light`, `--cream-deep-light`, `--rule-light`,
+`--rule-strong-light`, `--slate-light`; dark mode's cut is shared, and may be
+overridden with the `-dark` names), and the
 faces (`--display`, `--display-xl`, `--sans`). Everything else, the arena's
 board shades included, derives from those with `color-mix()`. Each face has
 a `size-adjust`ed local fallback in `tokens.css` so the page holds still

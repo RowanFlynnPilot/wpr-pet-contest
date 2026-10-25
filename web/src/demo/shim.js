@@ -23,13 +23,17 @@ function settings() {
     const phase = q.get('phase') || saved.phase || 'open'
     const scale = q.get('scale') || saved.scale || 1
     const newsroom = q.get('newsroom') || saved.newsroom || DEFAULT_NEWSROOM
+    const mode = q.get('mode') || saved.mode || 'auto'
     return {
       phase: PHASES.includes(phase) ? phase : 'open',
       scale: Number(scale) === 100 ? 100 : 1,
       newsroom: NEWSROOMS[newsroom] ? newsroom : DEFAULT_NEWSROOM,
+      // auto follows the OS; light and dark are set on <html> by the inline
+      // script in vite.config.js before any module runs.
+      mode: ['light', 'dark'].includes(mode) ? mode : 'auto',
     }
   } catch {
-    return { phase: 'open', scale: 1, newsroom: DEFAULT_NEWSROOM }
+    return { phase: 'open', scale: 1, newsroom: DEFAULT_NEWSROOM, mode: 'auto' }
   }
 }
 
@@ -104,6 +108,9 @@ function bar() {
     <span class="sep" aria-hidden="true"></span>
     <span class="k">Newsroom</span>
     ${papers.map((p) => `<button type="button" data-newsroom="${p.key}" aria-pressed="${p.key === chosen.newsroom}">${p.shortName}</button>`).join('')}
+    <span class="sep" aria-hidden="true"></span>
+    <span class="k">Look</span>
+    ${['auto', 'light', 'dark'].map((m) => `<button type="button" data-mode="${m}" aria-pressed="${m === chosen.mode}">${m === 'auto' ? 'Auto' : m === 'light' ? 'Light' : 'Dark'}</button>`).join('')}
   `
   el.addEventListener('click', (e) => {
     const b = e.target.closest('button')
@@ -112,6 +119,7 @@ function bar() {
     if (b.dataset.phase) next.phase = b.dataset.phase
     if (b.dataset.scale) next.scale = Number(b.dataset.scale)
     if (b.dataset.newsroom) next.newsroom = b.dataset.newsroom
+    if (b.dataset.mode) next.mode = b.dataset.mode
     remember(next)
     // A fresh page rather than a live swap: every counter and clock starts
     // clean. The address loses any ?phase= so the choice sticks.
@@ -119,6 +127,7 @@ function bar() {
     u.searchParams.delete('phase')
     u.searchParams.delete('scale')
     u.searchParams.delete('newsroom')
+    u.searchParams.delete('mode')
     window.location.replace(u.toString())
   })
   document.body.appendChild(el)

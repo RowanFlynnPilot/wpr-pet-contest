@@ -188,7 +188,10 @@ export default function App() {
     }
     return (
       <Suspense fallback={<p className="wrap section">Opening the contest desk…</p>}>
-        <AdminApp />
+        {/* The desk stays light: its own stylesheet was drawn for paper. */}
+        <div className="admin-mode" data-mode="light">
+          <AdminApp />
+        </div>
       </Suspense>
     )
   }

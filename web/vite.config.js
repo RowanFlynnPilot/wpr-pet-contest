@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => ({
                 // The newsroom choice has to be on <html> before any module runs
                 // (shared chunks evaluate ahead of the shim), so a classic
                 // script sets it first; the shim does the rest.
-                '<script>try{var s=JSON.parse(localStorage.getItem("wpr-demo")||"{}");var n=new URLSearchParams(location.search).get("newsroom")||s.newsroom;if(n)document.documentElement.dataset.newsroom=n}catch(e){}</script>\n' +
+                '<script>try{window.WPR_DEMO=1;var s=JSON.parse(localStorage.getItem("wpr-demo")||"{}");var q=new URLSearchParams(location.search);var n=q.get("newsroom")||s.newsroom;if(n)document.documentElement.dataset.newsroom=n;var m=q.get("mode")||s.mode;if(m==="light"||m==="dark")document.documentElement.dataset.mode=m}catch(e){}</script>\n' +
                   '    <script type="module" src="/src/demo/shim.js"></script>\n    <script type="module" src="/src/',
               )
             : html,

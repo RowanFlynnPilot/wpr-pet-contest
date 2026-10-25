@@ -6,10 +6,16 @@
 // VITE_NEWSROOM (default wpr); the demo switches at runtime by setting
 // data-newsroom on <html> before the app loads (src/demo/shim.js).
 import { DEFAULT_NEWSROOM, NEWSROOMS } from './newsrooms.js'
+import { EMBEDDED } from './lib/env.js'
 
 const picked =
   (typeof document !== 'undefined' && document.documentElement.dataset.newsroom) || import.meta.env?.VITE_NEWSROOM || DEFAULT_NEWSROOM
 export const NEWSROOM = NEWSROOMS[picked] || NEWSROOMS[DEFAULT_NEWSROOM]
+
+// Inside another page (the WordPress embed) the look is that page's: light.
+// Standalone, the OS decides (styles/tokens.css), unless <html data-mode>
+// was set before the app loaded, by the demo's bar or by a host page.
+if (typeof document !== 'undefined' && EMBEDDED && !document.documentElement.dataset.mode) document.documentElement.dataset.mode = 'light'
 
 // Its theme (styles/tokens.css) and faces, before the first paint.
 if (typeof document !== 'undefined') {
