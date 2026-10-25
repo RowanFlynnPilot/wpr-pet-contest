@@ -21,8 +21,8 @@ describe('countdown', () => {
     expect(formatCountdown(9 * S + 400)).toBe('9s')
   })
   it('reads naturally for screen readers', () => {
-    expect(describeCountdown(2 * D + 4 * H)).toBe('2 days, 4 hours')
-    expect(describeCountdown(1 * H + 1 * M)).toBe('1 hour, 1 minute')
+    expect(describeCountdown(2 * D + 4 * H)).toBe('two days, four hours')
+    expect(describeCountdown(1 * H + 1 * M)).toBe('one hour, one minute')
     expect(describeCountdown(20 * S)).toBe('less than a minute')
   })
 })
@@ -39,7 +39,7 @@ describe('money and numbers', () => {
   })
   it('formats counts', () => {
     expect(fmtInt(12345)).toBe('12,345')
-    expect(plural(1, 'vote')).toBe('1 vote')
+    expect(plural(1, 'vote')).toBe('one vote')
     expect(plural(1200, 'vote')).toBe('1,200 votes')
   })
 })

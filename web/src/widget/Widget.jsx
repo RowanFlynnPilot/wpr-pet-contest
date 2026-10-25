@@ -17,7 +17,7 @@ import {
   fetchTotals,
 } from '../lib/api.js'
 import { activeWindow, windowTitle } from '../lib/bonus.js'
-import { apTime, fmtInt, fmtMoney } from '../lib/format.js'
+import { apCount, apTime, fmtInt, fmtMoney } from '../lib/format.js'
 import { useLive } from '../lib/live.js'
 import { contestPhase, pickActiveContest } from '../lib/phase.js'
 import { entryPhotoUrl } from '../lib/photos.js'
@@ -68,7 +68,7 @@ function Enter({ contest, stats, to, now }) {
     <>
       <p className="w-headline">Is your pet the cutest in {NEWSROOM.region}?</p>
       <p className="w-sub">
-        Entering is free. {stats?.entries ? `${fmtInt(stats.entries)} pets are in so far.` : 'Be one of the first.'}
+        Entering is free. {stats?.entries ? `${apCount(stats.entries, 'pet')} ${stats.entries === 1 ? 'is' : 'are'} in so far.` : 'Be one of the first.'}
         {left ? ` Entries close in ${left.replace(' left', '')}.` : ''}
       </p>
       {recent.data?.length > 0 && (

@@ -102,7 +102,7 @@ const goalLine = (row: QueueRow): string | null => {
   if (!row.goal_votes || row.my_votes == null) return null;
   const left = row.goal_votes - row.my_votes;
   return left > 0
-    ? `${row.pet_name}'s goal is ${row.goal_votes} votes this round; ${left} to go.`
+    ? `${row.pet_name}'s goal is ${row.goal_votes.toLocaleString("en-US")} votes this round; ${apNumber(left)} to go.`
     : `${row.pet_name} has passed the ${row.goal_votes}-vote goal you set. Raise it on ${row.pet_name}'s page if you like.`;
 };
 
@@ -239,12 +239,12 @@ export function render(row: QueueRow, links: Links): Message {
     // field_size the pool's size, cut_margin the votes behind the leader.
     case "last_chance": {
       const others = Math.max(0, (row.field_size ?? 5) - 1);
-      const votes = (row.my_votes ?? 0).toLocaleString("en-US");
+      const votes = apNumber(row.my_votes ?? 0);
       const behind = row.cut_margin ?? 0;
       return compose(`${pet} gets a Last Chance at the bracket`, first, [
         `${pet} finished${row.rank ? ` No. ${row.rank}` : ""} in the Open Round, just below the bracket line. Now ${pet} and ${apNumber(others)} other pet${others === 1 ? "" : "s"} race for the last spot in the bracket${closes ? `, until ${closes}` : ""}.`,
         behind > 0
-          ? `Open Round votes carry over: ${pet} has ${votes}, ${behind.toLocaleString("en-US")} behind the leader. The most votes at the end takes the spot.`
+          ? `Open Round votes carry over: ${pet} has ${votes}, ${apNumber(behind)} behind the leader. The most votes at the end takes the spot.`
           : `Open Round votes carry over: ${pet} leads with ${votes}. The most votes at the end takes the spot.`,
         `Only the Last Chance pets can get votes now, so a share today goes further than any day of the round:`,
       ], { label: `Share ${pet}'s page`, url: shareUrl });
@@ -391,7 +391,7 @@ export function renderCheckoutReminder(p: {
   link: string;
   newsroom?: Newsroom;
 }): Message {
-  const votes = p.votes.toLocaleString("en-US");
+  const votes = apNumber(p.votes);
   // The exact price: dollars() rounds to whole dollars, fine for totals.
   const price = p.cents % 100 === 0 ? dollars(p.cents) : `$${(p.cents / 100).toFixed(2)}`;
   return composeMail(

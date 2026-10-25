@@ -250,7 +250,7 @@ describe('leaderboard and bubble', () => {
     tied.set('e17', { votes: 350 })
     const b = bubbleRows(rankOpenRound(entries, tied), 16)
     expect(b.rows.find((r) => r.rank === 16).note).toBe('Tied with #17, in on the tiebreak')
-    expect(b.rows.find((r) => r.rank === 17).note).toBe('1 vote from the bracket')
+    expect(b.rows.find((r) => r.rank === 17).note).toBe('one vote from the bracket')
   })
 
   it('has no bubble when everyone qualifies', () => {

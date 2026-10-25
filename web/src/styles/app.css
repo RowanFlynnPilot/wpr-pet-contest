@@ -1075,7 +1075,6 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .pack-meta .save { color: var(--brand-text); font-weight: 800; }
 .pack-price { font-family: var(--display); font-weight: 700; font-size: 22px; }
 .pack-tag { position: absolute; top: -9px; right: 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--sun); color: var(--on-accent); padding: 2px 8px; border-radius: 99px; }
-.pack-tag.value { background: var(--teal-ink); color: #fff; }
 
 .fine { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 12px 0 0; }
 .legal { background: var(--cream); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--ink-2); margin: 14px 0 0; }

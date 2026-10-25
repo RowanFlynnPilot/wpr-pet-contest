@@ -44,7 +44,14 @@ deals and the dry run in section 8.
 ## 1. Stripe (the contest's own account)
 
 - [ ] Create a separate Stripe account for the contest. Not WPR's donation
-      account: see README, "Why a separate Stripe account".
+      account: see README, "Why a separate Stripe account". WPR already uses
+      Stripe, so this is a second account under the same login (account
+      name, top left → New account), with the same legal entity, EIN and, if
+      wanted, bank account. It starts on standard pricing. Then invite the
+      developer to it with the Developer role (Settings → Team), so keys and
+      the webhook are created by the person who sets them and never travel
+      by email. The setup guide written for WPR's business side (Oct. 25,
+      2026) walks the same steps in plain words.
 - [ ] Statement descriptor: `WPR PET CONTEST` (Settings → Business → Public
       details). Buyers who recognize the charge do not dispute it.
 - [ ] Customer emails → enable successful payment receipts. The receipt shows
@@ -60,9 +67,12 @@ deals and the dry run in section 8.
       payment method types in `create-checkout`. If the Dashboard offers
       Klarna inside Link, turn that off: votes on installments is not a good
       look for a shelter fundraiser.
-- [ ] Apple Pay domains (Settings → Payment methods → Apple Pay): register
+- [ ] Payment method domains (Settings → Payment method domains): register
       **both** `rowanflynnpilot.github.io` and `wausaupilotandreview.com`. The
-      checkout runs in an iframe; Apple checks the top-level page too.
+      checkout runs in an iframe, and Stripe requires the top-level domain and
+      the iframe's to be registered. It covers Apple Pay, Google Pay and Link
+      at once; no association file to host (Stripe does Apple's merchant
+      validation).
 - [ ] Radar: leave on. Add a rule blocking payments where the CVC check fails.
       Vote and donation pages are a favorite target for card testing: if the
       dashboard shows a burst of small declined payments, turn on

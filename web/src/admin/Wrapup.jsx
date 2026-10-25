@@ -124,7 +124,7 @@ export default function Wrapup() {
         `pet-contest-${year}-summary.json`,
         summary({ contest, rounds, matchups, entries, sideAwards, payout: money.data?.payout, shelterPayouts: money.data?.shelters || [], packs }),
       )
-      say('Archive downloaded: open round, bracket and summary.')
+      say('Archive downloaded: Open Round, bracket and summary.')
     } catch (err) {
       fail(err)
     } finally {

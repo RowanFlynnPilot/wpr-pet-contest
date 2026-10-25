@@ -3,7 +3,7 @@ import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { useBracket, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { useFavorites } from '../lib/favorites.js'
-import { apCount, apWhen, fmtInt, fmtMoney } from '../lib/format.js'
+import { apCount, apNumber, apWhen, fmtInt, fmtMoney } from '../lib/format.js'
 import { cheapestPerVote } from '../lib/packs.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { climbers, cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
@@ -31,7 +31,7 @@ import Results from './Results.jsx'
 import { Arrow } from '../components/Icons.jsx'
 
 const votesWord = (n) => (n === 1 ? 'vote' : 'votes')
-const plural = (n) => `${fmtInt(n)} ${votesWord(n)}`
+const plural = (n) => `${apNumber(n)} ${votesWord(n)}`
 
 // The taped polaroids, for the entry weeks. The first pet given sits on top.
 function Polaroids({ entries }) {
@@ -73,8 +73,10 @@ function EntryBoard({ c, entryCount }) {
     >
       <div className="sb-solo">
         <div className="sb-solo-count">
-          <Digits value={entryCount} label={`${fmtInt(entryCount)} pets entered`} />
-          <span className="sb-unit">{closed ? 'pets in the field' : 'pets entered so far'}</span>
+          <Digits value={entryCount} label={`${fmtInt(entryCount)} ${entryCount === 1 ? 'pet' : 'pets'} entered`} />
+          <span className="sb-unit">
+            {entryCount === 1 ? (closed ? 'pet in the field' : 'pet entered so far') : closed ? 'pets in the field' : 'pets entered so far'}
+          </span>
         </div>
       </div>
       {closed && opens && (
@@ -439,7 +441,8 @@ function BracketPreview({ c, byId, round }) {
 }
 
 function Newcomers({ entries }) {
-  const recent = entries.slice(-8).reverse()
+  // The hero's polaroids already show the newest three (Polaroids).
+  const recent = entries.slice(0, -3).slice(-8).reverse()
   if (!recent.length) return null
   return (
     <section className="section" aria-labelledby="new-title">

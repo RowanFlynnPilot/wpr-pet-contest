@@ -372,9 +372,10 @@ function field(results, o) {
       const y0 = top + 26 + (areaH - (cellH * rows + g * (rows - 1))) / 2
       const r = 14
       // One card per pet: photo on top, the name in a solid caption under
-      // it, so the type never sits on (or hides) the photo.
+      // it, so the type never sits on (or hides) the photo. A long name
+      // stops shrinking at a size a phone can read, then ends in an ellipsis.
       const names = results.winners.map((w) =>
-        fitBlock(ctx, w.entry.pet_name, { maxWidth: cellW - 20, font: F.display(600), maxSize: Math.round(Math.min(38, cellW * 0.13)), floor: 20, minSize: 14, maxLines: 2, leading: 1.04 }),
+        fitBlock(ctx, w.entry.pet_name, { maxWidth: cellW - 20, font: F.display(600), maxSize: Math.round(Math.min(38, cellW * 0.13)), floor: 24, minSize: 22, maxLines: 2, leading: 1.04 }),
       )
       const caption = Math.max(...names.map((f) => f.height)) + 16
       results.winners.forEach((w, i) => {

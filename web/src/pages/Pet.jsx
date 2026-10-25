@@ -388,7 +388,7 @@ function LastChancePanel({ c, entry, byId }) {
             ? `${entry.pet_name} finished No. ${place} and is in the bracket. `
             : `Voting has closed for ${entry.pet_name}. `}
           {voting
-            ? `${apCount(lc.size, 'pet')} just below the line have until ${apWhen(c.round.closes_at, c.now)} to win the last spot in Last Chance.`
+            ? `${apCount(lc.size, 'pet')} just below the line have until ${apWhen(c.round.closes_at, c.now, { long: true })} to win the last spot in Last Chance.`
             : 'The bracket is set shortly after Last Chance ends.'}
         </p>
       </Scoreboard>

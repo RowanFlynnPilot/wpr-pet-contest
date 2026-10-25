@@ -406,7 +406,7 @@ function Done({ entry, votes, contestName, packs, onBuy }) {
           <h3 className="done-title">1 free vote for {entry.pet_name}</h3>
           {votes != null && (
             <div className="done-board">
-              <Digits value={votes} label={`${entry.pet_name} has ${fmtInt(votes)} votes this round`} />
+              <Digits value={votes} label={`${entry.pet_name} has ${fmtInt(votes)} ${votes === 1 ? 'vote' : 'votes'} this round`} />
               <span className="done-board-label">votes this round, yours included</span>
             </div>
           )}

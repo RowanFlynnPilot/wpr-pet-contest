@@ -202,69 +202,73 @@ export default function Gallery() {
         </div>
       </div>
 
-      <div className="gallery-tools" role="search">
-        <div className="search">
-          <label className="sr-only" htmlFor="gallery-q">
-            Search pets by name or town
-          </label>
-          <Search />
-          <input id="gallery-q" type="search" placeholder="Search by name or town" value={q} onChange={(e) => setQ(e.target.value)} />
+      {(loading || entries.length > 0) && (
+        <>
+        <div className="gallery-tools" role="search">
+          <div className="search">
+            <label className="sr-only" htmlFor="gallery-q">
+              Search pets by name or town
+            </label>
+            <Search />
+            <input id="gallery-q" type="search" placeholder="Search by name or town" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
+          <div className="tool-row">
+            <label className="sr-only" htmlFor="gallery-town">
+              Town
+            </label>
+            <select id="gallery-town" value={town} onChange={(e) => setTown(e.target.value)}>
+              <option value="">All towns</option>
+              {towns.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <label className="sr-only" htmlFor="gallery-sort">
+              Sort
+            </label>
+            <select id="gallery-sort" value={sortBy} onChange={(e) => setSort(e.target.value)}>
+              {inBracket && <option value="seed">By seed</option>}
+              {(openLive || inBracket || c.phase === 'complete') && <option value="votes">{inBracket ? 'Open Round finish' : 'Most votes'}</option>}
+              {openLive && recent.size > 0 && <option value="rising">Rising today</option>}
+              <option value="newest">Newest</option>
+              <option value="az">A–Z</option>
+            </select>
+          </div>
         </div>
-        <div className="tool-row">
-          <label className="sr-only" htmlFor="gallery-town">
-            Town
-          </label>
-          <select id="gallery-town" value={town} onChange={(e) => setTown(e.target.value)}>
-            <option value="">All towns</option>
-            {towns.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <label className="sr-only" htmlFor="gallery-sort">
-            Sort
-          </label>
-          <select id="gallery-sort" value={sortBy} onChange={(e) => setSort(e.target.value)}>
-            {inBracket && <option value="seed">By seed</option>}
-            {(openLive || inBracket || c.phase === 'complete') && <option value="votes">{inBracket ? 'Open Round finish' : 'Most votes'}</option>}
-            {openLive && recent.size > 0 && <option value="rising">Rising today</option>}
-            <option value="newest">Newest</option>
-            <option value="az">A–Z</option>
-          </select>
-        </div>
-      </div>
 
-      <div className="chips" style={{ marginBottom: 12 }} role="group" aria-label="Filter pets">
-        {[
-          ['all', 'All'],
-          ['dog', 'Dogs'],
-          ['cat', 'Cats'],
-          ['other', 'Others'],
-        ].map(([key, text]) => (
-          <button key={key} type="button" className="chip" aria-pressed={species === key} onClick={() => setSpecies(key)}>
-            {text} <span className="count">{speciesCount[key] || 0}</span>
+        <div className="chips" style={{ marginBottom: 12 }} role="group" aria-label="Filter pets">
+          {[
+            ['all', 'All'],
+            ['dog', 'Dogs'],
+            ['cat', 'Cats'],
+            ['other', 'Others'],
+          ].map(([key, text]) => (
+            <button key={key} type="button" className="chip" aria-pressed={species === key} onClick={() => setSpecies(key)}>
+              {text} <span className="count">{speciesCount[key] || 0}</span>
+            </button>
+          ))}
+          {states && (
+            <>
+              <span aria-hidden="true" style={{ width: 8 }} />
+              {[
+                ['alive', 'Still in'],
+                ['out', 'Out'],
+                ['all', 'Everyone'],
+              ].map(([key, text]) => (
+                <button key={key} type="button" className="chip" aria-pressed={status === key} onClick={() => setStatus(key)}>
+                  {text}
+                </button>
+              ))}
+            </>
+          )}
+          <span aria-hidden="true" style={{ width: 8 }} />
+          <button type="button" className="chip" aria-pressed={favOnly} onClick={toggleFavOnly}>
+            <Heart size={15} filled={favOnly} /> Favorites <span className="count">{favCount}</span>
           </button>
-        ))}
-        {states && (
-          <>
-            <span aria-hidden="true" style={{ width: 8 }} />
-            {[
-              ['alive', 'Still in'],
-              ['out', 'Out'],
-              ['all', 'Everyone'],
-            ].map(([key, text]) => (
-              <button key={key} type="button" className="chip" aria-pressed={status === key} onClick={() => setStatus(key)}>
-                {text}
-              </button>
-            ))}
-          </>
-        )}
-        <span aria-hidden="true" style={{ width: 8 }} />
-        <button type="button" className="chip" aria-pressed={favOnly} onClick={toggleFavOnly}>
-          <Heart size={15} filled={favOnly} /> Favorites <span className="count">{favCount}</span>
-        </button>
-      </div>
+        </div>
+        </>
+      )}
 
       {openLive && (
         <p className="legend">
@@ -312,7 +316,7 @@ export default function Gallery() {
               'Check back soon.'
             )}
           </p>
-          <div style={{ marginTop: 16 }}>{sponsor}</div>
+          {entries.length > 0 && <div style={{ marginTop: 16 }}>{sponsor}</div>}
         </div>
       ) : (
         <>

@@ -6,7 +6,7 @@ import { tokenColor, tokenFont } from '../lib/theme.js'
 import { createCheckout, fetchActivity, fetchTotals, mockPay } from '../lib/api.js'
 import { APP_BASE, MOCK_CHECKOUT, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
 import { apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
-import { bestValue, defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
+import { defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
 import { roundLabel } from '../lib/rounds.js'
 import { boostLive, useLive } from '../lib/live.js'
@@ -99,7 +99,6 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
   const [stripe, setStripe] = useState({ status: 'idle', value: null })
 
   const pack = packs.find((p) => p.slug === slug) || null
-  const best = bestValue(packs)
   // What the chosen pack would do on the standings right now (lib/impact.js).
   const { entries, byId } = useEntries(c.contest?.id)
   const { matchups } = useBracket(round.kind === 'bracket' ? c.rounds : NO_ROUNDS, { openRoundId: round.id })
@@ -308,11 +307,9 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
                       </span>
                       <span className="pack-price">{fmtMoney(p.cents)}</span>
                     </label>
-                    {p.featured ? (
-                      <span className="pack-tag">Most popular</span>
-                    ) : best && best.slug === p.slug && packs.length > 2 ? (
-                      <span className="pack-tag value">Best value</span>
-                    ) : null}
+                    {/* One tag only, the featured pack's. No "Best value" on the
+                        biggest pack: the per-vote price says it without a push. */}
+                    {p.featured && <span className="pack-tag">Most popular</span>}
                   </div>
                 )
               })}
@@ -653,7 +650,7 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVo
           <h2 className="done-title">{late ? 'Payment received' : `${votes} votes for ${entry.pet_name}`}</h2>
           {!late && (
             <div className="done-board">
-              <Digits value={currentVotes} label={`${entry.pet_name} has ${fmtInt(currentVotes)} votes this round`} />
+              <Digits value={currentVotes} label={`${entry.pet_name} has ${fmtInt(currentVotes)} ${currentVotes === 1 ? 'vote' : 'votes'} this round`} />
               <span className="done-board-label">{outcome === 'credited' ? 'votes this round, yours included' : 'votes this round so far'}</span>
             </div>
           )}

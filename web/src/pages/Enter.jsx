@@ -249,7 +249,7 @@ export default function Enter() {
     const { photo: ready, thumb: small } = await prepareUpload(file)
     setPreparing(false)
     if (ready.size > MAX_BYTES) {
-      setErrors((e) => ({ ...e, photo: 'That photo is over 10 MB. Please choose a smaller one.' }))
+      setErrors((e) => ({ ...e, photo: 'That photo is larger than 10 MB. Please choose a smaller one.' }))
       return
     }
     setErrors((e) => ({ ...e, photo: undefined }))

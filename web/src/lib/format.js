@@ -26,7 +26,9 @@ export function fmtMoney(cents, { whole = false, exact = false } = {}) {
   return `$${dollars.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 }
 
-export const plural = (n, one, many = `${one}s`) => `${fmtInt(n)} ${n === 1 ? one : many}`
+// Counts in a sentence, AP style: one through nine in words ("three votes"),
+// numerals from 10. apNumber and apCount below are the same rule.
+export const plural = (n, one, many = `${one}s`) => `${apNumber(n)} ${n === 1 ? one : many}`
 
 // AP style: spell out one through nine, figures from 10. "five pets", "12 pets".
 const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
@@ -120,11 +122,12 @@ export const apDateTime = (date, opts) => `${apDate(date, opts)} at ${apTime(dat
 const AP_DAYS = { Sunday: 'Sun.', Monday: 'Mon.', Tuesday: 'Tue.', Wednesday: 'Wed.', Thursday: 'Thu.', Friday: 'Fri.', Saturday: 'Sat.' }
 
 // A deadline short enough to sit beside a clock: "Sat. at 8 p.m." within the
-// coming week, "Oct. 30 at 8 p.m." beyond it.
-export function apWhen(date, now) {
+// coming week, "Oct. 30 at 8 p.m." beyond it. In a sentence, `long` spells the
+// day out ("Saturday at 8 p.m."), as AP does outside tables.
+export function apWhen(date, now, { long = false } = {}) {
   const p = centralParts(date)
   const ahead = new Date(date).getTime() - now
-  const day = ahead >= 0 && ahead < 6 * 86400000 ? AP_DAYS[p.weekday] : `${AP_MONTHS[p.month - 1]} ${p.day}`
+  const day = ahead >= 0 && ahead < 6 * 86400000 ? (long ? p.weekday : AP_DAYS[p.weekday]) : `${AP_MONTHS[p.month - 1]} ${p.day}`
   return `${day} at ${apTime(date)}`
 }
 

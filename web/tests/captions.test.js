@@ -58,7 +58,7 @@ describe('captionsFor', () => {
   })
 
   it('says how close a close race is', () => {
-    expect(captionsFor(cards.close, { publicUrl: URL_ }).hook).toBe('Luna and Biscuit are 7 votes apart.')
+    expect(captionsFor(cards.close, { publicUrl: URL_ }).hook).toBe('Luna and Biscuit are seven votes apart.')
   })
 
   it('says totals reset wherever counts carry over', () => {

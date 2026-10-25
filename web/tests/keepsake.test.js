@@ -18,7 +18,7 @@ describe('keepsakeCopy', () => {
   })
   it('honors a pet that ran in the Open Round, counting the field', () => {
     const k = keepsakeCopy({ ...base, state: { status: 'unseeded' }, total: 1, entries: 124 })
-    expect(plain(k.achievement)).toBe('ran in Cutest Pet in Marathon County 2026, one of 124 pets, with 1 vote in all.')
+    expect(plain(k.achievement)).toBe('ran in Cutest Pet in Marathon County 2026, one of 124 pets, with one vote in all.')
   })
   it('leaves out a zero, and says nothing about money it does not know', () => {
     const k = keepsakeCopy({ ...base, state: { status: 'unseeded' }, total: 0 })
