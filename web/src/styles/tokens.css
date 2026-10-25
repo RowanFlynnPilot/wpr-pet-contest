@@ -129,10 +129,11 @@
    The open-round headline sits a hair under two lines at 1350px, so the
    fallback is set 1.5% narrow (76.5%; 77.8% and up wrapped it to three until
    the font came) rather than at its measured width, 77.7%.
-   Figures are another matter: Fraunces's lining numerals at 144 are 9.5%
-   wider than Georgia Bold's, so the money counter has its own fallback. */
+   Figures are another matter: Fraunces's lining numerals at 144 run wider
+   than Georgia Bold's ("$1,188" is 164px in Fraunces, 158 in the display
+   fallback), so the money counter has its own, measured in place. */
 @font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 76.5%; }
-@font-face { font-family: 'Fraunces Figure Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 86%; }
+@font-face { font-family: 'Fraunces Figure Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 80.7%; }
 @font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold Italic'), local('Georgia-BoldItalic'); font-style: italic; font-weight: 600 800; size-adjust: 73%; }
 /* Public Sans is 4-5% wider than Segoe UI, Arial and Roboto at text weights
    and within 1% at bold (measured in Edge); without the adjustment the match
