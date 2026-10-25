@@ -144,7 +144,7 @@ the moment voting opens.
 > [Open {pet}'s page] -> {pet_link}
 >
 > When people ask: votes come in vote packs, starting at $5. A pack is a
-> purchase, so it isn't a donation and isn't tax-deductible. 30% of vote pack
+> purchase, so it isn't a donation and isn't tax-deductible. 50% of vote pack
 > sales after refunds goes to Moments Foster Care.
 
 Skip it if the Open Round opens within 24 hours of approval; N2 covers it.
@@ -269,7 +269,7 @@ Foster Care.
 > and the Open Round's Best Dog, Best Cat and Best Other are on the results
 > page.
 >
-> Readers raised {raised} for Moments Foster Care, which is 30% of vote pack
+> Readers raised {raised} for Moments Foster Care, which is 50% of vote pack
 > sales after refunds. Thank you for entering {pet} and for every share.
 >
 > About your information: we erase entrants' names and email addresses 12

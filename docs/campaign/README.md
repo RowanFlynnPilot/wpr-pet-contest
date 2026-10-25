@@ -18,7 +18,7 @@ promotion calendar in `docs/LAUNCH.md`, section 9, and follows the phases in
 
 Raise as much money as the contest can without pressure tactics, for Moments
 Foster Care and for WPR, then turn the attention into newsletter readers and
-sponsors who come back next year. Moments gets 30% of vote pack sales after
+sponsors who come back next year. Moments gets 50% of vote pack sales after
 refunds (the split configured for this contest; it freezes when submissions
 open). Most of the money will come from entrants' friends and family, so most
 of this kit is about helping entrants share.
@@ -26,7 +26,7 @@ of this kit is about helping entrants share.
 ## The single story
 
 Marathon County's pets go head to head for the title, the newsroom runs the
-count in the open, and 30% of every vote pack sale goes to Moments Foster
+count in the open, and 50% of every vote pack sale goes to Moments Foster
 Care.
 
 Each post tells one chapter of it: the field, the bubble, a matchup, an
@@ -46,7 +46,7 @@ upset, the champion, the check.
 
 1. Free to enter with a phone photo, and an editor checks every entry. (Rules,
    section 3)
-2. 30% of vote pack sales after refunds goes to Moments Foster Care. Card fees
+2. 50% of vote pack sales after refunds goes to Moments Foster Care. Card fees
    come out of WPR's share. (Rules, section 1; the payout statement)
 3. The count is fair. Totals reset every round, a vote counts once the payment
    clears, the deadline is when the buyer paid, results freeze at the close,
@@ -83,7 +83,7 @@ follower count or a like count.
 
 | KPI | Why | Where to read it | Year one | Year two |
 | --- | --- | --- | --- | --- |
-| North Star: net vote pack sales after refunds | The money: Moments' 30% and WPR's share | Money tab; payout statement at the close | Record it | [range], set from year-one data |
+| North Star: net vote pack sales after refunds | The money: Moments' 50% and WPR's share | Money tab; payout statement at the close | Record it | [range], set from year-one data |
 | Activated entrants: share of approved pets with at least one vote pack in the Open Round | Shows whether owners are sharing, and whether the toolkit helps | The gallery's vote counts while the round runs; the archive download after | Record it | [range], set from year-one data |
 | Buyers and purchases per round | Shows whether interest holds through the bracket | `round_revenue` (Money tab) | Record it | [range], set from year-one data |
 | Newsletter opt-ins by source | What the newsroom keeps after the contest | Newsletter tab (`newsletter_signups`) | Record it | [range], set from year-one data |

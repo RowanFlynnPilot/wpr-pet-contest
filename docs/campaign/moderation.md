@@ -245,7 +245,7 @@ into the bracket.
 "Pay to win":
 
 > That's how this contest works, and we say so up front: votes come in packs,
-> and 30% of vote pack sales after refunds goes to Moments Foster Care. Totals
+> and 50% of vote pack sales after refunds goes to Moments Foster Care. Totals
 > reset every round, so money spent in the Open Round doesn't carry into the
 > bracket. Packs start at $5. If you'd rather give to Moments directly, here's
 > their page: [Moments giving page]
@@ -270,7 +270,7 @@ as a legal answer.
 
 ## 5. "The shelter money is fake"
 
-What it sounds like: "the shelter never sees a dime," "WPR keeps it all," "30%
+What it sounds like: "the shelter never sees a dime," "WPR keeps it all," "50%
 of what?", "card fees eat it all," "Moments says it hasn't been paid" (while
 the contest is still running, it hasn't been; the payout comes after).
 
@@ -280,7 +280,7 @@ so both organizations say the same thing.
 
 Facts to cite:
 
-- Rules, section 1: 30% of vote pack sales, after refunds, goes to the partner.
+- Rules, section 1: 50% of vote pack sales, after refunds, goes to the partner.
   The rest covers payment processing and supports WPR.
 - Card fees come out of WPR's share, never Moments'.
 - The running total on the contest page comes from confirmed payments, less
@@ -292,11 +292,11 @@ Facts to cite:
 
 Reply while the contest runs:
 
-> Fair question. 30% of vote pack sales, after refunds, goes to Moments Foster
+> Fair question. 50% of vote pack sales, after refunds, goes to Moments Foster
 > Care, and WPR pays the card fees out of its own share, so they don't come out
 > of Moments'. As of [time], the running total on the contest page is
 > [shelter total so far]. After the final round we print a payout statement
-> showing sales, refunds and the 30%, give Moments a signed copy, and present
+> showing sales, refunds and the 50%, give Moments a signed copy, and present
 > the check on [date]. We'll post the total when we do. [Shelters page link]
 
 After the check presentation, post the photo and the total. Whether to publish

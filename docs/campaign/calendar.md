@@ -144,7 +144,7 @@ only on D-14 and D-1; the morning block runs every day in between.
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| D-14 | Announcement | WPR story | Article | Screens (home page); Widget `view=enter` | R | Disclosure line: WPR runs the contest; 30% of vote pack sales after refunds goes to Moments Foster Care |
+| D-14 | Announcement | WPR story | Article | Screens (home page); Widget `view=enter` | R | Disclosure line: WPR runs the contest; 50% of vote pack sales after refunds goes to Moments Foster Care |
 | D-14 | | Facebook | Image post | Screens (home page on a phone) | SE | social.md, Announcement |
 | D-14 | | Instagram | Feed post | Screens | SE | Same, link in bio |
 | D-14 | | Newsletter | Block, AM | Block ("Entries open soon") | NL | |

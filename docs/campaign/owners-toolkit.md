@@ -25,7 +25,7 @@ out.
 - Make a share image on [Pet]'s page: a story, a square post or a printable
   flyer.
 - Share once at each stage of the contest. Every hour is too often.
-- Tell people plainly how it works: vote packs from $5, 30% of vote pack sales
+- Tell people plainly how it works: vote packs from $5, 50% of vote pack sales
   after refunds to Moments Foster Care, and vote totals reset every round.
 
 ## Your tools
@@ -62,7 +62,7 @@ payment going through.
 How much is it? Packs run from $5 for 5 votes to $250 for 600. Nobody needs the
 big ones.
 
-Where does the money go? 30% of vote pack sales, after refunds, goes to
+Where does the money go? 50% of vote pack sales, after refunds, goes to
 Moments Foster Care. The rest covers payment processing and supports
 Wausau Pilot & Review, a nonprofit newsroom.
 
@@ -118,7 +118,7 @@ Text:
 Facebook:
 > Voting is open, and [Pet] is in the Open Round with every other pet in the
 > contest. The top 16 make the bracket when it closes [day] at 8 p.m. Vote
-> packs start at $5, and 30% of vote pack sales after refunds goes to Moments
+> packs start at $5, and 50% of vote pack sales after refunds goes to Moments
 > Foster Care. Vote totals reset every round, so this round is about making
 > the bracket. [link]
 
@@ -206,7 +206,7 @@ Facebook:
 ## Captions you can paste
 
 - [Pet] is in! Voting opens [date]. [link]
-- Vote for [Pet] in the Cutest Pet in Marathon County contest. 30% of vote pack
+- Vote for [Pet] in the Cutest Pet in Marathon County contest. 50% of vote pack
   sales goes to Moments Foster Care. [link]
 - [Pet] would like a word. The word is "vote." [link]
 - Vote totals reset every round, so [Pet] starts the [round] at zero. [link]
@@ -231,7 +231,7 @@ people about [Pet]. They're also somebody's living room, so:
 - Post once per round in a group, at most, and don't bump your own post.
 - Use your share link, so the preview shows [Pet]'s photo.
 - Say plainly what it is: a Wausau Pilot & Review contest where votes come in
-  packs, with 30% going to Moments Foster Care. Don't call it a donation or
+  packs, with 50% going to Moments Foster Care. Don't call it a donation or
   say it's tax-deductible.
 - Pick groups where a pet post fits: your town's community group, a swap
   group's promotion day, a local pet group. Stay out of lost-and-found pet
@@ -268,7 +268,7 @@ who would rather give to the animals directly can go to Moments Foster Care:
 On the phone or over coffee:
 
 > You know [Pet] is in the Wausau Pilot & Review cutest pet contest? No
-> pressure at all. If you want to vote, it's $5 for five votes, and 30% goes to
+> pressure at all. If you want to vote, it's $5 for five votes, and 50% goes to
 > Moments Foster Care, [a few words on what Moments does, in its own terms].
 > If not, I'd love it if you showed your friends the picture.
 
@@ -276,7 +276,7 @@ By text:
 
 > Hi Grandma! [Pet] is in a contest in the Wausau Pilot & Review. If you'd like
 > to vote, here's the link: [link]. Votes come in packs, starting at $5, and
-> 30% goes to Moments Foster Care. Totally optional. Sharing it with your
+> 50% goes to Moments Foster Care. Totally optional. Sharing it with your
 > friends helps too.
 
 Then say thank you, and don't send reminders to anyone who said no.

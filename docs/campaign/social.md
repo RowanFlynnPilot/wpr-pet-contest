@@ -61,7 +61,7 @@ Facebook:
 > before it goes live, and your name and email are never published.
 >
 > Entries close [day, date] at [time]. Then readers vote with vote packs,
-> starting at $5, and 30% of vote pack sales after refunds goes to Moments
+> starting at $5, and 50% of vote pack sales after refunds goes to Moments
 > Foster Care.
 >
 > Enter here: [link]
@@ -116,7 +116,7 @@ Facebook:
 > all they do. The pet with more votes when the round closes moves on to the
 > Elite Eight, and a tie goes to the better seed.
 >
-> Voting closes [day] at 8 p.m. Vote packs start at $5, and 30% of vote pack
+> Voting closes [day] at 8 p.m. Vote packs start at $5, and 50% of vote pack
 > sales after refunds goes to Moments Foster Care.
 >
 > Every matchup is in the photos. The bracket: [link]
@@ -238,7 +238,7 @@ Facebook, final:
 
 > [shelter total] for Moments Foster Care.
 >
-> That's 30% of what readers spent on vote packs, after refunds. Card fees come
+> That's 50% of what readers spent on vote packs, after refunds. Card fees come
 > out of WPR's share, not Moments'. The rest supports Wausau Pilot & Review, a
 > nonprofit newsroom.
 >
@@ -249,7 +249,7 @@ Facebook, milestone:
 > Readers have raised more than [milestone] for Moments Foster Care so far, as
 > of [time].
 >
-> 30% of every vote pack sale, after refunds, goes to Moments. Vote totals
+> 50% of every vote pack sale, after refunds, goes to Moments. Vote totals
 > reset every round, and the [round] closes [day] at 8 p.m.
 
 The running total can drop when a payment is refunded, so say "so far" and use
@@ -263,7 +263,7 @@ Announcement (D-14):
 > entries [day, date].
 >
 > Enter your pet free with one phone photo. Readers vote with vote packs, and
-> 30% of vote pack sales after refunds goes to Moments Foster Care. After a
+> 50% of vote pack sales after refunds goes to Moments Foster Care. After a
 > week-long Open Round, the top 16 go head to head until one takes the title.
 >
 > The rules, the dates and the split are on the contest page: [link]
@@ -278,7 +278,7 @@ How it works (D-12, three cards from Screens):
 Meet Moments (D-11, written with Moments):
 
 > Meet Moments Foster Care, this year's partner. [Two sentences in Moments'
-> own words about its work.] 30% of vote pack sales after refunds goes to
+> own words about its work.] 50% of vote pack sales after refunds goes to
 > Moments.
 >
 > Wausau Pilot & Review runs the contest and has a partnership agreement with
@@ -295,7 +295,7 @@ What a vote pack is (D-7):
 
 > How does voting work? With vote packs: from $5 for 5 votes up to $250 for
 > 600. You're buying votes, so a pack is a purchase, not a donation, and it
-> isn't tax-deductible. 30% of vote pack sales after refunds goes to Moments
+> isn't tax-deductible. 50% of vote pack sales after refunds goes to Moments
 > Foster Care. The rest covers payment processing and supports WPR, a
 > nonprofit newsroom.
 
@@ -328,7 +328,7 @@ Open Round opens (D8):
 > seeded by their Open Round votes. Then vote totals reset, and every bracket
 > matchup starts at zero.
 >
-> Vote packs run from $5 for 5 votes to $250 for 600, and 30% of vote pack
+> Vote packs run from $5 for 5 votes to $250 for 600, and 50% of vote pack
 > sales after refunds goes to Moments Foster Care. Find your favorite: [link]
 
 Leaderboard (Open Round):
@@ -404,7 +404,7 @@ Loop: the empty Championship slot cuts straight back to the opening montage.
 
 Caption: "The Sweet 16 is set in the Cutest Pet in Marathon County contest:
 [N] pets entered, 16 made the bracket, and every matchup starts at zero.
-Voting closes [day] at 8 p.m. 30% of vote pack sales after refunds goes to
+Voting closes [day] at 8 p.m. 50% of vote pack sales after refunds goes to
 Moments Foster Care. Link in bio."
 
 Who sends this to whom: an owner whose pet made it sends it to family.
@@ -458,7 +458,7 @@ never a name, and nothing that shows where the house is.
 | 0:00 to 0:02 | SD-Champion card | [YEAR] CHAMPION | "[Pet] of [town] is the cutest pet in Marathon County." | Voice; bed starts |
 | 0:02 to 0:10 | Screen recording of the pet page's road to the crown, round by round | Seed [x], then Sweet 16, Elite Eight, Final Four, Championship | "[Pet] came in as the No. [x] seed and won four matchups, each one from zero." | |
 | 0:10 to 0:18 | The pet on the visit, or the entry photo with a slow push | Closest win: the [round], by [n] votes | "The closest was the [round], by [n] votes." | |
-| 0:18 to 0:26 | SD-Raised card | [shelter total] for Moments Foster Care | "Readers raised [shelter total] for Moments Foster Care, 30% of vote pack sales after refunds." | |
+| 0:18 to 0:26 | SD-Raised card | [shelter total] for Moments Foster Care | "Readers raised [shelter total] for Moments Foster Care, 50% of vote pack sales after refunds." | |
 | 0:26 to 0:34 | Quick montage of the Sweet 16 photos | Thank you | "Thank you to all [N] pets who entered and everyone who voted. [Pet] gets the title and a year of bragging rights." | |
 | 0:34 to 0:38 | SD-Champion card again | See you next year | "See you next year." | Bed out |
 
@@ -521,7 +521,7 @@ unless Moments invites WPR in.
 ### Ask the admin first
 
 > Hi [name], I'm [name] at Wausau Pilot & Review. We're running our Cutest Pet
-> in Marathon County contest from [date] to [date], and 30% of vote pack sales
+> in Marathon County contest from [date] to [date], and 50% of vote pack sales
 > goes to Moments Foster Care. Would it be OK to share it in [group]? We'd post
 > at most four times: when entries open, when voting opens, when the bracket
 > is set and when there's a champion. If you have a promotion day or thread,
@@ -541,7 +541,7 @@ D1, entries open:
 
 > Wausau Pilot & Review's Cutest Pet in Marathon County contest is open for
 > entries until [day] at [time]. It's free: one phone photo, and an editor
-> checks every entry. Voting starts [date], and 30% of vote pack sales after
+> checks every entry. Voting starts [date], and 50% of vote pack sales after
 > refunds goes to Moments Foster Care. [link]
 
 D8, voting opens:

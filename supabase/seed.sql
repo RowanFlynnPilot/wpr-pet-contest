@@ -17,7 +17,7 @@
 insert into contests (id, year, name, beneficiary_split_pct,
                       submissions_open_at, submissions_close_at, status)
 values ('00000000-0000-0000-0000-0000000000c1', 2026,
-        'Cutest Pet in Marathon County', 30,
+        'Cutest Pet in Marathon County', 50,
         now() - interval '7 days', now() + interval '7 days', 'submissions_open');
 
 -- The partner's page and its logo (web/public/moments-foster-care.jpg, served
