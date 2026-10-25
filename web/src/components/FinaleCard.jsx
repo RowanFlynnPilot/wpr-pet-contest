@@ -1,4 +1,4 @@
-import { NEWSROOM } from '../config.js'
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from './ContestContext.jsx'
 import { CountdownCells } from './Scoreboard.jsx'
 import { Calendar } from './Icons.jsx'
@@ -29,6 +29,10 @@ export default function FinaleCard({ where = 'home' }) {
   const c = useContest()
   const f = finaleState(c.contest, c.phase, c.now)
   if (!f) return null
+  // The presenting sponsor's name rides on the finale too (part of that
+  // placement, sold as Best in Show in the sponsor kit).
+  const by = SPONSORS.presenting?.name
+  const presented = by ? <span className="finale-by"> · presented by {by}</span> : null
 
   if (f.state === 'replay') {
     return (
@@ -46,7 +50,7 @@ export default function FinaleCard({ where = 'home' }) {
     return (
       <section className="finale-card is-live" aria-labelledby="finale-title">
         <p className="finale-kicker">
-          <span className="finale-dot" aria-hidden="true" /> Live now
+          <span className="finale-dot" aria-hidden="true" /> Live now{presented}
         </p>
         <h2 id="finale-title">The finale is on: watch the champion revealed.</h2>
         <a className="btn btn-sun" href={f.url} target="_blank" rel="noopener" onClick={() => watch(`${where}-live`)}>
@@ -59,7 +63,7 @@ export default function FinaleCard({ where = 'home' }) {
   const ics = finaleIcs(c.contest, f)
   return (
     <section className="finale-card" aria-labelledby="finale-title">
-      <p className="finale-kicker">The finale</p>
+      <p className="finale-kicker">The finale{presented}</p>
       <h2 id="finale-title">{period(`The champion is revealed live ${apDateTime(f.at)}`)}</h2>
       <CountdownCells to={f.at} label="The finale starts in" />
       <div className="finale-actions">

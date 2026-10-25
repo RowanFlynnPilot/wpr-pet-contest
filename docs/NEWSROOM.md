@@ -44,7 +44,9 @@ own hue so a red brand never reads as an error.
   `docs/LAUNCH.md`. Each newsroom runs its own copy; nothing is shared.
 - The functions' `NEWSROOM_NAME`, `NEWSROOM_PHONE`, `NEWSROOM_BRAND_COLOR` and
   `NEWSROOM_PAPER_COLOR` secrets, so the emails and the staff refusal carry
-  your name (defaults are WPR's), and `STAFF_EMAIL_DOMAINS` for your staff.
+  your name (defaults are WPR's), `NEWSROOM_BADGE_URL` (an https address for
+  the seal beside your name at the top of each email; without it the name
+  stands alone), and `STAFF_EMAIL_DOMAINS` for your staff.
 - Optionally an adoption page (`adoptUrl`), the JSON feed of its pets
   (`adoptablesFeed`, the shape of WPR's adopt widget's `pet-data.json`) and
   the area to name (`adoptRegion`): the "Meet a pet" button. Leave them null

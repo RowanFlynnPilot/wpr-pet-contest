@@ -79,6 +79,26 @@ test('staff sign-in', async ({ page }) => {
   await audit(page)
 })
 
+// The staff desk, signed in to the mock's pretend staff side
+// (scripts/mock-staff.mjs): every tab on a phone, where editors moderate.
+test.describe('staff desk', () => {
+  test.beforeAll(async ({ request }) => {
+    await request.get(`${MOCK}/__phase?set=submissions`)
+  })
+  const TABS = ['Moderation', 'Rounds', 'Health', 'Free votes', 'Money', 'Packs & bonuses', 'Email', 'Newsletter', 'Social', 'Setup', 'Wrap-up']
+  for (const tab of TABS) {
+    test(tab, async ({ page }) => {
+      await page.goto('/#/admin')
+      await page.getByLabel(/email/i).fill('editor@example.com')
+      await page.getByLabel(/password/i).fill('mock')
+      await page.getByRole('button', { name: /sign in/i }).click()
+      await page.getByRole('link', { name: tab, exact: true }).click()
+      await settle(page)
+      await audit(page)
+    })
+  }
+})
+
 // Dark mode: the same bar, on the dark paper. The five routes here carry
 // every surface (the arena, a pet page, the bracket, a form, long text).
 test.describe('dark mode', () => {

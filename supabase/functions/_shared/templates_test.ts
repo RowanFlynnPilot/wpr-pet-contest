@@ -85,6 +85,7 @@ Deno.test("another newsroom's name, phone and colors replace WPR's everywhere", 
     assert(!msg.html.includes("Wausau") && !msg.text.includes("Wausau"), kind);
     if (msg.html.includes("<a href")) assertStringIncludes(msg.html, "background:#16304f", kind); // the button
     assertStringIncludes(msg.html, "background:#f7f4ee"); // the paper
+    assert(!msg.html.includes("wpr-typewriter-badge"), kind); // no WPR seal without a badge of its own
   }
   const code = renderFreeVoteCode({ code: "482913", petName: "Biscuit", contestName: "Cutest Pet", link: "https://x/", minutes: 15, newsroom: gazette });
   assertStringIncludes(code.text, "The Example Gazette · 555-010-0100");
@@ -110,7 +111,7 @@ Deno.test("a club note names the club, the next one, and carries the photo and a
   assertStringIncludes(msg.text, "stop them here");
   const last = render({ ...base, kind: "club_5000", my_votes: 5100 }, LINKS);
   assertStringIncludes(last.text, "last club there is");
-  assert(!last.html.includes("<img"), "no photo without a storage URL");
+  assert(!/<img[^>]*pets\//.test(last.html), "no photo without a storage URL");
 });
 
 Deno.test("approval carries the per-pet share page", () => {
@@ -239,4 +240,17 @@ Deno.test("buyer notes: plays again, the run ends, the champion; never a name, a
   assertEquals(champ.subject, "Gus is the champion");
   assertStringIncludes(champ.text, "$1,500");
   for (const m of [again, two, champ]) assert(!m.text.includes("donation") || m.text.includes("not tax-deductible") === false);
+});
+
+Deno.test("every email opens with a preview line and the masthead", () => {
+  const msg = render({ ...base, kind: "entry_approved" }, LINKS);
+  // The hidden preview line comes first, then the seal and the name over the rule.
+  const preview = msg.html.indexOf("display:none");
+  const seal = msg.html.indexOf("wpr-typewriter-badge.png");
+  const name = msg.html.indexOf('class="m-name"');
+  assert(preview > 0 && preview < seal && seal < name, "preview, then seal, then name");
+  assert(msg.html.includes('name="color-scheme" content="light dark"'));
+  assert(msg.html.includes("border-top:3px solid #32373c;border-bottom:1px solid #32373c"), "the double rule");
+  const hidden = msg.html.slice(preview, msg.html.indexOf("</div>", preview));
+  assert(!hidden.includes("Hi Jo"), "the preview is the news, not the greeting");
 });

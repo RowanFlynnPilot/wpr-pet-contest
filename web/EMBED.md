@@ -34,6 +34,12 @@ Create a full-width page (no sidebar) on wausaupilotandreview.com, add a
         history.replaceState(null, '', location.pathname + location.search + location.hash.replace(/[?&]fv=[^&]*/, ''));
       }
     }
+    // A link to another pet on this same page changes only the hash, and the
+    // page doesn't reload: pass it on (a hash-only change moves the app
+    // without reloading it).
+    window.addEventListener('hashchange', function () {
+      if (location.hash.indexOf('#/') === 0) frame.src = frame.src.split('#')[0] + location.hash;
+    });
 
     window.addEventListener('message', function (event) {
       if (event.origin !== ORIGIN || !event.data) return;

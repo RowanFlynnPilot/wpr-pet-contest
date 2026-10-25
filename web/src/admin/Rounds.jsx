@@ -113,6 +113,9 @@ export default function Rounds() {
   const c = counts.data
   return (
     <div className="stack">
+      <div className="panel-head">
+        <h2>Rounds</h2>
+      </div>
       <ErrorNote error={error || rounds.error} />
       <div className="stats">
         <Stat label="Contest status" value={contest.status.replace('_', ' ')} />
@@ -162,8 +165,8 @@ export default function Rounds() {
         </div>
       )}
 
-      <div className="table-wrap">
-        <table className="data">
+      <div className="table-wrap" tabIndex={0} role="region" aria-label="Rounds">
+        <table className="data wide">
           <thead>
             <tr>
               <th scope="col">Round</th>

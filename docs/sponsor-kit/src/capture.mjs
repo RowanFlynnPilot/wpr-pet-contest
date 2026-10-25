@@ -52,6 +52,9 @@ async function open({ url, width, height, phase, bonus }) {
       return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     }
     const res = await route.fetch()
+    // Rewrite the data only; photos pass through as they are (a JPEG read as
+    // text comes out broken).
+    if (!/json|svg|text/.test(res.headers()['content-type'] || '')) return route.fulfill({ response: res })
     const body = (await res.text()).replaceAll('Example Pet Supply', PLACEHOLDER)
     return route.fulfill({ response: res, body })
   })
@@ -303,6 +306,65 @@ const SHOTS = {
 
   async 'bonus-newsletter'() {
     await newsletterShot('bonus-newsletter', true)
+  },
+
+  // Presenting: the live finale names the presenting sponsor (complete
+  // phase, where the demo's finale is live).
+  async 'finale-home-mobile'() {
+    const { ctx, page } = await open({ url: `${APP}?demo#/`, ...M, phase: 'complete', bonus: false })
+    await normalize(page)
+    await settleImages(page)
+    const card = await rectOf(page, '.finale-card')
+    const clip = { x: 0, y: Math.max(0, Math.round(card.y - 120)), width: 390, height: Math.round(card.height + 120 + 160) }
+    const raw = await clipShot(page, 'finale-home-mobile', clip)
+    await compose('finale-home-mobile', raw, clip, [card], 'Presenting sponsor')
+    await ctx.close()
+  },
+
+  // Match Hour: the bar on every page and the shelter tally that names the
+  // sponsor (bracket phase, where the demo runs a match).
+  async 'match-mobile'() {
+    const { ctx, page } = await open({ url: `${APP}#/`, ...M, phase: 'bracket', bonus: false })
+    await normalize(page)
+    await settleImages(page)
+    const bar = await rectOf(page, '.bonus-bar.match')
+    const note = await rectOf(page, '.raised-matched')
+    const counter = await rectOf(page, '.raised-matched >> xpath=ancestor::section[1]')
+    // Two clips, the bar at the top and the tally further down, joined by a
+    // torn edge so both fit one picture.
+    const clip = { x: 0, y: 0, width: 390, height: Math.round(bar.y + bar.height + 8) }
+    const raw1 = `${OUT}/raw/match-bar.png`
+    await page.screenshot({ path: raw1, clip, fullPage: true })
+    const clip2 = { x: 0, y: Math.round(counter.y - 16), width: 390, height: Math.round(counter.height + 32) }
+    const raw2 = `${OUT}/raw/match-counter.png`
+    await page.screenshot({ path: raw2, clip: clip2, fullPage: true })
+    // One picture: the bar's strip, a torn edge, the tally.
+    const b1 = readFileSync(raw1).toString('base64')
+    const b2 = readFileSync(raw2).toString('base64')
+    const H1 = clip.height
+    const H2 = clip2.height
+    const p2 = await ctx.newPage()
+    await p2.setViewportSize({ width: 390, height: H1 + H2 + 24 })
+    await p2.setContent(`<!doctype html><html><body style="margin:0;background:#f6f2e9"><img src="data:image/png;base64,${b1}" style="display:block;width:390px;height:${H1}px"><div style="height:24px;background:repeating-linear-gradient(135deg,#e7e1d3 0 8px,#f6f2e9 8px 16px)"></div><img src="data:image/png;base64,${b2}" style="display:block;width:390px;height:${H2}px"></body></html>`)
+    await p2.waitForTimeout(300)
+    const joined = { x: 0, y: 0, width: 390, height: H1 + H2 + 24 }
+    const raw = await clipShot(p2, 'match-mobile', joined)
+    const barRing = { x: bar.x, y: bar.y, width: bar.width, height: bar.height }
+    const noteRing = { x: note.x, y: H1 + 24 + (note.y - clip2.y), width: note.width, height: note.height }
+    await compose('match-mobile', raw, joined, [barRing, noteRing], 'Match Hour sponsor')
+    await ctx.close()
+  },
+
+  // Sprint prize: the card on the home page while a sprint runs (open phase).
+  async 'sprint-home-mobile'() {
+    const { ctx, page } = await open({ url: `${APP}#/`, ...M, phase: 'open', bonus: false })
+    await normalize(page)
+    await settleImages(page)
+    const card = await rectOf(page, '.sprint-card')
+    const clip = { x: 0, y: Math.round(card.y - 40), width: 390, height: Math.round(card.height + 80) }
+    const raw = await clipShot(page, 'sprint-home-mobile', clip)
+    await compose('sprint-home-mobile', raw, clip, [card], 'Sprint prize sponsor')
+    await ctx.close()
   },
 }
 

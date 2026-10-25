@@ -63,8 +63,15 @@ export type Message = { subject: string; html: string; text: string };
 // the paper behind the card (--cream). The functions fill it from the
 // NEWSROOM_* secrets (newsroom.ts); the defaults are WPR's, so the tests and
 // the deck render without any.
-export type Newsroom = { name: string; phone: string; brand: string; paper: string };
-export const DEFAULT_NEWSROOM: Newsroom = { name: "Wausau Pilot & Review", phone: "715-301-5539", brand: "#2b655d", paper: "#f6f2e9" };
+// `badge`: an https address for the masthead seal, or none (the name stands alone).
+export type Newsroom = { name: string; phone: string; brand: string; paper: string; badge?: string };
+export const DEFAULT_NEWSROOM: Newsroom = {
+  name: "Wausau Pilot & Review",
+  phone: "715-301-5539",
+  brand: "#2b655d",
+  paper: "#f6f2e9",
+  badge: "https://rowanflynnpilot.github.io/wpr-pet-contest/wpr-typewriter-badge.png",
+};
 
 // The owner's own link: sets a goal, stops the tips. Only in mail to them.
 const ownerUrl = (links: Links, row: QueueRow) =>
@@ -343,12 +350,14 @@ export function renderFreeVoteCode(p: {
   minutes: number;
   newsroom?: Newsroom;
 }): Message {
+  // No images, not even the seal: a code has to land in the inbox and read
+  // with images blocked.
   return composeMail(`${p.code} is your free vote code`, null, [
     `Your code to vote free for ${p.petName} in ${p.contestName} is ${p.code}. It works for ${p.minutes} minutes.`,
     `Type it where you asked for it, or open this link on any device:`,
   ], { label: `Confirm my vote for ${p.petName}`, url: p.link }, [
     `Didn't ask for this? You can ignore it. Nothing happens without the code.`,
-  ], FREE_VOTE_FOOTER, p.newsroom);
+  ], FREE_VOTE_FOOTER, { ...(p.newsroom ?? DEFAULT_NEWSROOM), badge: undefined });
 }
 
 // The morning reminder, for readers who opted in. No vote-pack pitch: the page
@@ -416,7 +425,8 @@ const ENTRANT_FOOTER =
 
 // A photo above the greeting, and a second, quieter button under the
 // first (the owner's page beside "Share").
-type Extras = { photo?: string; photoAlt?: string; secondary?: { label: string; url: string } };
+// `preheader`: the inbox preview line, when the first paragraph isn't it.
+type Extras = { photo?: string; photoAlt?: string; secondary?: { label: string; url: string }; preheader?: string };
 
 function composeMail(
   subject: string,
@@ -437,18 +447,41 @@ function composeMail(
   paragraphs = paragraphs.map(tidy);
   after = after.map(tidy);
   const para = (p: string) =>
-    `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">${escape(p)}</p>`;
+    `<p class="m-text" style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">${escape(p)}</p>`;
 
-  const html = `<!doctype html><html><body style="margin:0;background:${n.paper}">
-<div style="max-width:560px;margin:0 auto;padding:32px 24px;background:#fff;border-top:4px solid #32373c">
-<p style="margin:0 0 20px;font:11px/1 -apple-system,Segoe UI,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#32373c">${escape(n.name)}</p>
+  // The inbox shows the first words it finds; without this line that is the
+  // masthead ("Wausau Pilot & Review Hi Jo,"). The first sentence of the
+  // news instead, then blank padding so the body doesn't trail in after it.
+  const lead = (extras.preheader ?? paragraphs[0] ?? subject).replace(/\s+/g, " ").trim();
+  const preview = lead.length > 120 ? `${lead.slice(0, 117).replace(/\s+\S*$/, "")}…` : lead;
+  const pad = "&#847;&zwnj;&nbsp;".repeat(40);
+  // The seal sits on a white disc, so it holds up when a mail app darkens.
+  const seal = n.badge && /^https:\/\//.test(n.badge)
+    ? `<td style="padding:0 12px 0 0;vertical-align:middle"><img src="${escape(n.badge)}" alt="" width="44" height="44" style="display:block;width:44px;height:44px;border-radius:50%;background:#fff"></td>`
+    : "";
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><style>
+@media (prefers-color-scheme: dark) {
+  .m-body { background: #161b1a !important; }
+  .m-card { background: #1f2625 !important; }
+  .m-text, .m-name { color: #ece7dd !important; }
+  .m-muted { color: #a9b3b0 !important; }
+  .m-rule { border-color: #a9b3b0 !important; }
+  .m-foot { border-color: #3a4442 !important; }
+  .m-outline { color: #ece7dd !important; border-color: #ece7dd !important; }
+}
+</style></head><body class="m-body" style="margin:0;background:${n.paper}">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all">${escape(preview)}${pad}</div>
+<div class="m-card" style="max-width:560px;margin:0 auto;padding:28px 24px 32px;background:#fff">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>${seal}<td style="vertical-align:middle"><span class="m-name" style="font:700 20px/1.15 Georgia,'Times New Roman',serif;color:#111">${escape(n.name)}</span></td></tr></table>
+<div class="m-rule" style="margin:14px 0 24px;height:2px;border-top:3px solid #32373c;border-bottom:1px solid #32373c;font-size:0;line-height:0">&nbsp;</div>
 ${extras.photo ? `<p style="margin:0 0 20px"><img src="${escape(extras.photo)}" alt="${escape(extras.photoAlt ?? "")}" width="240" style="display:block;width:240px;max-width:100%;height:auto;border-radius:8px;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.18)"></p>` : ""}
-${first === null ? "" : `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">Hi ${escape(first)},</p>`}
+${first === null ? "" : `<p class="m-text" style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">Hi ${escape(first)},</p>`}
 ${paragraphs.map(para).join("\n")}
 ${button ? `<p style="margin:24px 0"><a href="${escape(button.url)}" style="display:inline-block;padding:12px 20px;background:${n.brand};color:#fff;text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(button.label)}</a></p>` : ""}
 ${after.map(para).join("\n")}
-${extras.secondary ? `<p style="margin:8px 0 24px"><a href="${escape(extras.secondary.url)}" style="display:inline-block;padding:11px 18px;border:2px solid ${n.brand};color:${n.brand};text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(extras.secondary.label)}</a></p>` : ""}
-<p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #e3ddd0;font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#6b6b6b">${escape(footer)}<br>${escape(signature)}</p>
+${extras.secondary ? `<p style="margin:8px 0 24px"><a class="m-outline" href="${escape(extras.secondary.url)}" style="display:inline-block;padding:11px 18px;border:2px solid ${n.brand};color:${n.brand};text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(extras.secondary.label)}</a></p>` : ""}
+<p class="m-muted m-foot" style="margin:32px 0 0;padding-top:16px;border-top:1px solid #e3ddd0;font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#6b6b6b">${escape(footer)}<br>${escape(signature)}</p>
 </div></body></html>`;
 
   const text = [

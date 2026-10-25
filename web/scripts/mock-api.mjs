@@ -13,10 +13,14 @@
 //
 // Switch the contest's phase while it runs:
 //   curl http://127.0.0.1:8787/__phase?set=submissions   (submissions | open | lastchance | bracket | complete)
+//
+// The admin desk (#/admin) signs in with any email and password and shows a
+// pretend moderation queue, email log and health checks (scripts/mock-staff.mjs).
 
 import { existsSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:http'
-import { createMock, photo } from '../src/demo/contest.js'
+import { createMock, photo, query } from '../src/demo/contest.js'
+import { staff } from './mock-staff.mjs'
 
 // Not in the 49152+ range: Windows reserves chunks of it for Hyper-V and WSL.
 const PORT = Number(process.env.PORT || 8787)
@@ -36,10 +40,26 @@ const json = (res, status, body, extra = {}) => {
   res.writeHead(status, { ...CORS, 'Content-Type': 'application/json', ...extra })
   res.end(JSON.stringify(body))
 }
+const staffDesk = staff(mock, { query })
 
 createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`)
   if (req.method === 'OPTIONS') return res.writeHead(204, CORS).end()
+
+  const readBody = (done) => {
+    let raw = ''
+    req.on('data', (c) => (raw += c))
+    req.on('end', () => {
+      let body = {}
+      try {
+        body = JSON.parse(raw || '{}')
+      } catch {
+        // a form body, or none: the staff side reads JSON only
+      }
+      done(body)
+    })
+  }
+  if (staffDesk(req, url, (status, body, extra) => json(res, status, body, extra), readBody)) return
 
   if (url.pathname === '/__phase') {
     const set = url.searchParams.get('set')

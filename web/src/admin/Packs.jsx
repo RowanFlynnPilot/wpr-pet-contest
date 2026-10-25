@@ -311,16 +311,19 @@ export default function Packs() {
 
   return (
     <div className="stack">
+      <div className="panel-head">
+        <h2>Packs &amp; bonuses</h2>
+      </div>
       <ErrorNote error={error || packs.error || windows.error} />
       <section className="card plain">
         <h3>Vote packs</h3>
         <p className="small">
           Checkout charges exactly what this table says; the browser never sends a price. <strong>Featured</strong> shows as &ldquo;Most
           popular.&rdquo; Retire a pack by unchecking <strong>Active</strong>; packs that have sold can&rsquo;t be deleted. The public picker lists
-          the biggest pack first.
+          the smallest pack first.
         </p>
-        <div className="table-wrap">
-          <table className="data">
+        <div className="table-wrap" tabIndex={0} role="region" aria-label="Vote packs">
+          <table className="data wide">
             <thead>
               <tr>
                 <th scope="col">Slug</th>

@@ -95,11 +95,13 @@ export function TypedConfirm({ word, title, children, busy, onConfirm, onCancel,
   )
 }
 
-export function Table({ columns, rows, empty = 'Nothing here.', rowKey }) {
+// `label` names the scrolling region for keyboard and screen-reader users;
+// `stack` turns each row into a short block on a phone (a log, not a grid).
+export function Table({ columns, rows, empty = 'Nothing here.', rowKey, label = 'Table', stack = false }) {
   if (!rows?.length) return <p className="muted small">{empty}</p>
   return (
-    <div className="table-wrap">
-      <table className="data">
+    <div className="table-wrap" tabIndex={0} role="region" aria-label={label}>
+      <table className={stack ? 'data stack' : 'data'}>
         <thead>
           <tr>
             {columns.map((c) => (
@@ -112,11 +114,15 @@ export function Table({ columns, rows, empty = 'Nothing here.', rowKey }) {
         <tbody>
           {rows.map((r, i) => (
             <tr key={rowKey ? rowKey(r) : i}>
-              {columns.map((c) => (
-                <td key={c.key} className={c.num ? 'num' : undefined}>
-                  {c.render ? c.render(r) : r[c.key] ?? '—'}
-                </td>
-              ))}
+              {columns.map((c) => {
+                const value = c.render ? c.render(r) : r[c.key] ?? '—'
+                const blank = value === '' || value === null || value === false
+                return (
+                  <td key={c.key} className={[c.num ? 'num' : '', blank ? 'empty' : ''].filter(Boolean).join(' ') || undefined} data-label={c.label}>
+                    {value}
+                  </td>
+                )
+              })}
             </tr>
           ))}
         </tbody>

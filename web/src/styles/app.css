@@ -1407,6 +1407,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
   font: 700 11.5px/1.2 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--board-label);
 }
 .finale-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.finale-by { font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
 .finale-card .btn-quiet { background: transparent; color: #fff; border-color: var(--board-ring); }
 .finale-card .btn-quiet svg { vertical-align: -3px; }
 .finale-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger-bright); box-shadow: 0 0 0 0 rgba(214, 69, 69, 0.5); animation: pulse 2s infinite; }
@@ -1493,3 +1494,6 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .checkout-opts { display: grid; gap: 10px; margin: 0 0 14px; padding: 0; border: 0; min-width: 0; }
 .checkout-opts legend { margin-bottom: 8px; padding: 0; }
 .notice-by { font-weight: 600; }
+
+/* "1,200 votes" stays on one line in a narrow frame; the bonus tag wraps instead. */
+.pack-count { white-space: nowrap; }

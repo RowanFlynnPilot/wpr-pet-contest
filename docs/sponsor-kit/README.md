@@ -32,7 +32,7 @@ long single lines, but the text can still be searched.
 | Placeholder | What goes there | Where |
 | --- | --- | --- |
 | ~~`[contest dates]`~~ | Filled: Nov. 14 to Dec. 5, 2026 (entries open Saturday, Nov. 14; champion Saturday night, Dec. 5) | pitch, leave-behind, email |
-| `[shelter share %]` | The published share of vote-pack sales, after refunds, that goes to Moments Foster Care | pitch (twice), leave-behind, email |
+| ~~`[shelter share %]`~~ | Filled: 50% of vote-pack sales, after refunds, to Moments Foster Care (decided Oct. 24, 2026; Moments confirmed Oct. 25) | pitch, leave-behind, email |
 | `[number of Double Vote Hours]` | How many hours WPR will sell | pitch (twice), leave-behind |
 | `[newsletter block schedule]` | Which daily editions carry the contest block, and how often | pitch |
 | `[artwork deadline]` | When the sponsor's logo, tagline and link are due | pitch |
@@ -51,9 +51,12 @@ long single lines, but the text can still be searched.
   pages say so. No contest traffic exists yet.
 - **$5–$250 vote packs**: the contest's recommended pack ladder
   (`supabase/migrations/0018_contest_admin.sql`).
-- **Moments Foster Care** as the partner: the brief for this kit. The app
-  and the draft rules say "partner shelters" (plural), so confirm the name and
-  the count before sending.
+- **Moments Foster Care** as the partner: confirmed by the shelter on
+  Oct. 25, 2026. Its one-page MOU is still owed before launch.
+- **Match Hour, Sprint prize and the finale credit** (added Oct. 25, 2026):
+  the contest's sponsor matches (`sponsor_matches`, 0024),
+  sprints (0030, off until counsel signs off; docs/SPRINTS.md) and the live
+  finale (0031), which now names the presenting sponsor.
 - **Rate-card anchors** in `proposed-packages.html` (leaderboard $300/week, run
   of site $150, newsletter slots): https://wausaupilotandreview.com/sponsorship-and-advertising/,
   read Oct. 10, 2026, via the wpr-ad-pitch skill.

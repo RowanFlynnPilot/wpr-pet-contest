@@ -433,7 +433,7 @@ export default function Moderation() {
           <h2>
             Pending <span className="count-pill">{queue.length}</span>
           </h2>
-          <span className="small muted">
+          <span className="small muted kbd-hints">
             <kbd>A</kbd> approve · <kbd>R</kbd> reject · <kbd>J</kbd>/<kbd>K</kbd> next/previous
           </span>
         </div>
@@ -454,7 +454,7 @@ export default function Moderation() {
               {rejecting?.id === current.id ? (
                 <ReasonPicker pet={current.pet_name} busy={busy} onCancel={() => setRejecting(null)} onSubmit={(reason) => decide(current, 'reject', reason)} />
               ) : (
-                <div className="tool-row" style={{ marginTop: 16 }}>
+                <div className="tool-row mod-decide" style={{ marginTop: 16 }}>
                   <button type="button" className="btn btn-primary" onClick={() => decide(current, 'approve')} disabled={busy}>
                     Approve <kbd>A</kbd>
                   </button>

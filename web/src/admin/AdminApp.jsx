@@ -173,7 +173,7 @@ function Desk({ session, onSessionLost }) {
             <span className="kicker" style={{ margin: 0 }}>
               Wausau Pilot &amp; Review
             </span>
-            <strong>Pet contest desk</strong>
+            <h1 className="desk-name">Pet contest desk</h1>
           </div>
           {contests.length > 1 ? (
             <select aria-label="Contest" value={contestId || ''} onChange={(e) => setContestId(e.target.value)} style={{ width: 'auto' }}>
