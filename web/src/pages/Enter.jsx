@@ -12,13 +12,13 @@ import { apDate, apDateTime, period } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { ACCEPTED_TYPES, MAX_BYTES, prepareUpload } from '../lib/image.js'
 import { OTHER_TOWN, TOWNS } from '../lib/towns.js'
-import { EMPTY_ENTRY as EMPTY, LIMITS, validateEntry } from '../lib/entryForm.js'
+import { EMPTY_ENTRY as EMPTY, LIMITS, PROFILE_FIELDS, validateEntry } from '../lib/entryForm.js'
 
 // Exactly this, and never HEIC: when `accept` leaves HEIC out, iOS converts
 // the photo to JPEG as it is picked. That is what makes iPhone entries work.
 const ACCEPT = 'image/jpeg,image/png,image/webp'
 
-const ORDER = ['photo', 'pet_name', 'species', 'town', 'caption', 'owner_name', 'owner_email', 'rights']
+const ORDER = ['photo', 'pet_name', 'species', 'town', 'caption', ...PROFILE_FIELDS, 'owner_name', 'owner_email', 'rights']
 
 function PhotoField({ photo, preparing, onPick, error }) {
   const [drag, setDrag] = useState(false)
@@ -277,6 +277,7 @@ export default function Enter() {
     form.append('owner_email', v.owner_email.trim())
     form.append('town', v.town === OTHER_TOWN ? v.town_other.trim() : v.town)
     if (v.caption.trim()) form.append('caption', v.caption.trim())
+    for (const key of PROFILE_FIELDS) if (v[key].trim()) form.append(key, v[key].trim())
     form.append('rights_accepted', 'true')
     if (v.newsletter) form.append('newsletter_opt_in', 'true')
     form.append('website', v.website)
@@ -425,6 +426,16 @@ export default function Enter() {
             </span>
             {errors.caption && <span className="error-text">{errors.caption}</span>}
           </div>
+
+          <fieldset className="profile-fields">
+            <legend className="label">
+              Get to know your pet <span className="opt">(optional)</span>
+            </legend>
+            <p className="hint">Shown on your pet&rsquo;s page, under the photo. Answer any, all or none.</p>
+            <TextField id="profile_nickname" label="Also answers to" placeholder="Biscuit, Biscuit Boy, Sir Biscuit" value={v.profile_nickname} onChange={set('profile_nickname')} error={errors.profile_nickname} max={LIMITS.profile_nickname} autoComplete="off" />
+            <TextField id="profile_favorite" label="Favorite thing" placeholder="The squeaky hedgehog" value={v.profile_favorite} onChange={set('profile_favorite')} error={errors.profile_favorite} max={LIMITS.profile_favorite} autoComplete="off" />
+            <TextField id="profile_trick" label="Best trick or quirk" placeholder="Sneezes when excited" value={v.profile_trick} onChange={set('profile_trick')} error={errors.profile_trick} max={LIMITS.profile_trick} autoComplete="off" />
+          </fieldset>
 
           <div className="row-2">
             <TextField id="owner_name" label="Your name" hint="Never published." value={v.owner_name} onChange={set('owner_name')} error={errors.owner_name} max={LIMITS.owner_name} autoComplete="name" />

@@ -11,6 +11,7 @@ import PetPhoto from './PetPhoto.jsx'
 import { Digits } from './Scoreboard.jsx'
 import ShareTools from './ShareTools.jsx'
 import Turnstile, { turnstileConfigured } from './Turnstile.jsx'
+import { buzz } from '../lib/haptics.js'
 
 // One free vote a day, verified by email. The first time: an address, then a
 // six-digit code. After that this browser votes in two taps. An emailed link
@@ -66,6 +67,7 @@ export default function FreeVoteSheet({ entry, round, link, onClose, onBuy }) {
         track('Free Vote', { pet: entry.pet_name, via: link?.kind || (step === 'device' ? 'device' : 'code') })
         setVotes(res.votes)
         setStep('done')
+        buzz()
         return
       case 'already_voted':
         setStep('spent')

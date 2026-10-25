@@ -20,12 +20,13 @@ import VoteButton from '../components/VoteButton.jsx'
 import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
 import { entryStates } from '../lib/bracketState.js'
-import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
+import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { apDate, apWhen, fmtInt, fmtMoney, plural } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { useLive } from '../lib/live.js'
 import { cheapestPerVote } from '../lib/packs.js'
-import { cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
+import { climbers, cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
+import { clubLabel, milestone } from '../lib/milestones.js'
 import { roadStops } from '../lib/road.js'
 import { roundLabel } from '../lib/rounds.js'
 import { entryPhotoUrl } from '../lib/photos.js'
@@ -168,9 +169,80 @@ function VoteBlock({ entry, round, packs }) {
   )
 }
 
+// The milestone clubs (lib/milestones.js): every club this pet has joined,
+// the next one ghosted, and how far there is to go. Every round counts.
+function Milestones({ name, total, started }) {
+  if (!started || total == null) return null
+  const m = milestone(total)
+  if (!m.earned && !m.next) return null
+  const shown = m.all.slice(-3)
+  return (
+    <section className="milestones" aria-label={`${name}'s milestones`}>
+      <ol className="ms-badges">
+        {shown.map((t) => (
+          <li key={t} className="ms-badge on">
+            <span className="ms-medal" aria-hidden="true">
+              🏅
+            </span>
+            {clubLabel(t)}
+          </li>
+        ))}
+        {m.next && (
+          <li className="ms-badge next">
+            <span className="sr-only">Next: </span>
+            {clubLabel(m.next)}
+          </li>
+        )}
+      </ol>
+      {m.next ? (
+        <div className="ms-progress">
+          <span className="ms-bar" aria-hidden="true">
+            <i style={{ width: `${Math.round(m.progress * 100)}%` }} />
+          </span>
+          <span className="ms-note">
+            {m.earned ? `${name} is in the ${clubLabel(m.earned)}. ` : ''}
+            {fmtInt(m.toNext)} {m.toNext === 1 ? 'vote' : 'votes'} to the {clubLabel(m.next)}.
+          </span>
+        </div>
+      ) : (
+        <p className="ms-note">{name} has joined every club. Every vote from here is a bonus.</p>
+      )}
+    </section>
+  )
+}
+
+// "Get to know": the owner's answers from the entry form (0026), moderated
+// with the photo and the caption.
+const PROFILE = [
+  ['profile_nickname', '🏷️', 'Also answers to'],
+  ['profile_favorite', '🧸', 'Favorite thing'],
+  ['profile_trick', '🎩', 'Best trick or quirk'],
+]
+function Profile({ entry }) {
+  const rows = PROFILE.filter(([key]) => entry[key])
+  if (!rows.length) return null
+  return (
+    <section className="profile-card" aria-labelledby="profile-title">
+      <h2 id="profile-title">Get to know {entry.pet_name}</h2>
+      <dl>
+        {rows.map(([key, emoji, label]) => (
+          <div key={key} className="profile-row">
+            <dt>
+              <span aria-hidden="true">{emoji}</span> {label}
+            </dt>
+            <dd>{entry[key]}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
 function OpenRoundPanel({ c, entry, entries }) {
   const { totals, known } = useRoundTotals(c.round.id)
   const ranked = useMemo(() => rankOpenRound(entries, totals), [entries, totals])
+  const recent = useMomentum(c.round, c.now)
+  const up = useMemo(() => (known ? climbers(entries, totals, recent).get(entry.id) || 0 : 0), [known, entries, totals, recent, entry.id])
   const votes = totals.get(entry.id)?.votes || 0
   const free = totals.get(entry.id)?.free || 0
   const line = known ? cutline(ranked, entry.id, c.bracketSize) : null
@@ -204,6 +276,11 @@ function OpenRoundPanel({ c, entry, entries }) {
           {line && (
             <span className="sb-rank">
               <b>#{line.rank}</b>of {fmtInt(line.total)}
+              {up > 0 && (
+                <span className="sb-climb">
+                  <span aria-hidden="true">▲</span> {up} since yesterday
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -404,6 +481,9 @@ export default function Pet({ route }) {
     return d
   }, [entry, c.rounds, bracket.matchups, bracket.totalsByRound])
 
+  // Every round's votes, for the milestone clubs.
+  const contestTotals = useContestTotals(c.rounds)
+
   // In the bracket, "more pets" means the ones still in it.
   const more = useMemo(() => {
     if (!entry || !entries.length) return []
@@ -501,8 +581,10 @@ export default function Pet({ route }) {
           <RoadStrip road={road} name={name} />
           {panel}
           {entry.goal_votes && liveRound ? <GoalLine entry={entry} round={liveRound} /> : null}
+          <Milestones name={name} total={contestTotals.get(entry.id)} started={c.rounds.some((r) => r.status !== 'pending')} />
           {ownerToken && <OwnerTools entry={entry} token={ownerToken} round={liveRound} />}
           {entry.caption && <p className="caption">{entry.caption}</p>}
+          <Profile entry={entry} />
           {entry.shelter_id && (
             <div className="adopt-badge">
               <span className="bonus-badge">Adoptable</span>

@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
-import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
+import { useBracket, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { useFavorites } from '../lib/favorites.js'
 import { apWhen, fmtInt, fmtMoney } from '../lib/format.js'
 import { cheapestPerVote } from '../lib/packs.js'
 import { useDocumentTitle } from '../lib/hooks.js'
-import { cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
+import { climbers, cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
 import { roundLabel } from '../lib/rounds.js'
 import { closestMatchup } from '../lib/widget.js'
 import RaisedCounter from '../components/RaisedCounter.jsx'
@@ -321,6 +321,8 @@ function PackCard({ c }) {
 
 function OpenRoundPreview({ c, entries, byId, totals }) {
   const ranked = useMemo(() => rankOpenRound(entries, totals), [entries, totals])
+  const recent = useMomentum(c.round, c.now)
+  const climb = useMemo(() => climbers(entries, totals, recent), [entries, totals, recent])
   return (
     <section className="section" aria-labelledby="lb-title">
       <div className="section-head">
@@ -333,7 +335,7 @@ function OpenRoundPreview({ c, entries, byId, totals }) {
         </a>
       </div>
       <div className="split">
-        <Leaderboard ranked={ranked} cut={c.bracketSize} bubble />
+        <Leaderboard ranked={ranked} cut={c.bracketSize} bubble climb={climb} />
         <div className="stack">
           <ActivityTicker roundId={c.round.id} byId={byId} />
           <PackCard c={c} />

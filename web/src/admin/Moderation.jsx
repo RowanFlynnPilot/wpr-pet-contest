@@ -190,12 +190,33 @@ function ReasonPicker({ pet, busy, onSubmit, onCancel }) {
 
 function Details({ entry, onSaved }) {
   const [edit, setEdit] = useState(false)
-  const [draft, setDraft] = useState({ pet_name: entry.pet_name, town: entry.town, species: entry.species })
+  const [draft, setDraft] = useState({
+    pet_name: entry.pet_name,
+    town: entry.town,
+    species: entry.species,
+    profile_nickname: entry.profile_nickname || '',
+    profile_favorite: entry.profile_favorite || '',
+    profile_trick: entry.profile_trick || '',
+  })
   const [err, setErr] = useState(null)
   async function save(e) {
     e.preventDefault()
     try {
-      await q(admin.from('entries').update({ pet_name: draft.pet_name.trim(), town: draft.town.trim(), species: draft.species }).eq('id', entry.id))
+      // A bad answer can be corrected or cleared here instead of rejecting the entry.
+      const answer = (s) => s.trim() || null
+      await q(
+        admin
+          .from('entries')
+          .update({
+            pet_name: draft.pet_name.trim(),
+            town: draft.town.trim(),
+            species: draft.species,
+            profile_nickname: answer(draft.profile_nickname),
+            profile_favorite: answer(draft.profile_favorite),
+            profile_trick: answer(draft.profile_trick),
+          })
+          .eq('id', entry.id),
+      )
       setEdit(false)
       onSaved()
     } catch (x) {
@@ -222,6 +243,16 @@ function Details({ entry, onSaved }) {
             ))}
           </select>
         </label>
+        {[
+          ['profile_nickname', 'Also answers to', 40],
+          ['profile_favorite', 'Favorite thing', 60],
+          ['profile_trick', 'Best trick or quirk', 80],
+        ].map(([key, label, max]) => (
+          <label className="field" key={key}>
+            <span className="label">{label}</span>
+            <input type="text" maxLength={max} value={draft[key]} onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} />
+          </label>
+        ))}
         <div className="tool-row">
           <button className="btn btn-primary btn-sm" type="submit">
             Save
@@ -244,6 +275,16 @@ function Details({ entry, onSaved }) {
         <dd>{entry.town}</dd>
         <dt>Caption</dt>
         <dd>{entry.caption ? <q>{entry.caption}</q> : <span className="muted">none</span>}</dd>
+        {(entry.profile_nickname || entry.profile_favorite || entry.profile_trick) && (
+          <>
+            <dt>Get to know</dt>
+            <dd>
+              {entry.profile_nickname && <div>Also answers to: <q>{entry.profile_nickname}</q></div>}
+              {entry.profile_favorite && <div>Favorite thing: <q>{entry.profile_favorite}</q></div>}
+              {entry.profile_trick && <div>Best trick or quirk: <q>{entry.profile_trick}</q></div>}
+            </dd>
+          </>
+        )}
         <dt>Owner</dt>
         <dd>
           {entry.owner_name} · <a href={`mailto:${entry.owner_email}`}>{entry.owner_email}</a>

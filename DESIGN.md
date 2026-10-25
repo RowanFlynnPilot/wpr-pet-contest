@@ -493,3 +493,29 @@ aside: it disappears on dark paper.
 - **The nameplate in dark mode** is the brand's ink (`--masthead-bg`), a
   step lighter than the contest bar, with the wordmark in white: the paper's
   name never sits on near-black. Light mode keeps newsprint.
+
+## Clubs, climbers, profiles and the finish (Oct. 25, 2026)
+
+- **Milestone clubs** (`lib/milestones.js`): a badge at 50, 100, 250, 500,
+  1,000, 2,500, 5,000 and 10,000 votes over the whole contest, every round
+  summed (totals reset for the race, not for the clubs). Digital only: no
+  prize rides on them. The pet page shows every club joined as a sun stamp,
+  the next one ghosted, and a bar with the votes still to go; a gallery card
+  carries its highest club as a chip.
+- **Climbing** (`climbers` in `lib/rank.js`, the `entry_round_momentum`
+  view): a pet that rose three places or more since yesterday gets a ▲n on
+  the Open Round board, its gallery card and its pet page. Today's standings
+  against yesterday's (today's totals minus the last day's votes), both with
+  the open round's tiebreak. Nothing until the round has run a day, and
+  nothing in the bracket, where every matchup is head to head.
+- **Get to know** (0026): three optional prompts on the entry form (also
+  answers to, favorite thing, best trick or quirk), moderated with the
+  caption and shown on the pet page under it. Moderators can correct or
+  clear an answer instead of rejecting the entry.
+- **The finish.** The three faces are self-hosted (`src/fonts`, Latin
+  subsets, OFL) and the two the first screen needs are preloaded: no
+  third-party request before the first paint. A lazy photo fades in over a
+  blurred tiny copy of itself where the host can serve one (pre-rendered
+  widths or the render endpoint); never an eager photo, which is usually the
+  largest paint. A short haptic tick when votes land, on phones that have
+  one, and not for readers who ask for less motion.

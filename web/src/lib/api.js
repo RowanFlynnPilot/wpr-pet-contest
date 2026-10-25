@@ -10,7 +10,8 @@ const CONTEST_COLS =
   'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at, bracket_size, bracket_round_hours'
 const CONTEST_FREE_COLS = `${CONTEST_COLS}, free_vote_enabled, free_vote_paused_at`
 const CONTEST_BASE_COLS = 'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at'
-const ENTRY_COLS = 'id, contest_id, pet_name, species, town, caption, photo_path, thumb_path, shelter_id, seed, created_at, goal_votes'
+const ENTRY_COLS =
+  'id, contest_id, pet_name, species, town, caption, photo_path, thumb_path, shelter_id, seed, created_at, goal_votes, profile_nickname, profile_favorite, profile_trick'
 const ENTRY_BASE_COLS = 'id, contest_id, pet_name, species, town, photo_path, shelter_id, seed, created_at'
 const ROUND_COLS = 'id, contest_id, seq, kind, status, opens_at, closes_at, resolved_at'
 const MATCHUP_COLS = 'id, round_id, slot, entry_a_id, entry_b_id, winner_entry_id'
@@ -214,6 +215,18 @@ export async function fetchTotalsByRound(roundIds) {
   )
   for (const r of data) out.get(r.round_id)?.set(r.entry_id, { votes: r.votes })
   return out
+}
+
+// Map<entry_id, votes in the last 24 hours> for an open round, behind the
+// "climbing" marks (entry_round_momentum, 0027). Empty, not an error, where
+// the view is missing or the read fails: the marks are decoration.
+export async function fetchMomentum(roundId) {
+  try {
+    const data = await fetchAll(() => need().from('entry_round_momentum').select('entry_id, votes_24h').eq('round_id', roundId).order('entry_id'))
+    return new Map(data.map((r) => [r.entry_id, r.votes_24h]))
+  } catch {
+    return new Map()
+  }
 }
 
 export function fetchMatchups(roundIds) {

@@ -150,6 +150,7 @@ const thumbJpeg = { bytes: fixture("thumb.jpg"), type: "image/jpeg", name: "IMG_
 const base = {
   pet_name: "IntegrationPup", species: "dog", owner_name: "Integration Tester",
   owner_email: "integration@example.com", town: "Wausau", caption: "Test caption",
+  profile_nickname: "  Pup Pup ", profile_favorite: "Tennis balls", profile_trick: "",
   rights_accepted: "true", newsletter_opt_in: "true",
 };
 
@@ -201,9 +202,12 @@ test("submit-entry: a valid entry lands pending, stripped, with its thumbnail", 
   assert.equal(r.status, 200);
   assert.deepEqual(r.body, { received: true }, "no entry id is returned");
 
-  pup = await one("entries?select=id,status,photo_path,thumb_path,caption,newsletter_opt_in&pet_name=eq.IntegrationPup");
+  pup = await one("entries?select=id,status,photo_path,thumb_path,caption,newsletter_opt_in,profile_nickname,profile_favorite,profile_trick&pet_name=eq.IntegrationPup");
   assert.equal(pup.status, "pending");
   assert.equal(pup.caption, "Test caption");
+  assert.equal(pup.profile_nickname, "Pup Pup", "answers are trimmed");
+  assert.equal(pup.profile_favorite, "Tennis balls");
+  assert.equal(pup.profile_trick, null, "an empty answer is no answer");
   assert.equal(pup.newsletter_opt_in, true);
   assert.match(pup.photo_path, /\.jpg$/);
   assert.match(pup.thumb_path, /\.thumb\.jpg$/);

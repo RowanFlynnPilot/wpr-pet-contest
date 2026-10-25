@@ -12,6 +12,25 @@ export function rankOpenRound(entries, totals) {
     .map((row, i) => ({ ...row, rank: i + 1 }))
 }
 
+// Pets that rose `min` places or more over the last day: today's standings
+// against yesterday's (today's totals minus each pet's last-24-hour votes),
+// both ranked with the open round's tiebreak. Map<entry_id, places up>.
+export function climbers(entries, totals, recent, { min = 3 } = {}) {
+  if (!recent?.size) return new Map()
+  const now = rankOpenRound(entries, totals)
+  const before = rankOpenRound(
+    entries,
+    new Map(entries.map((e) => [e.id, { votes: Math.max(0, (totals.get(e.id)?.votes || 0) - (recent.get(e.id) || 0)) }])),
+  )
+  const then = new Map(before.map((r) => [r.entry.id, r.rank]))
+  const out = new Map()
+  for (const r of now) {
+    const up = then.get(r.entry.id) - r.rank
+    if (up >= min) out.set(r.entry.id, up)
+  }
+  return out
+}
+
 // Votes `me` needs to move ahead of `target` in the open round.
 export function votesToPass(me, target) {
   const earlier = ts(me.entry) < ts(target.entry)

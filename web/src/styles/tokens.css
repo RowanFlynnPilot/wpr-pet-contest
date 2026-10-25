@@ -1,3 +1,5 @@
+@import './fonts.css';
+
 /* The design tokens, by role. A newsroom is a theme: it sets brand, accent,
    danger, the paper and the faces, and everything else derives from those.
    WPR's "Follow the Money" system is the default: brand is the teal of the

@@ -34,6 +34,7 @@ test('a reader enters a pet from a phone photo', async ({ page }) => {
   await page.getByLabel("Pet's name").fill(PET)
   await page.locator('.chips label', { hasText: 'Dog' }).click()
   await page.locator('select#town').selectOption('Wausau')
+  await page.getByLabel('Favorite thing').fill('  The squeaky hedgehog ')
   await page.getByLabel('Your name').fill('E2E Tester')
   await page.getByLabel('Your email').fill('e2e@example.com')
   await page.getByLabel('I agree to the photo release below.').check()
@@ -41,8 +42,10 @@ test('a reader enters a pet from a phone photo', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: `${PET} is entered!` })).toBeVisible()
 
-  const [row] = (await rest(`entries?select=status,photo_path,thumb_path&pet_name=eq.${encodeURIComponent(PET)}`)).body
+  const [row] = (await rest(`entries?select=status,photo_path,thumb_path,profile_favorite,profile_nickname&pet_name=eq.${encodeURIComponent(PET)}`)).body
   expect(row.status).toBe('pending')
+  expect(row.profile_favorite, 'a profile answer arrives trimmed').toBe('The squeaky hedgehog')
+  expect(row.profile_nickname, 'an unanswered prompt stays empty').toBeNull()
   expect(row.thumb_path, 'the browser made and sent a thumbnail').toMatch(/\.thumb\.jpg$/)
 
   const photo = await object(row.photo_path)

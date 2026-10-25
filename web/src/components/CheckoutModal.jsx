@@ -16,6 +16,7 @@ import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
 import { useContest } from './ContestContext.jsx'
 import Confetti from './Confetti.jsx'
+import { buzz } from '../lib/haptics.js'
 import { Check } from './Icons.jsx'
 import { Digits } from './Scoreboard.jsx'
 import { ShelterMark } from './ShelterLogo.jsx'
@@ -158,6 +159,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
   function paid(paidIntent, paidAt) {
     setReceipt({ ...paidIntent, paidAt })
     setStep('done')
+    buzz()
     boostLive(totalsKey(round.id))
     boostLive(`activity:${round.id}`)
     track(

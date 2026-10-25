@@ -72,6 +72,10 @@ serve(async (req) => {
     owner_email: notStaff(email(form.get("owner_email"))),
     town: requiredText(form.get("town"), "Town", 60),
     caption: optionalText(form.get("caption"), "Caption", 280),
+    // "Get to know" answers (0026): optional, moderated with the caption.
+    profile_nickname: optionalText(form.get("profile_nickname"), "Nickname", 40),
+    profile_favorite: optionalText(form.get("profile_favorite"), "Favorite thing", 60),
+    profile_trick: optionalText(form.get("profile_trick"), "Trick or quirk", 80),
     newsletter_opt_in: form.get("newsletter_opt_in") === "true",
   };
 
@@ -135,6 +139,9 @@ serve(async (req) => {
     p_newsletter_opt_in: entry.newsletter_opt_in,
     p_max_per_email: MAX_ENTRIES_PER_EMAIL,
     p_thumb_path: thumbPath,
+    p_profile_nickname: entry.profile_nickname,
+    p_profile_favorite: entry.profile_favorite,
+    p_profile_trick: entry.profile_trick,
   });
   if (insertError) {
     // The objects are already public at their URLs but would have no entry

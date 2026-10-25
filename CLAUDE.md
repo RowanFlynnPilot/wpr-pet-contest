@@ -140,6 +140,11 @@ These are load-bearing. Do not soften them.
 - **An owner's goal is the owner's.** `set_entry_goal` needs the entry's
   `owner_token` from the approval email. The token is a bearer secret:
   rate-limited in the `links` function, never read back, rotated at erasure.
+- **Profile answers are the reader's words, moderated.** The three "Get to
+  know" columns (0026) are public like the caption and about the pet, never
+  the owner; moderators may correct or clear one (column UPDATE grant), and
+  `entry_round_momentum` (0027) publishes 24-hour counts per pet for open
+  rounds only, never a voter.
 - **Sponsor matches are the sponsor's money, never votes.** `sponsor_matches`
   windows cannot overlap; `sponsor_match_cents` counts sales whose checkout
   began in the window, after refunds, up to the cap. It is added to the

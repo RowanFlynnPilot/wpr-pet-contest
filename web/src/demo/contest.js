@@ -8,6 +8,11 @@
 // fetch calls with it inside the browser, so a build with no backend at all
 // can be opened on a phone. Reads only, plus the toys; nothing persists.
 
+// Sample answers for the demo's "Get to know" cards.
+const NICKNAMES = ['Biscuit Boy', 'Little Bear', 'The Mayor', 'Noodle', 'Sir Fluff', 'Bean', 'Captain', 'Peanut', 'Tank', 'Princess Pickle', 'Bubba', 'Moo']
+const FAVORITES = ['The squeaky hedgehog', 'Cheese, any cheese', 'Sunbeams on the couch', 'Car rides to the bank', 'A tennis ball with no fuzz left', 'The empty box, not the gift', 'Belly rubs, on demand', 'Snow']
+const TRICKS = ['Sneezes when excited', 'Opens the fridge', 'Sings along to the smoke alarm', 'High-fives for a treat', 'Sleeps with all four paws up', 'Hides socks in the yard', 'Rings a bell to go out']
+
 const NAMES = ['Biscuit', 'Luna', 'Moose', 'Pickles', 'Juniper', 'Otis', 'Waffles', 'Maple', 'Tater Tot', 'Clementine',
   'Rocco', 'Pepper', 'Gus', 'Noodle', 'Hazel', 'Brisket', 'Olive', 'Ziggy', 'Butterbean', 'Mabel',
   'Sir Reginald Fluffington III', 'Pretzel', 'Dot', 'Ranger']
@@ -86,6 +91,10 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       species: SPECIES[i % SPECIES.length],
       town: townList[i % townList.length],
       caption: i % 3 === 0 ? 'Sleeps 20 hours a day and guards the couch for the other four.' : null,
+      // "Get to know" answers (0026) on most pets, none on some, as entrants will.
+      profile_nickname: i % 4 === 3 ? null : NICKNAMES[i % NICKNAMES.length],
+      profile_favorite: i % 5 === 4 ? null : FAVORITES[i % FAVORITES.length],
+      profile_trick: i % 3 === 2 ? null : TRICKS[i % TRICKS.length],
       photo_path: `mock/${i + 1}.${ext}`,
       thumb_path: `mock/${i + 1}.${ext}`,
       shelter_id: i === 7 ? id('5e', 1) : null,
@@ -164,6 +173,10 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     }
 
     const live = totals.filter((t) => rounds.find((r) => r.id === t.round_id)?.status === 'open')
+    // The last day's votes in open rounds (0027): a few pets surging, so the
+    // board shows climbers; everyone else ticking along.
+    const order = new Map(entries.map((e, i) => [e.id, i]))
+    const momentum = live.map((t) => ({ round_id: t.round_id, entry_id: t.entry_id, votes_24h: Math.round(t.votes * (order.get(t.entry_id) % 5 === 2 ? 0.2 : 0.04)) }))
     const gross = totals.reduce((n, t) => n + t.votes * 80, 0)
     return {
       contests: [contest],
@@ -171,6 +184,7 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       entries,
       matchups,
       entry_round_totals: totals.map((t) => ({ ...t, amount_cents: t.votes * 80, free_votes: Math.round(t.votes * 0.08) })),
+      entry_round_momentum: momentum,
       vote_packs: [
         ['starter', 'Starter', 5, 500, false], ['fan', 'Fan', 25, 2000, true], ['superfan', 'Superfan', 75, 5000, false],
         ['champion', 'Champion', 200, 10000, false], ['legend', 'Legend', 600, 25000, false],

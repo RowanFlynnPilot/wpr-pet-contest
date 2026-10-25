@@ -8,13 +8,9 @@
     <!-- An embed, not a page of its own: keep it out of search results. -->
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/png" href="./wpr-typewriter-badge.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- The faces load without blocking the first paint: the stylesheet arrives as print media
-         and switches to all once it is in; the size-adjusted Georgia fallbacks hold the layout. -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=JetBrains+Mono:wght@700&family=Public+Sans:wght@400;500;700&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=JetBrains+Mono:wght@700&family=Public+Sans:wght@400;500;700&display=swap" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=JetBrains+Mono:wght@700&family=Public+Sans:wght@400;500;700&display=swap" /></noscript>
+    <!-- The faces are served with the app (src/fonts); the size-adjusted fallbacks hold the layout. -->
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/bricolage-grotesque-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/public-sans-latin.woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>

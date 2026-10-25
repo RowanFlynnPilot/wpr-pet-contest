@@ -26,13 +26,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="%SITE_URL%og-card.png" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- The faces load without blocking the first paint: the stylesheet arrives as print media
-         and switches to all once it is in; the size-adjusted Arial fallbacks hold the layout. -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:ital,wght@0,400..800;1,400&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:ital,wght@0,400..800;1,400&display=swap" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:ital,wght@0,400..800;1,400&display=swap" /></noscript>
+    <!-- The faces are served with the app (src/fonts, src/styles/fonts.css): the two the first
+         screen needs are preloaded, and the size-adjusted fallbacks hold the layout until they land. -->
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/bricolage-grotesque-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/public-sans-latin.woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>

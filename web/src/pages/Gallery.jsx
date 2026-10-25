@@ -4,12 +4,13 @@ import { useContest } from '../components/ContestContext.jsx'
 import PetCard from '../components/PetCard.jsx'
 import Sponsor from '../components/Sponsor.jsx'
 import { Heart, Search } from '../components/Icons.jsx'
-import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
+import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { entryStates } from '../lib/bracketState.js'
 import { useFavorites } from '../lib/favorites.js'
 import { fmtInt } from '../lib/format.js'
 import { useDocumentTitle, useMediaQuery } from '../lib/hooks.js'
-import { rankOpenRound } from '../lib/rank.js'
+import { climbers, rankOpenRound } from '../lib/rank.js'
+import { milestone } from '../lib/milestones.js'
 import { roundLabel } from '../lib/rounds.js'
 
 const PAGE = 48
@@ -52,6 +53,10 @@ export default function Gallery() {
   const current = useRoundTotals(bracketOpenId)
 
   const ranked = useMemo(() => rankOpenRound(entries, r1.totals), [entries, r1.totals])
+  // Climbing marks while the Open Round runs; milestone clubs all contest.
+  const recent = useMomentum(openLive ? round1 : null, c.now)
+  const climb = useMemo(() => (openLive ? climbers(entries, r1.totals, recent) : new Map()), [openLive, entries, r1.totals, recent])
+  const contestTotals = useContestTotals(c.rounds)
   const rankOf = useMemo(() => new Map(ranked.map((r) => [r.entry.id, r.rank])), [ranked])
   const states = useMemo(() => (inBracket ? entryStates(entries, c.rounds, matchups, c.bracketSize) : null), [inBracket, entries, c.rounds, matchups, c.bracketSize])
   // Pets with something to vote on: both sides of a current matchup are in
@@ -316,6 +321,8 @@ export default function Gallery() {
                   adoptable={Boolean(e.shelter_id)}
                   level={2}
                   featured={i === 0 && featureLeader}
+                  climb={climb.get(e.id)}
+                  club={milestone(contestTotals.get(e.id)).earned}
                   {...cardProps(e)}
                 />
                 {(i === sponsorAfter || (i === list.length - 1 && i < sponsorAfter)) && <div className="grid-break">{sponsor}</div>}
