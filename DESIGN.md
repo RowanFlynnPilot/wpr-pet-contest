@@ -675,3 +675,21 @@ aside: it disappears on dark paper.
   the sheet opens on a few votes at a time rather than on the $250 pack.
   The featured pack ("Most popular") is still the one preselected; staff
   choose it in the Packs tab.
+
+## The first days, and one voice (Oct. 25, 2026)
+
+- **The first days of entries.** Home's counter says "1 pet entered so far"
+  for the first approved pet; the newest-entries row picks up after the
+  three polaroids, so the first pets are never shown twice; an empty
+  gallery shows "No pets yet." without search, filters or a sponsor pitch.
+- **No upsell tag.** Checkout keeps one tag, the featured pack's "Most
+  popular"; the per-vote price and the saving still speak for big packs.
+- **Staff cards** stop shrinking a long name at a size a phone can read,
+  then break it or end it in an ellipsis.
+- **AP numbers everywhere a sentence counts something:** one through nine
+  in words ("needs four votes", "seven votes apart") on the site, the share
+  captions, the newsletter block and the emails. Numerals stay on the
+  scoreboards, tables and short labels beside clocks, as AP allows in
+  tables; a deadline in running text spells its day out.
+- **The root address previews like the demo** on Facebook and in texts: the
+  forwarding page carries the demo's own title and preview tags.

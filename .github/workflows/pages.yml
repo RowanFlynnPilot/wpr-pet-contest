@@ -73,7 +73,12 @@ jobs:
           # The page for other newsrooms, beside the demo it embeds.
           mkdir -p dist/for-newsrooms && cp -r ../docs/newsroom-kit/. dist/for-newsrooms/
           if [ -z "${{ vars.VITE_SUPABASE_URL }}" ]; then
-            printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=./demo/"><title>Cutest Pet in Marathon County</title><p><a href="./demo/">Open the demo</a></p>' > dist/index.html
+            # The root forwards to the demo, carrying the demo's own title and
+            # link-preview tags, so a shared root link previews like the demo
+            # (Facebook's crawler reads the page it is given, not the refresh).
+            TITLE=$(grep -oE '<title>[^<]*</title>' dist-demo/index.html | head -1)
+            META=$(grep -oE '<meta (name="description"|property="og:[a-z:_]+"|name="twitter:[a-z:_]+")[^>]*>' dist-demo/index.html | tr -d '\n')
+            printf '%s\n' "<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=./demo/\">${TITLE}${META}<p><a href=\"./demo/\">Open the demo</a></p>" > dist/index.html
           fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
