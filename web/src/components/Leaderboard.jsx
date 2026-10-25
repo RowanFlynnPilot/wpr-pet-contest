@@ -22,7 +22,9 @@ export function Climb({ up }) {
   )
 }
 
-export default function Leaderboard({ ranked, limit = 10, cut = 16, bubble = false, climb = null }) {
+// `pool`: during Last Chance (lib/lastChance.js), the pets racing below the
+// line, tagged; the line sits above them.
+export default function Leaderboard({ ranked, limit = 10, cut = 16, bubble = false, climb = null, pool = null }) {
   const rows = leaderboardRows(ranked, { cut, bubble, limit })
   return (
     <ol className="board" aria-label="Open Round standings">
@@ -35,7 +37,7 @@ export default function Leaderboard({ ranked, limit = 10, cut = 16, bubble = fal
           )}
           {r.rank === cut + 1 && (
             <div className="board-cut" aria-hidden="true">
-              Top {cut} advance ▲
+              {pool ? `Top ${cut} are in ▲ · Last Chance below` : `Top ${cut} advance ▲`}
             </div>
           )}
           <a className="board-row" href={`#/pet/${r.entry.id}`}>
@@ -45,6 +47,7 @@ export default function Leaderboard({ ranked, limit = 10, cut = 16, bubble = fal
               <span className="board-name">
                 {r.entry.pet_name}
                 <Climb up={climb?.get(r.entry.id)} />
+                {pool?.has(r.entry.id) && <span className="board-tag">Last Chance</span>}
               </span>
               <span className="board-town" style={{ display: 'block' }}>
                 {r.entry.town}

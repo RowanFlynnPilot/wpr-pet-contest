@@ -135,6 +135,16 @@ only on D-14 and D-1; the morning block runs every day in between.
   (Setup tab). The split freezes when submissions open.
 - Sponsors signed. Double Vote Hours entered as `bonus_windows` (Packs &
   bonuses tab), so they list on the rules page.
+- **A Double Vote Hour at the opening of every round**, sponsored or not:
+  the first hour after the Open Round and each bracket round open (Packs &
+  bonuses → Bonus windows, ×2). Contest platforms call this an entry
+  promotion: it gives the opening post a reason to act now and front-loads
+  the round's momentum. Enter them with the rest of the schedule so they
+  list on the rules page; the newsletter block and the site bar pick them up
+  on their own. If the round's opening time moves, move its window too.
+- Sprints, Last Chance and the finale, if WPR uses them: sprints and Last
+  Chance are draft-only switches in Setup (sprints after counsel,
+  `docs/SPRINTS.md`); the finale is set later in the Rounds tab.
 - Widget in the story template. Social desk checked with "sample numbers" (and
   nothing from it posted).
 - Owners' toolkit ready to send, comment guidelines drafted, escalation

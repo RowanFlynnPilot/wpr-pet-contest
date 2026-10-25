@@ -17,7 +17,7 @@ export type NurtureKind =
 export type ClubKind = "club_100" | "club_500" | "club_1000" | "club_5000";
 
 export type QueueRow = {
-  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion" | NurtureKind | ClubKind;
+  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion" | "last_chance" | NurtureKind | ClubKind;
   entry_id: string;
   round_id: string | null;
   to_email: string;
@@ -233,6 +233,22 @@ export function render(row: QueueRow, links: Links): Message {
         `Reason: ${row.rejection_reason ?? "it did not meet the contest rules"}.`,
         `If you think we got it wrong, reply to this email and an editor will take a look.`,
       ]);
+
+    // Last Chance (0032): the pet finished just below the bracket line and
+    // races four others for the last seed. rank is its place at the start,
+    // field_size the pool's size, cut_margin the votes behind the leader.
+    case "last_chance": {
+      const others = Math.max(0, (row.field_size ?? 5) - 1);
+      const votes = (row.my_votes ?? 0).toLocaleString("en-US");
+      const behind = row.cut_margin ?? 0;
+      return compose(`${pet} gets a Last Chance at the bracket`, first, [
+        `${pet} finished${row.rank ? ` No. ${row.rank}` : ""} in the Open Round, just below the bracket line. Now ${pet} and ${others} other pet${others === 1 ? "" : "s"} race for the last spot in the bracket${closes ? `, until ${closes}` : ""}.`,
+        behind > 0
+          ? `Open Round votes carry over: ${pet} has ${votes}, ${behind.toLocaleString("en-US")} behind the leader. The most votes at the end takes the spot.`
+          : `Open Round votes carry over: ${pet} leads with ${votes}. The most votes at the end takes the spot.`,
+        `Only the Last Chance pets can get votes now, so a share today goes further than any day of the round:`,
+      ], { label: `Share ${pet}'s page`, url: shareUrl });
+    }
 
     case "advanced":
       return compose(

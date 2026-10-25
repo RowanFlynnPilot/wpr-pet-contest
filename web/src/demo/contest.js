@@ -20,7 +20,7 @@ const TOWNS = ['Wausau', 'Weston', 'Schofield', 'Rothschild', 'Mosinee', 'Kronen
 const SPECIES = ['dog', 'cat', 'dog', 'other']
 const HOUR = 3600e3
 const DAY = 24 * HOUR
-export const PHASES = ['submissions', 'open', 'bracket', 'complete']
+export const PHASES = ['submissions', 'open', 'lastchance', 'bracket', 'complete']
 export const PHOTO_COUNT = NAMES.length
 const id = (prefix, n) => `${prefix}000000-0000-0000-0000-${String(n).padStart(12, '0')}`
 const iso = (ms) => new Date(ms).toISOString()
@@ -105,6 +105,7 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     }))
 
     const submissions = current === 'submissions'
+    const lastChance = current === 'lastchance'
     const contest = {
       id: id('c1', 1), year: 2026, name: `Cutest Pet in ${region}`,
       status: submissions ? 'submissions_open' : current === 'complete' ? 'complete' : 'voting',
@@ -114,6 +115,7 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       free_vote_enabled: true,
       free_vote_paused_at: null,
       sprints_enabled: true,
+      last_chance_enabled: true,
       // The finale (0031): two days out in the bracket, on air at the finish.
       finale_at: current === 'bracket' ? iso(now + 2 * DAY) : current === 'complete' ? iso(now - 30 * 60e3) : null,
       finale_url: current === 'bracket' || current === 'complete' ? 'https://example.org/live' : null,
@@ -130,10 +132,12 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const totals = []
     const r1 = {
       id: id('r1', 1), contest_id: contest.id, seq: 1, kind: 'open',
-      status: submissions ? 'pending' : current === 'open' ? 'open' : 'resolved',
+      status: submissions ? 'pending' : current === 'open' || lastChance ? 'open' : 'resolved',
       opens_at: iso(submissions ? now + 4 * DAY : now - 5 * DAY),
-      closes_at: iso(submissions ? now + 11 * DAY : current === 'open' ? now + 2 * DAY + 5 * HOUR : now - 3 * DAY),
-      resolved_at: current === 'open' || submissions ? null : iso(now - 3 * DAY + 600e3),
+      closes_at: iso(submissions ? now + 11 * DAY : current === 'open' ? now + 2 * DAY + 5 * HOUR : lastChance ? now - 2 * HOUR : now - 3 * DAY),
+      // Last Chance (0032): the Open Round's overtime, for places 16 to 20.
+      overtime_closes_at: lastChance ? iso(now + 20 * HOUR) : null,
+      resolved_at: current === 'open' || lastChance || submissions ? null : iso(now - 3 * DAY + 600e3),
     }
     rounds.push(r1)
     if (!submissions) {
@@ -212,6 +216,14 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       // Sprints (0030): one running in the Open Round; in the bracket, last
       // night's settled and tomorrow's coming up.
       ...sprintRows(),
+      // Last Chance's snapshot: places 1 to 20 when it started, 16 to 20 racing.
+      last_chance_field: lastChance
+        ? entries
+          .map((e) => ({ id: e.id, votes: totals.find((t) => t.round_id === r1.id && t.entry_id === e.id)?.votes || 0 }))
+          .sort((a, b) => b.votes - a.votes)
+          .slice(0, contest.bracket_size + 4)
+          .map((x, i) => ({ round_id: r1.id, entry_id: x.id, place: i + 1, pool: i + 1 >= contest.bracket_size }))
+        : [],
       // Packs bought through owners' links (0029): a few pets whose owners share.
       entry_referrals: submissions
         ? []
@@ -259,6 +271,9 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     if (!pack || !entry || !round) return { status: 400, body: { error: 'Choose a pack and a pet.' } }
     if (round.status !== 'open') return { status: 409, body: { error: 'Voting is closed for this round.' } }
     const t = Date.now()
+    if (round.overtime_closes_at && t >= new Date(round.closes_at).getTime() && !s.last_chance_field.some((f) => f.entry_id === entry.id && f.pool)) {
+      return { status: 409, body: { error: 'Voting has closed for this pet. Only the Last Chance pets can still get votes.' } }
+    }
     const bonus = s.bonus_windows.find((w) => new Date(w.starts_at).getTime() <= t && t < new Date(w.ends_at).getTime())
     const multiplier = bonus ? bonus.multiplier : 1
     const pid = `pi_mock_${intents.size + 1}`

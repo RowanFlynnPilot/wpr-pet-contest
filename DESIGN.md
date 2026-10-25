@@ -579,3 +579,10 @@ aside: it disappears on dark paper.
   for two hours; then a quiet replay line for two weeks. It never hides the
   result: the final count is public as voting closes, and the crown drops
   when staff run the last Close on the stream.
+- **Last Chance.** When it is on and the Open Round's clock runs out, Home
+  becomes "Last Chance for the bracket": the scoreboard lists the five pets
+  racing, best first, with a lead line; the standings draw the line above
+  them ("Top 15 are in · Last Chance below") and tag each pool pet. A pool
+  pet's page shows its place in the race and the votes to the lead; a pet
+  already in reads "Finished No. 7 and is in the bracket" with no vote
+  button. The demo bar has a Last Chance phase.

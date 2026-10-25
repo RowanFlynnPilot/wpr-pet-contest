@@ -13,6 +13,7 @@ import RaisedCounter from '../components/RaisedCounter.jsx'
 import SprintCard from '../components/SprintCard.jsx'
 import FinaleCard from '../components/FinaleCard.jsx'
 import { finaleState } from '../lib/finale.js'
+import { lastChanceRanked, rankPool } from '../lib/lastChance.js'
 import HowItWorks from '../components/HowItWorks.jsx'
 import AdoptButton from '../components/AdoptButton.jsx'
 import Leaderboard from '../components/Leaderboard.jsx'
@@ -129,6 +130,43 @@ function OpenBoard({ c, entries, totals }) {
   )
 }
 
+// Last Chance on the arena: the pool racing for the last seed, best first.
+function LastChanceBoard({ c, byId, totals }) {
+  const pool = rankPool(c.lastChance, totals, byId)
+  const voting = c.phase === 'voting'
+  const lead = pool[0]
+  const second = pool[1]
+  return (
+    <Scoreboard
+      label="Last Chance"
+      sub={voting ? `Closes ${apWhen(c.round.closes_at, c.now)}` : 'Voting has closed'}
+      clock={<GameClock to={c.round.closes_at} done="Final count" />}
+    >
+      <ol className="sb-rows" aria-label="Last Chance standings">
+        {pool.map((r) => (
+          <li key={r.id} className={`sb-row${r.rank === 1 ? ' lead' : ''}`}>
+            <span className="sb-row-rank">{r.rank}</span>
+            <a className="sb-row-id" href={`#/pet/${r.id}`}>
+              <span className="sb-face sm">
+                <PetPhoto entry={r.entry} width={96} square alt="" />
+              </span>
+              <span className="sb-row-name">
+                {r.entry.pet_name}
+                <span className="sb-row-town">{r.entry.town}</span>
+              </span>
+            </a>
+            <Digits value={r.votes} label={`${fmtInt(r.votes)} ${votesWord(r.votes)}`} dim={r.rank !== 1} />
+          </li>
+        ))}
+      </ol>
+      <p className="sb-note">
+        {lead && second ? `${second.entry.pet_name} needs ${plural(lead.votes - second.votes + 1)} to take the lead from ${lead.entry.pet_name}. ` : ''}
+        {voting ? 'The most votes when Last Chance ends takes the last spot in the bracket.' : 'The bracket is set shortly after Last Chance ends.'}
+      </p>
+    </Scoreboard>
+  )
+}
+
 // A bracket round: the closest race on the board.
 function MatchBoard({ c, byId, round }) {
   const { matchups, totalsByRound } = useBracket(c.rounds, { openRoundId: c.phase === 'voting' ? c.round?.id : null })
@@ -237,6 +275,15 @@ function Arena({ c, entries, byId, totals }) {
         </a>
       )
     board = <OpenBoard c={c} entries={entries} totals={totals} />
+    if (c.lastChance && c.round?.mainClosesAt) {
+      title = (
+        <>
+          <em>Last Chance</em> for the bracket
+        </>
+      )
+      lede = `The top ${bracketSize - 1} are in. ${c.lastChance.size} pets just below the line race for the last spot; their Open Round votes carry over.`
+      board = <LastChanceBoard c={c} byId={byId} totals={totals} />
+    }
   } else if (phase === 'voting' || phase === 'counting') {
     title = phase === 'voting' ? <>The {label} is on.</> : 'The votes are in.'
     lede =
@@ -323,22 +370,23 @@ function PackCard({ c }) {
 }
 
 function OpenRoundPreview({ c, entries, byId, totals }) {
-  const ranked = useMemo(() => rankOpenRound(entries, totals), [entries, totals])
+  const lc = c.round?.mainClosesAt ? c.lastChance : null
+  const ranked = useMemo(() => lastChanceRanked(rankOpenRound(entries, totals), lc), [entries, totals, lc])
   const recent = useMomentum(c.round, c.now)
   const climb = useMemo(() => climbers(entries, totals, recent), [entries, totals, recent])
   return (
     <section className="section" aria-labelledby="lb-title">
       <div className="section-head">
         <div>
-          <h2 id="lb-title">Who&rsquo;s in the top {c.bracketSize}</h2>
-          <p className="section-count">Live, with the cut line marked</p>
+          <h2 id="lb-title">{lc ? 'Who gets the last spot' : <>Who&rsquo;s in the top {c.bracketSize}</>}</h2>
+          <p className="section-count">{lc ? `The top ${c.bracketSize - 1} are in; Last Chance below the line` : 'Live, with the cut line marked'}</p>
         </div>
         <a className="more" href="#/gallery">
           All {fmtInt(entries.length)} pets <Arrow size={14} />
         </a>
       </div>
       <div className="split">
-        <Leaderboard ranked={ranked} cut={c.bracketSize} bubble climb={climb} />
+        <Leaderboard ranked={ranked} cut={lc ? c.bracketSize - 1 : c.bracketSize} bubble climb={lc ? null : climb} pool={lc?.pool} />
         <div className="stack">
           <ActivityTicker roundId={c.round.id} byId={byId} />
           <PackCard c={c} />

@@ -22,6 +22,7 @@ export default function Rules() {
   // The free daily vote adds section 8; every later section moves down one.
   const free = Boolean(k.free_vote_enabled)
   const sprints = Boolean(k.sprints_enabled)
+  const lastChance = Boolean(k.last_chance_enabled)
   const liveSprints = c.sprints.filter((s) => !s.cancelled_at)
   const n = (num) => (free && num >= 8 ? num + 1 : num)
   const round1 = c.rounds.find((r) => r.seq === 1)
@@ -97,10 +98,23 @@ export default function Rules() {
               <td>Every approved entry</td>
               <td>{round1 ? `${apDate(round1.opens_at, { weekday: false })} to ${apDateTime(round1.closes_at, { weekday: false })}` : 'After entries close'}</td>
             </tr>
+            {lastChance && (
+              <tr>
+                <td>Last Chance</td>
+                <td>Places {size} to {size + 4} in the Open Round</td>
+                <td>{round1?.overtime_closes_at ? `Closes ${apDateTime(round1.overtime_closes_at, { weekday: false })}` : 'About 24 hours, right after the Open Round'}</td>
+              </tr>
+            )}
             {bracketRounds.map((r) => (
               <tr key={r.seq}>
                 <td>{r.label}</td>
-                <td>{r.seq === 2 ? `Top ${size} from the Open Round, seeded 1 to ${size}` : 'Winners of the previous round'}</td>
+                <td>
+                  {r.seq === 2
+                    ? lastChance
+                      ? `Top ${size - 1} from the Open Round and the Last Chance winner, seeded 1 to ${size}`
+                      : `Top ${size} from the Open Round, seeded 1 to ${size}`
+                    : 'Winners of the previous round'}
+                </td>
                 <td>{r.round && r.round.status !== 'pending' ? `Closes ${apDateTime(r.round.closes_at, { weekday: false })}` : `About ${hours} hours`}</td>
               </tr>
             ))}
@@ -110,6 +124,16 @@ export default function Rules() {
           The top {size} pets in the Open Round advance to a head-to-head bracket, seeded by their Open Round vote totals (1 is the most votes).
           Seeds are paired so the top two can only meet in the {roundLabel(1 + bracketRoundCount(size), size)}.
         </p>
+        {lastChance && (
+          <p>
+            <strong>Last Chance.</strong> When the Open Round closes, the pets in places 1 to {size - 1} qualify for the bracket in that
+            order. The pets in places {size} to {size + 4} then have about 24 more hours, announced when it starts, and only they can receive
+            votes. Their Open Round votes carry over, and the one with the most Open Round votes when Last Chance ends takes seed {size}; a
+            tie goes to the pet placed higher when Last Chance began. If a qualified pet leaves the contest during Last Chance, the next best
+            pet from Last Chance takes that place too. Last Chance is part of the Open Round, so its votes are Open Round votes, and the
+            deadline rules below apply to its closing time.
+          </p>
+        )}
         <p>
           <strong>Vote totals reset at the start of every round.</strong> Open Round votes decide which pets qualify for the bracket and
           their seeds, and nothing more. In every bracket round both pets start at zero, and the pet with more votes when the round closes

@@ -35,6 +35,7 @@ import { entryPhotoUrl } from '../lib/photos.js'
 import { tintStyle, usePhotoTint } from '../lib/photoTint.js'
 import { ownerPosts } from '../lib/ownerPosts.js'
 import { rememberVia } from '../lib/referral.js'
+import { canVoteNow, rankPool } from '../lib/lastChance.js'
 import { ownerLink, petPublicUrl } from '../lib/share.js'
 
 const SPECIES = { dog: 'Dog', cat: 'Cat', other: 'Other' }
@@ -153,6 +154,13 @@ function OwnerPosts({ entry, c, standing: state, byId, club }) {
   else if (state?.status === 'out') stage = 'out'
   else if (state?.status === 'unseeded') stage = 'unseeded'
   else if (state?.status === 'alive' && state.matchup && !state.matchup.winner_entry_id) stage = 'matchup'
+  else if (c.lastChance && c.round?.mainClosesAt && c.round.status === 'open') {
+    // Last Chance: racing for the last seed, or already in.
+    const place = c.lastChance.place.get(entry.id)
+    if (c.lastChance.pool.has(entry.id)) stage = 'lastchance'
+    else if (place != null && place < c.bracketSize) stage = 'qualified'
+    else stage = 'unseeded'
+  }
   const oppId = state?.matchup ? (state.matchup.entry_a_id === entry.id ? state.matchup.entry_b_id : state.matchup.entry_a_id) : null
   const closesAt = matchRound?.closes_at || c.round?.closes_at
   const raisedCents = Number(c.stats?.shelter_cents ?? 0) + Number(c.stats?.match_cents ?? 0)
@@ -352,6 +360,70 @@ function OpenRoundPanel({ c, entry, entries }) {
           {voting
             ? `The top ${c.bracketSize} make the bracket, where every total starts over.`
             : 'Results are finalized shortly after the deadline.'}
+        </p>
+      </Scoreboard>
+      {voting && <VoteBlock entry={entry} round={c.round} packs={c.packs} />}
+    </>
+  )
+}
+
+// The Open Round's overtime (lib/lastChance.js): a pool pet races for the
+// last seed; a pet above the line is in; anyone else has finished.
+function LastChancePanel({ c, entry, byId }) {
+  const { totals, known } = useRoundTotals(c.round.id)
+  const lc = c.lastChance
+  const voting = c.phase === 'voting'
+  const inPool = lc.pool.has(entry.id)
+  const place = lc.place.get(entry.id)
+  const votes = totals.get(entry.id)?.votes || 0
+  const others = Math.max(0, lc.size - 1)
+  if (!inPool) {
+    const inBracket = place != null && place < c.bracketSize
+    return (
+      <Scoreboard label="Open Round" sub={inBracket ? `Finished No. ${place}` : 'Voting has closed'} clock={<GameClock to={c.round.mainClosesAt} done="Final count" />}>
+        <p className="sb-note">
+          {inBracket
+            ? `${entry.pet_name} finished No. ${place} and is in the bracket. `
+            : `Voting has closed for ${entry.pet_name}. `}
+          {voting
+            ? `${lc.size} pets just below the line have until ${apWhen(c.round.closes_at, c.now)} to win the last spot in Last Chance.`
+            : 'The bracket is set shortly after Last Chance ends.'}
+        </p>
+      </Scoreboard>
+    )
+  }
+  const pool = rankPool(lc, totals, byId)
+  const me = pool.find((r) => r.id === entry.id)
+  const leader = pool[0]
+  const behind = me && leader && leader.id !== entry.id ? leader.votes - me.votes + 1 : 0
+  return (
+    <>
+      <Scoreboard
+        label="Last Chance"
+        sub={voting ? `Closes ${apWhen(c.round.closes_at, c.now)}` : 'Voting has closed'}
+        clock={<GameClock to={c.round.closes_at} done="Final count" />}
+        lamp={me && <Lamp on={me.rank === 1} sr={me.rank === 1 ? 'Leading Last Chance.' : 'Not leading Last Chance.'}>Leading</Lamp>}
+      >
+        <div className="sb-solo">
+          <div className="sb-solo-count">
+            <Digits value={known ? votes : null} label={known ? `${fmtInt(votes)} ${votesWord(votes)} this round` : 'Votes loading'} />
+            <span className="sb-unit">{votesWord(votes)} this round</span>
+          </div>
+          {me && (
+            <span className="sb-rank">
+              <b>#{me.rank}</b>of {lc.size}
+            </span>
+          )}
+        </div>
+        <p className="sb-note">
+          {me?.rank === 1
+            ? `${entry.pet_name} leads Last Chance. `
+            : behind > 0
+              ? `${entry.pet_name} needs ${plural(behind, 'vote')} to take the lead. `
+              : ''}
+          {voting
+            ? `${entry.pet_name} and ${others} other pet${others === 1 ? '' : 's'} finished just below the line. Open Round votes carry over, and the most votes when Last Chance ends takes the last spot in the bracket.`
+            : 'Results are finalized shortly after Last Chance ends.'}
         </p>
       </Scoreboard>
       {voting && <VoteBlock entry={entry} round={c.round} packs={c.packs} />}
@@ -599,13 +671,17 @@ export default function Pet({ route }) {
 
   let panel
   if (inBracket) panel = <BracketPanel c={c} entry={entry} entries={entries} byId={byId} bracket={bracket} state={state} />
-  else if (c.round?.kind === 'open' && ['voting', 'counting'].includes(c.phase)) panel = <OpenRoundPanel c={c} entry={entry} entries={entries} />
+  else if (c.round?.kind === 'open' && ['voting', 'counting'].includes(c.phase))
+    panel = c.lastChance && c.round.mainClosesAt ? <LastChancePanel c={c} entry={entry} byId={byId} /> : <OpenRoundPanel c={c} entry={entry} entries={entries} />
   else if (c.phase === 'complete') panel = null
   else panel = <WaitingPanel c={c} entry={entry} />
 
   // Sharing only earns votes while this pet can be voted for.
+  // During Last Chance only its pool can be voted for (lib/lastChance.js).
   const votable =
-    c.phase === 'voting' && (!inBracket || (state?.status === 'alive' && state.matchup && c.round?.id === state.matchup.round_id))
+    c.phase === 'voting' &&
+    canVoteNow(c.lastChance, entry.id) &&
+    (!inBracket || (state?.status === 'alive' && state.matchup && c.round?.id === state.matchup.round_id))
   let shareTitle = `Share ${name}`
   if (votable) shareTitle = `Share ${name} and get more votes`
   else if (state?.status === 'champion') shareTitle = `Share ${name}’s win`

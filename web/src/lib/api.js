@@ -67,6 +67,7 @@ async function withFallback(run, cols, baseCols) {
 }
 
 const CONTEST_COL_SETS = [
+  `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled, finale_at, finale_url, last_chance_enabled`,
   `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled, finale_at, finale_url`,
   `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled`,
   `${CONTEST_FREE_COLS}, shelter_goal_cents`,
@@ -88,7 +89,15 @@ export async function fetchContests() {
 }
 
 export function fetchRounds(contestId) {
-  return rows(need().from('rounds').select(ROUND_COLS).eq('contest_id', contestId).order('seq'))
+  const run = (cols) => rows(need().from('rounds').select(cols).eq('contest_id', contestId).order('seq'))
+  // overtime_closes_at: Last Chance (0032), where the backend has it.
+  return withFallback(run, `${ROUND_COLS}, overtime_closes_at`, ROUND_COLS)
+}
+
+// Last Chance's snapshot (0032): places 1 to bracket_size + 4 when it
+// started, and which of them race. Empty where the table is missing.
+export function fetchLastChance(roundId) {
+  return optional(need().from('last_chance_field').select('entry_id, place, pool').eq('round_id', roundId).order('place'), [])
 }
 
 export function fetchShelters(contestId) {

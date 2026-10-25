@@ -31,7 +31,7 @@ describe('ownerLink', () => {
 })
 
 describe('ownerPosts', () => {
-  const stages = ['before', 'open', 'matchup', 'unseeded', 'out', 'champion']
+  const stages = ['before', 'open', 'lastchance', 'qualified', 'matchup', 'unseeded', 'out', 'champion']
   const all = stages.map((stage) => [stage, ownerPosts({ ...BASE, stage, round: 'Elite Eight', opponent: 'Luna', club: 500, raised: '$1,240' })])
 
   it('writes all three posts for every stage', () => {

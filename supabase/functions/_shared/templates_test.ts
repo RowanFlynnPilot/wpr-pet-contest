@@ -28,8 +28,20 @@ const base: QueueRow = {
 const KINDS: QueueRow["kind"][] = [
   "entry_received", "entry_approved", "entry_rejected", "advanced", "eliminated", "champion",
   "nurture_ready", "nurture_open", "nurture_halfway", "nurture_last_day", "nurture_matchup_last_day", "nurture_thanks",
-  "club_100", "club_500", "club_1000", "club_5000",
+  "club_100", "club_500", "club_1000", "club_5000", "last_chance",
 ];
+
+Deno.test("Last Chance names the place, the race, the deadline and the gap", () => {
+  const row = { ...base, kind: "last_chance" as const, round_name: "Last Chance", closes_at: "2026-11-25T02:00:00Z", rank: 17, field_size: 5, my_votes: 412, cut_margin: 18 };
+  const msg = render(row, LINKS);
+  assertEquals(msg.subject, "Biscuit gets a Last Chance at the bracket");
+  assertStringIncludes(msg.text, "No. 17");
+  assertStringIncludes(msg.text, "4 other pets");
+  assertStringIncludes(msg.text, "412, 18 behind the leader");
+  assertStringIncludes(msg.text, "/p/7a000000-0000-0000-0000-00000000000a/?via=o");
+  const leading = render({ ...row, cut_margin: 0 }, LINKS);
+  assertStringIncludes(leading.text, "leads with 412");
+});
 
 Deno.test("every kind renders with a subject, html and text", () => {
   for (const kind of KINDS) {

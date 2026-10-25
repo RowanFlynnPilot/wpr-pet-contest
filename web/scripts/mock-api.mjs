@@ -12,7 +12,7 @@
 //   VOTE_SCALE=100 node scripts/mock-api.mjs      # five-figure counts
 //
 // Switch the contest's phase while it runs:
-//   curl http://127.0.0.1:8787/__phase?set=submissions   (submissions | open | bracket | complete)
+//   curl http://127.0.0.1:8787/__phase?set=submissions   (submissions | open | lastchance | bracket | complete)
 
 import { existsSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:http'

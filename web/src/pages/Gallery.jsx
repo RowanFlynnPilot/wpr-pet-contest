@@ -12,6 +12,7 @@ import { useDocumentTitle, useMediaQuery } from '../lib/hooks.js'
 import { climbers, rankOpenRound } from '../lib/rank.js'
 import { milestone } from '../lib/milestones.js'
 import { roundLabel } from '../lib/rounds.js'
+import { canVoteNow } from '../lib/lastChance.js'
 
 const PAGE = 48
 const fold = (s) =>
@@ -145,7 +146,8 @@ export default function Gallery() {
       return {
         votes: r1.totals.get(e.id)?.votes || 0,
         rank: rankOf.get(e.id),
-        voteRound: c.phase === 'voting' ? c.round : null,
+        // During Last Chance only its pool can be voted for.
+        voteRound: c.phase === 'voting' && canVoteNow(c.lastChance, e.id) ? c.round : null,
       }
     }
     if (states) {

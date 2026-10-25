@@ -148,6 +148,20 @@ These are load-bearing. Do not soften them.
   the owner; moderators may correct or clear one (column UPDATE grant), and
   `entry_round_momentum` (0027) publishes 24-hour counts per pet for open
   rounds only, never a voter.
+- **Last Chance is overtime, not a round** (0032). Off unless switched on
+  while the contest is a draft (`set_last_chance_enabled`). Staff start it
+  by hand after the Open Round's clock and settle time (`start_last_chance`):
+  places 1 to bracket_size - 1 are in, in that order, and places
+  bracket_size to bracket_size + 4 keep voting; the most Open Round votes
+  when it ends takes the last seed, ties to the better starting place. The
+  standings at the start are snapshotted in `last_chance_field`. Every
+  deadline check goes through `round_deadline(round, pet)` (vote_quote,
+  confirm_vote, free votes, the stale-checkout sweep), so only the pool can
+  be voted for. close_round refuses to close around a Last Chance the rules
+  promise. Round numbers, labels and "totals reset every round" are
+  untouched. In the front end the phase is `voting` with `overtime`, the
+  round carries Last Chance's close (`mainClosesAt` keeps the Open
+  Round's), and `canVoteNow` gates every vote button.
 - **Sprints are the sponsor's prize, never votes** (0030, docs/SPRINTS.md).
   Off unless switched on while the contest is a draft
   (`set_sprints_enabled`), and only after counsel. `add_sprint` needs a
@@ -205,6 +219,10 @@ the buttons call, for when the panel is not an option.
    still pending, or with fewer approved entries than `bracket_size`. Never flip
    contest status by hand; that is how you end up accepting entries after the
    field is set.
+   If Last Chance is on: when the Open Round's clock runs out, Rounds tab →
+   Start Last Chance (`start_last_chance`, from 10 minutes after the
+   deadline). It emails the pool's owners straight away. Close the round
+   when Last Chance ends (plus the same 10 minutes).
 5. `select close_round('<round-1-id>');` → seeds `bracket_size` entries, builds
    round 2. It refuses until 10 minutes after `closes_at`: payments made before
    the deadline need that long to settle, and a slow webhook must not turn an
@@ -254,7 +272,7 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, profile, referrals, tally, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, last chance, profile, referrals, sprints, finale, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after

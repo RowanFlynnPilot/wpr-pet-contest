@@ -22,7 +22,7 @@ function shelterLine(split, short = false) {
 }
 
 // o: {
-//   stage:   'before' | 'open' | 'matchup' | 'unseeded' | 'out' | 'champion'
+//   stage:   'before' | 'open' | 'lastchance' | 'qualified' | 'matchup' | 'unseeded' | 'out' | 'champion'
 //   name, contest, url, split, bracketSize,
 //   closes, opens   (AP phrases, e.g. "Friday, Nov. 27 at 8 p.m.")
 //   round, opponent (for a matchup, or the round a pet went out in)
@@ -46,6 +46,18 @@ export function ownerPosts(o) {
       facebook = `${name} made the ${o.round} and is head to head with ${o.opponent} until ${period(o.closes)} Every matchup starts at zero, so every vote counts. ${share} Vote for ${name}: ${url}`
       instagram = `${name} made the ${o.round} 🐾 It's ${name} against ${o.opponent} until ${o.closes}, and every matchup starts at zero. ${share} Link in bio. ${TAGS}`
       text = `${name} is up against ${o.opponent} in the ${o.round}! Voting closes ${o.closes}, and ${shareShort}. ${url}`
+      break
+    case 'lastchance':
+      // Last Chance (lib/lastChance.js): just below the line, racing for the last seed.
+      facebook = `Last Chance! ${name} finished just below the bracket line in ${contest} and has until ${o.closes} to win the last spot. Open Round votes carry over, and the most votes wins. ${share} Vote for ${name}: ${url}`
+      instagram = `Last Chance for ${name} 🐾 Just below the bracket line, with until ${o.closes} to win the last spot. ${share} Link in bio. ${TAGS}`
+      text = `${name} is in Last Chance for the bracket, until ${o.closes}! The most votes wins the last spot, and ${shareShort}. ${url}`
+      break
+    case 'qualified':
+      // In the bracket, waiting for it to start.
+      facebook = `${name} made the bracket in ${contest}! Thank you to everyone who voted. The bracket starts soon, and every matchup starts at zero. ${url}`
+      instagram = `${name} made the bracket 🐾 Thank you to everyone who voted. Every matchup starts at zero. ${TAGS}`
+      text = `${name} made the bracket! Thank you for voting. ${url}`
       break
     case 'unseeded':
       facebook = `Thank you to everyone who voted for ${name} in ${contest}!${club ? ` ${name} joined the ${club}.` : ''} ${raised}`.trim()

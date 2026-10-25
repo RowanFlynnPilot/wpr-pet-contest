@@ -12,7 +12,10 @@ import FinaleSetting from './Finale.jsx'
 // close_round refuses until the deadline plus this settle period, so a buyer
 // who paid on time is not refunded because Stripe's webhook was slow.
 export const SETTLE_MS = 10 * 60 * 1000
-export const finalizableAt = (round) => new Date(round.closes_at).getTime() + SETTLE_MS
+// With Last Chance under way (0032), the Open Round ends when it does.
+export const finalizableAt = (round) => new Date(round.overtime_closes_at || round.closes_at).getTime() + SETTLE_MS
+// Last Chance can start once the Open Round's own clock has run out and settled.
+export const lastChanceFrom = (round) => new Date(round.closes_at).getTime() + SETTLE_MS
 export default function Rounds() {
   const { contest, reloadContest, say, onSessionLost } = useDesk()
   const cid = contest.id
@@ -34,6 +37,10 @@ export default function Rounds() {
 
   const list = rounds.data || []
   const open = list.find((r) => r.status === 'open')
+  // Last Chance is owed: the contest has it, the Open Round is open, it has not
+  // started, and there are pets below the line (start_last_chance, 0032).
+  const lastChanceDue = (r) =>
+    Boolean(contest.last_chance_enabled) && r.seq === 1 && r.status === 'open' && !r.overtime_closes_at && (counts.data?.approved ?? 0) > size
   const nextPending = list.find((r) => r.status === 'pending')
 
   async function run(fn) {
@@ -62,6 +69,21 @@ export default function Rounds() {
       const iso = fromLocalInput(closesAt)
       await q(admin.rpc('open_round', { p_round_id: r.id, p_closes_at: iso }))
       say(`${roundLabel(r.seq, size)} is open.`)
+    })
+
+  const startLastChance = (r) =>
+    run(async () => {
+      const iso = closesAt ? fromLocalInput(closesAt) : null
+      const pool = await q(admin.rpc('start_last_chance', { p_round_id: r.id, p_closes_at: iso }))
+      // The pool's owners have a day: their notes go now.
+      let mail = null
+      try {
+        mail = await callAdmin('notify', {})
+      } catch (err) {
+        if (err instanceof SessionError) throw err
+        mail = { error: err.message }
+      }
+      say(`Last Chance is on: ${pool} pets race for the last seed.${mail?.error ? ` Email sweep failed: ${mail.error}` : mail?.sent != null ? ` Emails sent: ${mail.sent}.` : ''}`)
     })
 
   const closeRound = (r) =>
@@ -168,7 +190,10 @@ export default function Rounds() {
                     {overdue && <div className="small bad">deadline passed: ready to finalize</div>}
                   </td>
                   <td>{stamp(r.opens_at)}</td>
-                  <td>{stamp(r.closes_at)}</td>
+                  <td>
+                    {stamp(r.closes_at)}
+                    {r.overtime_closes_at && <div className="small muted">Last Chance to {stamp(r.overtime_closes_at)}</div>}
+                  </td>
                   <td>{stamp(r.resolved_at)}</td>
                   <td>
                     {r.id === nextPending?.id && !open && (
@@ -176,7 +201,27 @@ export default function Rounds() {
                         Open…
                       </button>
                     )}
-                    {r.id === open?.id && (
+                    {r.id === open?.id && lastChanceDue(r) && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          onClick={() => {
+                            setClosesAt('')
+                            setAction({ kind: 'lastchance', round: r })
+                          }}
+                          disabled={busy || now < lastChanceFrom(r)}
+                        >
+                          Start Last Chance…
+                        </button>
+                        {now < lastChanceFrom(r) && (
+                          <div className="small muted" style={{ marginTop: 4, maxWidth: 220 }}>
+                            Can start from {stamp(new Date(lastChanceFrom(r)).toISOString())} so on-time payments can settle.
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {r.id === open?.id && !lastChanceDue(r) && (
                       <>
                         <button
                           type="button"
@@ -218,6 +263,21 @@ export default function Rounds() {
             <input type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
             <span className="hint">Prefilled from the schedule. Must be at least an hour from now.</span>
           </label>
+        </TypedConfirm>
+      )}
+
+      {action?.kind === 'lastchance' && (
+        <TypedConfirm word="START" title="Start Last Chance" busy={busy} danger={false} onCancel={() => setAction(null)} onConfirm={() => startLastChance(action.round)}>
+          <p>
+            The top {size - 1} are in, in their order now. Places {size} to {size + 4} keep voting, and only they can get votes; the most
+            Open Round votes when Last Chance ends takes seed {size}. The standings are snapshotted now and cannot be changed.
+          </p>
+          <label className="field">
+            <span className="label">Last Chance closes at (your local time)</span>
+            <input type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+            <span className="hint">Leave empty for 24 hours from now. At least an hour away.</span>
+          </label>
+          <p className="small muted">The pool&rsquo;s owners get their Last Chance email straight away.</p>
         </TypedConfirm>
       )}
 
