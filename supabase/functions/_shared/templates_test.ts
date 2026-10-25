@@ -41,6 +41,21 @@ Deno.test("every kind renders with a subject, html and text", () => {
   }
 });
 
+Deno.test("another newsroom's name, phone and colors replace WPR's everywhere", () => {
+  const gazette = { name: "The Example Gazette", phone: "555-010-0100", brand: "#16304f", paper: "#f7f4ee" };
+  for (const kind of KINDS) {
+    const msg = render({ ...base, kind, round_name: "Sweet 16" }, { ...LINKS, newsroom: gazette });
+    assertStringIncludes(msg.html, "The Example Gazette");
+    assertStringIncludes(msg.text, "The Example Gazette · 555-010-0100");
+    assert(!msg.html.includes("Wausau") && !msg.text.includes("Wausau"), kind);
+    if (msg.html.includes("<a href")) assertStringIncludes(msg.html, "background:#16304f", kind); // the button
+    assertStringIncludes(msg.html, "background:#f7f4ee"); // the paper
+  }
+  const code = renderFreeVoteCode({ code: "482913", petName: "Biscuit", contestName: "Cutest Pet", link: "https://x/", minutes: 15, newsroom: gazette });
+  assertStringIncludes(code.text, "The Example Gazette · 555-010-0100");
+  assert(!code.html.includes("Wausau"));
+});
+
 Deno.test("approval carries the per-pet share page", () => {
   const msg = render(base, LINKS);
   assertStringIncludes(msg.html, "https://rowanflynnpilot.github.io/wpr-pet-contest/p/7a000000-0000-0000-0000-00000000000a/");

@@ -7,10 +7,12 @@
 import { service } from "./db.ts";
 import { emailEnabled, sendEmail } from "./email.ts";
 import { optionalEnv } from "./env.ts";
+import { NEWSROOM } from "./newsroom.ts";
 import { bytea, centralDay, newToken, sha256 } from "./freevote.ts";
 import { type BuyerNoteRow, type QueueRow, render, renderBuyerNote, renderFreeVoteReminder } from "./templates.ts";
 
 const LINKS = {
+  newsroom: NEWSROOM,
   publicUrl: optionalEnv("PUBLIC_URL") ?? "https://wausaupilotandreview.com/",
   shareBase: optionalEnv("SHARE_BASE_URL") ?? "https://rowanflynnpilot.github.io/wpr-pet-contest/",
 };
@@ -190,6 +192,7 @@ export async function sweepReminders(limit = 50): Promise<SweepResult> {
     const link = `${LINKS.publicUrl}#/${where}?fv=r.${token}`;
     const unsubscribe = `${LINKS.publicUrl}#/unsubscribe?fv=u.${unsubToken}`;
     const msg = renderFreeVoteReminder({
+      newsroom: NEWSROOM,
       petName: row.pet_name,
       contestName: row.contest_name,
       roundName: row.round_label,

@@ -40,6 +40,11 @@ own hue so a red brand never reads as an error.
   (regenerate with `web/scripts/og-card.py` after changing the faces).
 - Your own Supabase project, Stripe account and Resend account, set up per
   `docs/LAUNCH.md`. Each newsroom runs its own copy; nothing is shared.
+- The functions' `NEWSROOM_NAME`, `NEWSROOM_PHONE`, `NEWSROOM_BRAND_COLOR` and
+  `NEWSROOM_PAPER_COLOR` secrets, so the emails and the staff refusal carry
+  your name (defaults are WPR's), and `STAFF_EMAIL_DOMAINS` for your staff.
+- `VITE_NEWSROOM=<key> npm run og-card` redraws the default share card in your
+  name, region and colors (it reads `newsrooms.js` and `tokens.css`).
 - The contest itself (name, dates, split, packs, shelters) in the admin desk.
 - Email copy is already neutral; the sender address and the newsroom's
   name in the templates come from the function secrets (see LAUNCH.md).

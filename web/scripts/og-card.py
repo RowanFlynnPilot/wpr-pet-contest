@@ -1,10 +1,18 @@
-# Generates public/og-card.png, the 1200x630 default share card (og:image).
-# One-time asset; rerun after a branding change:  npm run og-card
-# Downloads the brand faces from the Google Fonts repo at run time and uses the
-# committed badge and wordmark from public/, so nothing depends on WordPress
-# uploads (a CDN move broke those once).
+# Generates public/og-card.png, the 1200x630 default share card (og:image),
+# for the newsroom VITE_NEWSROOM names (web/src/newsrooms.js; wpr when unset):
+#     npm run og-card
+#     VITE_NEWSROOM=gazette npm run og-card
+# Reads the newsroom through node and its colors from the theme block in
+# src/styles/tokens.css, so the card follows the site. One-time asset; rerun
+# after a branding change. Downloads the brand faces from the Google Fonts
+# repo at run time and uses the committed badge and wordmark from public/, so
+# nothing depends on WordPress uploads (a CDN move broke those once).
 import io
-import math
+import json
+import os
+import re
+import subprocess
+import sys
 import urllib.request
 from pathlib import Path
 
@@ -12,8 +20,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
-OUT = PUBLIC / "og-card.png"
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else PUBLIC / "og-card.png"
 
+# WPR's palette, also the fallback when a token is missing. The card for
+# another newsroom takes its own from tokens.css (see palette()).
 TEAL_DEEP = (31, 75, 69)
 TEAL = (58, 134, 124)
 SUN = (244, 185, 66)
@@ -21,6 +31,7 @@ CREAM = (246, 242, 233)
 MINT = (214, 230, 226)
 
 FRAUNCES = "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf"
+FRAUNCES_ITALIC = "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces-Italic%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf"
 PUBLIC_SANS = "https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf"
 
 
@@ -52,13 +63,64 @@ def paw(draw, cx, cy, s, fill):
         draw.ellipse([cx + (dx - r) * s, cy + (dy - r * 1.25) * s, cx + (dx + r) * s, cy + (dy + r * 1.25) * s], fill=fill)
 
 
+def newsroom():
+    """The newsroom entry, as the site sees it, via node (the module is pure data)."""
+    js = (
+        "import('./src/newsrooms.js').then((m) => { const k = process.env.VITE_NEWSROOM || m.DEFAULT_NEWSROOM;"
+        " if (!m.NEWSROOMS[k]) throw new Error('unknown newsroom ' + k); console.log(JSON.stringify(m.NEWSROOMS[k])) })"
+    )
+    out = subprocess.run(["node", "--input-type=module", "-e", js], cwd=ROOT, capture_output=True, text=True, check=True)
+    return json.loads(out.stdout)
+
+
+def hex_rgb(h):
+    return tuple(int(h[i : i + 2], 16) for i in (1, 3, 5))
+
+
+def palette(theme):
+    """Role tokens from tokens.css: the root block, then the newsroom's theme block over it."""
+    css = (ROOT / "src" / "styles" / "tokens.css").read_text(encoding="utf8")
+
+    def block(selector):
+        m = re.search(re.escape(selector) + r"\s*\{(.*?)\}", css, re.S)
+        return dict(re.findall(r"--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;", m.group(1))) if m else {}
+
+    t = block(":root")
+    if theme:
+        t.update(block(f":root[data-theme='{theme}']"))
+    pick = lambda name, fallback: hex_rgb(t[name]) if name in t else fallback
+    return {
+        "deep": pick("brand-deep", TEAL_DEEP),
+        "brand": pick("brand", TEAL),
+        "accent": pick("accent", SUN),
+        "cream": pick("cream", CREAM),
+        "tint": pick("brand-tint", MINT),
+    }
+
+
+def wrap(text, f, width):
+    lines, cur = [], ""
+    for w in text.split():
+        t = f"{cur} {w}".strip()
+        if cur and f.getlength(t) > width:
+            lines.append(cur)
+            cur = w
+        else:
+            cur = t
+    if cur:
+        lines.append(cur)
+    return lines
+
+
 def main():
+    paper = newsroom()
+    c = palette(paper.get("theme"))
     fraunces = fetch(FRAUNCES)
     sans = fetch(PUBLIC_SANS)
 
-    img = Image.new("RGB", (1200, 630), TEAL_DEEP)
+    img = Image.new("RGB", (1200, 630), c["deep"])
     d = ImageDraw.Draw(img, "RGBA")
-    d.rectangle([0, 0, 1200, 10], fill=SUN)
+    d.rectangle([0, 0, 1200, 10], fill=c["accent"])
 
     # Faint paw trail across the right side.
     for i in range(6):
@@ -66,36 +128,51 @@ def main():
         y = 560 - i * 92 + (22 if i % 2 else -22)
         paw(d, x, y, 34, (255, 255, 255, 22))
     # A big friendly paw.
-    paw(d, 985, 300, 150, SUN + (255,))
+    paw(d, 985, 300, 150, c["accent"] + (255,))
 
     kicker = font(sans, 25, {"wght": 800})
-    d.text((78, 88), "WAUSAU PILOT & REVIEW  ·  READER CONTEST", font=kicker, fill=SUN)
+    d.text((78, 88), f"{paper['name'].upper()}  ·  READER CONTEST", font=kicker, fill=c["accent"])
 
-    head = font(fraunces, 92, {"opsz": 144, "wght": 650})
-    d.text((72, 128), "Cutest Pet", font=head, fill="white")
-    d.text((72, 226), "in Marathon", font=head, fill="white")
-    d.text((72, 324), "County", font=head, fill="white")
+    # "Cutest Pet / in Marathon / County": the region wrapped to the room left of the paw.
+    size = 92
+    head = font(fraunces, size, {"opsz": 144, "wght": 650})
+    lines = ["Cutest Pet"] + wrap(f"in {paper['region']}", head, 640)
+    if len(lines) > 3:
+        size = 76
+        head = font(fraunces, size, {"opsz": 144, "wght": 650})
+        lines = ["Cutest Pet"] + wrap(f"in {paper['region']}", head, 660)
+    for i, line in enumerate(lines):
+        d.text((72, 128 + i * (size + 6)), line, font=head, fill="white")
 
     sub = font(sans, 30, {"wght": 400})
-    d.text((78, 446), "Enter free. Vote packs help local animal shelters.", font=sub, fill=MINT)
+    d.text((78, 446), "Enter free. Vote packs help local animal shelters.", font=sub, fill=c["tint"])
 
-    # Badge and wordmark on a white chip, bottom left.
-    badge = Image.open(PUBLIC / "wpr-typewriter-badge.png").convert("RGB").resize((64, 64), Image.LANCZOS)
-    word = Image.open(PUBLIC / "wpr-wordmark.png").convert("RGB")
-    ww = 300
-    wh = round(word.height * ww / word.width)
-    word = word.resize((ww, wh), Image.LANCZOS)
+    # The flag on a white chip, bottom left: badge and wordmark when the
+    # newsroom has them, else its name in the display face.
     pad = 14
-    chip_w, chip_h = 64 + 14 + ww + pad * 2, 64 + pad * 2
-    chip = Image.new("RGB", (chip_w, chip_h), "white")
-    chip.paste(badge, (pad, pad))
-    chip.paste(word, (pad + 64 + 14, pad + (64 - wh) // 2))
+    if paper.get("badge") and paper.get("wordmark"):
+        badge = Image.open(PUBLIC / Path(paper["badge"]).name).convert("RGB").resize((64, 64), Image.LANCZOS)
+        word = Image.open(PUBLIC / Path(paper["wordmark"]).name).convert("RGB")
+        ww = 300
+        wh = round(word.height * ww / word.width)
+        word = word.resize((ww, wh), Image.LANCZOS)
+        chip_w, chip_h = 64 + 14 + ww + pad * 2, 64 + pad * 2
+        chip = Image.new("RGB", (chip_w, chip_h), "white")
+        chip.paste(badge, (pad, pad))
+        chip.paste(word, (pad + 64 + 14, pad + (64 - wh) // 2))
+    else:
+        name_font = font(fraunces, 36, {"opsz": 36, "wght": 650})
+        tw = round(name_font.getlength(paper["name"]))
+        chip_w, chip_h = tw + pad * 2 + 12, 64 + pad * 2
+        chip = Image.new("RGB", (chip_w, chip_h), "white")
+        ImageDraw.Draw(chip).text((pad + 6, pad + 10), paper["name"], font=name_font, fill=c["deep"])
     mask = Image.new("L", chip.size, 0)
     ImageDraw.Draw(mask).rounded_rectangle([0, 0, chip_w, chip_h], radius=12, fill=255)
     img.paste(chip, (78, 630 - chip_h - 30), mask)
 
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     img.save(OUT, "PNG", optimize=True)
-    print(f"wrote {OUT} ({OUT.stat().st_size // 1024} KB)")
+    print(f"wrote {OUT} ({OUT.stat().st_size // 1024} KB) for {paper['name']}")
 
 
 if __name__ == "__main__":

@@ -32,6 +32,7 @@ import {
 } from "../_shared/freevote.ts";
 import { badRequest, HttpError, readJson, serve } from "../_shared/http.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { NEWSROOM } from "../_shared/newsroom.ts";
 import { renderFreeVoteCode } from "../_shared/templates.ts";
 import { turnstileEnabled, verifyTurnstile } from "../_shared/turnstile.ts";
 import { oneOf, uuid } from "../_shared/validate.ts";
@@ -119,6 +120,7 @@ async function request(req: Request, body: Record<string, unknown>, ip: string |
   if (error) throw error;
 
   const msg = renderFreeVoteCode({
+    newsroom: NEWSROOM,
     code,
     petName: data.pet_name,
     contestName: data.contest_name,

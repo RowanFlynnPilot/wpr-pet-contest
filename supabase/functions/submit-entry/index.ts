@@ -7,6 +7,7 @@
 
 import { service as db } from "../_shared/db.ts";
 import { optionalEnv } from "../_shared/env.ts";
+import { NEWSROOM } from "../_shared/newsroom.ts";
 import { badRequest, serve } from "../_shared/http.ts";
 import { extensionFor, type ImageType, sniffImageType, stripMetadata, UnreadableImage } from "../_shared/image.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
@@ -28,7 +29,7 @@ const STAFF_DOMAINS = (optionalEnv("STAFF_EMAIL_DOMAINS") ?? "wausaupilotandrevi
 function notStaff(address: string): string {
   const domain = address.split("@").pop()?.toLowerCase() ?? "";
   if (STAFF_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))) {
-    throw badRequest("Wausau Pilot & Review staff and their households can't enter this contest.");
+    throw badRequest(`${NEWSROOM.name} staff and their households can't enter this contest.`);
   }
   return address;
 }

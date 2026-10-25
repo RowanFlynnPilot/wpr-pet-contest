@@ -128,6 +128,10 @@ pet is what sells votes, so this is worth the setup.
       day. A 300-entry contest sends more than that on approval day and again
       after round 1, so budget for the $20 plan for the contest month.
 - [ ] `supabase secrets set RESEND_API_KEY=re_... EMAIL_FROM="Wausau Pilot & Review <pets@wausaupilotandreview.com>" CRON_SECRET=<random>`
+- [ ] Another newsroom also sets `NEWSROOM_NAME`, `NEWSROOM_PHONE`,
+      `NEWSROOM_BRAND_COLOR` (the site's `--brand-ink`) and `NEWSROOM_PAPER_COLOR`
+      (`--cream`): the emails' kicker, footer, button and paper, and the staff
+      refusal. Unset, they are WPR's.
 - [ ] GitHub: variable `EMAIL_SWEEP=true`, secrets `NOTIFY_URL` and
       `CRON_SECRET` (same value). The sweep then runs every 15 minutes.
 - [ ] Volume. The sweep also sends each owner six tips over the contest

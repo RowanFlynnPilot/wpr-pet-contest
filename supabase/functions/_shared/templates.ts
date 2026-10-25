@@ -41,6 +41,7 @@ export type QueueRow = {
 };
 
 export type Links = {
+  newsroom?: Newsroom;
   // The WordPress page that embeds the contest.
   publicUrl: string;
   // Where the per-pet share pages live (GitHub Pages). Those carry the pet's
@@ -50,8 +51,13 @@ export type Links = {
 
 export type Message = { subject: string; html: string; text: string };
 
-const TEAL = "#2b655d";
-const CREAM = "#f6f2e9";
+// The paper the mail comes from: its name in the kicker, the refusal and the
+// footer, its phone, the button color (text-safe, the site's --brand-ink) and
+// the paper behind the card (--cream). The functions fill it from the
+// NEWSROOM_* secrets (newsroom.ts); the defaults are WPR's, so the tests and
+// the deck render without any.
+export type Newsroom = { name: string; phone: string; brand: string; paper: string };
+export const DEFAULT_NEWSROOM: Newsroom = { name: "Wausau Pilot & Review", phone: "715-301-5539", brand: "#2b655d", paper: "#f6f2e9" };
 
 // The owner's own link: sets a goal, stops the tips. Only in mail to them.
 const ownerUrl = (links: Links, row: QueueRow) =>
@@ -94,6 +100,9 @@ const goalLine = (row: QueueRow): string | null => {
 };
 
 export function render(row: QueueRow, links: Links): Message {
+  const n = links.newsroom ?? DEFAULT_NEWSROOM;
+  const compose = (subject: string, first: string | null, paragraphs: string[], button?: { label: string; url: string }, after?: string[], footer?: string) =>
+    composeMail(subject, first, paragraphs, button, after, footer, n);
   const pet = row.pet_name;
   const first = row.owner_name.split(" ")[0] || "there";
   const petUrl = `${links.publicUrl}#/pet/${row.entry_id}`;
@@ -109,7 +118,7 @@ export function render(row: QueueRow, links: Links): Message {
     case "entry_received":
       return compose(`We got ${pet}'s entry`, first, [
         `Thanks for entering ${pet} in ${row.contest_name}.`,
-        `A Wausau Pilot & Review editor looks at every entry before it goes live, usually within a day. We will email you as soon as ${pet} is in the gallery, with a link you can share.`,
+        `An editor at ${n.name} looks at every entry before it goes live, usually within a day. We will email you as soon as ${pet} is in the gallery, with a link you can share.`,
       ]);
 
     case "entry_approved":
@@ -264,7 +273,7 @@ export function renderBuyerNote(row: BuyerNoteRow, links: Links, unsubscribe: st
   for (const e of row.ended) {
     paras.push(`${e.pet}'s run ended in the ${e.round}${e.opponent ? `, against ${e.opponent}` : ""}. Thank you for your votes.${row.champion.length || row.playing.length ? "" : ` So far the contest has raised ${raised} for local animal shelters.`}`);
   }
-  return compose(subject, null, paras, button, [], footer);
+  return composeMail(subject, null, paras, button, [], footer, links.newsroom);
 }
 
 // The free daily vote. Plain on purpose: the code in the subject, so it shows
@@ -278,13 +287,14 @@ export function renderFreeVoteCode(p: {
   contestName: string;
   link: string;
   minutes: number;
+  newsroom?: Newsroom;
 }): Message {
-  return compose(`${p.code} is your free vote code`, null, [
+  return composeMail(`${p.code} is your free vote code`, null, [
     `Your code to vote free for ${p.petName} in ${p.contestName} is ${p.code}. It works for ${p.minutes} minutes.`,
     `Type it where you asked for it, or open this link on any device:`,
   ], { label: `Confirm my vote for ${p.petName}`, url: p.link }, [
     `Didn't ask for this? You can ignore it. Nothing happens without the code.`,
-  ], FREE_VOTE_FOOTER);
+  ], FREE_VOTE_FOOTER, p.newsroom);
 }
 
 // The morning reminder, for readers who opted in. No vote-pack pitch: the page
@@ -296,9 +306,10 @@ export function renderFreeVoteReminder(p: {
   closesAt: string;
   link: string;
   unsubscribe: string;
+  newsroom?: Newsroom;
 }): Message {
   const who = p.petName ?? "your favorite";
-  return compose(
+  return composeMail(
     `Your free vote is ready${p.petName ? `: vote for ${p.petName}` : ""}`,
     null,
     [
@@ -308,6 +319,7 @@ export function renderFreeVoteReminder(p: {
     { label: p.petName ? `Vote for ${p.petName}` : "Cast my free vote", url: p.link },
     [],
     `${FREE_VOTE_FOOTER} Stop these reminders: ${p.unsubscribe}`,
+    p.newsroom,
   );
 }
 
@@ -315,14 +327,17 @@ const FREE_VOTE_FOOTER = "You are getting this because you asked to vote free in
 const ENTRANT_FOOTER =
   "You are getting this because you entered a pet in the contest. Vote packs are not tax-deductible donations.";
 
-function compose(
+function composeMail(
   subject: string,
   first: string | null,
   paragraphs: string[],
   button?: { label: string; url: string },
   after: string[] = [],
   footer = ENTRANT_FOOTER,
+  newsroom: Newsroom = DEFAULT_NEWSROOM,
 ): Message {
+  const n = newsroom;
+  const signature = n.phone ? `${n.name} · ${n.phone}` : n.name;
   // A sentence that ends on "8 p.m." must not end on "8 p.m..": one period
   // after a time, wherever a template adds its own.
   const tidy = (s: string) => s.replace(/(?<!\.)\.\.(?!\.)/g, ".");
@@ -332,14 +347,14 @@ function compose(
   const para = (p: string) =>
     `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">${escape(p)}</p>`;
 
-  const html = `<!doctype html><html><body style="margin:0;background:${CREAM}">
+  const html = `<!doctype html><html><body style="margin:0;background:${n.paper}">
 <div style="max-width:560px;margin:0 auto;padding:32px 24px;background:#fff;border-top:4px solid #32373c">
-<p style="margin:0 0 20px;font:11px/1 -apple-system,Segoe UI,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#32373c">Wausau Pilot &amp; Review</p>
+<p style="margin:0 0 20px;font:11px/1 -apple-system,Segoe UI,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#32373c">${escape(n.name)}</p>
 ${first === null ? "" : `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">Hi ${escape(first)},</p>`}
 ${paragraphs.map(para).join("\n")}
-${button ? `<p style="margin:24px 0"><a href="${escape(button.url)}" style="display:inline-block;padding:12px 20px;background:${TEAL};color:#fff;text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(button.label)}</a></p>` : ""}
+${button ? `<p style="margin:24px 0"><a href="${escape(button.url)}" style="display:inline-block;padding:12px 20px;background:${n.brand};color:#fff;text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(button.label)}</a></p>` : ""}
 ${after.map(para).join("\n")}
-<p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #e3ddd0;font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#6b6b6b">${escape(footer)}<br>Wausau Pilot &amp; Review · 715-301-5539</p>
+<p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #e3ddd0;font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#6b6b6b">${escape(footer)}<br>${escape(signature)}</p>
 </div></body></html>`;
 
   const text = [
@@ -349,7 +364,7 @@ ${after.map(para).join("\n")}
     ...after,
     "--",
     footer,
-    "Wausau Pilot & Review · 715-301-5539",
+    signature,
   ].join("\n\n");
 
   return { subject, html, text };
