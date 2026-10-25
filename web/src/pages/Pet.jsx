@@ -675,6 +675,12 @@ export default function Pet({ route }) {
   }
 
   const name = entry.pet_name
+  // The hero name's size follows the name (break-ui): a 40-character name
+  // gets a smaller face, and the longest word sets a ceiling so a one-word
+  // name fits whole when it can.
+  const nameChars = Array.from(name).length
+  const longestWord = Math.max(...name.split(/\s+/).map((w) => Array.from(w).length))
+  const nameSize = nameChars > 30 ? ' longer' : nameChars > 18 ? ' long' : ''
   const shelter = entry.shelter_id ? c.shelters.find((s) => s.id === entry.shelter_id) : null
   const road = roadStops({
     bracketSize: c.bracketSize,
@@ -730,7 +736,9 @@ export default function Pet({ route }) {
           </a>
           <div className="pet-title">
             <div className="pet-title-text">
-              <h1 className="pet-name">{name}</h1>
+              <h1 className={`pet-name${nameSize}`} style={{ '--longest': longestWord }}>
+                {name}
+              </h1>
               <p className="pet-meta">{meta}</p>
             </div>
             <FavoriteButton entry={entry} size={24} />

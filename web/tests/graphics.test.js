@@ -97,7 +97,7 @@ describe('wrapping helpers', () => {
     expect(wrapBalanced('Sir Reginald Fluffington III', widthAt(10))).toEqual(['Sir Reginald', 'Fluffington III'])
   })
   it('greedy wrap breaks an oversized word only when allowed', () => {
-    expect(wrapGreedy('Supercalifragilistic', widthAt(10), 50)).toEqual(['Supercalif', 'ragilistic'])
+    expect(wrapGreedy('Supercalifragilistic', widthAt(10), 50)).toEqual(['Superca-', 'lifrag-', 'ilistic'])
     expect(wrapGreedy('Supercalifragilistic', widthAt(10), 50, { breakWords: false })).toEqual(['Supercalifragilistic'])
     for (const l of wrapGreedy('Supercalifragilistic', widthAt(10), 50)) expect(measure(l, 10)).toBeLessThanOrEqual(50)
   })

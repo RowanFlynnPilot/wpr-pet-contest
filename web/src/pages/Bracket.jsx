@@ -140,7 +140,7 @@ export default function Bracket() {
 
   let dek
   if (c.phase === 'complete') dek = null
-  else if (projecting) dek = `${period(`The bracket is set when the Open Round closes ${apDateTime(round1.closes_at)}`)} Here's how it would look if voting ended now.`
+  else if (projecting) dek = `${period(`The bracket is set when the Open Round closes ${apDateTime(round1.closes_at)}`)} Here’s how it would look if voting ended now.`
   else if (liveBracketRound) dek = `The ${label} is live. Totals started at zero; the pet with more votes at the buzzer moves on. Ties go to the better seed.`
   else if (hasBracket) dek = 'Every head-to-head so far. Totals reset at the start of every round.'
   else dek = `The top ${c.bracketSize} pets from the Open Round make the bracket.`

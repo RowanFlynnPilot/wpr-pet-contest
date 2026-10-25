@@ -10,7 +10,8 @@ import { bestValue, defaultPack, formatPerVote, orderPacksForDisplay, savingsPct
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
 import { roundLabel } from '../lib/rounds.js'
 import { boostLive, useLive } from '../lib/live.js'
-import { totalsKey, useActivity, useContestTotals } from '../lib/data.js'
+import { totalsKey, useActivity, useBracket, useContestTotals, useEntries } from '../lib/data.js'
+import { packImpact } from '../lib/impact.js'
 import { clubLabel, milestone } from '../lib/milestones.js'
 import { viaFor } from '../lib/referral.js'
 import { CHEERS, cheerLabel, cheerQuote, cleanCheerName } from '../lib/cheers.js'
@@ -62,6 +63,7 @@ const appearance = () => ({
 })
 const FONTS = [{ cssSrc: NEWSROOM.fonts || 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap' }]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const NO_ROUNDS = []
 
 // `initialPack`: a pack to start on (the checkout reminder's link names the
 // one the reader chose before).
@@ -98,11 +100,22 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
 
   const pack = packs.find((p) => p.slug === slug) || null
   const best = bestValue(packs)
+  // What the chosen pack would do on the standings right now (lib/impact.js).
+  const { entries, byId } = useEntries(c.contest?.id)
+  const { matchups } = useBracket(round.kind === 'bracket' ? c.rounds : NO_ROUNDS, { openRoundId: round.id })
   // Stripe, or the mock API's stand-in for it on a demo build.
   const canPay = Boolean(STRIPE_PUBLISHABLE_KEY) || MOCK_CHECKOUT
   const multiplier = c.bonus?.multiplier || 1
   const split = c.contest?.beneficiary_split_pct
   const label = roundLabel(round.seq, c.bracketSize)
+  const packVotes = pack ? votesWithBonus(pack, multiplier) : 0
+  const impact = useMemo(
+    () =>
+      totals.data && pack
+        ? packImpact({ entry, votes: packVotes, round, totals: totals.data, entries, matchups, byId, lastChance: c.lastChance, bracketSize: c.bracketSize })
+        : null,
+    [totals.data, pack, packVotes, entry, round, entries, matchups, byId, c.lastChance, c.bracketSize],
+  )
   // The deadline is when payment must complete. Past it, nobody is offered a
   // Pay button: the server would refund the votes anyway.
   const now = useNow(1000)
@@ -250,10 +263,10 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
             <p className="notice warn" style={{ marginBottom: 14 }}>
               <span>
                 <strong>
-                  ×{c.bonus.multiplier} {windowTitle(c.bonus)} is on!
+                  ×{c.bonus.multiplier} {windowTitle(c.bonus)}
+                  {c.bonus.sponsor_name && <span className="notice-by"> · {c.bonus.sponsor_name}</span>}
                 </strong>
-                Every pack counts {multiplierWord(c.bonus.multiplier).toLowerCase()} if you start checkout before it ends.
-                {c.bonus.sponsor_name && <> Presented by {c.bonus.sponsor_name}.</>}
+                Every pack counts {multiplierWord(c.bonus.multiplier).toLowerCase()} if you continue before it ends.
               </span>
             </p>
           )}
@@ -305,14 +318,25 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
               })}
             </fieldset>
           )}
+          {/* The buyer's real question, answered on the live standings. */}
+          <p className="pack-impact" aria-live="polite" hidden={!impact}>
+            {impact && (
+              <>
+                Right now, {fmtInt(packVotes)} votes would {impact.replace(/No\. (\d)/g, 'No.\u00a0$1')}.
+              </>
+            )}
+          </p>
 
           <div className="field">
             <label htmlFor="checkout-email">Email for your receipt</label>
             <input
               id="checkout-email"
+              name="email"
               type="email"
               autoComplete="email"
               inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               aria-invalid={emailError ? 'true' : undefined}
@@ -365,18 +389,22 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
               Cheers show in the live feed and on {entry.pet_name}&rsquo;s page once your payment goes through.
             </p>
           </details>
-          <label className="check" style={{ marginBottom: 10 }}>
-            <input type="checkbox" checked={playsAgain} onChange={(e) => setPlaysAgain(e.target.checked)} />
-            <span>Email me when {entry.pet_name} plays again (this contest only, one email a round).</span>
-          </label>
-          <label className="check" style={{ marginBottom: 10 }}>
-            <input type="checkbox" checked={remind} onChange={(e) => setRemind(e.target.checked)} />
-            <span>If this checkout doesn&rsquo;t finish, email me once before voting closes.</span>
-          </label>
-          <label className="check" style={{ marginBottom: 14 }}>
-            <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
-            <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
-          </label>
+          {/* One group, so a reader can skip all three at once. All unchecked. */}
+          <fieldset className="checkout-opts">
+            <legend className="label">Optional emails</legend>
+            <label className="check">
+              <input type="checkbox" checked={playsAgain} onChange={(e) => setPlaysAgain(e.target.checked)} />
+              <span>Email me when {entry.pet_name} plays again (this contest only, one email a round).</span>
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={remind} onChange={(e) => setRemind(e.target.checked)} />
+              <span>If this checkout doesn&rsquo;t finish, email me once before voting closes.</span>
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
+              <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
+            </label>
+          </fieldset>
 
           {error && (
             <div className="notice error" role="alert" style={{ marginBottom: 12 }}>
@@ -396,7 +424,7 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
             // the cheer and the boxes push it below the first screen.
             <div className="checkout-cta">
               <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={!pack || busy}>
-                {busy ? 'One moment…' : pack ? `Continue · ${fmtMoney(pack.cents)}` : 'Choose a pack'}
+                {busy ? 'One moment…' : pack ? `Continue to payment · ${fmtMoney(pack.cents)}` : 'Choose a pack'}
               </button>
             </div>
           )}

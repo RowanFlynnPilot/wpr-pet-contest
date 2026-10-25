@@ -85,10 +85,10 @@ export default function MatchupCard({ matchup, totals, byId, round, live = false
       {live && s.a.entry && s.b.entry && (
         <div className="matchup-foot">
           <VoteButton entry={s.a.entry} round={round} className="btn btn-ghost btn-sm">
-            Vote {s.a.entry.pet_name}
+            <span className="btn-clip">Vote {s.a.entry.pet_name}</span>
           </VoteButton>
           <VoteButton entry={s.b.entry} round={round} className="btn btn-ghost btn-sm">
-            Vote {s.b.entry.pet_name}
+            <span className="btn-clip">Vote {s.b.entry.pet_name}</span>
           </VoteButton>
         </div>
       )}

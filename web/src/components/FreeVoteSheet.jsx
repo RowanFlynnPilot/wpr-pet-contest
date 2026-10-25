@@ -13,6 +13,9 @@ import ShareTools from './ShareTools.jsx'
 import Turnstile, { turnstileConfigured } from './Turnstile.jsx'
 import { buzz } from '../lib/haptics.js'
 
+// The same loose check as checkout: something@something.tld.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
 // One free vote a day, verified by email. The first time: an address, then a
 // six-digit code. After that this browser votes in two taps. An emailed link
 // opens here ready to confirm; it never votes on its own.
@@ -224,6 +227,7 @@ export default function FreeVoteSheet({ entry, round, link, onClose, onBuy }) {
 
 function EmailStep({ entry, round, busy, onSubmit }) {
   const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState(null)
   const [newsletter, setNewsletter] = useState(false)
   const [reminders, setReminders] = useState(false)
   const [token, setToken] = useState(null)
@@ -239,6 +243,12 @@ function EmailStep({ entry, round, busy, onSubmit }) {
       noValidate
       onSubmit={async (e) => {
         e.preventDefault()
+        if (!EMAIL_RE.test(email.trim())) {
+          setEmailError('Enter your email address, and we’ll send the code there.')
+          document.getElementById('fv-email')?.focus()
+          return
+        }
+        setEmailError(null)
         const ok = await onSubmit({
           round_id: round.id,
           entry_id: entry.id,
@@ -268,10 +278,19 @@ function EmailStep({ entry, round, busy, onSubmit }) {
           autoCapitalize="none"
           autoCorrect="off"
           enterKeyHint="send"
+          spellCheck={false}
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          aria-invalid={emailError ? 'true' : undefined}
+          aria-describedby={emailError ? 'fv-email-error' : undefined}
           required
         />
+        {emailError && (
+          <span className="error-text" id="fv-email-error">
+            {emailError}
+          </span>
+        )}
       </div>
       {/* For bots only: people never see it. */}
       <div className="fv-trap" aria-hidden="true">
@@ -288,7 +307,7 @@ function EmailStep({ entry, round, busy, onSubmit }) {
         <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
       </label>
       <Turnstile key={attempt} onToken={setToken} onError={() => setBotFailed(true)} />
-      <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || waiting || !email.trim()}>
+      <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || waiting}>
         {busy ? 'Sending…' : waiting ? 'Checking your browser…' : 'Email me a code'}
       </button>
       <p className="fv-fine">
@@ -301,6 +320,7 @@ function EmailStep({ entry, round, busy, onSubmit }) {
 
 function CodeStep({ masked, busy, onSubmit, onRestart }) {
   const [code, setCode] = useState('')
+  const [codeError, setCodeError] = useState(null)
   const input = useRef(null)
   useEffect(() => {
     input.current?.focus()
@@ -310,6 +330,12 @@ function CodeStep({ masked, busy, onSubmit, onRestart }) {
     <form
       onSubmit={(e) => {
         e.preventDefault()
+        if (digits.length !== 6) {
+          setCodeError('Enter the six-digit code from the email.')
+          input.current?.focus()
+          return
+        }
+        setCodeError(null)
         onSubmit(digits)
       }}
     >
@@ -327,11 +353,20 @@ function CodeStep({ masked, busy, onSubmit, onRestart }) {
           autoComplete="one-time-code"
           enterKeyHint="done"
           maxLength={9}
+          name="code"
+          spellCheck={false}
           value={code}
           onChange={(e) => setCode(e.target.value)}
+          aria-invalid={codeError ? 'true' : undefined}
+          aria-describedby={codeError ? 'fv-code-error' : undefined}
         />
+        {codeError && (
+          <span className="error-text" id="fv-code-error">
+            {codeError}
+          </span>
+        )}
       </div>
-      <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || digits.length !== 6}>
+      <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy}>
         {busy ? 'Checking…' : 'Cast my free vote'}
       </button>
       <button type="button" className="btn btn-quiet btn-block fv-switch" onClick={onRestart}>

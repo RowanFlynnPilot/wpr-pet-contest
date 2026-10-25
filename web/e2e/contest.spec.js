@@ -31,7 +31,7 @@ test('a reader enters a pet from a phone photo', async ({ page }) => {
 
   // 400×300 with EXIF orientation 6 (a portrait phone shot) and GPS.
   await page.locator('input[type=file]').first().setInputFiles(fixturePath('gps.jpg'))
-  await page.getByLabel("Pet's name").fill(PET)
+  await page.getByLabel(/^Pet.s name/).fill(PET)
   await page.locator('.chips label', { hasText: 'Dog' }).click()
   await page.locator('select#town').selectOption('Wausau')
   await page.getByLabel('Favorite thing').fill('  The squeaky hedgehog ')

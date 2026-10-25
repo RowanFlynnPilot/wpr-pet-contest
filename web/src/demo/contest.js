@@ -10,7 +10,7 @@
 
 // Sample answers for the demo's "Get to know" cards.
 const NICKNAMES = ['Biscuit Boy', 'Little Bear', 'The Mayor', 'Noodle', 'Sir Fluff', 'Bean', 'Captain', 'Peanut', 'Tank', 'Princess Pickle', 'Bubba', 'Moo']
-const FAVORITES = ['The squeaky hedgehog', 'Cheese, any cheese', 'Sunbeams on the couch', 'Car rides to the bank', 'A tennis ball with no fuzz left', 'The empty box, not the gift', 'Belly rubs, on demand', 'Snow']
+const FAVORITES = ['the squeaky hedgehog', 'cheese, any cheese', 'sunbeams on the couch', 'car rides to the bank', 'A tennis ball with no fuzz left', 'The empty box, not the gift', 'belly rubs, on demand', 'snow']
 const TRICKS = ['Sneezes when excited', 'Opens the fridge', 'Sings along to the smoke alarm', 'High-fives for a treat', 'Sleeps with all four paws up', 'Hides socks in the yard', 'Rings a bell to go out']
 
 const NAMES = ['Biscuit', 'Luna', 'Moose', 'Pickles', 'Juniper', 'Otis', 'Waffles', 'Maple', 'Tater Tot', 'Clementine',
@@ -21,6 +21,37 @@ const SPECIES = ['dog', 'cat', 'dog', 'other']
 const HOUR = 3600e3
 const DAY = 24 * HOUR
 export const PHASES = ['submissions', 'open', 'lastchance', 'bracket', 'complete']
+
+// The worst realistic pets (break-ui), within the limits the entry form and
+// submit-entry enforce: pet name 40, town 60, caption 280, the "Get to know"
+// answers 40, 60 and 80. Spread across the first rows, as real data would
+// be. Dev only: the mock API serves it on /__data?set=worst; the published
+// demo never does.
+export const DATASETS = ['demo', 'worst', 'one', 'empty', 'many']
+const WORST = [
+  {
+    pet_name: 'Princess Buttercup Snickerdoodle McFluff',
+    town: 'Town of Wausau, by Rib Mountain State Park',
+    caption:
+      'Rescued from a ditch outside Hatley in the 2019 ice storm, she now runs the house: three cats, two kids, one very patient husky. She has opinions about the mail carrier, the vacuum and every squirrel in Marathon County, and she shares all of them at 5 a.m. Vote early and often!',
+    profile_nickname: 'The Duke of Snuggles, Lord of the Couch',
+    profile_favorite: 'Stealing warm laundry straight out of the dryer, every time',
+    profile_trick: 'Opens the treat drawer, eats exactly one, and closes it again so nobody can tell',
+    goal_votes: 25000,
+  },
+  { pet_name: 'Mo', town: 'Merrill', caption: null, profile_nickname: null, profile_favorite: null, profile_trick: null },
+  { pet_name: 'Supercalifragilisticexpialidocious', town: 'Kronenwetter', caption: 'Yes, that is his real name. The vet calls him Super.' },
+  { pet_name: 'Mr. "Beans" O\'Malley & Co.', town: 'Rib Mountain', caption: 'Answers to <Beans> & treats.' },
+  { pet_name: '🐾 Pumpkin Spice 🎃', town: 'Schofield' },
+  { pet_name: 'Npauj Npaim', town: 'Wausau', caption: 'Her name means butterfly in Hmong.' },
+  { pet_name: 'Zoë', town: 'Weston' },
+  { pet_name: 'Señor Bigotes', town: 'Rothschild' },
+  // A photo that fails to load (moved, or blocked).
+  { pet_name: 'Biscuit', photo_path: 'mock/missing.jpg', thumb_path: 'mock/missing.jpg' },
+]
+// Votes for the rows above, so they reach the boards: a five-figure leader,
+// then two more, a pet on exactly one vote and one on none.
+const WORST_VOTES = { 0: 12480, 2: 11902, 3: 10077, 1: 1, 6: 0 }
 export const PHOTO_COUNT = NAMES.length
 const id = (prefix, n) => `${prefix}000000-0000-0000-0000-${String(n).padStart(12, '0')}`
 const iso = (ms) => new Date(ms).toISOString()
@@ -71,8 +102,9 @@ export function query(rows, params) {
 
 // One mock: a phase, a vote scale (VOTE_SCALE: how do five-figure counts
 // fit?), and the toys' memory for as long as it lives.
-export function createMock({ phase = 'open', scale = 1, region = 'Marathon County', towns = TOWNS, photos = 'svg' } = {}) {
+export function createMock({ phase = 'open', scale = 1, region = 'Marathon County', towns = TOWNS, photos = 'svg', dataset = 'demo' } = {}) {
   let current = PHASES.includes(phase) ? phase : 'open'
+  let data = DATASETS.includes(dataset) ? dataset : 'demo'
   const townList = towns && towns.length ? towns : TOWNS
   // 'jpg': the sample photos in public/sample-pets; 'svg': the drawn faces.
   const ext = photos === 'jpg' ? 'jpg' : 'svg'
@@ -82,13 +114,17 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
   // Sample cheers for the demo's feed and pet pages: a code, sometimes a name.
   const CHEER_CODES = ['go', 'paws', 'cutest', 'love', 'champion', 'shelters']
   const CHEER_NAMES = ['Jo', null, 'Maria', 'Dev', null, 'Kim', 'Sam', null]
-  const sampleCheer = (i) => (i % 3 === 2 ? { cheer: null, cheer_name: null } : { cheer: CHEER_CODES[i % 6], cheer_name: CHEER_NAMES[i % 8] })
+  const WORST_CHEER_NAMES = ['Mary-Catherine Ann', null, 'Aleksandra', 'Bartholomew', null, 'Jo', 'Nguyễn Thị Hoa', null]
+  const sampleCheer = (i) => (i % 3 === 2 ? { cheer: null, cheer_name: null } : { cheer: CHEER_CODES[i % 6], cheer_name: (data === 'worst' ? WORST_CHEER_NAMES : CHEER_NAMES)[i % 8] })
   const devices = new Map() // token -> { email, voted }
   const challenges = new Map() // id -> email
 
   function state() {
     const now = Date.now()
-    const entries = NAMES.map((name, i) => ({
+    // One pet or none only make sense while entries are open; 1,000 is the
+    // Open Round's gallery at scale.
+    const names = data === 'empty' ? [] : data === 'one' ? NAMES.slice(0, 1) : data === 'many' ? Array.from({ length: 1000 }, (_, i) => `${NAMES[i % NAMES.length]}${i >= NAMES.length ? ` ${Math.floor(i / NAMES.length) + 1}` : ''}`) : NAMES
+    const entries = names.map((name, i) => ({
       id: id('e1', i + 1),
       contest_id: id('c1', 1),
       pet_name: name,
@@ -99,16 +135,17 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       profile_nickname: i % 4 === 3 ? null : NICKNAMES[i % NICKNAMES.length],
       profile_favorite: i % 5 === 4 ? null : FAVORITES[i % FAVORITES.length],
       profile_trick: i % 3 === 2 ? null : TRICKS[i % TRICKS.length],
-      photo_path: `mock/${i + 1}.${ext}`,
-      thumb_path: `mock/${i + 1}.${ext}`,
+      photo_path: `mock/${(i % NAMES.length) + 1}.${ext}`,
+      thumb_path: `mock/${(i % NAMES.length) + 1}.${ext}`,
       shelter_id: i === 7 ? id('5e', 1) : null,
       seed: null,
       goal_votes: i === 0 ? 300 : null,
       status: 'approved',
       created_at: iso(now - 9 * DAY + i * HOUR),
+      ...(data === 'worst' ? WORST[i] || {} : {}),
     }))
 
-    const submissions = current === 'submissions'
+    const submissions = current === 'submissions' || data === 'one' || data === 'empty'
     const lastChance = current === 'lastchance'
     const contest = {
       id: id('c1', 1), year: 2026, name: `Cutest Pet in ${region}`,
@@ -146,6 +183,12 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     rounds.push(r1)
     if (!submissions) {
       for (const t of totalsFor(1, entries.map((e) => e.id))) totals.push({ round_id: r1.id, ...t })
+      if (data === 'worst') {
+        for (const [i, v] of Object.entries(WORST_VOTES)) {
+          const t = totals.find((x) => x.entry_id === entries[i].id)
+          if (t) t.votes = v * voteScale
+        }
+      }
     }
 
     if (current === 'bracket' || current === 'complete') {
@@ -202,10 +245,10 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const sprintRows = () => {
       const open = rounds.find((r) => r.status === 'open')
       if (!open || submissions) return { sprints: [], sprint_standings: [] }
-      const base = { contest_id: contest.id, round_id: open.id, sponsor_name: 'Example Pet Supply', sponsor_url: 'https://example.org', cancelled_at: null }
+      const base = { contest_id: contest.id, round_id: open.id, sponsor_name: data === 'worst' ? 'Northwoods Veterinary Clinic & Animal Hospital of Central Wisconsin' : 'Example Pet Supply', sponsor_url: 'https://example.org', cancelled_at: null }
       const ranked = live.filter((t) => t.round_id === open.id).slice().sort((x, y) => y.votes - x.votes)
       if (current === 'open') {
-        const sp = { ...base, id: id('5f', 1), label: 'Tuesday night sprint', prize: 'a $50 gift card', starts_at: iso(now - HOUR), ends_at: iso(now + 2 * HOUR), settled_at: null, winner_entry_id: null, winner_votes: null }
+        const sp = { ...base, id: id('5f', 1), label: 'Tuesday night sprint', prize: data === 'worst' ? 'a $100 gift card and a free grooming session at Paws & Claws Spa' : 'a $50 gift card', starts_at: iso(now - HOUR), ends_at: iso(now + 2 * HOUR), settled_at: null, winner_entry_id: null, winner_votes: null }
         const top = [ranked[3], ranked[0], ranked[6]].filter(Boolean)
         return {
           sprints: [sp],
@@ -354,6 +397,13 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     setPhase(next) {
       if (PHASES.includes(next)) current = next
       return current
+    },
+    get dataset() {
+      return data
+    },
+    setDataset(next) {
+      if (DATASETS.includes(next)) data = next
+      return data
     },
     state,
     // A table's rows, filtered the way PostgREST would; null for an unknown table.

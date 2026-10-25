@@ -552,17 +552,28 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .pet-hero {
   position: relative; margin: 0 calc(var(--pad-r) * -1) 0 calc(var(--pad-l) * -1); overflow: hidden; min-height: 200px;
   background: var(--tint, var(--teal-deep)); transition: background-color 600ms var(--ease);
+  /* The photo and the name share one cell: a name taller than the photo
+     grows the hero instead of running off its top. */
+  display: grid; container-type: inline-size;
 }
+.pet-hero > .pet-hero-open, .pet-hero > .pet-title { grid-area: 1 / 1; }
 .pet-hero .photo { aspect-ratio: 2 / 1; }
 .pet-hero::after {
   content: ''; position: absolute; inset: auto 0 0; height: 70%; pointer-events: none;
   background: linear-gradient(var(--tint-0, transparent), var(--tint-55, var(--board-cell-55)) 45%, var(--tint-90, var(--board-cell-90)));
 }
-.pet-title { position: absolute; left: var(--pad-l); right: var(--pad-r); bottom: 14px; z-index: 1; color: #fff; }
+/* margin-top keeps a grown title clear of the All pets link. */
+.pet-title { position: relative; align-self: end; z-index: 1; margin: 60px var(--pad-r) 14px var(--pad-l); color: #fff; }
 .pet-name {
-  font-family: var(--display-xl); font-size: clamp(46px, 13vw, 88px); font-weight: 650; line-height: 0.9; letter-spacing: -0.03em;
+  --name-size: clamp(46px, 13vw, 88px);
+  font-family: var(--display-xl); font-size: var(--name-size); font-weight: 650; line-height: 0.9; letter-spacing: -0.03em;
   overflow-wrap: anywhere; text-wrap: balance; font-variation-settings: 'opsz' 96;
+  /* The longest word fits whole on a line when it can (Pet.jsx sets
+     --longest), down to 28px; past that it breaks. */
+  font-size: max(28px, min(var(--name-size), calc(88cqi / (var(--longest, 6) * 0.56))));
 }
+.pet-name.long { --name-size: clamp(38px, 10.5vw, 70px); }
+.pet-name.longer { --name-size: clamp(31px, 8.4vw, 56px); line-height: 0.95; }
 .pet-meta { margin: 7px 0 0; font-size: 14px; font-weight: 700; letter-spacing: 0.01em; color: #f3eadb; }
 .pet-back {
   position: absolute; top: 12px; left: var(--pad-l); z-index: 1; display: inline-flex; align-items: center; gap: 6px;
@@ -576,7 +587,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
   .pet-stage { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 36px; align-items: start; padding-top: 24px; }
   .pet-hero { margin: 0; border-radius: var(--radius); position: sticky; top: 16px; box-shadow: var(--shadow-lift); }
   .pet-hero .photo { aspect-ratio: 1; }
-  .pet-title { bottom: 22px; }
+  .pet-title { margin-bottom: 22px; }
   .pet-play { padding-top: 6px; gap: 16px; }
 }
 
@@ -612,6 +623,8 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .road-stop.out .road-dot { background: var(--red); border-color: var(--danger-text); }
 .road-stop.gone .road-dot { border-style: dashed; }
 .road-label { font-size: 11.5px; font-weight: 800; line-height: 1.25; letter-spacing: 0.03em; color: var(--muted); white-space: nowrap; }
+/* Six stops on a 320px phone: "Sweet 16" and "Elite 8" would touch. */
+@media (max-width: 360px) { .road-label { font-size: 10.5px; letter-spacing: 0; } }
 .road-detail { font-family: var(--mono); font-size: 11px; line-height: 1.2; color: var(--ink-2); white-space: nowrap; }
 .road-stop.done .road-label, .road-stop.live .road-label, .road-stop.next .road-label { color: var(--brand-text); }
 .road-stop.out .road-label { color: var(--danger-text); }
@@ -701,7 +714,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .sb-row-id { display: flex; align-items: center; gap: 10px; min-width: 0; color: #fff; text-decoration: none; }
 @media (hover: hover) and (pointer: fine) { .sb-row-id:hover .sb-row-name { text-decoration: underline; text-underline-offset: 3px; } }
 .sb-row-name { min-width: 0; font-family: var(--display); font-size: 17px; font-weight: 650; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-row-town { display: block; font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--board-dim); }
+.sb-row-town { display: block; overflow: hidden; text-overflow: ellipsis; font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--board-dim); }
 .sb-rows .sb-digits { font-size: 24px; }
 .sb-face.sm { width: 40px; border-radius: 9px; }
 .sb-cd-group { display: grid; justify-items: start; gap: 4px; }
@@ -748,10 +761,10 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .link-preview { margin: 0 0 12px; max-width: 420px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--paper); }
 .link-preview-image { aspect-ratio: 1.91; background: var(--cream-deep); }
 .link-preview-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.link-preview figcaption { display: grid; gap: 2px; padding: 10px 12px 12px; background: var(--cream); border-top: 1px solid var(--rule); }
+.link-preview figcaption { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 10px 12px 12px; background: var(--cream); border-top: 1px solid var(--rule); }
 .link-preview-host { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.link-preview-title { font-size: 15px; line-height: 1.25; color: var(--ink); }
-.link-preview-desc { font-size: 13px; line-height: 1.4; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.link-preview-title { font-size: 15px; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+.link-preview-desc { font-size: 13px; line-height: 1.4; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 
 /* ----------------------------------------------------------- leaderboard */
 .board { list-style: none; margin: 0; padding: 0; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
@@ -761,7 +774,14 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .board-row .photo { border-radius: 6px; }
 .board-rank { font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--muted); text-align: center; }
 .board-name { font-family: var(--display); font-weight: 600; font-size: 17px; line-height: 1.15; overflow-wrap: anywhere; }
-.board-town { font-size: 12.5px; color: var(--muted); }
+.board-town { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Small phones: a narrower rank and photo leave the name room to wrap
+   between words, not inside them. */
+@media (max-width: 400px) {
+  .board-row { grid-template-columns: 24px 40px minmax(0, 1fr) auto; gap: 10px; padding: 10px 12px; }
+  .board-name { font-size: 16px; }
+}
+@media (max-width: 360px) { .board-name, .board-votes { font-size: 15px; } }
 .board-votes { font-family: var(--mono); font-weight: 700; font-size: 17px; text-align: right; }
 .board-gap { text-align: center; color: var(--muted); font-size: 13px; padding: 4px; letter-spacing: 0.3em; }
 .board-cut { background: var(--teal-wash); color: var(--brand-text); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 5px; }
@@ -859,6 +879,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .matchup-foot { display: flex; gap: 6px; padding: 7px 10px; border-top: 1px solid var(--rule); background: var(--cream); }
 /* Long names wrap inside the button rather than lose their end. */
 .matchup-foot .btn { flex: 1 1 0; min-width: 0; min-height: 36px; padding: 5px 8px; font-size: 13px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.btn-clip { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .matchup-tbd { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--muted); font-style: italic; }
 
 /* The champion: the one sun field in the contest, where the road ends. */
@@ -1209,7 +1230,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .adopt-button-text { display: grid; gap: 1px; min-width: 0; }
 .adopt-button-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-text); }
 .adopt-button-title { font-family: var(--display); font-size: 21px; font-weight: 700; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.adopt-button-sub { font-size: 13.5px; line-height: 1.35; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.adopt-button-sub { font-size: 13.5px; line-height: 1.35; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 .adopt-button-go {
   display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
   background: var(--brand-ink); color: #fff; transition: transform 180ms var(--ease);
@@ -1291,7 +1312,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 }
 
 /* The owner's goal on the pet page, and the owner's tools behind their link. */
-.goal-line { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
+.goal-line { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); }
 .goal-line-head { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; margin-bottom: 6px; }
 .goal-line-left { font-family: var(--mono); font-weight: 700; color: var(--brand-text); white-space: nowrap; }
 .owner-tools { margin-top: 14px; padding: 16px; border: 2px solid var(--teal); border-radius: 14px; background: var(--teal-wash); }
@@ -1323,7 +1344,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 
 /* Fair play: the promises the code keeps, on the rules and money pages. */
 .fair-play {
-  margin: 24px 0; padding: 18px 18px 20px; border-radius: var(--radius);
+  margin: 24px 0; padding: 18px; border-radius: var(--radius);
   background: var(--teal-wash); border: 1px solid var(--teal-tint);
 }
 .fair-play h2 { font-size: 22px; margin: 0 0 12px; }
@@ -1340,27 +1361,29 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 
 /* Sprints: a sponsor's prize for the most votes in a window. A sun card,
    the warm surface kept for good news. */
-.sprint-card { display: grid; gap: 10px; }
+.sprint-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .sprint-kicker {
   display: flex; align-items: center; gap: 6px; margin: 0;
-  font: 700 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text);
+  font: 700 11.5px/1.2 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-text);
 }
 .sprint-kicker .countdown-inline { font-family: var(--mono); letter-spacing: 0; text-transform: none; white-space: nowrap; }
-.sprint-head { margin: 0; font-size: clamp(20px, 4.4vw, 26px); line-height: 1.2; text-wrap: balance; }
+.sprint-head { margin: 0; font-size: clamp(20px, 4.4vw, 26px); line-height: 1.2; text-wrap: balance; overflow-wrap: anywhere; }
 .sprint-top { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
 .sprint-top li {
   display: grid; grid-template-columns: 22px 44px minmax(0, 1fr) auto; align-items: center; gap: 10px;
-  padding: 6px 10px 6px 8px; border-radius: 12px; background: var(--paper);
+  padding: 6px 10px 6px 8px; border-radius: var(--radius); background: var(--paper);
 }
 .sprint-top li .photo { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; }
 .sprint-top a { font-weight: 700; color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (hover: hover) and (pointer: fine) { .sprint-top a:hover { text-decoration: underline; text-underline-offset: 3px; } }
 .sprint-place { font-weight: 700; color: var(--accent-text); text-align: center; }
 .sprint-votes { font-weight: 700; font-size: 18px; }
-.sprint-winner { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; color: var(--brand-text); }
+.sprint-winner { display: inline-flex; align-items: center; gap: 12px; min-width: 0; font-weight: 700; color: var(--brand-text); }
+.sprint-winner > span { min-width: 0; overflow-wrap: anywhere; }
 .sprint-winner .photo { flex: none; width: 72px; height: 72px; border-radius: 14px; overflow: hidden; }
 .sprint-note { margin: 0; }
 .sprint-line {
-  display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 10px 12px; border-radius: 12px;
+  display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 10px 12px; border-radius: var(--radius);
   background: var(--accent-wash); border: 1px solid var(--accent-rule); font-size: 15px; line-height: 1.45;
 }
 .sprint-line svg { flex: none; margin-top: 2px; color: var(--accent-text); }
@@ -1374,16 +1397,12 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .finale-card h2 { margin: 0; color: #fff; font-size: clamp(21px, 4.6vw, 28px); line-height: 1.15; text-wrap: balance; }
 .finale-kicker {
   display: inline-flex; align-items: center; gap: 8px; margin: 0;
-  font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--board-label);
+  font: 700 11.5px/1.2 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--board-label);
 }
 .finale-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .finale-card .btn-quiet { background: transparent; color: #fff; border-color: var(--board-ring); }
 .finale-card .btn-quiet svg { vertical-align: -3px; }
-.finale-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5a4f; box-shadow: 0 0 0 0 rgba(255, 90, 79, 0.6); }
-@media (prefers-reduced-motion: no-preference) {
-  .finale-dot { animation: finale-pulse 1.6s ease-out infinite; }
-}
-@keyframes finale-pulse { to { box-shadow: 0 0 0 10px rgba(255, 90, 79, 0); } }
+.finale-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger-bright); box-shadow: 0 0 0 0 rgba(214, 69, 69, 0.5); animation: pulse 2s infinite; }
 .finale-replay { margin: 0 0 14px; font-size: 15px; color: var(--muted); }
 
 /* Last Chance: the pool's tag on the standings. */
@@ -1395,7 +1414,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 
 /* Cheers (0033): the picker at checkout, the line in the feed, the list on
    the pet page. The words are the pet's own, so they read as speech. */
-.cheer-box { margin: 4px 0 14px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
+.cheer-box { margin: 4px 0 14px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); }
 .cheer-box > summary { cursor: pointer; font-weight: 700; font-size: 15px; }
 .cheer-box[open] > summary { margin-bottom: 10px; }
 .cheer-pick { margin: 0; padding: 0; border: 0; min-width: 0; }
@@ -1425,7 +1444,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 /* Coming up: sprints and the finale before they start, quietly. */
 .coming-up { padding: 14px 16px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--rule); }
 .coming-up-title {
-  margin: 0 0 8px; font: 800 12px/1.2 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text);
+  margin: 0 0 8px; font: 700 11.5px/1.2 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand-text);
 }
 .coming-up ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .coming-up li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.45; }
@@ -1460,3 +1479,10 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
     .cheer-box[open]::details-content { block-size: auto; }
   }
 }
+
+/* Checkout: what the chosen pack would do right now (lib/impact.js), and
+   the optional emails as one group a reader can pass over at once. */
+.pack-impact { margin: 0 0 16px; padding: 10px 12px; border-radius: var(--radius); background: var(--teal-wash); color: var(--brand-text); font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+.checkout-opts { display: grid; gap: 10px; margin: 0 0 14px; padding: 0; border: 0; min-width: 0; }
+.checkout-opts legend { margin-bottom: 8px; padding: 0; }
+.notice-by { font-weight: 600; }

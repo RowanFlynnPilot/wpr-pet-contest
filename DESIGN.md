@@ -632,3 +632,38 @@ aside: it disappears on dark paper.
   to its natural height; list items wrap "pretty" like paragraphs; the
   production build opens its connection to the data and photo host while
   the scripts download.
+
+## Worst-case data, checkout and consistency (Oct. 25, 2026)
+
+- **Worst-case pets.** The mock carries a second data set
+  (`src/demo/contest.js`, `DATASETS`): a 40-character name, a 34-letter
+  single word, quotes and an ampersand, emoji, a non-Latin name, a 60-character
+  town, a 280-character caption, the longest profile answers, a missing photo,
+  a pet on one vote and one on none, and a long sponsor and prize. On the
+  mock dev server a strip at the bottom switches demo / worst case / one pet /
+  no pets / 1,000 pets (`/__data?set=`); it never ships in a build.
+- **What broke, and what changed.** The pet page's name now sizes to itself
+  (shorter face past 18 and 30 characters; the longest word sets a ceiling
+  so a one-word name fits whole down to 28px), and the hero grows rather
+  than let a name run off its top. Board and widget towns end in an ellipsis
+  on one line; small phones narrow the rank and photo so names wrap between
+  words. A sprint winner's long name no longer pushes the page sideways;
+  matchup vote buttons stay on one line; the road labels fit at 320px; link
+  previews wrap long words. Share images cut an oversized word into even,
+  hyphenated pieces ("Supercalifragilis- / ticexpialidocious").
+- **Profile answers read as sentences.** The phone capitalizes the first
+  letter of every field, so after "Loves" an -ing word drops its capital too
+  ("Loves stealing socks"), a chip that starts its own sentence gets one,
+  and the favorite field no longer auto-capitalizes.
+- **Checkout answers "is this enough?"** Under the packs, on the live
+  standings: "Right now, 50 votes would move Juniper up to No. 6." In a
+  matchup it is the margin over the opponent; in Last Chance, the race for
+  the last seed (`lib/impact.js`, the boards' own tiebreaks). The three
+  optional emails sit under one label, the bonus note is two lines, and the
+  button says where it goes: "Continue to payment · $20".
+- **Forms.** The free-vote buttons no longer disable themselves until the
+  email or code looks complete; a missing one is said under the field.
+  Email fields skip spellcheck and capitals.
+- **One kicker, one radius.** The sprint, finale and Coming up kickers use
+  the house kicker (11.5px, 0.16em); inline panels and rows use the card
+  radius; the finale's live dot is the ticker's red and pulse.

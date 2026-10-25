@@ -51,7 +51,7 @@ const SHOTS = {
     ['', 'Home', 'The live top 16 with the cut line, a sponsor’s sprint with its top three (only if sprints are on), the money counter, the bonus bar for the Double Vote Hour, and recent activity.'],
     ['gallery', 'All pets', 'Every pet, with a heart to save favorites on this phone, a share button on each card, and filters by species and town.'],
     ['pet', 'A pet page', 'The Open Round scoreboard: this pet’s votes, its rank, how far it is from the cut, the vote button, the free daily vote, and “Remind me before voting closes.”'],
-    ['checkout', 'Checkout', 'Vote packs, never a donation. The receipt email, an optional cheer with a first name (opened here), the “tell me when this pet plays again” box, the one-time reminder box if the checkout doesn’t finish, and the newsletter box. All unchecked.'],
+    ['checkout', 'Checkout', 'Vote packs, never a donation. Under the packs, what the chosen one would do for the pet on the standings right now. The receipt email, an optional cheer with a first name (opened here), the “tell me when this pet plays again” box, the one-time reminder box if the checkout doesn’t finish, and the newsletter box, grouped as optional emails. All unchecked.'],
     ['thanks', 'The thank-you screen', 'After the card goes through: the pet’s new total with this pack in it, what the pack sent to Moments Foster Care, the buyer’s cheer going up on the pet’s page, and share buttons. Not sold to sponsors. (The demo build’s pretend payment stands in for the card form here.)'],
     ['bracket', 'The bracket, projected', 'If voting ended now: who would be seeded where. It fills in for real when the Open Round closes.'],
     ['widget', 'The article widget', 'The compact version that sits inside a WordPress article: the leaders and a vote button.'],
@@ -344,7 +344,7 @@ async function main() {
   const mock = start([join(ROOT, 'scripts', 'mock-api.mjs')], { PORT: String(MOCK_PORT), PHASE: 'submissions' }, 'mock API')
   const vite = start(
     [join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'],
-    { VITE_SUPABASE_URL: MOCK, VITE_SUPABASE_ANON_KEY: 'mock-anon-key', VITE_STRIPE_PUBLISHABLE_KEY: '', VITE_PUBLIC_URL: '', VITE_IMAGE_TRANSFORMS: 'false', VITE_TURNSTILE_SITE_KEY: '', VITE_MOCK_CHECKOUT: 'true' },
+    { VITE_SUPABASE_URL: MOCK, VITE_SUPABASE_ANON_KEY: 'mock-anon-key', VITE_STRIPE_PUBLISHABLE_KEY: '', VITE_PUBLIC_URL: '', VITE_IMAGE_TRANSFORMS: 'false', VITE_TURNSTILE_SITE_KEY: '', VITE_MOCK_CHECKOUT: 'true', VITE_DATA_TOGGLE: 'off' },
     'dev server',
   )
   const cleanup = () => {

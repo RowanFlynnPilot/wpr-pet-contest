@@ -27,7 +27,7 @@ export const EMPTY_ENTRY = {
 export function validateEntry(v, photo) {
   const errors = {}
   if (!photo) errors.photo = 'Add a photo of your pet.'
-  if (!v.pet_name.trim()) errors.pet_name = "Tell us your pet's name."
+  if (!v.pet_name.trim()) errors.pet_name = "Tell us your pet’s name."
   else if (v.pet_name.trim().length > LIMITS.pet_name) errors.pet_name = `Keep it to ${LIMITS.pet_name} characters.`
   if (!v.species) errors.species = 'Pick dog, cat or other.'
   const town = v.town === OTHER_TOWN ? v.town_other.trim() : v.town

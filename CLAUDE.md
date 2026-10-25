@@ -327,8 +327,11 @@ as "email provider on", and `false` disables admin password login too. The
 global `[auth] enable_signup = false` is what refuses self-signup.
 
 Without Docker, `node web/scripts/mock-api.mjs` serves a read-only mock of the
-public API (`/__phase?set=submissions|open|bracket|complete`); point
+public API (`/__phase?set=submissions|open|lastchance|bracket|complete`); point
 `VITE_SUPABASE_URL` at it for layout, widget and newsletter-block work.
+`/__data?set=worst|one|empty|many` (or `DATA=worst`) swaps the sample pets
+for the worst realistic ones, one, none or 1,000; on the mock dev server a
+strip at the bottom of the page does the same. Check new UI against `worst`.
 `VITE_STORAGE_RENDITIONS=160,320` makes the app ask a static photo host for
 pre-rendered widths (`<path>.w160.jpg`); the mock serves them from
 `web/public/sample-pets/w*` and the demo build sets it from what it ships.

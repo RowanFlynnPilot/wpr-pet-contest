@@ -354,7 +354,7 @@ export default function Enter() {
 
           <PhotoField photo={photo} preparing={preparing} onPick={pick} error={errors.photo} />
 
-          <TextField id="pet_name" label="Pet's name" value={v.pet_name} onChange={set('pet_name')} error={errors.pet_name} max={LIMITS.pet_name} autoComplete="off" />
+          <TextField id="pet_name" label="Pet’s name" value={v.pet_name} onChange={set('pet_name')} error={errors.pet_name} max={LIMITS.pet_name} autoComplete="off" />
 
           <fieldset className="field" id="field-species" style={{ border: 0, padding: 0, margin: '0 0 16px' }} aria-describedby={errors.species ? 'species-error' : undefined}>
             <legend className="label" style={{ marginBottom: 6 }}>
@@ -441,7 +441,7 @@ export default function Enter() {
             </legend>
             <p className="hint">Shown on your pet&rsquo;s page, under the photo. Answer any, all or none.</p>
             <TextField id="profile_nickname" label="Also answers to" placeholder="Biscuit, Biscuit Boy, Sir Biscuit" value={v.profile_nickname} onChange={set('profile_nickname')} error={errors.profile_nickname} max={LIMITS.profile_nickname} autoComplete="off" />
-            <TextField id="profile_favorite" label="Favorite thing" placeholder="The squeaky hedgehog" value={v.profile_favorite} onChange={set('profile_favorite')} error={errors.profile_favorite} max={LIMITS.profile_favorite} autoComplete="off" />
+            <TextField id="profile_favorite" label="Favorite thing" placeholder="the squeaky hedgehog" value={v.profile_favorite} onChange={set('profile_favorite')} error={errors.profile_favorite} max={LIMITS.profile_favorite} autoComplete="off" autoCapitalize="none" />
             <TextField id="profile_trick" label="Best trick or quirk" placeholder="Sneezes when excited" value={v.profile_trick} onChange={set('profile_trick')} error={errors.profile_trick} max={LIMITS.profile_trick} autoComplete="off" />
           </fieldset>
 
@@ -466,6 +466,9 @@ export default function Enter() {
               type="email"
               inputMode="email"
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              name="email"
             />
           </div>
 

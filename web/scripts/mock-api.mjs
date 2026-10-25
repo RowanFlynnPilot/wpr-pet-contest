@@ -23,7 +23,7 @@ const PORT = Number(process.env.PORT || 8787)
 // The sample photos (public/sample-pets), when they are there; drawn faces otherwise.
 const SAMPLES = new URL('../public/sample-pets/', import.meta.url)
 const samples = process.env.MOCK_PHOTOS !== 'drawn' && existsSync(new URL('1.jpg', SAMPLES))
-const mock = createMock({ phase: process.env.PHASE || 'open', scale: process.env.VOTE_SCALE, photos: samples ? 'jpg' : 'svg' })
+const mock = createMock({ phase: process.env.PHASE || 'open', scale: process.env.VOTE_SCALE, photos: samples ? 'jpg' : 'svg', dataset: process.env.DATA || 'demo' })
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -45,6 +45,13 @@ createServer((req, res) => {
     const set = url.searchParams.get('set')
     if (set) mock.setPhase(set)
     return json(res, 200, { phase: mock.phase })
+  }
+
+  // break-ui's toggle: demo | worst | one | empty | many (dev only).
+  if (url.pathname === '/__data') {
+    const set = url.searchParams.get('set')
+    if (set) mock.setDataset(set)
+    return json(res, 200, { dataset: mock.dataset })
   }
 
   // `mock/7.jpg`, or a pre-rendered width `mock/7.w160.jpg` (public/sample-pets/w160)

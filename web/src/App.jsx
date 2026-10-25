@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { DEMO, NEWSROOM, SPONSOR_INQUIRY } from './config.js'
-import { BACKEND_CONFIGURED, EMBEDDED } from './lib/env.js'
+import { BACKEND_CONFIGURED, EMBEDDED, MOCK_CHECKOUT } from './lib/env.js'
 import { useRoute } from './lib/router.js'
 import { ContestProvider, useContest } from './components/ContestContext.jsx'
 import { CheckoutProvider } from './components/Checkout.jsx'
@@ -28,6 +28,10 @@ const Results = lazy(() => import('./pages/Results.jsx'))
 const Sponsors = lazy(() => import('./pages/Sponsors.jsx'))
 const Unsubscribe = lazy(() => import('./pages/Unsubscribe.jsx'))
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
+// break-ui's data switch, on the mock dev server only; never in a build, and
+// off for the screenshot deck (VITE_DATA_TOGGLE=off).
+const DevDataToggle =
+  import.meta.env.DEV && MOCK_CHECKOUT && import.meta.env.VITE_DATA_TOGGLE !== 'off' ? lazy(() => import('./components/DevDataToggle.jsx')) : null
 
 const PAGES = {
   home: Home,
@@ -140,6 +144,11 @@ function Shell({ route }) {
             )}
           </main>
           <Footer />
+          {DevDataToggle && (
+            <Suspense fallback={null}>
+              <DevDataToggle />
+            </Suspense>
+          )}
         </>
       )}
     </div>
