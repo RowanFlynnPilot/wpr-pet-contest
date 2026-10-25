@@ -26,9 +26,15 @@ export default function Sponsors() {
   const bonusSold = c.windows.filter((w) => w.sponsor_name)
   const now = useNow(60000)
   const upcoming = c.windows.filter((w) => new Date(w.ends_at).getTime() > now)
+  // Live counts once they're worth quoting; before that (and before entries
+  // open), what is true from day one, never a 0.
   const why = [
-    [c.stats ? fmtInt(c.stats.entries) : '—', 'local pets entered, each with a family sharing their page'],
-    [c.stats ? fmtInt(c.stats.votes) : '—', 'votes cast so far, every one a return visit'],
+    c.stats?.entries >= 20
+      ? [fmtInt(c.stats.entries), 'local pets entered, each with a family sharing their page']
+      : ['Free', 'to enter, so every family with a pet can join in'],
+    c.stats?.votes >= 500
+      ? [fmtInt(c.stats.votes), 'votes cast so far, every one a return visit']
+      : [String(c.bracketSize || 16), 'pets in a head-to-head bracket, with a matchup to share every two days'],
     ['2½ weeks', 'from the first entry to the champion'],
     ['0', 'cookies. No consent banner between readers and your brand'],
   ]

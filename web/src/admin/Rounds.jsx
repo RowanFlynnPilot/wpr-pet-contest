@@ -147,8 +147,9 @@ export default function Rounds() {
         <div className="card">
           <h3>Open submissions</h3>
           <p className="small">
-            Moves the contest from draft to accepting entries. Publish the {contest.beneficiary_split_pct}% shelter split on the rules page
-            first. Needs at least one active vote pack.
+            Publishes the contest. Until entries open, the site shows a countdown and refuses entries, so run it the day of the
+            announcement. It freezes the {contest.beneficiary_split_pct}% shelter split (publish it on the rules page first) and the
+            draft-only switches: free daily vote, Last Chance, sprints. Needs at least one active vote pack.
           </p>
           {action?.kind === 'submissions' ? (
             <TypedConfirm word="OPEN" title="Open submissions" busy={busy} danger={false} onCancel={() => setAction(null)} onConfirm={openSubmissions}>

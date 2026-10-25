@@ -32,6 +32,7 @@ const PHONE = { width: 390, height: 844 }
 
 // What each phase is, in a sentence or two, for the person reading the file.
 const PHASES = [
+  ['coming', 'The two weeks before entries open', 'From the announcement on Oct. 31 until entries open: a countdown, a button that puts the opening in the reader’s calendar, and what an entrant will need. Entries are refused until the opening time.'],
   ['submissions', 'Week 1: entries open', 'Owners enter one photo, a name and a town. Nothing is public until staff approve it. The money counter sits at zero and the site explains how the contest works.'],
   ['open', 'Week 2: the Open Round', 'Every approved pet is on the board. Readers buy vote packs (or cast the free daily vote, if that is switched on); the top 16 make the bracket. A sponsored Double Vote Hour is running in these shots.'],
   ['lastchance', 'If switched on: Last Chance', 'Off unless WPR turns it on before entries open. When the Open Round’s clock runs out, the top 15 are in and places 16 to 20 get about 24 more hours, with their Open Round votes carried over. The most votes at the end takes seed 16.'],
@@ -41,6 +42,11 @@ const PHASES = [
 
 // Each shot: a route (or a special), a title, and what to look for.
 const SHOTS = {
+  coming: [
+    ['', 'Home', 'The countdown to entries, the shelter named, and “Add Nov. 14 to my calendar.”'],
+    ['enter', 'Enter, before it opens', 'When entries open and close, the calendar button, what to have ready, and the photo tips.'],
+    ['widget', 'The article widget', 'What sits in the announcement story: the date and “How to enter,” never an Enter button that leads to a closed form.'],
+  ],
   submissions: [
     ['', 'Home', 'The masthead, the countdown to voting, the shelter goal meter and the entry call. The strip at the top says where the contest is.'],
     ['enter', 'Enter a pet', 'Phone-first: the photo picker opens the camera roll, the release is one paragraph, and WPR staff households are told they cannot enter.'],

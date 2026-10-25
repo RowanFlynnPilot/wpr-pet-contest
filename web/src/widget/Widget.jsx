@@ -17,7 +17,7 @@ import {
   fetchTotals,
 } from '../lib/api.js'
 import { activeWindow, windowTitle } from '../lib/bonus.js'
-import { apCount, apTime, fmtInt, fmtMoney } from '../lib/format.js'
+import { apCount, apDate, apTime, fmtInt, fmtMoney } from '../lib/format.js'
 import { useLive } from '../lib/live.js'
 import { contestPhase, pickActiveContest } from '../lib/phase.js'
 import { entryPhotoUrl } from '../lib/photos.js'
@@ -80,6 +80,20 @@ function Enter({ contest, stats, to, now }) {
       )}
       <Cta href={linkTo(to, 'enter')} view="enter">
         Enter your pet
+      </Cta>
+    </>
+  )
+}
+
+// Before entries open (the announcement's two weeks): when, and how to get
+// ready, never an Enter button that leads to a closed form.
+function EntriesSoon({ contest, to }) {
+  return (
+    <>
+      <p className="w-headline">Is your pet the cutest in {NEWSROOM.region}?</p>
+      <p className="w-sub">Entries open {apDate(contest.submissions_open_at)}. It&rsquo;s free, with one phone photo, so get your best one ready.</p>
+      <Cta href={linkTo(to, 'enter')} view="enter">
+        How to enter
       </Cta>
     </>
   )
@@ -295,7 +309,7 @@ export default function Widget({ params }) {
   if (!d.ready) return <main className="w-card" aria-busy="true" aria-label="Loading the contest" />
 
   let body = null
-  if (view === 'enter') body = <Enter contest={d.contest} stats={d.stats} to={params.to} now={now} />
+  if (view === 'enter') body = phase === 'coming' ? <EntriesSoon contest={d.contest} to={params.to} /> : <Enter contest={d.contest} stats={d.stats} to={params.to} now={now} />
   else if (view === 'leaderboard') body = <Leaderboard contest={d.contest} round={round} to={params.to} />
   else if (view === 'matchup') body = <Matchup round={round} bracketSize={d.contest.bracket_size} to={params.to} />
   else if (view === 'champion') body = <Champion rounds={d.rounds} to={params.to} />

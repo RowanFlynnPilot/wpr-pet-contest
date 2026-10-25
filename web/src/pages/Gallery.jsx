@@ -7,7 +7,7 @@ import { Heart, Search } from '../components/Icons.jsx'
 import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { entryStates } from '../lib/bracketState.js'
 import { useFavorites } from '../lib/favorites.js'
-import { fmtInt } from '../lib/format.js'
+import { apDate, fmtInt } from '../lib/format.js'
 import { useDocumentTitle, useMediaQuery } from '../lib/hooks.js'
 import { climbers, rankOpenRound } from '../lib/rank.js'
 import { milestone } from '../lib/milestones.js'
@@ -186,8 +186,14 @@ export default function Gallery() {
         <div>
           <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>{heading}</h1>
           <p className="section-count">
-            {fmtInt(entries.length)} {entries.length === 1 ? 'pet' : 'pets'}
-            {openLive && ' · counts update live'}
+            {c.phase === 'coming' ? (
+              `Entries open ${apDate(c.contest.submissions_open_at)}`
+            ) : (
+              <>
+                {fmtInt(entries.length)} {entries.length === 1 ? 'pet' : 'pets'}
+                {openLive && ' · counts update live'}
+              </>
+            )}
           </p>
           {openLive && (
             <p className="dek">
@@ -304,7 +310,7 @@ export default function Gallery() {
         </div>
       ) : list.length === 0 ? (
         <div className="empty">
-          <h3>{!entries.length ? 'No pets yet.' : favOnly ? 'None of your favorites match that search.' : 'No pets match that search.'}</h3>
+          <h2>{!entries.length ? 'No pets yet.' : favOnly ? 'None of your favorites match that search.' : 'No pets match that search.'}</h2>
           <p>
             {entries.length ? (
               'Try a different name or town.'
@@ -312,6 +318,8 @@ export default function Gallery() {
               <>
                 Be the first! <a href="#/enter">Enter your pet</a>.
               </>
+            ) : c.phase === 'coming' ? (
+              <a href="#/enter">See what you&rsquo;ll need to enter</a>
             ) : (
               'Check back soon.'
             )}

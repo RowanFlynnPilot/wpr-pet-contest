@@ -12,7 +12,7 @@
 //   VOTE_SCALE=100 node scripts/mock-api.mjs      # five-figure counts
 //
 // Switch the contest's phase while it runs:
-//   curl http://127.0.0.1:8787/__phase?set=submissions   (submissions | open | lastchance | bracket | complete)
+//   curl http://127.0.0.1:8787/__phase?set=submissions   (coming | submissions | open | lastchance | bracket | complete)
 //
 // The admin desk (#/admin) signs in with any email and password and shows a
 // pretend moderation queue, email log and health checks (scripts/mock-staff.mjs).

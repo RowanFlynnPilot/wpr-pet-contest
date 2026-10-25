@@ -3,6 +3,7 @@
 // WordPress iframe, where browsers refuse push notifications; on a phone the
 // link opens the calendar's own "add event" sheet. Pure, so it is unit-tested.
 import { NEWSROOM } from '../config.js'
+import { apDateTime, period } from './format.js'
 
 const HOST = new URL(NEWSROOM.url).hostname
 
@@ -52,6 +53,22 @@ export function eventIcs({ uid, title, startsAt, endsAt, url, description, alarm
 export function deadlineIcs({ uid, title, closesAt, url, description, now = Date.now() }) {
   const end = new Date(closesAt)
   return eventIcs({ uid, title, startsAt: new Date(end.getTime() - 15 * 60 * 1000), endsAt: end, url, description, alarm: '-PT2H', now })
+}
+
+// Entries opening, for the weeks between the announcement and the first day:
+// half an hour from the open, the reminder at the open itself.
+export function entriesOpenIcs({ contest, url, now = Date.now() }) {
+  const name = contest.name || `Cutest Pet in ${NEWSROOM.region}`
+  return eventIcs({
+    uid: `entries-open-${contest.id}`,
+    title: `Entries open: ${name}`,
+    startsAt: contest.submissions_open_at,
+    endsAt: new Date(Date.parse(contest.submissions_open_at) + 30 * 60 * 1000),
+    url,
+    description: `${period(`Enter your pet free with one phone photo, until ${apDateTime(contest.submissions_close_at)}`)} ${url}`,
+    alarm: 'PT0M',
+    now,
+  })
 }
 
 export const icsHref = (ics) => `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`

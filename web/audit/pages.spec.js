@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 // sizes, landmarks and heading order included), and no sideways scrolling
 // (the WordPress iframe clips anything wider than the phone).
 const MOCK = 'http://127.0.0.1:18791'
-const PHASES = ['submissions', 'open', 'lastchance', 'bracket', 'complete']
+const PHASES = ['coming', 'submissions', 'open', 'lastchance', 'bracket', 'complete']
 const ROUTES = ['', 'gallery', 'pet', 'bracket', 'enter', 'rules', 'shelters', 'results', 'sponsors']
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
 

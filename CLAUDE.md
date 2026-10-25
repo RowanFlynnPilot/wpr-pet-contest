@@ -226,7 +226,10 @@ the buttons call, for when the panel is not an option.
    entries open it can only be raised (`set_shelter_goal`). The Setup
    checklist says what is missing.
 2. `select open_submissions('<contest-id>');` — refuses without an active vote
-   pack. One week. It also stages round 1 (pending), scheduled to open when
+   pack. Run it the morning of the announcement: until `submissions_open_at`
+   the site counts down and the database refuses entries, so the
+   announcement's links never land on an empty site (drafts are invisible to
+   the public). One week of entries. It also stages round 1 (pending), scheduled to open when
    submissions close and to run a week; pass a second argument for a different
    round 1 closing time.
 3. Moderate. Approve or reject with a reason; rejection reasons are required.
@@ -327,7 +330,7 @@ as "email provider on", and `false` disables admin password login too. The
 global `[auth] enable_signup = false` is what refuses self-signup.
 
 Without Docker, `node web/scripts/mock-api.mjs` serves a read-only mock of the
-public API (`/__phase?set=submissions|open|lastchance|bracket|complete`); point
+public API (`/__phase?set=coming|submissions|open|lastchance|bracket|complete`); point
 `VITE_SUPABASE_URL` at it for layout, widget and newsletter-block work.
 `/__data?set=worst|one|empty|many` (or `DATA=worst`) swaps the sample pets
 for the worst realistic ones, one, none or 1,000; on the mock dev server a

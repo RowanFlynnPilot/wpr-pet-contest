@@ -90,7 +90,7 @@ function bar() {
   el.id = 'wpr-demo-bar'
   el.setAttribute('role', 'group')
   el.setAttribute('aria-label', 'Demo controls')
-  const labels = { submissions: 'Entries', open: 'Open Round', lastchance: 'Last Chance', bracket: 'Bracket', complete: 'Final' }
+  const labels = { coming: 'Before entries', submissions: 'Entries', open: 'Open Round', lastchance: 'Last Chance', bracket: 'Bracket', complete: 'Final' }
   const papers = Object.values(NEWSROOMS)
   el.innerHTML = `
     <style>

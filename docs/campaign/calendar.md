@@ -6,13 +6,21 @@ emails in `emails.md`, and the role codes are in `README.md`.
 
 ## How to read it
 
-Days count from entries opening. D1 is the day `open_submissions` runs, and
-D-14 is two weeks before it. All times are Central.
+Days count from entries opening. D1 is the day entries open, and D-14 is two
+weeks before it. All times are Central.
+
+`open_submissions` runs on D-14, the morning of the announcement, not on D1.
+Until the opening time set in Setup, the site shows a countdown, a calendar
+button and what entrants will need, and the database refuses entries; then
+the form opens by itself. Run it later and the announcement's links land on an
+empty site, because a draft contest is invisible to the public. It freezes the
+split and the draft-only switches (free daily vote, Last Chance, sprints), so
+settle those with counsel before D-14.
 
 | Days | Phase event | What runs it |
 | --- | --- | --- |
-| D-14 | Announcement | Story, newsletter, social |
-| D1 | Entries open for a week | `open_submissions` (Setup) |
+| D-14 | Announcement | `open_submissions` (Rounds tab) that morning; story, newsletter, social |
+| D1 | Entries open for a week | By themselves, at the time set in Setup |
 | D6 to D7 | Last 48 hours of entries. Entries close D7 at [time] | |
 | D8 | Open Round opens, once the moderation queue is empty | `open_round` (round 1) |
 | D12 to D14 | The cut line: last 72 hours of the Open Round | |
@@ -162,7 +170,8 @@ backdrop for a countdown sticker), with captions to copy.
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| D-14 | Announcement | WPR story | Article | Screens (home page); Widget `view=enter` | R | Disclosure line: WPR runs the contest; 50% of vote pack sales after refunds goes to Moments Foster Care |
+| D-14 | Announcement | Admin | Run `open_submissions` before the story posts | Rounds tab | CE | Check Home shows the countdown and the widget says "Entries open Saturday, Nov. 14" |
+| D-14 | | WPR story | Article | Screens (home page); Widget `view=enter` | R | Disclosure line: WPR runs the contest; 50% of vote pack sales after refunds goes to Moments Foster Care |
 | D-14 | | Facebook | Image post | Screens (home page on a phone) | SE | social.md, Announcement |
 | D-14 | | Instagram | Feed post | Screens | SE | Same, link in bio |
 | D-14 | | Newsletter | Block, AM | Block ("Entries open soon") | NL | |
@@ -187,7 +196,7 @@ backdrop for a countdown sticker), with captions to copy.
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| D1 | Entries open | Admin | Run `open_submissions` at [time] | Setup tab | CE | Check the widget and block now say entries are open |
+| D1 | Entries open | Admin | Nothing to run: the form opens at [time] | Rounds tab | CE | Check the widget and block now say entries are open |
 | D1 | | WPR story | Brief | Widget `view=enter` | R | Disclosure line |
 | D1 | | Facebook | Image post; pin the comment guidelines | Screens (Enter page) | SE | social.md, Entries open |
 | D1 | | Instagram | Feed post, plus a Story with a link sticker | Screens | SE | |

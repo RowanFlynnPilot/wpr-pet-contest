@@ -175,7 +175,9 @@ export default function Bracket() {
         <div className="empty card plain">
           <h2>No bracket yet</h2>
           <p>
-            {c.phase === 'submissions' || c.phase === 'coming'
+            {c.phase === 'coming'
+              ? period(`Entries open ${apDate(c.contest.submissions_open_at)}. The top ${c.bracketSize} from the Open Round make the bracket`)
+              : c.phase === 'submissions'
               ? 'Entries are still coming in. The bracket is built from the Open Round results.'
               : 'The bracket appears once the Open Round has enough votes to project it.'}
           </p>

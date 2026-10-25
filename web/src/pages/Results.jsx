@@ -7,7 +7,7 @@ import RaisedCounter from '../components/RaisedCounter.jsx'
 import FinaleCard from '../components/FinaleCard.jsx'
 import { useBracket, useContestTotals, useEntries, useSideAwards } from '../lib/data.js'
 import { CLUB_TIERS, clubLabel } from '../lib/milestones.js'
-import { fmtInt, fmtMoney } from '../lib/format.js'
+import { apDate, fmtInt, fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { finalSeq } from '../lib/rounds.js'
 import { BracketBoard } from './Bracket.jsx'
@@ -149,9 +149,13 @@ export default function Results() {
       <div className="wrap section">
         <div className="card">
           <h1 style={{ fontSize: 30 }}>No champion yet</h1>
-          <p style={{ marginTop: 10 }}>The contest is still under way. Results post here when the Championship closes.</p>
-          <a className="btn btn-primary" href="#/bracket">
-            See the bracket
+          <p style={{ marginTop: 10 }}>
+            {c.phase === 'coming'
+              ? `The contest starts when entries open ${apDate(c.contest.submissions_open_at)}. Results post here when the Championship closes.`
+              : 'The contest is still under way. Results post here when the Championship closes.'}
+          </p>
+          <a className="btn btn-primary" href={c.phase === 'coming' ? '#/enter' : '#/bracket'}>
+            {c.phase === 'coming' ? 'How to enter' : 'See the bracket'}
           </a>
         </div>
       </div>

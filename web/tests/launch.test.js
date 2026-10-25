@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { countdownWords, daysUntil, launchStage } from '../src/lib/graphics/content.js'
 import { captionsFor } from '../src/lib/graphics/captions.js'
 import { buildCards, cardSize } from '../src/lib/graphics/staff.js'
+import { entriesOpenIcs } from '../src/lib/calendar.js'
+import { andList } from '../src/lib/format.js'
 
 const contest = { status: 'draft', submissions_open_at: '2026-11-14T14:00:00Z', submissions_close_at: '2026-11-21T02:00:00Z' }
 
@@ -75,5 +77,25 @@ describe('the poster', () => {
   it('needs the full address for its code, and leaves with the field set', () => {
     expect(poster(buildCards(s(launch('soon'), null)))).toBeUndefined()
     expect(poster(buildCards(s(launch('closed'), 'https://example.org/pets/')))).toBeUndefined()
+  })
+})
+
+describe('before entries open', () => {
+  const c = { id: 'c1', name: 'Cutest Pet in Marathon County', submissions_open_at: '2026-11-14T14:00:00Z', submissions_close_at: '2026-11-21T02:00:00Z' }
+  const ics = entriesOpenIcs({ contest: c, url: 'https://example.org/pets/', now: Date.parse('2026-10-31T15:00:00Z') })
+  const unfolded = ics.replace(/\r\n /g, '')
+  it('puts the opening in the calendar, with the reminder at the open', () => {
+    expect(ics).toMatch(/DTSTART:20261114T140000Z/)
+    expect(ics).toMatch(/DTEND:20261114T143000Z/)
+    expect(ics).toMatch(/TRIGGER:PT0M/)
+    expect(unfolded).toMatch(/SUMMARY:Entries open: Cutest Pet in Marathon County/)
+    expect(unfolded).toMatch(/until Friday\\, Nov\. 20 at 8 p\.m\. https:\/\/example\.org\/pets\//)
+    for (const line of ics.split('\r\n')) expect(line.length).toBeLessThanOrEqual(75)
+  })
+  it('names the shelters the AP way', () => {
+    expect(andList([])).toBe('')
+    expect(andList(['Moments Foster Care'])).toBe('Moments Foster Care')
+    expect(andList(['A', 'B'])).toBe('A and B')
+    expect(andList(['A', 'B', 'C'])).toBe('A, B and C')
   })
 })

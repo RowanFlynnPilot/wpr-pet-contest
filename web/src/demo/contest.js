@@ -20,7 +20,9 @@ const TOWNS = ['Wausau', 'Weston', 'Schofield', 'Rothschild', 'Mosinee', 'Kronen
 const SPECIES = ['dog', 'cat', 'dog', 'other']
 const HOUR = 3600e3
 const DAY = 24 * HOUR
-export const PHASES = ['submissions', 'open', 'lastchance', 'bracket', 'complete']
+// 'coming': the announcement's two weeks, after open_submissions and before
+// the window opens (no pets yet).
+export const PHASES = ['coming', 'submissions', 'open', 'lastchance', 'bracket', 'complete']
 
 // The worst realistic pets (break-ui), within the limits the entry form and
 // submit-entry enforce: pet name 40, town 60, caption 280, the "Get to know"
@@ -123,7 +125,8 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const now = Date.now()
     // One pet or none only make sense while entries are open; 1,000 is the
     // Open Round's gallery at scale.
-    const names = data === 'empty' ? [] : data === 'one' ? NAMES.slice(0, 1) : data === 'many' ? Array.from({ length: 1000 }, (_, i) => `${NAMES[i % NAMES.length]}${i >= NAMES.length ? ` ${Math.floor(i / NAMES.length) + 1}` : ''}`) : NAMES
+    const coming = current === 'coming'
+    const names = coming || data === 'empty' ? [] : data === 'one' ? NAMES.slice(0, 1) : data === 'many' ? Array.from({ length: 1000 }, (_, i) => `${NAMES[i % NAMES.length]}${i >= NAMES.length ? ` ${Math.floor(i / NAMES.length) + 1}` : ''}`) : NAMES
     const entries = names.map((name, i) => ({
       id: id('e1', i + 1),
       contest_id: id('c1', 1),
@@ -145,14 +148,14 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       ...(data === 'worst' ? WORST[i] || {} : {}),
     }))
 
-    const submissions = current === 'submissions' || data === 'one' || data === 'empty'
+    const submissions = coming || current === 'submissions' || data === 'one' || data === 'empty'
     const lastChance = current === 'lastchance'
     const contest = {
       id: id('c1', 1), year: 2026, name: `Cutest Pet in ${region}`,
       status: submissions ? 'submissions_open' : current === 'complete' ? 'complete' : 'voting',
       beneficiary_split_pct: 50, bracket_size: 16, bracket_round_hours: 48,
-      submissions_open_at: iso(submissions ? now - 3 * DAY : now - 14 * DAY),
-      submissions_close_at: iso(submissions ? now + 4 * DAY : now - 7 * DAY),
+      submissions_open_at: iso(coming ? now + 6 * DAY : submissions ? now - 3 * DAY : now - 14 * DAY),
+      submissions_close_at: iso(coming ? now + 12 * DAY : submissions ? now + 4 * DAY : now - 7 * DAY),
       free_vote_enabled: true,
       free_vote_paused_at: null,
       sprints_enabled: true,
@@ -174,8 +177,8 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const r1 = {
       id: id('r1', 1), contest_id: contest.id, seq: 1, kind: 'open',
       status: submissions ? 'pending' : current === 'open' || lastChance ? 'open' : 'resolved',
-      opens_at: iso(submissions ? now + 4 * DAY : now - 5 * DAY),
-      closes_at: iso(submissions ? now + 11 * DAY : current === 'open' ? now + 2 * DAY + 5 * HOUR : lastChance ? now - 2 * HOUR : now - 3 * DAY),
+      opens_at: iso(coming ? now + 12 * DAY : submissions ? now + 4 * DAY : now - 5 * DAY),
+      closes_at: iso(coming ? now + 19 * DAY : submissions ? now + 11 * DAY : current === 'open' ? now + 2 * DAY + 5 * HOUR : lastChance ? now - 2 * HOUR : now - 3 * DAY),
       // Last Chance (0032): the Open Round's overtime, for places 16 to 20.
       overtime_closes_at: lastChance ? iso(now + 20 * HOUR) : null,
       resolved_at: current === 'open' || lastChance || submissions ? null : iso(now - 3 * DAY + 600e3),

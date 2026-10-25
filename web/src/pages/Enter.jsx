@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import Countdown from '../components/Countdown.jsx'
+import EntriesCalendar from '../components/EntriesCalendar.jsx'
 import { Calendar as CalendarIcon, Camera, Check, LinkIcon, Share } from '../components/Icons.jsx'
 import { submitEntry } from '../lib/api.js'
 import { track } from '../lib/analytics.js'
@@ -106,14 +107,46 @@ function TextField({ id, label, value, onChange, error, hint, optional, max, ...
   )
 }
 
+function PhotoTips() {
+  return (
+    <div className="card sun">
+      <h2 style={{ fontSize: 21, marginBottom: 8 }}>Photos that win votes</h2>
+      <ul className="tips">
+        <li>Get down to your pet&rsquo;s eye level.</li>
+        <li>Daylight by a window beats a flash.</li>
+        <li>One pet, filling most of the frame.</li>
+        <li>No people&rsquo;s faces, text or filters, please.</li>
+      </ul>
+    </div>
+  )
+}
+
 function Closed({ c }) {
   const { phase, contest } = c
+  // The announcement's two weeks: when, what to have ready, and a reminder.
   if (phase === 'coming') {
     return (
-      <div className="card" style={{ maxWidth: 640 }}>
-        <h1 style={{ fontSize: 32 }}>Entries open {apDate(contest.submissions_open_at)}</h1>
-        <p style={{ marginTop: 10 }}>Get your best photo ready. It&rsquo;s free to enter.</p>
-        <Countdown to={contest.submissions_open_at} label="Entries open in" />
+      <div className="enter-layout">
+        <div className="card">
+          <h1 style={{ fontSize: 32 }}>Entries open {apDate(contest.submissions_open_at)}</h1>
+          <p style={{ marginTop: 10 }}>{period(`It’s free and takes a few minutes on a phone. Entries close ${apDateTime(contest.submissions_close_at)}`)}</p>
+          <Countdown to={contest.submissions_open_at} label="Entries open in" />
+          <div className="hero-actions">
+            <EntriesCalendar contest={contest} where="enter" className="btn btn-primary" />
+          </div>
+          <h2 style={{ fontSize: 21, margin: '24px 0 8px' }}>What you&rsquo;ll need</h2>
+          <ul className="tips">
+            <li>One photo of your pet that you took or have permission to use. Straight from an iPhone or Android is fine.</li>
+            <li>Your pet&rsquo;s name and your town.</li>
+            <li>Your name and email, for the editor. Neither is published.</li>
+          </ul>
+          <p className="small" style={{ margin: '12px 0 0' }}>
+            One pet per entry. {NEWSROOM.name} staff and their households can&rsquo;t enter. <a href="#/rules">Official rules</a>
+          </p>
+        </div>
+        <aside className="enter-aside" aria-label="Tips">
+          <PhotoTips />
+        </aside>
       </div>
     )
   }
@@ -537,15 +570,7 @@ export default function Enter() {
         </form>
 
         <aside className="enter-aside" aria-label="Tips">
-          <div className="card sun">
-            <h2 style={{ fontSize: 21, marginBottom: 8 }}>Photos that win votes</h2>
-            <ul className="tips">
-              <li>Get down to your pet&rsquo;s eye level.</li>
-              <li>Daylight by a window beats a flash.</li>
-              <li>One pet, filling most of the frame.</li>
-              <li>No people&rsquo;s faces, text or filters, please.</li>
-            </ul>
-          </div>
+          <PhotoTips />
           <div className="card plain">
             <h2 style={{ fontSize: 19, marginBottom: 6 }}>What happens next</h2>
             <p className="small" style={{ margin: 0 }}>

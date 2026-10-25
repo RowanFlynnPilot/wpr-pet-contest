@@ -3,7 +3,8 @@ import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { useBracket, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { useFavorites } from '../lib/favorites.js'
-import { apCount, apNumber, apWhen, fmtInt, fmtMoney } from '../lib/format.js'
+import { andList, apCount, apNumber, apWhen, fmtInt, fmtMoney } from '../lib/format.js'
+import EntriesCalendar from '../components/EntriesCalendar.jsx'
 import { cheapestPerVote } from '../lib/packs.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { climbers, cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
@@ -52,6 +53,13 @@ function Polaroids({ entries }) {
   )
 }
 
+// Before entries open: the shelters by name, once there are names to give.
+function entryNote(c) {
+  const pct = Number(c.contest?.beneficiary_split_pct) || 0
+  const who = andList((c.shelters || []).map((s) => s.name).filter(Boolean)) || 'local animal shelters'
+  return `Entry is free, and ${pct ? `${pct}%` : 'a share'} of every vote pack goes to ${who}.`
+}
+
 // Entry weeks: how many pets are in, and how long is left to join them.
 function EntryBoard({ c, entryCount }) {
   const { phase, contest, nextRound } = c
@@ -59,7 +67,7 @@ function EntryBoard({ c, entryCount }) {
     return (
       <Scoreboard label="Entries open" sub={`Opens ${apWhen(contest.submissions_open_at, c.now)}`}>
         <CountdownCells to={contest.submissions_open_at} label="Entries open in" />
-        <p className="sb-note">Entry is free, and every vote pack sold helps local animal shelters.</p>
+        <p className="sb-note">{entryNote(c)}</p>
       </Scoreboard>
     )
   }
@@ -243,7 +251,7 @@ function Arena({ c, entries, byId, totals }) {
     title = phase === 'submissions_closed' ? 'The field is set.' : cutest
     lede =
       phase === 'coming'
-        ? 'Get your best photo ready.'
+        ? 'Free to enter with one phone photo. Get your best one ready.'
         : phase === 'submissions'
           ? null
           : 'Voting opens soon, so pick your favorite now.'
@@ -258,9 +266,12 @@ function Arena({ c, entries, byId, totals }) {
           </a>
         </>
       ) : phase === 'coming' ? (
-        <a className="btn btn-ghost btn-lg" href="#/rules">
-          Read the rules
-        </a>
+        <>
+          <EntriesCalendar contest={c.contest} where="home" />
+          <a className="btn btn-ghost btn-lg" href="#/rules">
+            Read the rules
+          </a>
+        </>
       ) : (
         <a className="btn btn-primary btn-lg" href="#/gallery">
           Meet the entrants

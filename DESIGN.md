@@ -727,3 +727,21 @@ aside: it disappears on dark paper.
   the left, the phone on the right at 0.76 or 0.74. The newsroom cut plays
   on `/for-newsrooms/` under "What it looks like": no autoplay, a poster
   frame, nothing loaded until play.
+
+## The two weeks before entries (Oct. 25, 2026)
+
+- **`open_submissions` runs on announcement day.** A draft is invisible to the
+  public, so the Oct. 31 links would have landed on an empty site. Published
+  early, the contest counts down until `submissions_open_at` and the
+  database refuses entries until then.
+- **One thing to do:** "Add Nov. 14 to my calendar," an .ics with its
+  reminder at the opening, on Home and Enter. No address is collected.
+- **Enter before it opens** says when entries open and close, what to have
+  ready (a photo you took, the pet's name and town, your name and email,
+  neither published), who can't enter, and the photo tips.
+- **No page claims more than is true:** the widget says the date and "How to
+  enter" rather than "Enter your pet"; Pets, Bracket and Results say when
+  entries open; the Sponsors page shows what is true from day one ("Free,"
+  "16") until the live counts are worth quoting.
+- The phase is `coming` in the mock, the demo bar ("Before entries"), the
+  audit and the screenshot deck.

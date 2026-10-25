@@ -133,3 +133,6 @@ export function apWhen(date, now, { long = false } = {}) {
 
 // End a sentence without doubling the period after "p.m."
 export const period = (s) => (s.endsWith('.') ? s : `${s}.`)
+
+// "A", "A and B", "A, B and C" (AP: no serial comma).
+export const andList = (items) => (items.length <= 1 ? items[0] || '' : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
