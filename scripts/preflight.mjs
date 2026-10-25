@@ -406,7 +406,7 @@ async function collectWeb(f) {
   const wordpress = wpUrl && /^https?:\/\//.test(wpUrl) ? http(wpUrl) : Promise.resolve(null);
 
   const text = readText(join(ROOT, "web", "src", "config.js"));
-  w.config = text == null ? { error: "file not found" } : parseConfig(text);
+  w.config = text == null ? { error: "file not found" } : parseConfig(text, readText(join(ROOT, "web", "src", "newsrooms.js")));
 
   const [p, wp] = await Promise.all([pages, wordpress]);
   w.pages = !f.pagesUrl ? { skip: "not checked, no repository", fix: "pass --repo owner/name" } : p.error ? { error: p.error } : { status: p.status };

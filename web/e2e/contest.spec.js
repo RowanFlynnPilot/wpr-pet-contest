@@ -153,12 +153,12 @@ test('checkout offers the database packs and never calls it a donation', async (
 
 test('staff read the payout statement and set up next year from the desk', async ({ page }) => {
   await signIn(page, '/#/admin/wrapup')
-  // The one $20 pack bought earlier, 30% to the shelters.
+  // The one $20 pack bought earlier, half to the shelters.
   const statement = page.locator('.print-area')
   await expect(statement).toContainText('Shelter payout statement')
   await expect(statement).toContainText('PRELIMINARY')
   await expect(statement.locator('tr', { hasText: 'Net vote pack sales' })).toContainText('$20.00')
-  await expect(statement.locator('tr', { hasText: 'Shelter share (30%)' })).toContainText('$6.00')
+  await expect(statement.locator('tr', { hasText: 'Shelter share (50%)' })).toContainText('$10.00')
 
   // The archive: three files, standings by pet name, and no owner details.
   const files = []

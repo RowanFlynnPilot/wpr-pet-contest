@@ -271,11 +271,15 @@ export const ANALYTICS = {
 });
 
 test("parseConfig understands the real web/src/config.js", () => {
-  const c = parseConfig(readFileSync(new URL("../web/src/config.js", import.meta.url), "utf8"));
+  const c = parseConfig(
+    readFileSync(new URL("../web/src/config.js", import.meta.url), "utf8"),
+    readFileSync(new URL("../web/src/newsrooms.js", import.meta.url), "utf8"),
+  );
   assert.equal(c.found, true);
   assert.equal(typeof c.rulesApproved, "boolean");
   assert.match(c.contact, /@/);
   assert.ok(c.eligibility.length > 20);
+  assert.doesNotMatch(c.eligibility, /\$\{/, "the newsroom's name and state are filled in");
   assert.equal(typeof c.analyticsDomain, "string");
 });
 

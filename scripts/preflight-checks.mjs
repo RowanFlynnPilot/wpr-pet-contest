@@ -201,10 +201,36 @@ function stringField(block, key) {
 
 const PLACEHOLDER = /\b(?:TODO|TBD|FIXME|XXX+|PLACEHOLDER|lorem ipsum)\b|\bexample\.(?:com|org|net)\b|<[a-z][a-z _-]*>|\[[A-Z][A-Z _-]+\]/gi;
 
-// web/src/config.js, read as text. Importing it would pull in import.meta.env
-// and window, which only exist under Vite.
-export function parseConfig(text) {
+// web/src/newsrooms.js, read as text: the default newsroom's entry, so a
+// RULES field written as NEWSROOM.contact resolves to the real address.
+export function parseNewsroom(text) {
   const src = String(text ?? "");
+  const key = src.match(/export\s+const\s+DEFAULT_NEWSROOM\s*=\s*['"]([\w-]+)['"]/)?.[1];
+  if (!key) return null;
+  const at = src.search(new RegExp(`\\n\\s*${key}\\s*:\\s*\\{`));
+  if (at < 0) return null;
+  const start = src.indexOf("{", at);
+  let depth = 0;
+  for (let i = start; i < src.length; i++) {
+    if (src[i] === "{") depth++;
+    else if (src[i] === "}" && --depth === 0) return { key, block: src.slice(start, i + 1) };
+  }
+  return null;
+}
+
+// web/src/config.js, read as text. Importing it would pull in import.meta.env
+// and window, which only exist under Vite. A field may be a literal, a
+// NEWSROOM.<key> reference, or a template with ${NEWSROOM.<key>} inside.
+export function parseConfig(text, newsroomText) {
+  const src = String(text ?? "");
+  const paper = parseNewsroom(newsroomText);
+  const fromPaper = (key) => (paper ? stringField(paper.block, key) : null);
+  const resolve = (block, key) => {
+    const literal = stringField(block, key);
+    if (literal != null) return literal.replace(/\$\{NEWSROOM\.(\w+)\}/g, (whole, k) => fromPaper(k) ?? whole);
+    const ref = block?.match(new RegExp(`\\b${key}\\s*:\\s*NEWSROOM\\.(\\w+)`));
+    return ref ? fromPaper(ref[1]) : null;
+  };
   const rules = objectLiteral(src, "RULES");
   const approved = rules?.match(/\brulesApproved\s*:\s*(true|false)\b/);
 
@@ -230,11 +256,11 @@ export function parseConfig(text) {
   return {
     found: Boolean(rules),
     rulesApproved: approved ? approved[1] === "true" : null,
-    contact: stringField(rules, "contact"),
-    eligibility: stringField(rules, "eligibility"),
+    contact: resolve(rules, "contact"),
+    eligibility: resolve(rules, "eligibility"),
     placeholderNote: /placeholder/i.test(note),
     markers,
-    analyticsDomain: stringField(objectLiteral(src, "ANALYTICS"), "domain"),
+    analyticsDomain: resolve(objectLiteral(src, "ANALYTICS"), "domain"),
     presenting,
   };
 }
