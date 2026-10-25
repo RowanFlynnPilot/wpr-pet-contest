@@ -137,6 +137,9 @@ These are load-bearing. Do not soften them.
   contest (`nurture_*` kinds), gated by `entries.nurture_opt_out_at`, which
   only `entrant_opt_out` sets, with the owner's token. Notices about the
   entry itself (approved, advanced, eliminated) still go.
+  The milestone club notes (`club_100` to `club_5000`, 0028) are tips too:
+  the same opt-out stops them, only the highest club reached is owed, and
+  never a lower one after a higher one went.
 - **An owner's goal is the owner's.** `set_entry_goal` needs the entry's
   `owner_token` from the approval email. The token is a bearer secret:
   rate-limited in the `links` function, never read back, rotated at erasure.

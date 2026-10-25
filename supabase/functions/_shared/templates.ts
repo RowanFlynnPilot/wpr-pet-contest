@@ -13,8 +13,11 @@ export type NurtureKind =
   | "nurture_matchup_last_day"
   | "nurture_thanks";
 
+// A note when a pet passes a milestone club over the whole contest (0028).
+export type ClubKind = "club_100" | "club_500" | "club_1000" | "club_5000";
+
 export type QueueRow = {
-  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion" | NurtureKind;
+  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion" | NurtureKind | ClubKind;
   entry_id: string;
   round_id: string | null;
   to_email: string;
@@ -38,10 +41,14 @@ export type QueueRow = {
   opens_at?: string | null;
   // The matchup an advancement or matchup-day note is about.
   matchup_id?: string | null;
+  // The pet's photo in the public bucket (its thumbnail when there is one).
+  photo_path?: string | null;
 };
 
 export type Links = {
   newsroom?: Newsroom;
+  // The Supabase project URL, where the public photo bucket is served.
+  storageUrl?: string;
   // The WordPress page that embeds the contest.
   publicUrl: string;
   // Where the per-pet share pages live (GitHub Pages). Those carry the pet's
@@ -101,8 +108,19 @@ const goalLine = (row: QueueRow): string | null => {
 
 export function render(row: QueueRow, links: Links): Message {
   const n = links.newsroom ?? DEFAULT_NEWSROOM;
-  const compose = (subject: string, first: string | null, paragraphs: string[], button?: { label: string; url: string }, after?: string[], footer?: string) =>
-    composeMail(subject, first, paragraphs, button, after, footer, n);
+  const compose = (
+    subject: string,
+    first: string | null,
+    paragraphs: string[],
+    button?: { label: string; url: string },
+    after?: string[],
+    footer?: string,
+    extras?: Extras,
+  ) => composeMail(subject, first, paragraphs, button, after, footer, n, extras);
+  // The pet's photo, for the emails that celebrate it.
+  const photo = row.photo_path && links.storageUrl
+    ? `${links.storageUrl.replace(/\/$/, "")}/storage/v1/object/public/pets/${row.photo_path.split("/").map(encodeURIComponent).join("/")}`
+    : undefined;
   const pet = row.pet_name;
   const first = row.owner_name.split(" ")[0] || "there";
   const petUrl = `${links.publicUrl}#/pet/${row.entry_id}`;
@@ -127,8 +145,23 @@ export function render(row: QueueRow, links: Links): Message {
         `Round 1 is open to every pet. The top vote-getters make the bracket, so the most useful thing you can do is share ${pet}'s page with friends, family and your local Facebook groups:`,
       ], { label: `Share ${pet}'s page`, url: shareUrl }, [
         `Every vote pack supports local animal shelters.`,
-        `Your own page for ${pet}, where you can set a vote goal and make share images: ${ownerUrl(links, row)}`,
-      ]);
+        `${pet} also has an owner's page, just for you: set a vote goal, make share images, and see ${pet}'s milestone badges.`,
+      ], undefined, { photo, photoAlt: pet, secondary: { label: `Open ${pet}'s owner page`, url: ownerUrl(links, row) } });
+
+    case "club_100":
+    case "club_500":
+    case "club_1000":
+    case "club_5000": {
+      const tier = Number(row.kind.slice(5));
+      const club = `${tier.toLocaleString("en-US")} Club`;
+      const next = [500, 1000, 5000].find((t) => t > tier);
+      return compose(`${pet} joined the ${club}`, first, [
+        `${pet} just passed ${tier.toLocaleString("en-US")} votes in ${row.contest_name}, counting every round. That puts ${pet} in the ${club}, and the badge is on ${pet}'s page now.`,
+        next
+          ? `Clubs are for every pet, whatever the standings. The next one is the ${next.toLocaleString("en-US")} Club. The share images on your owner page now carry the badge.`
+          : `That's the last club there is. The share images on your owner page now carry the badge.`,
+      ], { label: `Share ${pet}'s badge`, url: ownerUrl(links, row) }, [stopLine], undefined, { photo, photoAlt: pet });
+    }
 
     case "nurture_ready":
       return compose(`${pet} is in. Voting opens ${row.opens_at ? formatWhen(row.opens_at) : "soon"}`, first, [
@@ -327,6 +360,10 @@ const FREE_VOTE_FOOTER = "You are getting this because you asked to vote free in
 const ENTRANT_FOOTER =
   "You are getting this because you entered a pet in the contest. Vote packs are not tax-deductible donations.";
 
+// A photo above the greeting, and a second, quieter button under the
+// first (the owner's page beside "Share").
+type Extras = { photo?: string; photoAlt?: string; secondary?: { label: string; url: string } };
+
 function composeMail(
   subject: string,
   first: string | null,
@@ -335,6 +372,7 @@ function composeMail(
   after: string[] = [],
   footer = ENTRANT_FOOTER,
   newsroom: Newsroom = DEFAULT_NEWSROOM,
+  extras: Extras = {},
 ): Message {
   const n = newsroom;
   const signature = n.phone ? `${n.name} · ${n.phone}` : n.name;
@@ -350,10 +388,12 @@ function composeMail(
   const html = `<!doctype html><html><body style="margin:0;background:${n.paper}">
 <div style="max-width:560px;margin:0 auto;padding:32px 24px;background:#fff;border-top:4px solid #32373c">
 <p style="margin:0 0 20px;font:11px/1 -apple-system,Segoe UI,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#32373c">${escape(n.name)}</p>
+${extras.photo ? `<p style="margin:0 0 20px"><img src="${escape(extras.photo)}" alt="${escape(extras.photoAlt ?? "")}" width="240" style="display:block;width:240px;max-width:100%;height:auto;border-radius:8px;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.18)"></p>` : ""}
 ${first === null ? "" : `<p style="margin:0 0 16px;font:16px/1.55 Georgia,serif;color:#1a1a1a">Hi ${escape(first)},</p>`}
 ${paragraphs.map(para).join("\n")}
 ${button ? `<p style="margin:24px 0"><a href="${escape(button.url)}" style="display:inline-block;padding:12px 20px;background:${n.brand};color:#fff;text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(button.label)}</a></p>` : ""}
 ${after.map(para).join("\n")}
+${extras.secondary ? `<p style="margin:8px 0 24px"><a href="${escape(extras.secondary.url)}" style="display:inline-block;padding:11px 18px;border:2px solid ${n.brand};color:${n.brand};text-decoration:none;font:600 15px/1 -apple-system,Segoe UI,sans-serif;border-radius:4px">${escape(extras.secondary.label)}</a></p>` : ""}
 <p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #e3ddd0;font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#6b6b6b">${escape(footer)}<br>${escape(signature)}</p>
 </div></body></html>`;
 
@@ -362,6 +402,7 @@ ${after.map(para).join("\n")}
     ...paragraphs,
     ...(button ? [`${button.label}: ${button.url}`] : []),
     ...after,
+    ...(extras.secondary ? [`${extras.secondary.label}: ${extras.secondary.url}`] : []),
     "--",
     footer,
     signature,

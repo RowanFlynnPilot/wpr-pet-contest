@@ -13,6 +13,8 @@ import { type BuyerNoteRow, type QueueRow, render, renderBuyerNote, renderFreeVo
 
 const LINKS = {
   newsroom: NEWSROOM,
+  // Supabase sets it in every function: where the public photos are.
+  storageUrl: optionalEnv("SUPABASE_URL"),
   publicUrl: optionalEnv("PUBLIC_URL") ?? "https://wausaupilotandreview.com/",
   shareBase: optionalEnv("SHARE_BASE_URL") ?? "https://rowanflynnpilot.github.io/wpr-pet-contest/",
 };

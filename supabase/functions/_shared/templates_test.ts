@@ -28,6 +28,7 @@ const base: QueueRow = {
 const KINDS: QueueRow["kind"][] = [
   "entry_received", "entry_approved", "entry_rejected", "advanced", "eliminated", "champion",
   "nurture_ready", "nurture_open", "nurture_halfway", "nurture_last_day", "nurture_matchup_last_day", "nurture_thanks",
+  "club_100", "club_500", "club_1000", "club_5000",
 ];
 
 Deno.test("every kind renders with a subject, html and text", () => {
@@ -54,6 +55,28 @@ Deno.test("another newsroom's name, phone and colors replace WPR's everywhere", 
   const code = renderFreeVoteCode({ code: "482913", petName: "Biscuit", contestName: "Cutest Pet", link: "https://x/", minutes: 15, newsroom: gazette });
   assertStringIncludes(code.text, "The Example Gazette · 555-010-0100");
   assert(!code.html.includes("Wausau"));
+});
+
+Deno.test("the approval email shows the photo and gives the owner's page a button, not a raw link in the copy", () => {
+  const msg = render({ ...base, kind: "entry_approved", photo_path: "c1/abc.thumb.jpg", owner_token: "11111111-1111-1111-1111-111111111111" },
+    { ...LINKS, storageUrl: "https://proj.supabase.co/" });
+  assertStringIncludes(msg.html, 'src="https://proj.supabase.co/storage/v1/object/public/pets/c1/abc.thumb.jpg"');
+  assertStringIncludes(msg.html, "owner page</a>");
+  // The owner link lives in the button, not printed in a paragraph.
+  assert(!/<p[^>]*>[^<]*\?owner=/.test(msg.html), "no raw owner link in the copy");
+  assertStringIncludes(msg.text, "owner page: https://wausaupilotandreview.com/pets/#/pet/");
+});
+
+Deno.test("a club note names the club, the next one, and carries the photo and a way out", () => {
+  const msg = render({ ...base, kind: "club_500", my_votes: 612, photo_path: "c1/abc.jpg", owner_token: "11111111-1111-1111-1111-111111111111" },
+    { ...LINKS, storageUrl: "https://proj.supabase.co" });
+  assertEquals(msg.subject, "Biscuit joined the 500 Club");
+  assertStringIncludes(msg.text, "The next one is the 1,000 Club.");
+  assertStringIncludes(msg.html, "pets/c1/abc.jpg");
+  assertStringIncludes(msg.text, "stop them here");
+  const last = render({ ...base, kind: "club_5000", my_votes: 5100 }, LINKS);
+  assertStringIncludes(last.text, "last club there is");
+  assert(!last.html.includes("<img"), "no photo without a storage URL");
 });
 
 Deno.test("approval carries the per-pet share page", () => {

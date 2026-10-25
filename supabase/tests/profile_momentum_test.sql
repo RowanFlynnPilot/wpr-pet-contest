@@ -8,7 +8,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(12);
+select plan(18);
 
 -- ---------------------------------------------------------------- fixtures --
 insert into auth.users (id) values ('11111111-1111-1111-1111-111111111111');
@@ -69,6 +69,47 @@ select is((select count(*)::int from entry_round_momentum where round_id = '9100
 select throws_ok($$ select buyer_email from votes limit 1 $$, '42501', null,
   'and still not the votes behind them');
 reset role;
+
+-- ------------------------------------------------------------- club notes --
+-- (0028) Ace climbs to 125 votes; Bea jumps from 25 to 600 in one night.
+select create_pending_vote('91000000-0000-0000-0000-000000000019', '9a000000-0000-0000-0000-0000000000a9', 'fan', 'a' || g || '@example.com', 'pi_ma_' || g)
+from generate_series(1, 3) g;
+select confirm_vote('pi_ma_' || g) from generate_series(1, 3) g;
+
+select results_eq(
+  $$ select kind, pet_name, my_votes from notification_queue(500) q where q.kind like 'club%' order by pet_name $$,
+  $$ values ('club_100'::text, 'Ace'::text, 125) $$,
+  'a pet past 100 votes over the contest is owed the 100 Club note, with its total');
+
+select is((select photo_path from notification_queue(500) q where q.kind = 'entry_approved' and q.pet_name = 'Ace'),
+  'm/Ace.jpg', 'the queue carries the pet''s photo for the email');
+
+select create_pending_vote('91000000-0000-0000-0000-000000000019', '9b000000-0000-0000-0000-0000000000b9', 'fan', 'b' || g || '@example.com', 'pi_mb_' || g)
+from generate_series(1, 23) g;
+select confirm_vote('pi_mb_' || g) from generate_series(1, 23) g;
+
+select results_eq(
+  $$ select kind from notification_queue(500) q where q.pet_name = 'Bea' and q.kind like 'club%' $$,
+  $$ values ('club_500'::text) $$,
+  'a big night owes only the highest club reached, not every club on the way');
+
+insert into notifications (kind, entry_id, to_email, status)
+values ('club_500', '9b000000-0000-0000-0000-0000000000b9', 'bea@example.com', 'sent');
+select is((select count(*)::int from notification_queue(500) q where q.pet_name = 'Bea' and q.kind like 'club%'), 0,
+  'and once it went, the lower clubs are never sent after it');
+
+select create_pending_vote('91000000-0000-0000-0000-000000000019', '9e000000-0000-0000-0000-0000000000e9', 'fan', 'c' || g || '@example.com', 'pi_mc_' || g)
+from generate_series(1, 5) g;
+select confirm_vote('pi_mc_' || g) from generate_series(1, 5) g;
+update entries set nurture_opt_out_at = now() where id = '9e000000-0000-0000-0000-0000000000e9';
+select is((select count(*)::int from notification_queue(500) q where q.pet_name = 'Cy' and q.kind like 'club%'), 0,
+  'an owner who stopped the tips gets no club notes');
+
+select throws_ok(
+  $$ insert into notifications (kind, entry_id, to_email, status)
+     values ('club_250', '9a000000-0000-0000-0000-0000000000a9', 'ace@example.com', 'sent') $$,
+  '23514', null,
+  'only the four clubs with notes are notification kinds');
 
 update rounds set status = 'resolved', resolved_at = now(), closes_at = now() - interval '1 hour'
 where id = '91000000-0000-0000-0000-000000000019';

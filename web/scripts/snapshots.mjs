@@ -166,7 +166,8 @@ async function capture(browser, phase, route, petId, stamp) {
 
 // The emails, rendered from the real templates with one family's sample
 // data, each with when it goes out. Saved as HTML beside the deck too.
-const LINKS = { publicUrl: 'https://wausaupilotandreview.com/pets/', shareBase: 'https://rowanflynnpilot.github.io/wpr-pet-contest/' }
+// storageUrl: the mock API serves the sample photos while the deck runs.
+const LINKS = { publicUrl: 'https://wausaupilotandreview.com/pets/', shareBase: 'https://rowanflynnpilot.github.io/wpr-pet-contest/', storageUrl: MOCK }
 const ENTRY = '7a000000-0000-0000-0000-00000000000a'
 const MATCHUP = 'f3a0d1a2-5a8b-4d2c-9d6e-0b7c1f2e3a44'
 const OWNER = { token: '11111111-1111-1111-1111-111111111111' }
@@ -186,16 +187,18 @@ const row = (over) => ({
   rejection_reason: null,
   raised_cents: 123_400,
   owner_token: OWNER.token,
+  photo_path: 'mock/1.jpg',
   ...over,
 })
 const EMAILS = [
   ['entry-received', 'Entry received', 'Right after the form is sent, before anyone has looked at it.', () => render(row({ kind: 'entry_received' }), LINKS)],
-  ['approved', 'Approved', 'When staff approve the entry: the share link, and the owner’s own link for a goal.', () => render(row({}), LINKS)],
+  ['approved', 'Approved', 'When staff approve the entry: the pet’s photo, the share link, and a button to the owner’s own page.', () => render(row({}), LINKS)],
   ['not-approved', 'Not approved', 'When staff decline one, with the reason they gave.', () => render(row({ kind: 'entry_rejected', rejection_reason: 'The photo shows a person’s face. The contest is for pets only; send one of Biscuit alone and we’ll approve it.' }), LINKS)],
   ['tips-before', 'Tips: before voting opens', 'The day after approval, while the Open Round is still a week away.', () => render(row({ kind: 'nurture_ready', round_name: 'Open Round', opens_at: '2026-11-21T14:00:00Z' }), LINKS)],
   ['tips-open', 'Tips: voting is open', 'In the first two days of the Open Round.', () => render(row({ kind: 'nurture_open', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 40, rank: 7, field_size: 212, goal_votes: 300 }), LINKS)],
   ['tips-halfway', 'Tips: halfway', 'Day three of the Open Round, with the standings and the cut.', () => render(row({ kind: 'nurture_halfway', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 88, rank: 14, field_size: 212, cut_margin: 12, goal_votes: 300 }), LINKS)],
   ['tips-last-day', 'Tips: last day', 'The morning of the Open Round’s deadline. This pet is six votes out of the bracket.', () => render(row({ kind: 'nurture_last_day', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 131, rank: 17, field_size: 212, cut_margin: -6, goal_votes: 300 }), LINKS)],
+  ['club', 'Joined a club', 'When a pet passes 100, 500, 1,000 or 5,000 votes over the whole contest; only the highest club reached, and none for owners who stopped the tips.', () => render(row({ kind: 'club_500', my_votes: 512 }), LINKS)],
   ['advanced', 'Made the Sweet 16', 'When a bracket round opens with the pet in it. The share button is the matchup page: both pets in the preview.', () => render(row({ kind: 'advanced', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, matchup_id: MATCHUP }), LINKS)],
   ['tips-matchup', 'Tips: matchup day', 'The morning a bracket round closes, with both counts.', () => render(row({ kind: 'nurture_matchup_last_day', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, my_votes: 111, opponent_votes: 118, matchup_id: MATCHUP }), LINKS)],
   ['eliminated', 'Thank you for entering', 'After a lost matchup.', () => render(row({ kind: 'eliminated', round_name: 'Sweet 16', opponent_name: 'Luna' }), LINKS)],
