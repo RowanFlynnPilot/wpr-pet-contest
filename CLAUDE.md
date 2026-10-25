@@ -234,6 +234,10 @@ the buttons call, for when the panel is not an option.
    tab → Approved → Disqualify…. An owner asking to take a pet out:
    Withdraw… (no refunds). It refuses during the Open Round if the field
    would drop below `bracket_size`.
+   Before the Championship: Rounds tab → The finale. Set when the live
+   reveal starts and the stream's link; Home and Results count down to it
+   and say "Live now" for two hours (0031). It never holds a result back.
+   Run the final Close on the stream, at the reveal.
 7. The final `close_round` returns null and flips the contest to `complete`.
    Side awards (`side_awards`) and the payout figures are ready the moment it
    does. Wrap-up tab: print the shelter payout statement (`payout_statement`,

@@ -1348,15 +1348,36 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
   display: grid; grid-template-columns: 22px 44px minmax(0, 1fr) auto; align-items: center; gap: 10px;
   padding: 6px 10px 6px 8px; border-radius: 12px; background: var(--paper);
 }
-.sprint-top li img, .sprint-top li .pet-photo { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+.sprint-top li .photo { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; }
 .sprint-top a { font-weight: 700; color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sprint-place { font-weight: 700; color: var(--accent-text); text-align: center; }
 .sprint-votes { font-weight: 700; font-size: 18px; }
 .sprint-winner { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; color: var(--brand-text); }
-.sprint-winner img, .sprint-winner .pet-photo { width: 72px; height: 72px; border-radius: 14px; object-fit: cover; }
+.sprint-winner .photo { flex: none; width: 72px; height: 72px; border-radius: 14px; overflow: hidden; }
 .sprint-note { margin: 0; }
 .sprint-line {
   display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 10px 12px; border-radius: 12px;
   background: var(--accent-wash); border: 1px solid var(--accent-rule); font-size: 15px; line-height: 1.45;
 }
 .sprint-line svg { flex: none; margin-top: 2px; color: var(--accent-text); }
+
+/* The finale: an event, so it wears the scoreboard's deep teal. */
+.finale-card {
+  display: grid; gap: 12px; justify-items: start; margin: 0 0 18px; padding: 18px;
+  background: var(--teal-deep); color: #fff; border-radius: 14px;
+  box-shadow: 0 14px 28px -18px rgba(15, 42, 38, 0.75);
+}
+.finale-card h2 { margin: 0; color: #fff; font-size: clamp(21px, 4.6vw, 28px); line-height: 1.15; text-wrap: balance; }
+.finale-kicker {
+  display: inline-flex; align-items: center; gap: 8px; margin: 0;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--board-label);
+}
+.finale-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.finale-card .btn-quiet { background: transparent; color: #fff; border-color: var(--board-ring); }
+.finale-card .btn-quiet svg { vertical-align: -3px; }
+.finale-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5a4f; box-shadow: 0 0 0 0 rgba(255, 90, 79, 0.6); }
+@media (prefers-reduced-motion: no-preference) {
+  .finale-dot { animation: finale-pulse 1.6s ease-out infinite; }
+}
+@keyframes finale-pulse { to { box-shadow: 0 0 0 10px rgba(255, 90, 79, 0); } }
+.finale-replay { margin: 0 0 14px; font-size: 15px; color: var(--muted); }

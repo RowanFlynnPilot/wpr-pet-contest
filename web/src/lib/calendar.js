@@ -21,9 +21,8 @@ function fold(line) {
   return out.join('\r\n')
 }
 
-export function deadlineIcs({ uid, title, closesAt, url, description, now = Date.now() }) {
-  const end = new Date(closesAt)
-  const start = new Date(end.getTime() - 15 * 60 * 1000)
+// Any event: a start, an end, and an alarm before it.
+export function eventIcs({ uid, title, startsAt, endsAt, url, description, alarm = '-PT30M', now = Date.now() }) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -33,20 +32,26 @@ export function deadlineIcs({ uid, title, closesAt, url, description, now = Date
     'BEGIN:VEVENT',
     `UID:${uid}@${HOST}`,
     `DTSTAMP:${stamp(now)}`,
-    `DTSTART:${stamp(start)}`,
-    `DTEND:${stamp(end)}`,
+    `DTSTART:${stamp(startsAt)}`,
+    `DTEND:${stamp(endsAt)}`,
     `SUMMARY:${esc(title)}`,
     `DESCRIPTION:${esc(description)}`,
     `URL:${url}`,
     'BEGIN:VALARM',
     'ACTION:DISPLAY',
     `DESCRIPTION:${esc(title)}`,
-    'TRIGGER:-PT2H',
+    `TRIGGER:${alarm}`,
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',
   ]
   return lines.map(fold).join('\r\n') + '\r\n'
+}
+
+// A round's deadline: 15 minutes ending at the close, reminder two hours out.
+export function deadlineIcs({ uid, title, closesAt, url, description, now = Date.now() }) {
+  const end = new Date(closesAt)
+  return eventIcs({ uid, title, startsAt: new Date(end.getTime() - 15 * 60 * 1000), endsAt: end, url, description, alarm: '-PT2H', now })
 }
 
 export const icsHref = (ics) => `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`

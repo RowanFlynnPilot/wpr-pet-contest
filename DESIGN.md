@@ -573,3 +573,9 @@ aside: it disappears on dark paper.
   winner), what the pet did, its votes over the whole contest, what voters
   raised at the finish, and the newsroom's name on a signature line. At the
   finish it is the image maker's first choice.
+- **The finale.** A live reveal staff schedule (time and stream link): a
+  deep-teal card on Home and Results, the scoreboard's own countdown cells,
+  a sun "Where to watch" and a calendar file; "Live now" with a pulsing dot
+  for two hours; then a quiet replay line for two weeks. It never hides the
+  result: the final count is public as voting closes, and the crown drops
+  when staff run the last Close on the stream.

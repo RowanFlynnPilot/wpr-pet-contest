@@ -114,6 +114,9 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       free_vote_enabled: true,
       free_vote_paused_at: null,
       sprints_enabled: true,
+      // The finale (0031): two days out in the bracket, on air at the finish.
+      finale_at: current === 'bracket' ? iso(now + 2 * DAY) : current === 'complete' ? iso(now - 30 * 60e3) : null,
+      finale_url: current === 'bracket' || current === 'complete' ? 'https://example.org/live' : null,
       shelter_goal_cents: 500000,
     }
 

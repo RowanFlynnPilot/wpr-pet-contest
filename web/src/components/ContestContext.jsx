@@ -49,6 +49,9 @@ export function ContestProvider({ children }) {
     ...(windowsRes.data || []).filter((w) => w.contest_id === id).flatMap((w) => [ms(w.starts_at), ms(w.ends_at)]),
     ...(matchesRes.data || []).filter((m) => m.contest_id === id).flatMap((m) => [ms(m.starts_at), ms(m.ends_at)]),
     ...(sprintsRes.data || []).flatMap((s) => [ms(s.starts_at), ms(s.ends_at), ms(s.ends_at) + 12 * 3600e3, ms(s.starts_at) - 48 * 3600e3]),
+    // The finale's countdown, "live now" and replay link (lib/finale.js).
+    ms(contest?.finale_at),
+    ms(contest?.finale_at) + 2 * 3600e3,
   ]
   const now = useClock(boundaries)
 

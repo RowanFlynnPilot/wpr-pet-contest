@@ -67,6 +67,7 @@ async function withFallback(run, cols, baseCols) {
 }
 
 const CONTEST_COL_SETS = [
+  `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled, finale_at, finale_url`,
   `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled`,
   `${CONTEST_FREE_COLS}, shelter_goal_cents`,
   CONTEST_FREE_COLS,

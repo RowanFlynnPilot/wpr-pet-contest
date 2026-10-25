@@ -4,6 +4,7 @@ import { roundLabel } from '../lib/rounds.js'
 import { useNow } from '../lib/hooks.js'
 import { admin, callAdmin, q, SessionError, view } from './adminClient.js'
 import { ErrorNote, Stat, TypedConfirm, useAsync, useDesk } from './shared.jsx'
+import FinaleSetting from './Finale.jsx'
 
 // Round state changes only through open_submissions / open_round /
 // close_round, and each sits behind a typed word: results are irreversible.
@@ -200,6 +201,8 @@ export default function Rounds() {
         </table>
       </div>
       {!list.length && !rounds.loading && <p className="muted">No rounds yet. Opening submissions stages round 1, scheduled to start when submissions close.</p>}
+
+      {contest.status !== 'draft' && <FinaleSetting key={`${contest.id}-${contest.finale_at}-${contest.finale_url}`} contest={contest} onSaved={reloadContest} />}
 
       {action?.kind === 'open' && (
         <TypedConfirm word="OPEN" title={`Open the ${roundLabel(action.round.seq, size)}`} busy={busy} danger={false} onCancel={() => setAction(null)} onConfirm={() => openRound(action.round)}>

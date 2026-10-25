@@ -11,6 +11,8 @@ import { roundLabel } from '../lib/rounds.js'
 import { closestMatchup } from '../lib/widget.js'
 import RaisedCounter from '../components/RaisedCounter.jsx'
 import SprintCard from '../components/SprintCard.jsx'
+import FinaleCard from '../components/FinaleCard.jsx'
+import { finaleState } from '../lib/finale.js'
 import HowItWorks from '../components/HowItWorks.jsx'
 import AdoptButton from '../components/AdoptButton.jsx'
 import Leaderboard from '../components/Leaderboard.jsx'
@@ -449,6 +451,11 @@ export default function Home() {
     <>
       <Arena c={c} entries={entries} byId={byId} totals={totals} />
       <div className="wrap">
+        {finaleState(c.contest, c.phase, c.now) && (
+          <div className="section" style={{ paddingTop: 20, paddingBottom: 0 }}>
+            <FinaleCard />
+          </div>
+        )}
         {c.sprint && (
           <div className="section" style={{ paddingTop: 20 }}>
             <SprintCard byId={byId} />
