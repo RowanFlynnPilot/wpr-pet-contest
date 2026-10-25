@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { useContest } from './ContestContext.jsx'
-import { useBracket, useRoundTotals } from '../lib/data.js'
+import { useBracket, useContestTotals, useRoundTotals } from '../lib/data.js'
+import { milestone } from '../lib/milestones.js'
 import { entryStates } from '../lib/bracketState.js'
 import { Camera } from './Icons.jsx'
 
@@ -17,6 +18,7 @@ function Live({ entry, onClose }) {
   // The same stores the pet page already polls: no extra requests.
   const liveRound = (c.phase === 'voting' || c.phase === 'counting') && c.round ? c.round.id : null
   const totals = useRoundTotals(liveRound)
+  const contestTotals = useContestTotals(c.rounds)
   const inBracket = c.rounds.some((r) => r.kind === 'bracket')
   const bracket = useBracket(inBracket ? c.rounds : [], { openRoundId: c.phase === 'voting' ? c.round?.id : null })
   const state = useMemo(
@@ -37,6 +39,7 @@ function Live({ entry, onClose }) {
       bracketSize={c.bracketSize}
       state={state}
       votes={liveRound ? totals.totals.get(entry.id)?.votes || 0 : null}
+      club={milestone(contestTotals.get(entry.id)).earned}
       now={c.now}
     />
   )

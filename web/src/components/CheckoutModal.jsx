@@ -10,7 +10,8 @@ import { bestValue, defaultPack, formatPerVote, orderPacksForDisplay, savingsPct
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
 import { roundLabel } from '../lib/rounds.js'
 import { boostLive, useLive } from '../lib/live.js'
-import { totalsKey, useActivity } from '../lib/data.js'
+import { totalsKey, useActivity, useContestTotals } from '../lib/data.js'
+import { clubLabel, milestone } from '../lib/milestones.js'
 import { multiplierWord, windowTitle } from '../lib/bonus.js'
 import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
@@ -79,6 +80,10 @@ export default function CheckoutModal({ entry, round, onClose }) {
   const totals = useLive(totalsKey(round.id), () => fetchTotals(round.id), 20000)
   const currentVotes = totals.data?.get(entry.id)?.votes || 0
   const activity = useActivity(receipt ? round.id : null)
+  // The other rounds' votes, for the milestone line on the thank-you screen
+  // (this round's come from the live total above). Loaded once the pack is paid.
+  const otherRounds = useMemo(() => (receipt ? c.rounds.filter((r) => r.id !== round.id) : []), [receipt, c.rounds, round.id])
+  const others = useContestTotals(otherRounds)
   const [stripe, setStripe] = useState({ status: 'idle', value: null })
 
   const pack = packs.find((p) => p.slug === slug) || null
@@ -379,6 +384,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
           label={label}
           closesAt={closesAt}
           currentVotes={currentVotes}
+          contestVotes={(others.get(entry.id) || 0) + currentVotes}
           contestName={c.contest?.name}
           split={c.contest?.beneficiary_split_pct}
           shelter={c.shelters.length === 1 ? c.shelters[0] : null}
@@ -503,7 +509,27 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
 // The peak of the whole contest for a reader: their pet, its count lighting
 // up as the votes land, and what the pack did for the shelters. A late
 // payment gets the plain truth instead of a celebration.
-function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestName, split, shelter, canBuyAgain, onAgain, onClose }) {
+// After a paid pack lands: a club this pack unlocked, or how far to the next.
+function ClubNudge({ name, total, bought }) {
+  const now = milestone(total)
+  const before = milestone(total - bought)
+  if (now.earned && now.earned !== before.earned) {
+    return (
+      <p className="done-club joined">
+        <span aria-hidden="true">🏅</span> Your pack put {name} in the <strong>{clubLabel(now.earned)}</strong>.
+      </p>
+    )
+  }
+  if (!now.next) return null
+  return (
+    <p className="done-club">
+      <span aria-hidden="true">🏅</span> {fmtInt(now.toNext)} more {now.toNext === 1 ? 'vote' : 'votes'} and {name} joins the{' '}
+      <strong>{clubLabel(now.next)}</strong>.
+    </p>
+  )
+}
+
+function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVotes, contestName, split, shelter, canBuyAgain, onAgain, onClose }) {
   const votes = fmtInt(intent.votes)
   const late = outcome === 'late'
   const toShelters = split != null ? Math.round((intent.cents * split) / 100) : null
@@ -573,6 +599,7 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
             </>
           )}
         </p>
+        {outcome === 'credited' && <ClubNudge name={entry.pet_name} total={contestVotes} bought={intent.votes} />}
       </div>
 
       {!late && <ShareTools entry={entry} contestName={contestName} title={`Now get ${entry.pet_name} more votes`} compact />}

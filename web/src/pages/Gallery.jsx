@@ -120,9 +120,11 @@ export default function Gallery() {
       newest: (a, b) => new Date(b.created_at) - new Date(a.created_at),
       az: (a, b) => a.pet_name.localeCompare(b.pet_name),
       seed: (a, b) => (a.seed ?? 1e9) - (b.seed ?? 1e9) || byVotes(a, b),
+      // The last day's votes (entry_round_momentum), most first.
+      rising: (a, b) => (recent.get(b.id) || 0) - (recent.get(a.id) || 0) || byVotes(a, b),
     }
     return [...out].sort(sorters[sortBy] || byVotes)
-  }, [entries, q, species, town, favOnly, favSet, favKept, status, states, sortBy, rankOf])
+  }, [entries, q, species, town, favOnly, favSet, favKept, status, states, sortBy, rankOf, recent])
 
   const resetKey = `${q}|${species}|${town}|${favOnly}|${status}|${sortBy}`
   // The Open Round leader leads the grid, unfiltered and sorted by votes.
@@ -224,6 +226,7 @@ export default function Gallery() {
           <select id="gallery-sort" value={sortBy} onChange={(e) => setSort(e.target.value)}>
             {inBracket && <option value="seed">By seed</option>}
             {(openLive || inBracket || c.phase === 'complete') && <option value="votes">{inBracket ? 'Open Round finish' : 'Most votes'}</option>}
+            {openLive && recent.size > 0 && <option value="rising">Rising today</option>}
             <option value="newest">Newest</option>
             <option value="az">A–Z</option>
           </select>

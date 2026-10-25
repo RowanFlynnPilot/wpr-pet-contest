@@ -1115,6 +1115,20 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .shelter.partner .shelter-name { font-size: 24px; }
 .shelter-note { margin: 4px 0 12px; font-size: 15px; color: var(--muted); }
 .shelter.partner .shelter-link { margin-top: 2px; }
+/* The thank-you screen's club line. */
+.done-club { margin: 10px 0 0; padding: 9px 12px; border-radius: 10px; background: var(--accent-wash); border: 1px solid var(--accent-rule); font-size: 15px; line-height: 1.4; }
+.done-club span[aria-hidden] { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; margin-right: 4px; }
+.done-club.joined { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+/* On a phone the link preview is the compact kind: thumbnail beside the words. */
+@media (max-width: 560px) {
+  .link-preview { display: grid; grid-template-columns: 92px minmax(0, 1fr); max-width: none; }
+  .link-preview-image { aspect-ratio: auto; height: 100%; min-height: 92px; }
+  .link-preview figcaption { border-top: 0; border-left: 1px solid var(--rule); padding: 8px 10px; align-content: center; }
+  .link-preview-title { font-size: 14px; }
+  .link-preview-desc { -webkit-line-clamp: 1; }
+}
+
 /* Climbing: ▲n beside a pet that rose n places since yesterday. */
 .climb {
   display: inline-flex; align-items: center; margin-left: 6px; padding: 1px 6px; border-radius: 999px; vertical-align: 1px;
@@ -1129,7 +1143,7 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
   display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 0 7px; border-radius: 999px; vertical-align: 1px;
   font-size: 11.5px; font-weight: 800; line-height: 1.6; background: var(--accent-tint); color: var(--accent-text); white-space: nowrap;
 }
-.milestones { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--accent-rule); border-radius: 14px; background: var(--accent-wash); }
+.milestones { margin-top: 18px; padding: 14px 16px; border: 1px solid var(--accent-rule); border-radius: 14px; background: var(--accent-wash); }
 .ms-badges { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
 .ms-badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px 5px 8px; border-radius: 999px;
@@ -1137,6 +1151,8 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 }
 .ms-badge.on { background: var(--accent); color: var(--on-accent); box-shadow: 0 2px 6px -3px rgba(0, 0, 0, 0.35); }
 .ms-badge.next { border: 1.5px dashed var(--accent-rule); color: var(--ink-2); padding-left: 11px; }
+/* On a phone: the latest club and the next one, on one line. */
+@media (max-width: 560px) { .ms-badge.older { display: none; } }
 .ms-medal { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; font-size: 15px; line-height: 1; }
 .ms-progress { display: grid; gap: 6px; margin-top: 12px; }
 .ms-bar { display: block; height: 8px; border-radius: 99px; background: var(--accent-tint); overflow: hidden; }
@@ -1144,15 +1160,23 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .ms-note { margin: 0; font-size: 14px; color: var(--ink-2); }
 .milestones > .ms-note { margin-top: 10px; }
 
-/* Get to know: the owner's answers, under the caption. */
-.profile-card { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper); }
-.profile-card h2 { font-size: 19px; margin: 0 0 8px; }
-.profile-card dl { display: grid; gap: 8px; margin: 0; }
-.profile-row { display: grid; gap: 1px; }
-.profile-row dt { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.profile-row dt span { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; letter-spacing: 0; }
-.profile-row dd { margin: 0; font-family: var(--display); font-size: 18px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
-@media (min-width: 560px) { .profile-row { grid-template-columns: 190px minmax(0, 1fr); align-items: baseline; gap: 12px; } }
+/* Who the pet is (PetAbout): the caption, then the answers as chips that
+   read as phrases. First under the photo on the pet page. */
+.pet-about { margin: 2px 0 14px; }
+.pet-about .caption { margin: 0; }
+.about-chips { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 10px 0 0; padding: 0; }
+.about-chip {
+  display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 6px 12px 6px 9px; border-radius: 999px;
+  background: var(--paper); border: 1px solid var(--rule); font-size: 14.5px; font-weight: 600; line-height: 1.3; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.about-emoji { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; font-size: 16px; line-height: 1; flex: none; }
+/* The entry form's live preview of the same block. */
+.about-preview { margin-top: 4px; padding: 14px 16px; border: 1.5px dashed var(--rule-strong); border-radius: 14px; background: var(--cream); }
+.about-preview-label { display: block; margin-bottom: 6px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.about-preview-name { display: block; margin-bottom: 6px; font-family: var(--display); font-size: 24px; font-weight: 700; line-height: 1.1; }
+.about-preview .pet-about { margin: 0; }
+
 .profile-fields { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
 .profile-fields legend { padding: 0; margin-bottom: 2px; }
 .profile-fields .hint { margin: -4px 0 2px; }
@@ -1206,6 +1230,18 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
   .adopt-button, .adopt-button-photo img, .adopt-button-paw, .adopt-button-go { transition: none; }
   .adopt-button.has-pet .adopt-button-photo img { animation: none; }
 }
+
+/* Results: the clubs at the finish. */
+.club-tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; list-style: none; margin: 0; padding: 0; }
+.club-tally li { display: grid; gap: 2px; padding: 14px 16px; border-radius: 14px; background: var(--accent-wash); border: 1px solid var(--accent-rule); }
+.club-tally-n { font-family: var(--mono); font-size: 34px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.club-tally-label { font-size: 14px; font-weight: 800; color: var(--accent-text); }
+.club-tally-label span { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+.club-top { margin: 12px 0 0; font-size: 15px; color: var(--ink-2); }
+
+.how-compact { padding-top: 8px; padding-bottom: 8px; }
+.how-compact p { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 16px; border-radius: 12px; background: var(--accent-wash); border: 1px solid var(--accent-rule); font-size: 15px; line-height: 1.45; }
+.how-compact svg { flex: none; margin-top: 2px; color: var(--accent-text); }
 
 .adoptable { display: grid; gap: 16px; align-items: center; }
 @media (min-width: 760px) { .adoptable { grid-template-columns: 280px 1fr; } }

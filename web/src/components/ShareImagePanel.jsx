@@ -14,7 +14,7 @@ import './graphics.css'
 // card in the browser, in the sizes Instagram, Facebook and a printer want.
 // It opens inline under the share buttons (no overlay), which also keeps it
 // where the reader is inside the WordPress iframe.
-export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, now }) {
+export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, club = null, now }) {
   const [formatId, setFormatId] = useState('story')
   const format = OWNER_FORMATS.find((f) => f.id === formatId)
   const heading = useRef(null)
@@ -46,6 +46,8 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     where: displayUrl(PUBLIC_URL),
     shareUrl: url,
     splitPct: contest?.beneficiary_split_pct,
+    // The highest milestone club, drawn as a badge (lib/graphics/owner.js).
+    club,
   }
   // Redraw only when what the image says changes, not on every clock tick.
   const key = ready ? JSON.stringify([formatId, data]) : null

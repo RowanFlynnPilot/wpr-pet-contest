@@ -8,6 +8,7 @@ import { track } from '../lib/analytics.js'
 import { deadlineIcs, icsHref } from '../lib/calendar.js'
 import { PUBLIC_URL } from '../lib/env.js'
 import { entryShareLine } from '../lib/share.js'
+import PetAbout, { hasAbout } from '../components/PetAbout.jsx'
 import { apDate, apDateTime, period } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { ACCEPTED_TYPES, MAX_BYTES, prepareUpload } from '../lib/image.js'
@@ -322,6 +323,13 @@ export default function Enter() {
     )
   }
 
+  const draftAbout = {
+    pet_name: v.pet_name.trim() || 'your pet',
+    caption: v.caption.trim(),
+    profile_nickname: v.profile_nickname.trim(),
+    profile_favorite: v.profile_favorite.trim(),
+    profile_trick: v.profile_trick.trim(),
+  }
   const errorCount = Object.values(errors).filter(Boolean).length
 
   return (
@@ -436,6 +444,15 @@ export default function Enter() {
             <TextField id="profile_favorite" label="Favorite thing" placeholder="The squeaky hedgehog" value={v.profile_favorite} onChange={set('profile_favorite')} error={errors.profile_favorite} max={LIMITS.profile_favorite} autoComplete="off" />
             <TextField id="profile_trick" label="Best trick or quirk" placeholder="Sneezes when excited" value={v.profile_trick} onChange={set('profile_trick')} error={errors.profile_trick} max={LIMITS.profile_trick} autoComplete="off" />
           </fieldset>
+
+          {/* What readers will see under the photo, as it is typed. */}
+          {hasAbout(draftAbout) && (
+            <div className="about-preview" aria-live="polite">
+              <span className="about-preview-label">On {v.pet_name.trim() ? `${v.pet_name.trim()}’s` : "your pet’s"} page</span>
+              <span className="about-preview-name">{v.pet_name.trim() || 'Your pet'}</span>
+              <PetAbout entry={draftAbout} />
+            </div>
+          )}
 
           <div className="row-2">
             <TextField id="owner_name" label="Your name" hint="Never published." value={v.owner_name} onChange={set('owner_name')} error={errors.owner_name} max={LIMITS.owner_name} autoComplete="name" />

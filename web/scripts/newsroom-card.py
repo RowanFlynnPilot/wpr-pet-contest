@@ -48,8 +48,8 @@ def main():
     sub = og.font(sans, 29, {"wght": 400})
     d.text((78, 426), "Built and run by Wausau Pilot & Review. Ready for another town.", font=sub, fill=(58, 58, 58))
 
-    badge = Image.open(og.PUBLIC / "wpr-typewriter-badge.png").convert("RGB").resize((64, 64), Image.LANCZOS)
-    word = Image.open(og.PUBLIC / "wpr-wordmark.png").convert("RGB")
+    badge = og.on_white(og.PUBLIC / "wpr-typewriter-badge.png").resize((64, 64), Image.LANCZOS)
+    word = og.on_white(og.PUBLIC / "wpr-wordmark.png")
     ww = 300
     wh = round(word.height * ww / word.width)
     word = word.resize((ww, wh), Image.LANCZOS)

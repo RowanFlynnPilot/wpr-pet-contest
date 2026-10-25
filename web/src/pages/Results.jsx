@@ -4,7 +4,8 @@ import Confetti from '../components/Confetti.jsx'
 import { CrownMark } from '../components/Scoreboard.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
 import RaisedCounter from '../components/RaisedCounter.jsx'
-import { useBracket, useEntries, useSideAwards } from '../lib/data.js'
+import { useBracket, useContestTotals, useEntries, useSideAwards } from '../lib/data.js'
+import { CLUB_TIERS, clubLabel } from '../lib/milestones.js'
 import { fmtInt, fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { finalSeq } from '../lib/rounds.js'
@@ -92,9 +93,54 @@ export function SideAwards({ c, byId }) {
   )
 }
 
+// The milestone clubs at the finish: how many pets reached each one over
+// the whole contest, highest club first, and the pets in the top club.
+function ClubSummary({ c, entries }) {
+  const totals = useContestTotals(c.rounds)
+  if (!totals.size || !entries.length) return null
+  const count = (tier) => entries.filter((e) => (totals.get(e.id) || 0) >= tier).length
+  const reached = [...CLUB_TIERS].reverse().filter((t) => count(t) > 0)
+  if (!reached.length) return null
+  const top = reached[0]
+  const topPets = entries.filter((e) => (totals.get(e.id) || 0) >= top).sort((a, b) => (totals.get(b.id) || 0) - (totals.get(a.id) || 0))
+  const anyClub = count(CLUB_TIERS[0])
+  return (
+    <section className="section" aria-labelledby="clubs-title">
+      <div className="section-head">
+        <div>
+          <h2 id="clubs-title">The clubs</h2>
+          <p className="section-count">
+            {fmtInt(anyClub)} of {fmtInt(entries.length)} pets earned a badge, counting every round
+          </p>
+        </div>
+      </div>
+      <ul className="club-tally">
+        {reached.slice(0, 4).map((t) => (
+          <li key={t}>
+            <span className="club-tally-n">{fmtInt(count(t))}</span>
+            <span className="club-tally-label">
+              <span aria-hidden="true">🏅</span> {clubLabel(t)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="club-top">
+        In the {clubLabel(top)}:{' '}
+        {topPets.slice(0, 6).map((e, i) => (
+          <span key={e.id}>
+            {i > 0 && (i === Math.min(topPets.length, 6) - 1 ? ' and ' : ', ')}
+            <a href={`#/pet/${e.id}`}>{e.pet_name}</a>
+          </span>
+        ))}
+        {topPets.length > 6 ? `, and ${fmtInt(topPets.length - 6)} more` : ''}.
+      </p>
+    </section>
+  )
+}
+
 export default function Results() {
   const c = useContest()
-  const { byId } = useEntries(c.contest?.id)
+  const { entries, byId } = useEntries(c.contest?.id)
   useDocumentTitle(`Results — ${NEWSROOM.name}`)
 
   if (c.phase !== 'complete') {
@@ -121,6 +167,7 @@ export default function Results() {
         <RaisedCounter />
       </div>
       <SideAwards c={c} byId={byId} />
+      <ClubSummary c={c} entries={entries} />
       <section className="section" aria-labelledby="final-title">
         <div className="section-head">
           <h2 id="final-title">The final bracket</h2>

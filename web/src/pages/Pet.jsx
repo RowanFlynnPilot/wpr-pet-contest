@@ -16,6 +16,7 @@ import ShareTools from '../components/ShareTools.jsx'
 import ShareImageButton from '../components/ShareImageButton.jsx'
 import PhotoLightbox from '../components/PhotoLightbox.jsx'
 import LinkPreview from '../components/LinkPreview.jsx'
+import PetAbout from '../components/PetAbout.jsx'
 import VoteButton from '../components/VoteButton.jsx'
 import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
@@ -179,8 +180,8 @@ function Milestones({ name, total, started }) {
   return (
     <section className="milestones" aria-label={`${name}'s milestones`}>
       <ol className="ms-badges">
-        {shown.map((t) => (
-          <li key={t} className="ms-badge on">
+        {shown.map((t, i) => (
+          <li key={t} className={`ms-badge on${i < shown.length - 1 ? ' older' : ''}`}>
             <span className="ms-medal" aria-hidden="true">
               🏅
             </span>
@@ -207,33 +208,6 @@ function Milestones({ name, total, started }) {
       ) : (
         <p className="ms-note">{name} has joined every club. Every vote from here is a bonus.</p>
       )}
-    </section>
-  )
-}
-
-// "Get to know": the owner's answers from the entry form (0026), moderated
-// with the photo and the caption.
-const PROFILE = [
-  ['profile_nickname', '🏷️', 'Also answers to'],
-  ['profile_favorite', '🧸', 'Favorite thing'],
-  ['profile_trick', '🎩', 'Best trick or quirk'],
-]
-function Profile({ entry }) {
-  const rows = PROFILE.filter(([key]) => entry[key])
-  if (!rows.length) return null
-  return (
-    <section className="profile-card" aria-labelledby="profile-title">
-      <h2 id="profile-title">Get to know {entry.pet_name}</h2>
-      <dl>
-        {rows.map(([key, emoji, label]) => (
-          <div key={key} className="profile-row">
-            <dt>
-              <span aria-hidden="true">{emoji}</span> {label}
-            </dt>
-            <dd>{entry[key]}</dd>
-          </div>
-        ))}
-      </dl>
     </section>
   )
 }
@@ -578,13 +552,13 @@ export default function Pet({ route }) {
         {photoOpen && <PhotoLightbox entry={entry} tint={tint} onClose={() => setPhotoOpen(false)} />}
 
         <div className="pet-play">
+          {/* Who the pet is, first; then where it stands and how to help. */}
+          <PetAbout entry={entry} />
           <RoadStrip road={road} name={name} />
           {panel}
           {entry.goal_votes && liveRound ? <GoalLine entry={entry} round={liveRound} /> : null}
           <Milestones name={name} total={contestTotals.get(entry.id)} started={c.rounds.some((r) => r.status !== 'pending')} />
           {ownerToken && <OwnerTools entry={entry} token={ownerToken} round={liveRound} />}
-          {entry.caption && <p className="caption">{entry.caption}</p>}
-          <Profile entry={entry} />
           {entry.shelter_id && (
             <div className="adopt-badge">
               <span className="bonus-badge">Adoptable</span>

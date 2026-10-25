@@ -5,6 +5,7 @@ import { C, F, doubleRule, drawBlock, drawFlag, drawPhoto, fillRect, fitBlock, l
 import { fmtCount } from './layout.js'
 import { shelterLine } from './content.js'
 import { drawQr } from './qr.js'
+import { clubLabel } from '../milestones.js'
 
 // d: { entry, copy (ownerCopy), votes, where, shareUrl, splitPct }
 
@@ -43,6 +44,56 @@ function voteSticker(ctx, cx, cy, d, votes, label) {
   capTop += cap(unit) + g2
   if (tag) drawBlock(ctx, tag, { x: -(w * 0.9) / 2, y: top(tag, capTop), color: C.ink, align: 'center' })
   ctx.restore()
+}
+
+// A five-point star, for the club medal.
+function star(ctx, cx, cy, outer, inner, fill) {
+  ctx.beginPath()
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5
+    const r = i % 2 ? inner : outer
+    ctx.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a))
+  }
+  ctx.closePath()
+  ctx.fillStyle = fill
+  ctx.fill()
+}
+
+// The milestone club (lib/milestones.js) as a sun pill with a medal: on the
+// photo of a story or a flyer, under the town on a square. Clubs only ever
+// grow, so a printed flyer never goes stale. Returns its width.
+function clubPill(ctx, x, y, h, tier) {
+  const size = Math.round(h * 0.4)
+  const text = clubLabel(tier).toUpperCase()
+  const track = size * 0.08
+  ctx.save()
+  ctx.font = F.sans(800)(size)
+  const tw = [...text].reduce((w, ch) => w + ctx.measureText(ch).width + track, -track)
+  const medal = h * 0.62
+  const padX = h * 0.3
+  const gap = h * 0.2
+  const w = padX + medal + gap + tw + padX * 1.2
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.28)'
+  ctx.shadowBlur = h * 0.3
+  ctx.shadowOffsetY = h * 0.06
+  fillRect(ctx, x, y, w, h, C.sun, h / 2)
+  ctx.shadowColor = 'transparent'
+  const mx = x + padX + medal / 2
+  const my = y + h / 2
+  ctx.beginPath()
+  ctx.arc(mx, my, medal / 2, 0, Math.PI * 2)
+  ctx.fillStyle = C.ink
+  ctx.fill()
+  star(ctx, mx, my, medal * 0.32, medal * 0.13, C.sun)
+  ctx.fillStyle = C.ink
+  ctx.textBaseline = 'middle'
+  let tx = x + padX + medal + gap
+  for (const ch of text) {
+    ctx.fillText(ch, tx, my + size * 0.05)
+    tx += ctx.measureText(ch).width + track
+  }
+  ctx.restore()
+  return w
 }
 
 // The call to action in a sun pill. Returns its bottom edge.
@@ -92,6 +143,7 @@ async function story(ctx, d, { brand }) {
   drawPhoto(ctx, await photo, M, photoTop, CW, photoH, { radius: 28 })
   // No sticker at zero: "0 votes" talks people out of voting.
   if (copy.showVotes && d.votes > 0) voteSticker(ctx, W - M - 92, photoTop + 96, 236, d.votes, copy.votesLabel)
+  if (d.club) clubPill(ctx, M + 26, photoTop + 26, 66, d.club)
 
   let y = photoTop + photoH + 44
   y = drawBlock(ctx, name, { x: M, y, color: '#ffffff', align: 'center' }) + 10
@@ -136,6 +188,11 @@ async function square(ctx, d, { brand }) {
   y = textBlock(ctx, copy.kicker, { x: cx, y, maxWidth: colW, font: F.sans(800), color: C.sun, upper: true, track: 0.14, maxSize: 22, minSize: 18, floor: 20, maxLines: 2, leading: 1.35 }).bottom + 18
   y = textBlock(ctx, d.entry.pet_name, { x: cx, y, maxWidth: colW, font: F.display(600), color: '#ffffff', maxSize: 104, floor: 76, wrapSize: 84, minSize: 32, maxLines: 2, leading: 1.0 }).bottom + 10
   if (d.entry.town) y = textBlock(ctx, d.entry.town, { x: cx, y, maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 30, floor: 26, minSize: 22, maxLines: 2, leading: 1.2 }).bottom
+  if (d.club) {
+    y += 20
+    clubPill(ctx, cx, y, 52, d.club)
+    y += 52
+  }
   y += 34
   ctx.fillStyle = 'rgba(214, 230, 226, 0.35)'
   ctx.fillRect(cx, y, colW, 2)
@@ -177,6 +234,7 @@ async function flyer(ctx, d, { brand }) {
   const town = fitBlock(ctx, d.entry.town || '', { maxWidth: CW, font: F.sans(600), maxSize: 40, floor: 32, minSize: 26, maxLines: 1, leading: 1.2 })
   const photoH = Math.max(560, bandTop - 44 - town.height - 8 - name.height - 34 - photoTop)
   drawPhoto(ctx, await photo, M, photoTop, CW, photoH, { radius: 18 })
+  if (d.club) clubPill(ctx, M + 24, photoTop + 24, 72, d.club)
   let y = drawBlock(ctx, name, { x: M, y: photoTop + photoH + 34, color: C.ink, align: 'center' }) + 8
   drawBlock(ctx, town, { x: M, y, color: C.muted, align: 'center' })
 
@@ -211,7 +269,7 @@ export const OWNER_FORMATS = [
 ]
 
 export function renderOwner(format, data, { scale = 1 } = {}) {
-  const text = [data.entry.pet_name, data.entry.town, data.copy.headline, data.copy.detail, data.copy.kicker, data.where].join(' ')
+  const text = [data.entry.pet_name, data.entry.town, data.copy.headline, data.copy.detail, data.copy.kicker, data.where, data.club ? clubLabel(data.club).toUpperCase() : ''].join(' ')
   return render({ width: format.width, height: format.height, scale, text, draw: (ctx, assets) => format.draw(ctx, data, assets) })
 }
 

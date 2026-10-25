@@ -58,6 +58,13 @@ def font(data, size, axes=None):
     return f
 
 
+def on_white(path):
+    """The badge and wordmark are transparent PNGs (for dark mode); flatten
+    them onto white, not the black that convert('RGB') would leave."""
+    im = Image.open(path).convert("RGBA")
+    return Image.alpha_composite(Image.new("RGBA", im.size, "white"), im).convert("RGB")
+
+
 def paw(draw, cx, cy, s, fill):
     """A paw print: one pad and four toes. Generic art."""
     draw.ellipse([cx - 0.44 * s, cy - 0.05 * s, cx + 0.44 * s, cy + 0.66 * s], fill=fill)
@@ -153,8 +160,8 @@ def main():
     # newsroom has them, else its name in the display face.
     pad = 14
     if paper.get("badge") and paper.get("wordmark"):
-        badge = Image.open(PUBLIC / Path(paper["badge"]).name).convert("RGB").resize((64, 64), Image.LANCZOS)
-        word = Image.open(PUBLIC / Path(paper["wordmark"]).name).convert("RGB")
+        badge = on_white(PUBLIC / Path(paper["badge"]).name).resize((64, 64), Image.LANCZOS)
+        word = on_white(PUBLIC / Path(paper["wordmark"]).name)
         ww = 300
         wh = round(word.height * ww / word.width)
         word = word.resize((ww, wh), Image.LANCZOS)

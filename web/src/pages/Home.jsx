@@ -463,7 +463,7 @@ export default function Home() {
         {bracketLive && <BracketPreview c={c} byId={byId} round={previewRound} />}
         {!favEarly && favRow}
         {(c.phase === 'submissions' || c.phase === 'submissions_closed' || c.phase === 'coming') && <Newcomers entries={entries} />}
-        <HowItWorks />
+        <HowItWorks compact={['voting', 'counting', 'intermission'].includes(c.phase)} />
         {c.shelters.length > 0 && (
           <section className="section" aria-labelledby="sh-title">
             <div className="section-head">

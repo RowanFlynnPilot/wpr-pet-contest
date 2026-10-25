@@ -519,3 +519,26 @@ aside: it disappears on dark paper.
   widths or the render endpoint); never an eager photo, which is usually the
   largest paint. A short haptic tick when votes land, on phones that have
   one, and not for readers who ask for less motion.
+
+## The pass after the deck review (Oct. 25, 2026)
+
+- **Who the pet is, first.** On the pet page the caption and the "Get to
+  know" answers (`PetAbout`) sit right under the photo, as chips that read as
+  phrases ("aka Biscuit Boy", "Loves the squeaky hedgehog", an opening
+  article lowercased); then the road, the scoreboard and the vote. The entry
+  form shows the same block live as the owner types ("On Biscuit's page").
+- **The thank-you screen** names the club a pack unlocked ("Your pack put
+  Moose in the 250 Club", on sun) or the votes to the next one.
+- **Phones:** the link preview is the compact kind (thumbnail beside the
+  words), the milestone row shows only the latest club and the next, and
+  Home's three steps become one line once voting is on (`HowItWorks
+  compact`), the reset rule kept.
+- **Rising today** sorts the gallery by the last day's votes in the Open
+  Round. **The clubs** on Results tally each club and name the pets in the top
+  one.
+- **Share images carry the club** as a sun pill with a drawn medal (on the
+  photo in the story and the flyer, under the town on the square). Clubs only
+  grow, so a printed flyer never goes stale.
+- The wordmark and badge are transparent PNGs, so anything that flattens
+  them must flatten onto white (`og-card.py`'s `on_white`), and the canvas
+  wordmark mask multiplies by the pixel's alpha.

@@ -104,10 +104,14 @@ function wordmarkMask(img) {
     x.drawImage(img, 0, 0)
     const data = x.getImageData(0, 0, c.width, c.height)
     const p = data.data
+    // Ink is dark and opaque: darkness times the pixel's own alpha, so a
+    // wordmark on white and one on transparency (the committed file is the
+    // latter, for dark mode) both mask to the type alone.
     for (let i = 0; i < p.length; i += 4) {
       const lum = p[i] * 0.299 + p[i + 1] * 0.587 + p[i + 2] * 0.114
+      const a = p[i + 3] / 255
       p[i] = p[i + 1] = p[i + 2] = 0
-      p[i + 3] = Math.round(Math.min(255, Math.max(0, (255 - lum) * 1.08)))
+      p[i + 3] = Math.round(Math.min(255, Math.max(0, (255 - lum) * 1.08 * a)))
     }
     x.putImageData(data, 0, 0)
     return c
