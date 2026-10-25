@@ -90,7 +90,7 @@ test('staff work the moderation queue and open voting', async ({ page }) => {
 test('a paid vote appears on the pet page without a reload', async ({ page }) => {
   const [pet] = (await rest(`entries?select=id&pet_name=eq.${encodeURIComponent(PET)}`)).body
   await page.goto(`/#/pet/${pet.id}`)
-  await expect(page.getByRole('heading', { name: PET })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: PET })).toBeVisible()
 
   // Stripe's side, simulated: a pending vote from checkout, then the signed
   // success event. The page must pick it up by polling.
