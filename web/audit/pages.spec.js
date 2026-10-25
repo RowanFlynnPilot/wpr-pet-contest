@@ -56,6 +56,19 @@ for (const phase of PHASES) {
         await expect(page.getByRole('dialog')).toBeVisible()
         await audit(page)
       })
+
+      // The owner's panel: goal, ready-made posts, the owner-link count.
+      for (const scheme of ['light', 'dark']) {
+        test(`owner panel (${scheme})`, async ({ page }) => {
+          await page.emulateMedia({ colorScheme: scheme })
+          await page.goto(`/#/pet/${petId}?owner=11111111-2222-3333-4444-555555555555`)
+          await settle(page)
+          await expect(page.getByRole('heading', { name: 'Ready-made posts' })).toBeVisible()
+          await page.getByRole('button', { name: 'Instagram' }).click()
+          await expect(page.getByRole('textbox', { name: /Post for Instagram/ })).toHaveValue(/Link in bio/)
+          await audit(page)
+        })
+      }
     }
   })
 }

@@ -1,18 +1,18 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { Arrow, Calendar as CalendarIcon } from '../components/Icons.jsx'
 import FavoriteButton from '../components/FavoriteButton.jsx'
 import { FreeVoteButton, useFreeVoteLanding } from '../components/FreeVote.jsx'
 import { deadlineIcs, icsHref } from '../lib/calendar.js'
-import { callLinks } from '../lib/api.js'
+import { callLinks, fetchReferrals } from '../lib/api.js'
 import { goalProgress } from '../lib/goal.js'
 import { PUBLIC_URL } from '../lib/env.js'
 import PetPhoto from '../components/PetPhoto.jsx'
 import PetCard from '../components/PetCard.jsx'
 import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
 import { CountdownCells, CrownMark, Digits, GameClock, Lamp, RoadStrip, Scoreboard, StickyVote } from '../components/Scoreboard.jsx'
-import ShareTools from '../components/ShareTools.jsx'
+import ShareTools, { useSharePage } from '../components/ShareTools.jsx'
 import ShareImageButton from '../components/ShareImageButton.jsx'
 import PhotoLightbox from '../components/PhotoLightbox.jsx'
 import LinkPreview from '../components/LinkPreview.jsx'
@@ -22,7 +22,7 @@ import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
 import { entryStates } from '../lib/bracketState.js'
 import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
-import { apDate, apWhen, fmtInt, fmtMoney, plural } from '../lib/format.js'
+import { apDate, apDateTime, apWhen, fmtInt, fmtMoney, plural } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { useLive } from '../lib/live.js'
 import { cheapestPerVote } from '../lib/packs.js'
@@ -32,6 +32,9 @@ import { roadStops } from '../lib/road.js'
 import { roundLabel } from '../lib/rounds.js'
 import { entryPhotoUrl } from '../lib/photos.js'
 import { tintStyle, usePhotoTint } from '../lib/photoTint.js'
+import { ownerPosts } from '../lib/ownerPosts.js'
+import { rememberVia } from '../lib/referral.js'
+import { ownerLink, petPublicUrl } from '../lib/share.js'
 
 const SPECIES = { dog: 'Dog', cat: 'Cat', other: 'Other' }
 const votesWord = (n) => (n === 1 ? 'vote' : 'votes')
@@ -72,7 +75,7 @@ function GoalLine({ entry, round }) {
 // What the owner's link from the approval email unlocks: a goal for the
 // page, and a way to stop the tips emails. The token proves the owner; it
 // never leaves this panel.
-function OwnerTools({ entry, token, round }) {
+function OwnerTools({ entry, token, round, c, standing, byId, club }) {
   const [goal, setGoal] = useState(entry.goal_votes ? String(entry.goal_votes) : '')
   const [saved, setSaved] = useState(entry.goal_votes || null)
   const [state, setState] = useState('ready')
@@ -114,9 +117,11 @@ function OwnerTools({ entry, token, round }) {
           </p>
         ) : null}
       </form>
+      <OwnerPosts entry={entry} c={c} standing={standing} byId={byId} club={club} />
+      <Referrals entry={entry} />
       <p className="small">
         Below: share buttons and &ldquo;Make a share image&rdquo; for a story, a square post and a flyer with a QR code. The Facebook button
-        uses a link that shows {entry.pet_name}&rsquo;s photo in the preview.
+        uses a link that shows {entry.pet_name}&rsquo;s photo in the preview. Links from this page count toward the line above.
       </p>
       {error && (
         <div className="notice error" role="alert">
@@ -124,6 +129,89 @@ function OwnerTools({ entry, token, round }) {
         </div>
       )}
     </section>
+  )
+}
+
+// Ready-made posts (lib/ownerPosts.js) for where the pet stands now, on the
+// owner's own link (?via=o), one tap to copy.
+const PLATFORMS = [
+  ['facebook', 'Facebook'],
+  ['instagram', 'Instagram'],
+  ['text', 'Text message'],
+]
+function OwnerPosts({ entry, c, standing: state, byId, club }) {
+  const [platform, setPlatform] = useState('facebook')
+  const [copied, setCopied] = useState(false)
+  const petPage = useSharePage(`p/${entry.id}/`)
+  const url = ownerLink(petPage || petPublicUrl(PUBLIC_URL, entry.id))
+  const r1 = c.rounds.find((r) => r.seq === 1)
+  const matchRound = state?.matchup ? c.rounds.find((r) => r.id === state.matchup.round_id) : null
+  let stage = 'open'
+  if (['coming', 'submissions', 'submissions_closed'].includes(c.phase)) stage = 'before'
+  else if (state?.status === 'champion') stage = 'champion'
+  else if (state?.status === 'out') stage = 'out'
+  else if (state?.status === 'unseeded') stage = 'unseeded'
+  else if (state?.status === 'alive' && state.matchup && !state.matchup.winner_entry_id) stage = 'matchup'
+  const oppId = state?.matchup ? (state.matchup.entry_a_id === entry.id ? state.matchup.entry_b_id : state.matchup.entry_a_id) : null
+  const closesAt = matchRound?.closes_at || c.round?.closes_at
+  const raisedCents = Number(c.stats?.shelter_cents ?? 0) + Number(c.stats?.match_cents ?? 0)
+  const posts = ownerPosts({
+    stage,
+    name: entry.pet_name,
+    contest: c.contest?.name || `Cutest Pet in ${NEWSROOM.region}`,
+    url,
+    split: c.contest?.beneficiary_split_pct,
+    bracketSize: c.bracketSize,
+    closes: closesAt ? apDateTime(closesAt) : 'soon',
+    opens: r1?.opens_at ? apDateTime(r1.opens_at) : 'soon',
+    round: state?.label,
+    opponent: (oppId && byId.get(oppId)?.pet_name) || 'their opponent',
+    club,
+    raised: c.phase === 'complete' && raisedCents ? fmtMoney(raisedCents, { whole: true }) : null,
+  })
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(posts[platform])
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      track('Owner Post Copied', { pet: entry.pet_name, platform })
+    } catch {
+      // The text stays selectable in the box.
+    }
+  }
+  return (
+    <div className="owner-posts">
+      <h3>Ready-made posts</h3>
+      <div className="chips" role="group" aria-label="Where you will post">
+        {PLATFORMS.map(([key, label]) => (
+          <button key={key} type="button" className="chip" aria-pressed={platform === key} onClick={() => setPlatform(key)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <textarea readOnly value={posts[platform]} rows={platform === 'text' ? 4 : 6} aria-label={`Post for ${PLATFORMS.find(([k]) => k === platform)[1]}`} onFocus={(e) => e.target.select()} />
+      <button type="button" className="btn btn-primary btn-sm" onClick={copy}>
+        {copied ? 'Copied' : 'Copy the post'}
+      </button>
+    </div>
+  )
+}
+
+// What the owner's links have brought (entry_referrals, 0029).
+function Referrals({ entry }) {
+  const res = useLive(`referrals:${entry.id}`, () => fetchReferrals(entry.id), 60000)
+  const r = res.data
+  if (!r) return null
+  return (
+    <p className="owner-ref" role="status">
+      {r.packs > 0 ? (
+        <>
+          Your links have brought <strong>{fmtInt(r.packs)}</strong> {r.packs === 1 ? 'vote pack' : 'vote packs'} and {plural(r.votes, 'vote')} for {entry.pet_name}.
+        </>
+      ) : (
+        <>When someone buys a vote pack within a week of tapping one of your links, it counts here.</>
+      )}
+    </p>
   )
 }
 
@@ -434,6 +522,12 @@ export default function Pet({ route }) {
       ? c.round
       : null
   useFreeVoteLanding(entry, freeRound, route.params)
+  // Arrived through one of the owner's links: remember it for a week, so a
+  // pack bought here counts toward "your link brought" (lib/referral.js).
+  const via = route.params?.via
+  useEffect(() => {
+    if (entry?.id && via === 'o') rememberVia(entry.id)
+  }, [entry?.id, via])
 
   // What each stop on the road carries: the open-round seed, a decided
   // score, or the date a set matchup opens.
@@ -558,7 +652,9 @@ export default function Pet({ route }) {
           {panel}
           {entry.goal_votes && liveRound ? <GoalLine entry={entry} round={liveRound} /> : null}
           <Milestones name={name} total={contestTotals.get(entry.id)} started={c.rounds.some((r) => r.status !== 'pending')} />
-          {ownerToken && <OwnerTools entry={entry} token={ownerToken} round={liveRound} />}
+          {ownerToken && (
+            <OwnerTools entry={entry} token={ownerToken} round={liveRound} c={c} standing={state} byId={byId} club={milestone(contestTotals.get(entry.id)).earned} />
+          )}
           {entry.shelter_id && (
             <div className="adopt-badge">
               <span className="bonus-badge">Adoptable</span>
@@ -587,8 +683,9 @@ export default function Pet({ route }) {
             contestName={c.contest?.name}
             title={shareTitle}
             before={<LinkPreview entry={entry} contestName={c.contest?.name} sharePage={sharePage} matchup={previewMatchup} />}
-            extra={<ShareImageButton entry={entry} />}
+            extra={<ShareImageButton entry={entry} owner={Boolean(ownerToken)} />}
             sharePage={sharePage}
+            owner={Boolean(ownerToken)}
           />
         </div>
       </article>

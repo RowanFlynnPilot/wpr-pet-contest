@@ -124,10 +124,15 @@ export function render(row: QueueRow, links: Links): Message {
   const pet = row.pet_name;
   const first = row.owner_name.split(" ")[0] || "there";
   const petUrl = `${links.publicUrl}#/pet/${row.entry_id}`;
-  const shareUrl = `${links.shareBase.replace(/\/$/, "")}/p/${row.entry_id}/`;
+  // The links an owner passes on carry ?via=o, so a pack bought through one
+  // counts toward "your links have brought" on the owner's panel (0029).
+  // Attribution only; it changes nothing about a vote.
+  const shareUrl = `${links.shareBase.replace(/\/$/, "")}/p/${row.entry_id}/?via=o`;
   // During the bracket, the matchup page: both pets in the preview, and a
   // tap lands on this pet. Falls back to the pet's own page.
-  const matchupUrl = row.matchup_id ? `${links.shareBase.replace(/\/$/, "")}/m/${row.matchup_id}/?p=${row.entry_id}` : shareUrl;
+  const matchupUrl = row.matchup_id
+    ? `${links.shareBase.replace(/\/$/, "")}/m/${row.matchup_id}/?p=${row.entry_id}&via=o`
+    : shareUrl;
   const closes = row.closes_at ? formatWhen(row.closes_at) : null;
   const raised = dollars(row.raised_cents);
   const stopLine = `These tips come with your entry; stop them here: ${optOutUrl(links, row)}`;

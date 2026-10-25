@@ -12,6 +12,7 @@ import { roundLabel } from '../lib/rounds.js'
 import { boostLive, useLive } from '../lib/live.js'
 import { totalsKey, useActivity, useContestTotals } from '../lib/data.js'
 import { clubLabel, milestone } from '../lib/milestones.js'
+import { viaFor } from '../lib/referral.js'
 import { multiplierWord, windowTitle } from '../lib/bonus.js'
 import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
@@ -128,6 +129,8 @@ export default function CheckoutModal({ entry, round, onClose }) {
       buyer_email: email.trim(),
       newsletter_opt_in: optIn,
       plays_again_opt_in: playsAgain,
+      // Arrived through the owner's link this week (lib/referral.js).
+      ...(viaFor(entry.id) ? { ref: 'owner' } : {}),
     }
     setBusy(true)
     // This pet's recent purchases before this one, so the success screen can

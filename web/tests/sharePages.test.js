@@ -19,7 +19,9 @@ describe('per-pet share page', () => {
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image">')
   })
   it('redirects with location.replace, not meta refresh, and keeps a fallback link', () => {
-    expect(html).toContain(`location.replace("https://wausaupilotandreview.com/pets/#/pet/${entry.id}")`)
+    expect(html).toContain(`location.replace("https://wausaupilotandreview.com/pets/#/pet/${entry.id}" + `)
+    // An owner's link keeps its tag for "your links have brought".
+    expect(html).toContain("get('via') === 'o' ? '?via=o' : ''")
     expect(html).not.toMatch(/http-equiv=["']?refresh/i)
     expect(html).toContain(`href="https://wausaupilotandreview.com/pets/#/pet/${entry.id}"`)
   })
@@ -59,7 +61,8 @@ describe('per-matchup share page', () => {
   })
   it('sends a tap on to the named pet, or the bracket', () => {
     expect(withCard).toContain(`var ids = [${JSON.stringify(card.a.id)}, ${JSON.stringify(card.b.id)}];`)
-    expect(withCard).toContain("ids.indexOf(p) >= 0 ? '#/pet/' + p : '#/bracket'")
+    expect(withCard).toContain("ids.indexOf(p) >= 0 ? '#/pet/' + p + via : '#/bracket'")
+    expect(withCard).toContain("get('via') === 'o' ? '?via=o' : ''")
     expect(withCard).not.toMatch(/http-equiv=["']?refresh/i)
   })
 })

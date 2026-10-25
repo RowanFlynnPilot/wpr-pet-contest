@@ -13,6 +13,20 @@ export function entryShareLine({ petName, contestName, opensAt, url }) {
   return `${petName} is entered in ${contestName}!${when}${url ? ` ${url}` : ''}`.trim()
 }
 
+// An owner's own links carry ?via=o (the owner panel's posts and share
+// buttons, the owner's share images, the owner's emails), so a pack bought
+// by someone who arrived that way counts toward "your link brought N packs"
+// (entry_referrals, 0029). Attribution only: it never changes a vote.
+export function ownerLink(url) {
+  if (!url) return url
+  const i = url.indexOf('#')
+  if (i >= 0) {
+    const hash = url.slice(i + 1)
+    return `${url.slice(0, i)}#${hash}${hash.includes('?') ? '&' : '?'}via=o`
+  }
+  return `${url}${url.includes('?') ? '&' : '?'}via=o`
+}
+
 export function petPublicUrl(publicUrl, id) {
   return `${stripHash(publicUrl)}#/pet/${id}`
 }

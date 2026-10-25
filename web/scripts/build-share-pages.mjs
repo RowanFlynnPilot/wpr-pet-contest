@@ -113,7 +113,7 @@ a{display:inline-block;margin-top:10px;background:#2b655d;color:#fff;padding:12p
 <p>${esc(contestName)} · Wausau Pilot &amp; Review</p>
 <a href="${esc(target)}">Go to ${esc(entry.pet_name)}&rsquo;s page</a>
 </main>
-<script>location.replace(${jsString(target)})</script>
+<script>location.replace(${jsString(target)} + (new URLSearchParams(location.search).get('via') === 'o' ? '?via=o' : ''))</script>
 </body>
 </html>
 `
@@ -167,7 +167,9 @@ a{display:inline-block;margin-top:10px;background:#2b655d;color:#fff;padding:12p
 <script>
 var p = new URLSearchParams(location.search).get('p');
 var ids = [${jsString(a.id)}, ${jsString(b.id)}];
-location.replace(${jsString(PUBLIC)} + (ids.indexOf(p) >= 0 ? '#/pet/' + p : '#/bracket'));
+// An owner's link (?via=o) keeps its tag on the way to the pet's page.
+var via = (new URLSearchParams(location.search).get('via') === 'o' ? '?via=o' : '');
+location.replace(${jsString(PUBLIC)} + (ids.indexOf(p) >= 0 ? '#/pet/' + p + via : '#/bracket'));
 </script>
 </body>
 </html>
@@ -239,7 +241,8 @@ function notFoundPage() {
 <script>
 var m = location.pathname.match(/\\/([pm])\\/([0-9a-f-]{36})\\/?$/i);
 var p = new URLSearchParams(location.search).get('p');
-var to = !m ? '' : m[1] === 'p' ? '#/pet/' + m[2] : /^[0-9a-f-]{36}$/i.test(p || '') ? '#/pet/' + p : '#/bracket';
+var via = (new URLSearchParams(location.search).get('via') === 'o' ? '?via=o' : '');
+var to = !m ? '' : m[1] === 'p' ? '#/pet/' + m[2] + via : /^[0-9a-f-]{36}$/i.test(p || '') ? '#/pet/' + p + via : '#/bracket';
 location.replace(${jsString(PUBLIC)} + to);
 </script>
 </body>

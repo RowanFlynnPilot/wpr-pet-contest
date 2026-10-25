@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APP_BASE, PUBLIC_URL } from '../lib/env.js'
-import { petPublicUrl, shareLinks, sharePageUrl, shareText } from '../lib/share.js'
+import { ownerLink, petPublicUrl, shareLinks, sharePageUrl, shareText } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
 import { Chat, Facebook, LinkIcon, Mail, Share, XLogo } from './Icons.jsx'
 
@@ -31,11 +31,13 @@ export function useSharePage(path) {
 // `extra` renders after the share buttons (the pet page's image maker).
 // `sharePage` names a page for the crawlers other than the pet's own (a
 // matchup card while a bracket round is live).
-export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false, extra = null, before = null, sharePage = null }) {
-  const url = petPublicUrl(PUBLIC_URL, entry.id)
+export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false, extra = null, before = null, sharePage = null, owner = false }) {
+  // The owner's own buttons carry ?via=o, for "your link brought N packs".
+  const tagged = (u) => (owner && u ? ownerLink(u) : u)
+  const url = tagged(petPublicUrl(PUBLIC_URL, entry.id))
   const matchupPage = useSharePage(sharePage)
   const petPage = useSharePage(`p/${entry.id}/`)
-  const crawlerUrl = matchupPage || petPage || url
+  const crawlerUrl = tagged(matchupPage || petPage) || url
   const text = shareText(entry.pet_name, contestName)
   const links = shareLinks({ url, crawlerUrl, text, subject: `Vote for ${entry.pet_name}!` })
   const [copied, setCopied] = useState(false)

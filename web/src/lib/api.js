@@ -136,15 +136,12 @@ export function fetchAllBonusWindows() {
   )
 }
 
+// match_cents (sponsor matches, 0024) rides along where the backend has it:
+// the counter adds it to the shelters' share.
+const STATS_COLS = 'contest_id, entries, votes, gross_cents, shelter_cents, beneficiary_split_pct'
 export async function fetchStats(contestId) {
-  const data = await optional(
-    need()
-      .from('contest_stats')
-      .select('contest_id, entries, votes, gross_cents, shelter_cents, beneficiary_split_pct')
-      .eq('contest_id', contestId)
-      .limit(1),
-    [],
-  )
+  const run = (cols) => optional(need().from('contest_stats').select(cols).eq('contest_id', contestId).limit(1), null)
+  const data = (await run(`${STATS_COLS}, match_cents`)) ?? (await run(STATS_COLS)) ?? []
   return data[0] || null
 }
 
@@ -226,6 +223,18 @@ export async function fetchMomentum(roundId) {
     return new Map(data.map((r) => [r.entry_id, r.votes_24h]))
   } catch {
     return new Map()
+  }
+}
+
+// { packs, votes } bought by readers who came through the owner's links
+// (entry_referrals, 0029), or null where the view is missing or the read
+// fails: the owner panel then leaves the line out.
+export async function fetchReferrals(entryId) {
+  try {
+    const data = await fetchAll(() => need().from('entry_referrals').select('packs, votes').eq('entry_id', entryId))
+    return data[0] ? { packs: data[0].packs, votes: data[0].votes } : { packs: 0, votes: 0 }
+  } catch {
+    return null
   }
 }
 

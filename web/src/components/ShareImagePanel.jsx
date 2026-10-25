@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { PUBLIC_URL } from '../lib/env.js'
-import { petPublicUrl, shareText } from '../lib/share.js'
+import { ownerLink, petPublicUrl, shareText } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
 import { ownerCopy } from '../lib/graphics/content.js'
 import { displayUrl, fileName } from '../lib/graphics/layout.js'
@@ -14,7 +14,7 @@ import './graphics.css'
 // card in the browser, in the sizes Instagram, Facebook and a printer want.
 // It opens inline under the share buttons (no overlay), which also keeps it
 // where the reader is inside the WordPress iframe.
-export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, club = null, now }) {
+export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, club = null, owner = false, now }) {
   const [formatId, setFormatId] = useState('story')
   const format = OWNER_FORMATS.find((f) => f.id === formatId)
   const heading = useRef(null)
@@ -38,7 +38,7 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     opensAt: [r1?.opens_at, contest?.submissions_close_at].filter((v) => v && new Date(v).getTime() > now).sort((a, b) => new Date(a) - new Date(b))[0] || null,
     now,
   })
-  const url = petPublicUrl(PUBLIC_URL, entry.id)
+  const url = owner ? ownerLink(petPublicUrl(PUBLIC_URL, entry.id)) : petPublicUrl(PUBLIC_URL, entry.id)
   const data = {
     entry: { id: entry.id, pet_name: entry.pet_name, town: entry.town, photo_path: entry.photo_path, seed: entry.seed },
     copy,

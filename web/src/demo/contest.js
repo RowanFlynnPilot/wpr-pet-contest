@@ -185,6 +185,10 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       matchups,
       entry_round_totals: totals.map((t) => ({ ...t, amount_cents: t.votes * 80, free_votes: Math.round(t.votes * 0.08) })),
       entry_round_momentum: momentum,
+      // Packs bought through owners' links (0029): a few pets whose owners share.
+      entry_referrals: submissions
+        ? []
+        : entries.filter((_, i) => i % 3 === 0).map((e, i) => ({ entry_id: e.id, packs: 3 + (i % 5) * 2, votes: (3 + (i % 5) * 2) * 25 })),
       vote_packs: [
         ['starter', 'Starter', 5, 500, false], ['fan', 'Fan', 25, 2000, true], ['superfan', 'Superfan', 75, 5000, false],
         ['champion', 'Champion', 200, 10000, false], ['legend', 'Legend', 600, 25000, false],

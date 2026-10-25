@@ -1292,6 +1292,16 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .goal-line-left { font-family: var(--mono); font-weight: 700; color: var(--brand-text); white-space: nowrap; }
 .owner-tools { margin-top: 14px; padding: 16px; border: 2px solid var(--teal); border-radius: 14px; background: var(--teal-wash); }
 .owner-tools h2 { font-size: 20px; margin: 0 0 8px; }
+/* Ready-made posts: pick where, read it, copy it. */
+.owner-posts { display: grid; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.owner-posts h3 { font-size: 16px; margin: 0; }
+.owner-posts textarea {
+  width: 100%; box-sizing: border-box; resize: vertical; font: 16px/1.5 var(--sans);
+  padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); color: var(--ink);
+}
+.owner-posts .btn { justify-self: start; }
+.owner-ref { margin: 14px 0 10px; font-size: 15px; }
+.owner-ref strong { font-family: var(--mono); font-weight: 600; }
 .owner-goal label { display: block; font-size: 15px; margin-bottom: 8px; }
 .owner-goal input { max-width: 140px; }
 .raised-matched { margin-top: 4px; font-size: 13.5px; color: var(--muted); }

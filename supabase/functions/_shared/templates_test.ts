@@ -82,7 +82,7 @@ Deno.test("a club note names the club, the next one, and carries the photo and a
 Deno.test("approval carries the per-pet share page", () => {
   const msg = render(base, LINKS);
   assertStringIncludes(msg.html, "https://rowanflynnpilot.github.io/wpr-pet-contest/p/7a000000-0000-0000-0000-00000000000a/");
-  assertStringIncludes(msg.text, "/p/7a000000-0000-0000-0000-00000000000a/");
+  assertStringIncludes(msg.text, "/p/7a000000-0000-0000-0000-00000000000a/?via=o");
 });
 
 Deno.test("advancement names the round, the opponent and the reset", () => {
@@ -97,6 +97,8 @@ Deno.test("advancement names the round, the opponent and the reset", () => {
   assertEquals(msg.subject, "Biscuit made the Elite Eight!");
   // The matchup page: both pets in the preview, this pet on the tap.
   assertStringIncludes(msg.html, "https://rowanflynnpilot.github.io/wpr-pet-contest/m/f3a0d1a2-5a8b-4d2c-9d6e-0b7c1f2e3a44/?p=7a000000-0000-0000-0000-00000000000a");
+  // Tagged as the owner's, for "your links have brought".
+  assertStringIncludes(msg.text, "?p=7a000000-0000-0000-0000-00000000000a&via=o");
   const noMatchup = render({ ...base, kind: "advanced", round_name: "Elite Eight" }, LINKS);
   assertStringIncludes(noMatchup.html, "/p/7a000000-0000-0000-0000-00000000000a/");
   assertStringIncludes(msg.text, "facing Luna");

@@ -33,6 +33,10 @@ serve(async (req) => {
   // "Tell me when this pet plays again": one email a round, enrolled only
   // once the webhook credits the payment.
   const playsAgain = body.plays_again_opt_in === true;
+  // The buyer came through one of the owner's links in the last week (0029).
+  // Attribution only: it changes nothing about the pack. Anything else is
+  // ignored, never refused.
+  const ref = body.ref === "owner" ? "owner" : null;
   // One per checkout attempt, from the browser. A double-click or a retried
   // request reuses it, and Stripe hands back the same payment intent instead
   // of a second one.
@@ -82,6 +86,9 @@ serve(async (req) => {
       p_payment_intent: intent.id,
       p_newsletter_opt_in: optIn,
       p_plays_again_opt_in: playsAgain,
+      // Sent only when set, so a checkout still parks against a database a
+      // migration behind.
+      ...(ref ? { p_ref: ref } : {}),
     })
     .single<Parked>();
 

@@ -542,3 +542,17 @@ aside: it disappears on dark paper.
 - The wordmark and badge are transparent PNGs, so anything that flattens
   them must flatten onto white (`og-card.py`'s `on_white`), and the canvas
   wordmark mask multiplies by the pixel's alpha.
+
+## The owner's kit (Oct. 25, 2026)
+
+- **Ready-made posts.** The owner panel writes a Facebook post, an Instagram
+  caption and a text message for where the pet stands right now (before
+  voting, the Open Round, a matchup, unseeded, out, champion), on chips with
+  one Copy button (`lib/ownerPosts.js`). The hook first, one call to action,
+  the link where it is clickable and "Link in bio" with the local hashtags on
+  Instagram. Never "donation", never invented urgency; a matchup says the
+  count starts at zero.
+- **"Your links have brought 3 vote packs."** The owner's own links carry
+  `?via=o`, the share pages keep it on the way through, and the panel shows
+  the count from `entry_referrals`. Attribution only: nothing about the pack
+  changes, and nothing is won.

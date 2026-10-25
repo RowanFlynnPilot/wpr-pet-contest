@@ -148,6 +148,13 @@ These are load-bearing. Do not soften them.
   the owner; moderators may correct or clear one (column UPDATE grant), and
   `entry_round_momentum` (0027) publishes 24-hour counts per pet for open
   rounds only, never a voter.
+- **Owner-link attribution is a count, never a prize.** An owner's links
+  (panel posts, share buttons, share images, owner emails) carry `?via=o`;
+  the browser remembers it for a week (`lib/referral.js`) and the checkout
+  tags the pack `ref = 'owner'` (0029). `entry_referrals` counts settled,
+  unrefunded packs per pet, never a buyer. The tag never changes a pack's
+  votes, price or money, an unknown tag is dropped rather than refused, and
+  no bonus votes ride on a referral.
 - **Sponsor matches are the sponsor's money, never votes.** `sponsor_matches`
   windows cannot overlap; `sponsor_match_cents` counts sales whose checkout
   began in the window, after refunds, up to the cap. It is added to the
@@ -231,7 +238,7 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, free vote, hardening, health, lifecycle, moderation, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, profile, referrals, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after

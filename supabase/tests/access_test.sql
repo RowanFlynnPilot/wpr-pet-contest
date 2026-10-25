@@ -15,7 +15,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(30);
+select plan(31);
 
 -- ---------------------------------------------------------------- fixtures --
 insert into auth.users (id) values
@@ -64,7 +64,7 @@ grant select on our_functions, our_relations to anon, authenticated;
 -- ------------------------------------------------------------- privileges --
 select results_eq(
   $$ select name from our_relations where has_table_privilege('anon', oid, 'SELECT') order by 1 $$,
-  $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_round_momentum'), ('entry_round_totals'),
+  $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_referrals'), ('entry_round_momentum'), ('entry_round_totals'),
             ('matchups'), ('recent_activity'), ('rounds'), ('shelters'), ('side_awards'),
             ('sponsor_matches'), ('vote_packs') $$,
   'anon can read exactly the public tables and views');
@@ -137,6 +137,13 @@ select results_eq(
      order by a.attnum $$,
   $$ values ('round_id'), ('entry_id'), ('votes_24h') $$,
   'the 24-hour counts carry a number per pet, never a voter');
+
+select results_eq(
+  $$ select a.attname::text collate "default" from pg_attribute a
+     where a.attrelid = 'public.entry_referrals'::regclass and a.attnum > 0 and not a.attisdropped
+     order by a.attnum $$,
+  $$ values ('entry_id'), ('packs'), ('votes') $$,
+  'the owner-link counts carry numbers per pet, never a buyer');
 
 select results_eq(
   $$ select name from our_functions where has_function_privilege('anon', oid, 'EXECUTE') order by 1 $$,

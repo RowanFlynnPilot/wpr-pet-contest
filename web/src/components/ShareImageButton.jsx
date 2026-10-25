@@ -13,7 +13,7 @@ const load = () => import('./ShareImagePanel.jsx')
 const ShareImagePanel = lazy(load)
 
 // Mounted only while the panel is open, so a closed button polls nothing.
-function Live({ entry, onClose }) {
+function Live({ entry, onClose, owner }) {
   const c = useContest()
   // The same stores the pet page already polls: no extra requests.
   const liveRound = (c.phase === 'voting' || c.phase === 'counting') && c.round ? c.round.id : null
@@ -40,12 +40,13 @@ function Live({ entry, onClose }) {
       state={state}
       votes={liveRound ? totals.totals.get(entry.id)?.votes || 0 : null}
       club={milestone(contestTotals.get(entry.id)).earned}
+      owner={owner}
       now={c.now}
     />
   )
 }
 
-export default function ShareImageButton({ entry }) {
+export default function ShareImageButton({ entry, owner = false }) {
   const [open, setOpen] = useState(false)
   const button = useRef(null)
   const close = () => {
@@ -68,7 +69,7 @@ export default function ShareImageButton({ entry }) {
       </button>
       {open && (
         <Suspense fallback={<span role="status" className="sr-only">Opening the image maker…</span>}>
-          <Live entry={entry} onClose={close} />
+          <Live entry={entry} onClose={close} owner={owner} />
         </Suspense>
       )}
     </>
