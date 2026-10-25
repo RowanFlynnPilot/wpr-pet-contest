@@ -3,7 +3,7 @@ import { finaleIcs } from './FinaleCard.jsx'
 import { Calendar, Clock } from './Icons.jsx'
 import { track } from '../lib/analytics.js'
 import { icsHref } from '../lib/calendar.js'
-import { apDateTime } from '../lib/format.js'
+import { apDateTime, period } from '../lib/format.js'
 import { sprintTitle, sprintWhen } from '../lib/sprints.js'
 
 // What is on its way, in one quiet card on Home: a sprint starting within
@@ -23,7 +23,7 @@ export default function ComingUp({ finale = null, sprint = null }) {
           <li>
             <Clock size={18} />
             <span>
-              <strong>{sprintTitle(sprint)}</strong>, {sprintWhen(sprint)}. The most votes wins {sprint.prize}, from {sprint.sponsor_name}.
+              <strong>{sprintTitle(sprint)}</strong>, {period(sprintWhen(sprint))} The most votes wins {sprint.prize}, from {sprint.sponsor_name}.
             </span>
           </li>
         )}
@@ -31,7 +31,7 @@ export default function ComingUp({ finale = null, sprint = null }) {
           <li>
             <Calendar size={18} />
             <span>
-              <strong>The finale</strong>, {apDateTime(finale.at)}. The champion is revealed live.{' '}
+              <strong>The finale</strong>, {period(apDateTime(finale.at))} The champion is revealed live.{' '}
               {finale.url && (
                 <>
                   <a href={finale.url} target="_blank" rel="noopener" onClick={() => track('Finale', { where: 'home-coming-up' })}>
