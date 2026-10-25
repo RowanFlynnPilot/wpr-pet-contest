@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { countdownWords, daysUntil, launchStage } from '../src/lib/graphics/content.js'
 import { captionsFor } from '../src/lib/graphics/captions.js'
+import { buildCards, cardSize } from '../src/lib/graphics/staff.js'
 
 const contest = { status: 'draft', submissions_open_at: '2026-11-14T14:00:00Z', submissions_close_at: '2026-11-21T02:00:00Z' }
 
@@ -58,5 +59,21 @@ describe('launch captions', () => {
     const field = captionsFor(card({ kind: 'fieldSet', o, count: 212, votingAt: '2026-11-21T14:00:00Z' }), { publicUrl: url })
     expect(field.hook).toBe('The field is set: 212 pets.')
     expect(field.facebook).toContain('The Open Round opens Saturday, Nov. 21 at 8 a.m.')
+  })
+})
+
+describe('the poster', () => {
+  const s = (launch, publicUrl) => ({ contest: { beneficiary_split_pct: 50, year: 2026, name: 'Cutest Pet in Marathon County' }, bracketSize: 16, now: Date.parse('2026-10-31T15:00:00Z'), where: 'example.org/pets', publicUrl, launch })
+  const launch = (stage) => ({ stage, opensAt: '2026-11-14T14:00:00Z', closesAt: '2026-11-21T02:00:00Z', shelters: [{ name: 'Moments Foster Care' }] })
+  const poster = (groups) => groups.flatMap((g) => g.cards).find((c) => c.file === 'poster-letter')
+  it('prints at letter size whatever size is asked, before and during entries', () => {
+    const soon = poster(buildCards(s(launch('soon'), 'https://example.org/pets/')))
+    expect(soon.key).toBe('launch-poster-soon')
+    expect(cardSize(soon, { id: 'square', width: 1080, height: 1080 })).toMatchObject({ width: 1275, height: 1650 })
+    expect(poster(buildCards(s(launch('open'), 'https://example.org/pets/'))).key).toBe('launch-poster-open')
+  })
+  it('needs the full address for its code, and leaves with the field set', () => {
+    expect(poster(buildCards(s(launch('soon'), null)))).toBeUndefined()
+    expect(poster(buildCards(s(launch('closed'), 'https://example.org/pets/')))).toBeUndefined()
   })
 })

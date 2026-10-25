@@ -11,7 +11,7 @@ import { rankOpenRound } from '../lib/rank.js'
 import { roundLabel } from '../lib/rounds.js'
 import { bubbleRows, currentBracketRound, lastDecidedRound, launchStage, matchupCards, milestoneCents, roundResults, sampleScenario } from '../lib/graphics/content.js'
 import { displayUrl } from '../lib/graphics/layout.js'
-import { STAFF_SIZES, buildCards, cardFile, renderCard } from '../lib/graphics/staff.js'
+import { STAFF_SIZES, buildCards, cardFile, cardSize, renderCard } from '../lib/graphics/staff.js'
 import { captionsFor } from '../lib/graphics/captions.js'
 import { toPng } from '../lib/graphics/draw.js'
 import { downloadBlob, pause } from '../lib/graphics/save.js'
@@ -204,7 +204,9 @@ function CaptionBox({ card, sample }) {
   )
 }
 
-function CardPreview({ card, size, sample, onDownload, busy }) {
+function CardPreview({ card, size: asked, sample, onDownload, busy }) {
+  // The poster keeps its letter size whatever the size chips say.
+  const size = cardSize(card, asked)
   const frame = useRef(null)
   const [drawn, setDrawn] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -260,7 +262,7 @@ export default function SocialDesk() {
     const s = sample ? sampleScene(contest, data.data) : liveScene(contest, data.data)
     if (!s) return []
     const cents = s.stats?.shelter_cents || 0
-    return buildCards({ ...s, where, milestone: rounded, milestoneCents: milestoneCents(cents) })
+    return buildCards({ ...s, where, publicUrl: PUBLIC_URL, milestone: rounded, milestoneCents: milestoneCents(cents) })
   }, [data.data, contest, sample, rounded, where])
   const all = groups.flatMap((g) => g.cards)
 

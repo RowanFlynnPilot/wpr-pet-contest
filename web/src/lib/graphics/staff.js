@@ -6,6 +6,7 @@ import { NEWSROOM } from '../../config.js'
 import { apCount, apDate, apDateTime, apTime, fmtMoney } from '../format.js'
 import { sprintParts, sprintTitle, sprintWhen } from '../sprints.js'
 import { C, F, doubleRule, drawBlock, drawFlag, drawPhoto, fillRect, fitBlock, loadPhoto, pawTexture, render, roundRect, runs, sampleBands, textBlock, trackedMeasurer } from './draw.js'
+import { drawQr } from './qr.js'
 import { fileName, fmtCount, timeLeft } from './layout.js'
 import { countdownWords, glue, leaderboardRows, matchupLine, shelterLine, winnerLines } from './content.js'
 
@@ -15,6 +16,9 @@ export const STAFF_SIZES = [
   // Instagram and Facebook Stories, and the countdown sticker's backdrop.
   { id: 'story', label: 'Story', width: 1080, height: 1920 },
 ]
+// The poster has its own size, whatever the desk's size chips say: 8.5 x 11
+// in at 150 dpi, as the owners' flyer.
+const LETTER = { id: 'letter', label: 'Letter', width: 1275, height: 1650 }
 
 const M = 60
 const RESET = 'Vote totals reset every round'
@@ -714,6 +718,70 @@ function launchCards(l, o) {
   }
 
   const closeAt = glue(apDateTime(l.closesAt))
+  // A poster to print: a shelter's adoption events, the newsroom's office, a
+  // sponsor's counter. White paper, no numbers that date it, a code to scan.
+  if ((soon || open) && o.url) {
+    cards.push({
+      key: `launch-poster-${soon && !open ? 'soon' : 'open'}`,
+      meta: meta('poster'),
+      label: 'Poster to print (letter)',
+      file: 'poster-letter',
+      size: LETTER,
+      draw(ctx, W, H, { brand }) {
+        const P = 75
+        const CW = W - P * 2
+        fillRect(ctx, 0, 0, W, H, '#ffffff')
+        drawFlag(ctx, brand, { cx: W / 2, y: 60, badge: 120, wordmark: 54, gap: 28, tone: 'light' })
+        textBlock(ctx, 'Where Locals Look First For News', { x: P, y: 196, maxWidth: CW, font: F.sans(600), color: C.slate, align: 'center', upper: true, track: 0.28, maxSize: 17, maxLines: 1 })
+        let y = doubleRule(ctx, P, 232, CW, C.slate, { thick: 8, gap: 6, thin: 2 }) + 40
+        y = textBlock(ctx, `${o.year} · a reader contest`, { x: P, y, maxWidth: CW, font: F.sans(800), color: C.tealInk, align: 'center', upper: true, track: 0.16, maxSize: 30, maxLines: 1 }).bottom + 22
+        y = textBlock(ctx, `Is your pet the cutest in ${region}?`, { x: P, y, maxWidth: CW, font: F.display(700), color: C.ink, align: 'center', maxSize: 108, floor: 80, minSize: 56, maxLines: 3, leading: 1.0 }).bottom + 30
+        // When, large, in a sun band.
+        const when = soon && !open ? ['Entries open', glue(apDate(l.opensAt))] : ['Entries are open', glue(`Until ${apDateTime(l.closesAt)}`)]
+        const bandH = 190
+        fillRect(ctx, P, y, CW, bandH, C.sun, 22)
+        textBlock(ctx, when[0], { x: P, y: y + 28, maxWidth: CW, font: F.sans(800), color: C.ink, align: 'center', upper: true, track: 0.16, maxSize: 28, maxLines: 1 })
+        textBlock(ctx, when[1], { x: P + 30, y: y + 72, maxWidth: CW - 60, font: F.display(700), color: C.ink, align: 'center', maxSize: 78, floor: 52, minSize: 36, maxLines: 1, leading: 1 })
+        y += bandH + 50
+        // Three steps, each a numbered line.
+        const lines = [
+          ['1', 'Enter your pet free', 'One phone photo, a name and a town.'],
+          ['2', 'Vote with vote packs', `${pct === 50 ? 'Half of every pack goes' : pct ? `Every pack sends ${pct}%` : 'A share of every pack goes'} to ${who}.`],
+          ['3', `Then a ${o.bracketSize}-pet bracket`, 'Totals reset every round, so any pet can win.'],
+        ]
+        const d = 92
+        for (const [n, head, body] of lines) {
+          ctx.beginPath()
+          ctx.arc(P + d / 2, y + d / 2, d / 2, 0, Math.PI * 2)
+          ctx.fillStyle = C.tealDeep
+          ctx.fill()
+          textBlock(ctx, n, { x: P, y: y + 14, maxWidth: d, font: F.display(700), color: '#ffffff', align: 'center', maxSize: 60, maxLines: 1, leading: 1 })
+          const tx = P + d + 30
+          const tw = CW - d - 30
+          const h1 = textBlock(ctx, head, { x: tx, y: y + 2, maxWidth: tw, font: F.display(600), color: C.ink, maxSize: 46, floor: 36, minSize: 28, maxLines: 1, leading: 1.05 })
+          textBlock(ctx, body, { x: tx, y: h1.bottom + 6, maxWidth: tw, font: F.sans(600), color: C.ink2, maxSize: 30, floor: 24, minSize: 20, maxLines: 2, leading: 1.25 })
+          y += d + 44
+        }
+        // The band at the foot: the code to scan and where to go.
+        const bandTop = 1290
+        fillRect(ctx, 0, bandTop, W, H - bandTop, C.tealDeep)
+        pawTexture(ctx, 0, bandTop, W, H - bandTop, '#ffffff', 0.05, 260)
+        fillRect(ctx, 0, bandTop, W, 10, C.sun)
+        const plate = 250
+        const px = W - P - plate
+        const py = bandTop + 40
+        fillRect(ctx, px, py, plate, plate + 40, '#ffffff', 16)
+        drawQr(ctx, o.url, px, py, plate, { dark: C.ink, quiet: 3 })
+        textBlock(ctx, soon && !open ? 'Scan for details' : 'Scan to enter', { x: px + 14, y: py + plate + 4, maxWidth: plate - 28, font: F.sans(800), color: C.tealInk, align: 'center', upper: true, track: 0.1, maxSize: 20, maxLines: 1 })
+        const colW = px - 50 - P
+        // Centered on the plate beside it.
+        let by = bandTop + 96
+        by = textBlock(ctx, 'Enter, vote and follow along at', { x: P, y: by, maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 30, minSize: 22, maxLines: 1 }).bottom + 10
+        by = textBlock(ctx, o.where, { x: P, y: by, maxWidth: colW, font: F.sans(800), color: '#ffffff', maxSize: 40, minSize: 24, maxLines: 2, leading: 1.15 }).bottom + 22
+        textBlock(ctx, `Vote packs are purchases, not donations. A reader contest from ${NEWSROOM.name} · ${NEWSROOM.phone}`, { x: P, y: by, maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 22, minSize: 16, maxLines: 3, leading: 1.3 })
+      },
+    })
+  }
   if (open) {
     cards.push({
       key: 'launch-open',
@@ -809,6 +877,8 @@ function launchCards(l, o) {
 export function buildCards(s) {
   const o = {
     where: s.where,
+    // The full address, for the poster's code.
+    url: s.publicUrl || null,
     splitPct: s.contest.beneficiary_split_pct,
     year: s.contest.year,
     contestName: s.contest.name || `Cutest Pet in ${NEWSROOM.region}`,
@@ -842,11 +912,16 @@ export function buildCards(s) {
   return groups
 }
 
+// A card with its own size (the poster) keeps it, whatever was asked.
+export const cardSize = (card, size) => card.size || size
+
 export function cardFile(card, size, sample) {
-  return fileName(sample ? 'sample' : null, card.file, `${size.width}x${size.height}`)
+  const sz = cardSize(card, size)
+  return fileName(sample ? 'sample' : null, card.file, `${sz.width}x${sz.height}`)
 }
 
-export function renderCard(card, size, { scale = 1, sample = false, text = '' } = {}) {
+export function renderCard(card, asked, { scale = 1, sample = false, text = '' } = {}) {
+  const size = cardSize(card, asked)
   return render({
     width: size.width,
     height: size.height,

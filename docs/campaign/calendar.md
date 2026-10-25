@@ -166,7 +166,7 @@ backdrop for a countdown sticker), with captions to copy.
 | D-14 | | Facebook | Image post | Screens (home page on a phone) | SE | social.md, Announcement |
 | D-14 | | Instagram | Feed post | Screens | SE | Same, link in bio |
 | D-14 | | Newsletter | Block, AM | Block ("Entries open soon") | NL | |
-| D-14 | | Partner | Partner pack to MFC | Caption, dates, rules link, logo terms from the MOU | CE | MFC posts on its own schedule |
+| D-14 | | Partner | Partner pack to MFC | Caption, dates, rules link, logo terms from the MOU, the poster (Social desk: The launch, Poster to print) | CE | MFC posts on its own schedule. Drafted Oct. 25 as the "Moments Foster Care Partner Pack" doc; fill its brackets from the MOU |
 | D-14 | | Sponsors | Confirm Double Vote Hours | Packs & bonuses tab | Sales, CE | Announce a window only once it's in the schedule |
 | D-13 | | Facebook groups | Build the group list; message admins | social.md, Groups playbook | SE | No posting yet |
 | D-12 | | Facebook, Instagram | Three-card carousel | Screens (How it works, the reset callout) | SE | social.md, How it works |
