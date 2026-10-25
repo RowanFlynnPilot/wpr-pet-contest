@@ -126,7 +126,9 @@ These are load-bearing. Do not soften them.
   keep `round_tally`; `entry_round_totals` serves it for unresolved rounds;
   `contest_health` reports `tally_drift`; `rebuild_round_tally` repairs it.
   `close_round` never trusts it: it re-sums from the vote tables before
-  seeding. The cache has not been load-tested on staging yet.
+  seeding. CI load-tests it on every migration change (`supabase/loadtest`: 24
+  clients for a minute, about 1,850 transactions a second, no failures, no
+  drift); it has not been run on staging hardware.
 - **Buyer notes are opt-in, one per round.** A box at checkout
   (`plays_again_opt_in`) asks for one email per bracket round about the pets
   that address backed. `buyer_notices` dedups on (email, round, kind); the
