@@ -5,27 +5,38 @@ import { track } from '../lib/analytics.js'
 import { Chat, Facebook, LinkIcon, Mail, Share, XLogo } from './Icons.jsx'
 
 // Share pages are built at deploy time, so a pet approved since the last build
-// has none yet. Same-origin HEAD check; fall back to the plain link. The card
+// has none yet. The build lists the pages it made (share-pages.json); one
+// fetch of that list answers every lookup, and nothing is probed, so a
+// missing page never logs a 404. Falls back to the plain link. The card
 // share menu (CardShare) uses it too, once it is opened. `path` is the page's
-// path under the app: a pet's own page or a matchup's.
-const sharePageCache = new Map()
+// path under the app: a pet's own page or a matchup's (with its ?p=).
+let sharePages = null
+let sharePagesLoad = null
+function loadSharePages() {
+  if (!sharePagesLoad) {
+    // The dev server has no share pages to list.
+    const list = import.meta.env.DEV
+      ? Promise.resolve(null)
+      : fetch(sharePageUrl(APP_BASE, 'share-pages.json'), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null), () => null)
+    sharePagesLoad = list
+      .catch(() => null)
+      .then((m) => new Set([...(m?.pets || []).map((id) => `p/${id}/`), ...(m?.matchups || []).map((id) => `m/${id}/`)]))
+      .then((set) => (sharePages = set))
+  }
+  return sharePagesLoad
+}
 export function useSharePage(path) {
-  const [ok, setOk] = useState(() => (path ? (sharePageCache.get(path) ?? null) : null))
+  const key = path ? path.split('?')[0] : null
+  const [pages, setPages] = useState(sharePages)
   useEffect(() => {
-    if (!path || sharePageCache.has(path)) return
+    if (!key || pages) return
     let alive = true
-    fetch(sharePageUrl(APP_BASE, path), { method: 'HEAD', cache: 'no-store' })
-      .then((r) => r.ok)
-      .catch(() => false)
-      .then((found) => {
-        sharePageCache.set(path, found)
-        if (alive) setOk(found)
-      })
+    loadSharePages().then((set) => alive && setPages(set))
     return () => {
       alive = false
     }
-  }, [path])
-  return path && (ok ?? sharePageCache.get(path)) ? sharePageUrl(APP_BASE, path) : null
+  }, [key, pages])
+  return key && pages?.has(key) ? sharePageUrl(APP_BASE, path) : null
 }
 
 // `extra` renders after the share buttons (the pet page's image maker).

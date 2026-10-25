@@ -106,6 +106,15 @@ function OpenBoard({ c, entries, totals }) {
       clock={<GameClock to={c.round.closes_at} done="Final count" />}
     >
       <ol className="sb-rows" aria-label={`${label} leaders`}>
+        {/* Until the pets load, three rows of the same height hold the
+            board's size, so nothing below it moves when they arrive. */}
+        {ranked.length === 0 &&
+          [0, 1, 2].map((i) => (
+            <li key={i} className="sb-row sb-row-hold" aria-hidden="true">
+              <span className="sb-row-rank">{i + 1}</span>
+              <span className="sb-hold-bar" />
+            </li>
+          ))}
         {ranked.slice(0, 3).map((r) => (
           <li key={r.entry.id} className={`sb-row${r.rank === 1 ? ' lead' : ''}`}>
             <span className="sb-row-rank">{r.rank}</span>
@@ -125,7 +134,9 @@ function OpenBoard({ c, entries, totals }) {
       <p className="sb-note">
         {cut && lastIn
           ? `At the cut, ${firstOut.entry.pet_name} needs ${plural(cut.needed)} to pass ${lastIn.entry.pet_name} for the last spot in the top ${c.bracketSize}. `
-          : ''}
+          : ranked.length === 0
+            ? <span className="sb-note-hold" aria-hidden="true">At the cut, a pet needs a few votes to pass another for the last spot in the top {c.bracketSize}. </span>
+            : ''}
         {voting ? `The top ${c.bracketSize} make the bracket, where every total starts over.` : 'Results are finalized shortly after the deadline.'}
       </p>
     </Scoreboard>

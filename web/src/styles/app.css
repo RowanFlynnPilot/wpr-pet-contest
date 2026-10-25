@@ -628,6 +628,8 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
   box-shadow: 0 14px 28px -18px rgba(15, 42, 38, 0.75);
 }
 .scoreboard-skeleton { height: 236px; border-radius: 14px; }
+/* On phones a live board runs taller; the placeholder matches it. */
+@media (max-width: 560px) { .scoreboard-skeleton { height: 292px; } }
 .sb-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 10px; margin-bottom: 10px; }
 .sb-round { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--board-label); }
 .sb-sub { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--board-text); }
@@ -1429,3 +1431,9 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 .coming-up li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.45; }
 .coming-up li svg { flex: none; margin-top: 2px; color: var(--brand-text); }
 .coming-up li > span { min-width: 0; }
+
+/* The Open Round board while its pets load: the same rows, the same note,
+   so nothing below it moves when they arrive. */
+.sb-row-hold { min-height: 52px; }
+.sb-hold-bar { grid-column: 2 / 4; height: 18px; border-radius: 6px; background: var(--board-cell-55, rgba(255, 255, 255, 0.12)); }
+.sb-note-hold { visibility: hidden; }

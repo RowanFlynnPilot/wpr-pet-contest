@@ -250,9 +250,15 @@ location.replace(${jsString(PUBLIC)} + to);
 `
 }
 
+// Which share pages this build has, so the site looks one list up instead of
+// probing each page (a probe that misses logs a 404 in every reader's
+// console). Written on every build, empty when the pages are skipped.
+const writeShareManifest = (pets = [], matchups = []) => writeFile(join(DIST, 'share-pages.json'), JSON.stringify({ pets, matchups }))
+
 async function main() {
   await mkdir(DIST, { recursive: true })
   await writeFile(join(DIST, '404.html'), notFoundPage())
+  await writeShareManifest()
 
   if (!SUPABASE_URL || !KEY) {
     console.warn('[share-pages] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set; skipping per-pet share pages.')
@@ -289,9 +295,12 @@ async function main() {
     await writeFile(join(dir, 'index.html'), html)
   }
   console.log(`[share-pages] wrote ${entries.length} share pages under dist/p/ (redirecting to ${PUBLIC})`)
+  await writeShareManifest(entries.map((e) => e.id))
 
   try {
-    await writeMatchupPages(await matchupCards(contests, entries))
+    const cards = await matchupCards(contests, entries)
+    await writeMatchupPages(cards)
+    await writeShareManifest(entries.map((e) => e.id), cards.map((c) => c.id))
   } catch (err) {
     // The pet pages are up; a matchup link without its page still lands on
     // the bracket through 404.html.

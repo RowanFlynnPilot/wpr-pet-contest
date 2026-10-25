@@ -31,6 +31,8 @@ async function main() {
     : []
   if (widths.length) process.env.VITE_STORAGE_RENDITIONS = widths.join(',')
   await build({ root: ROOT, mode: 'demo', configFile: join(ROOT, 'vite.config.js'), build: { outDir: OUT, emptyOutDir: true }, logLevel: 'warn' })
+  // The demo has no share pages; the list says so, so no page is probed.
+  await writeFile(join(OUT, 'share-pages.json'), JSON.stringify({ pets: [], matchups: [] }))
 
   // The photos, where VITE_STORAGE_URL=. makes the app look for them.
   const pets = join(OUT, 'storage', 'v1', 'object', 'public', 'pets')
