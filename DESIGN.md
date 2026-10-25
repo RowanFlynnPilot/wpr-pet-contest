@@ -427,3 +427,23 @@ A slate-ruled paper masthead carries WPR's badge and wordmark, then the teal-dee
 - **Don't** let a count reflow or slide when it changes.
 - **Don't** fill any panel but the champion's with sun.
 - **Don't** truncate a name on the bracket poster or inside a Vote button; let it wrap.
+
+## Three moments (Oct. 25, 2026)
+
+- **The photo, whole.** The pet page's hero is a button; a tap opens the
+  photo at full size on the color of the photo itself (`PhotoLightbox`,
+  the modal with a `lightbox` class). Escape, the close button, a tap beside
+  the photo or a pull down on a phone closes it; pinch still zooms. The
+  hero keeps its crop; the lightbox is where the whole picture lives.
+- **The link as friends see it.** Above the share buttons, `LinkPreview`
+  draws the unfurl a reader's friends get: the share page's picture (the
+  matchup card during a bracket round, when the deploy drew one; the photo
+  otherwise), the site, the title and the description, in the words
+  `build-share-pages.mjs` writes. It never invents a card that does not
+  exist: a missing card falls back to the photo.
+- **"Biscuit is entered!"** The entry form's success screen shows the photo
+  they just sent in a frame, a line they can post today (there is no page
+  to link until an editor approves the entry, so it points at the front
+  door), a native share and a copy button, and a calendar note for the day
+  voting opens. The demo takes an entry so the screen can be seen; a pending
+  entry is private either way.

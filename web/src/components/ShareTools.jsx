@@ -31,7 +31,7 @@ export function useSharePage(path) {
 // `extra` renders after the share buttons (the pet page's image maker).
 // `sharePage` names a page for the crawlers other than the pet's own (a
 // matchup card while a bracket round is live).
-export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false, extra = null, sharePage = null }) {
+export default function ShareTools({ entry, contestName, title = 'Share and get votes', compact = false, extra = null, before = null, sharePage = null }) {
   const url = petPublicUrl(PUBLIC_URL, entry.id)
   const matchupPage = useSharePage(sharePage)
   const petPage = useSharePage(`p/${entry.id}/`)
@@ -66,6 +66,7 @@ export default function ShareTools({ entry, contestName, title = 'Share and get 
   return (
     <div className="share">
       {title && <div className="share-title">{title}</div>}
+      {before}
       <div className="share-buttons">
         {canNativeShare && (
           <button type="button" className="share-btn primary" onClick={nativeShare}>

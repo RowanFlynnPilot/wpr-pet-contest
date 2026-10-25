@@ -14,6 +14,8 @@ import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
 import { CountdownCells, CrownMark, Digits, GameClock, Lamp, RoadStrip, Scoreboard, StickyVote } from '../components/Scoreboard.jsx'
 import ShareTools from '../components/ShareTools.jsx'
 import ShareImageButton from '../components/ShareImageButton.jsx'
+import PhotoLightbox from '../components/PhotoLightbox.jsx'
+import LinkPreview from '../components/LinkPreview.jsx'
 import VoteButton from '../components/VoteButton.jsx'
 import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
@@ -373,6 +375,8 @@ export default function Pet({ route }) {
   const state = (entry && states?.get(entry.id)) || null
   // The hero takes the color of the pet's own photo; teal until it loads.
   const tint = usePhotoTint(entry ? entryPhotoUrl(entry, { width: 200 }) : null)
+  // A tap on the hero shows the photo whole, on its own color.
+  const [photoOpen, setPhotoOpen] = useState(false)
   // Opened from an emailed free-vote link: the sheet opens ready to confirm.
   const freeRound =
     c.phase === 'voting' && (!inBracket || (state?.status === 'alive' && state.matchup && c.round?.id === state.matchup.round_id))
@@ -463,12 +467,23 @@ export default function Pet({ route }) {
   // The crawlers get the matchup card while a bracket round is live; `p`
   // names the pet whose page a tap on the preview opens.
   const sharePage = votable && inBracket && state?.matchup ? `m/${state.matchup.id}/?p=${entry.id}` : null
+  // The matchup card's two names, in the card's order, for the link preview.
+  const previewMatchup =
+    sharePage && c.round
+      ? {
+          a: byId.get(state.matchup.entry_a_id)?.pet_name || entry.pet_name,
+          b: byId.get(state.matchup.entry_b_id)?.pet_name || 'their opponent',
+          round: roundLabel(c.round.seq, c.bracketSize),
+        }
+      : null
 
   return (
     <div className="wrap pet-page">
       <article className="pet-stage">
         <header className="pet-hero" style={tintStyle(tint)}>
-          <PetPhoto entry={entry} width={1200} contain eager />
+          <button type="button" className="pet-hero-open" onClick={() => setPhotoOpen(true)} aria-label={`See ${name}'s photo full size`}>
+            <PetPhoto entry={entry} width={1200} contain eager />
+          </button>
           <a className="pet-back" href="#/gallery">
             <Arrow size={14} /> All pets
           </a>
@@ -480,6 +495,7 @@ export default function Pet({ route }) {
             <FavoriteButton entry={entry} size={24} />
           </div>
         </header>
+        {photoOpen && <PhotoLightbox entry={entry} tint={tint} onClose={() => setPhotoOpen(false)} />}
 
         <div className="pet-play">
           <RoadStrip road={road} name={name} />
@@ -510,7 +526,14 @@ export default function Pet({ route }) {
               </span>
             </div>
           )}
-          <ShareTools entry={entry} contestName={c.contest?.name} title={shareTitle} extra={<ShareImageButton entry={entry} />} sharePage={sharePage} />
+          <ShareTools
+            entry={entry}
+            contestName={c.contest?.name}
+            title={shareTitle}
+            before={<LinkPreview entry={entry} contestName={c.contest?.name} sharePage={sharePage} matchup={previewMatchup} />}
+            extra={<ShareImageButton entry={entry} />}
+            sharePage={sharePage}
+          />
         </div>
       </article>
 

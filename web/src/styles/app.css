@@ -718,6 +718,16 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .share-btn.primary { background: var(--teal-ink); border-color: var(--teal-ink); color: #fff; }
 .copy-fallback { margin-top: 8px; }
 
+/* The link as a friend sees it: the share page's picture, site, title and
+   words, the way Messenger and the feeds unfurl it. */
+.link-preview { margin: 0 0 12px; max-width: 420px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--paper); }
+.link-preview-image { aspect-ratio: 1.91; background: var(--cream-deep); }
+.link-preview-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.link-preview figcaption { display: grid; gap: 2px; padding: 10px 12px 12px; background: var(--cream); border-top: 1px solid var(--rule); }
+.link-preview-host { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.link-preview-title { font-size: 15px; line-height: 1.25; color: var(--ink); }
+.link-preview-desc { font-size: 13px; line-height: 1.4; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
 /* ----------------------------------------------------------- leaderboard */
 .board { list-style: none; margin: 0; padding: 0; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
 .board li + li { border-top: 1px solid var(--rule); }
@@ -901,6 +911,16 @@ input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='
 .success-burst { text-align: center; padding: 28px 18px; }
 .success-burst .mark { width: 72px; height: 72px; border-radius: 50%; background: var(--teal); color: #fff; display: grid; place-items: center; margin: 0 auto 14px; }
 .success-burst h2 { font-size: clamp(28px, 6vw, 40px); }
+/* The photo they just sent, in a frame; the line they can post today. */
+.youre-in-photo {
+  margin: 0 auto 16px; width: 180px; padding: 8px 8px 10px; background: #fff; border: 1px solid var(--rule);
+  box-shadow: var(--shadow-lift); transform: rotate(-2deg);
+}
+.youre-in-photo img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+.youre-in-photo figcaption { margin-top: 8px; font-family: var(--display); font-weight: 650; font-size: 18px; }
+.youre-in-line { margin: 20px auto 0; max-width: 520px; padding: 14px 16px; background: var(--cream); border: 1px solid var(--rule); border-radius: 12px; text-align: left; }
+.success-burst .youre-in-text { margin: 0 0 12px; max-width: none; font-size: 16px; line-height: 1.5; color: var(--ink); user-select: text; -webkit-user-select: text; }
+.youre-in-line .share-buttons { justify-content: flex-start; }
 .success-burst p { font-size: 16.5px; color: var(--ink-2); max-width: 36em; margin: 10px auto 0; }
 
 /* ------------------------------------------------------------ the modal */
@@ -929,6 +949,28 @@ input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='
 .modal-body { padding: 16px 18px 20px; }
 /* Scrolling to the end of checkout never drags the page behind it. */
 .modal-backdrop, .modal { overscroll-behavior: contain; }
+
+/* The photo, whole, on its own color. The hero is a button that opens it. */
+.pet-hero-open { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pet-hero-open:focus-visible { outline: 3px solid var(--sun); outline-offset: -3px; }
+.lightbox-backdrop { padding: 0; align-items: stretch; background: rgba(0, 0, 0, 0.55); }
+.modal.lightbox { max-width: none; margin: 0; border-radius: 0; background: transparent; box-shadow: none; display: grid; }
+.modal.lightbox .modal-body { padding: 0; display: grid; }
+.modal.lightbox .modal-close {
+  z-index: 2; color: #fff; background: rgba(0, 0, 0, 0.35);
+  top: max(10px, env(safe-area-inset-top, 0px)); right: max(10px, env(safe-area-inset-right, 0px));
+}
+@media (hover: hover) and (pointer: fine) { .modal.lightbox .modal-close:hover { background: rgba(0, 0, 0, 0.55); } }
+.lightbox-figure {
+  position: relative; margin: 0; min-height: 100dvh; display: grid; place-items: center; background: var(--tint, var(--teal-deep));
+  touch-action: pinch-zoom; transition: transform 160ms var(--ease), opacity 160ms var(--ease);
+}
+.lightbox-figure img { max-width: 100vw; max-height: 100dvh; width: auto; height: auto; object-fit: contain; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.lightbox-figure figcaption {
+  position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: max(14px, env(safe-area-inset-bottom, 0px)); pointer-events: none;
+  color: #fff; font-family: var(--display); font-weight: 650; font-size: 18px; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+@media (prefers-reduced-motion: reduce) { .lightbox-figure { transition: none; } }
 
 /* Embedded in WordPress: the iframe is as tall as the whole page, so a fixed
    overlay would open far from where the reader is looking, and Stripe's 3-D

@@ -11,7 +11,7 @@ const FOCUSABLE =
 // Embedded in WordPress it takes over the iframe instead of floating over it
 // (see .takeover in app.css for why). `locked` holds it open while something
 // must not be abandoned halfway, like a payment being confirmed.
-export default function Modal({ label, onClose, children, head, locked = false }) {
+export default function Modal({ label, onClose, children, head, locked = false, className = '' }) {
   const ref = useRef(null)
   const closeRef = useRef(onClose)
   useEffect(() => {
@@ -75,12 +75,12 @@ export default function Modal({ label, onClose, children, head, locked = false }
 
   return (
     <div
-      className="modal-backdrop"
+      className={`modal-backdrop${className ? ` ${className}-backdrop` : ''}`}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget && !locked) onClose()
       }}
     >
-      <div ref={ref} className="modal" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
+      <div ref={ref} className={`modal${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close" disabled={locked}>
           <Close />
         </button>

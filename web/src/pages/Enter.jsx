@@ -2,9 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import Countdown from '../components/Countdown.jsx'
-import { Camera, Check } from '../components/Icons.jsx'
+import { Calendar as CalendarIcon, Camera, Check, LinkIcon, Share } from '../components/Icons.jsx'
 import { submitEntry } from '../lib/api.js'
 import { track } from '../lib/analytics.js'
+import { deadlineIcs, icsHref } from '../lib/calendar.js'
+import { PUBLIC_URL } from '../lib/env.js'
+import { entryShareLine } from '../lib/share.js'
 import { apDate, apDateTime, period } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { ACCEPTED_TYPES, MAX_BYTES, prepareUpload } from '../lib/image.js'
@@ -129,24 +132,82 @@ function Closed({ c }) {
   )
 }
 
-function Success({ petName, closeAt, onAnother }) {
+// The moment after entering: the photo they just sent, in a frame, a line
+// they can post today (there is no page to link until an editor approves
+// the entry, so it points at the front door), and a calendar note for the
+// day voting opens.
+function Success({ petName, photo, contest, onAnother }) {
   const ref = useRef(null)
   useEffect(() => {
     ref.current?.focus()
   }, [])
+  const preview = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo])
+  useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview])
+  const opensAt = contest?.submissions_close_at || null
+  const contestName = contest?.name || `Cutest Pet in ${NEWSROOM.region}`
+  const line = entryShareLine({ petName, contestName, opensAt, url: PUBLIC_URL })
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(line)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      track('Entry Line Copied')
+    } catch {
+      // The line is selectable text; nothing else to do.
+    }
+  }
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+  const share = () =>
+    navigator
+      .share({ text: line })
+      .then(() => track('Entry Line Shared'))
+      .catch(() => {})
+  const ics = opensAt
+    ? deadlineIcs({
+        uid: `voting-opens-${contest.id}`,
+        title: `Voting opens: ${contestName}`,
+        closesAt: opensAt,
+        url: PUBLIC_URL,
+        description: `Entries are in. Vote for ${petName} from the first hour; totals reset every round.`,
+      })
+    : null
   return (
-    <div className="card success-burst" tabIndex={-1} ref={ref} role="status">
-      <div className="mark">
-        <Check size={38} />
-      </div>
+    <div className="card success-burst youre-in" tabIndex={-1} ref={ref} role="status">
+      {preview ? (
+        <figure className="youre-in-photo">
+          <img src={preview} alt="" />
+          <figcaption>{petName}</figcaption>
+        </figure>
+      ) : (
+        <div className="mark">
+          <Check size={38} />
+        </div>
+      )}
       <h1 style={{ fontSize: 'clamp(28px, 6vw, 40px)' }}>{petName} is entered!</h1>
       <p>
         An editor looks at every entry before it goes live, usually within a day. Once {petName} is approved you&rsquo;ll find them in the
-        gallery{closeAt ? `, and voting starts after entries close ${apDate(closeAt)}` : ''}.
+        gallery{opensAt ? `, and voting starts after entries close ${apDate(opensAt)}` : ''}.
       </p>
-      <p>
-        <strong>Start rounding up votes now.</strong> Tell friends, family and your neighborhood Facebook group that {petName} is in.
-      </p>
+      <div className="youre-in-line">
+        <div className="share-title">Tell people now</div>
+        <p className="youre-in-text">{line}</p>
+        <div className="share-buttons">
+          {canShare && (
+            <button type="button" className="share-btn primary" onClick={share}>
+              <Share size={16} /> Share
+            </button>
+          )}
+          <button type="button" className="share-btn" onClick={copy}>
+            <LinkIcon size={16} /> {copied ? 'Copied' : 'Copy the line'}
+          </button>
+          {ics && (
+            <a className="share-btn" href={icsHref(ics)} download={`voting-opens-${petName}.ics`} onClick={() => track('Calendar', { pet: petName, kind: 'opens' })}>
+              <CalendarIcon size={16} /> Remind me when voting opens
+            </a>
+          )}
+        </div>
+      </div>
       <div className="hero-actions" style={{ justifyContent: 'center' }}>
         <button type="button" className="btn btn-primary" onClick={onAnother}>
           Enter another pet
@@ -247,7 +308,8 @@ export default function Enter() {
       <div className="wrap-narrow section">
         <Success
           petName={done}
-          closeAt={c.contest.submissions_close_at}
+          photo={photo}
+          contest={c.contest}
           onAnother={() => {
             setDone(null)
             setV((prev) => ({ ...EMPTY, owner_name: prev.owner_name, owner_email: prev.owner_email }))

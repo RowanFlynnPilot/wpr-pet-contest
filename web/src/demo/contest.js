@@ -258,7 +258,10 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
   // The owner's link: a goal, an opt-out. Nothing to check here; it says yes.
   const links = (b) => ({ body: b.action === 'goal' ? { ok: true, goal: b.goal } : { ok: true } })
 
-  const functions = { 'create-checkout': createCheckout, 'mock-pay': mockPay, 'free-vote': freeVote, links }
+  // The demo takes an entry too, so the "you're in" screen can be seen. It
+  // goes nowhere: a pending entry is private until an editor approves it.
+  const submitEntry = () => ({ body: { ok: true, status: 'pending' } })
+  const functions = { 'create-checkout': createCheckout, 'mock-pay': mockPay, 'free-vote': freeVote, links, 'submit-entry': submitEntry }
 
   return {
     get phase() {
