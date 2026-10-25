@@ -1,7 +1,8 @@
 // Every build-time setting in one place. Missing values degrade to a friendly
 // "not configured" state instead of a blank page: `npm run build` has to work
 // with no env at all (CI lint jobs, forks).
-const env = import.meta.env
+// Empty outside Vite (a Node script that imports this by accident).
+const env = import.meta.env || {}
 
 export const SUPABASE_URL = (env.VITE_SUPABASE_URL || '').replace(/\/+$/, '')
 export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || ''

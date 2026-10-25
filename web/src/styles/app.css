@@ -146,23 +146,38 @@ p { margin: 0 0 0.8em; }
 /* --------------------------------------------------------------------- nav */
 .nav { background: var(--paper); border-bottom: 1px solid var(--rule); }
 .nav-inner { display: flex; align-items: stretch; justify-content: space-between; gap: 8px; }
+/* The sections share the bar evenly, each with its emoji: a tab bar on a
+   phone (emoji over the word), one row on a wider screen with the call to
+   action at the end. The current section is underlined across its share. */
 .nav-links { display: flex; flex: 1 1 auto; min-width: 0; list-style: none; margin: 0; padding: 0; }
+.nav-links li { flex: 1 1 0; min-width: 0; display: flex; }
 .nav-links a {
-  display: flex; align-items: center; height: 48px; padding: 0 10px; font-size: 14px; font-weight: 700;
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  height: 58px; padding: 0 2px; font-size: 12.5px; font-weight: 700; line-height: 1.1;
   color: var(--ink-2); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap;
+  transition: background-color 120ms var(--ease);
 }
-@media (hover: hover) and (pointer: fine) { .nav-links a:hover { color: var(--brand-text); } }
-.nav-links a[aria-current='page'] { color: var(--brand-text); border-bottom-color: var(--teal); }
-.nav .nav-cta { display: none; align-self: center; flex: none; }
+.nav-emoji {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; font-size: 20px; line-height: 1;
+  transition: transform 160ms var(--ease);
+}
+.nav-label { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+@media (hover: hover) and (pointer: fine) {
+  .nav-links a:hover { color: var(--brand-text); background: var(--brand-wash); }
+  .nav-links a:hover .nav-emoji { transform: translateY(-1px) scale(1.08); }
+}
+.nav-links a:active .nav-emoji { transform: scale(0.92); }
+.nav-links a[aria-current='page'] { color: var(--brand-text); border-bottom-color: var(--teal); background: var(--brand-wash); }
+.nav .nav-cta { display: none; align-self: center; flex: none; margin-left: 8px; }
 @media (max-width: 400px) {
-  .nav-links { justify-content: space-between; }
-  .nav-links a { padding: 0 6px; font-size: 13.5px; }
-  .nav .wrap { padding: 0 8px; }
+  .nav .wrap { padding: 0 6px; }
 }
 @media (min-width: 720px) {
-  .nav-links a { padding: 0 14px; font-size: 15px; }
+  .nav-links a { flex-direction: row; gap: 8px; height: 52px; padding: 0 10px; font-size: 15px; }
+  .nav-emoji { font-size: 18px; }
   .nav .nav-cta { display: inline-flex; }
 }
+@media (prefers-reduced-motion: reduce) { .nav-emoji, .nav-links a { transition: none; } }
 
 /* ----------------------------------------------------------------- buttons */
 .btn {

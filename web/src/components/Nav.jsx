@@ -5,13 +5,13 @@ export function navItems(phase) {
   const done = phase === 'complete'
   const bracket = ['voting', 'counting', 'intermission'].includes(phase)
   return [
-    { name: 'home', label: 'Home', href: '#/' },
-    entering && { name: 'enter', label: 'Enter', href: '#/enter' },
-    { name: 'gallery', label: 'Pets', href: '#/gallery' },
-    bracket && { name: 'bracket', label: 'Bracket', href: '#/bracket' },
-    done && { name: 'results', label: 'Results', href: '#/results' },
-    { name: 'shelters', label: 'Shelters', href: '#/shelters' },
-    { name: 'rules', label: 'Rules', href: '#/rules' },
+    { name: 'home', label: 'Home', emoji: '🏠', href: '#/' },
+    entering && { name: 'enter', label: 'Enter', emoji: '📸', href: '#/enter' },
+    { name: 'gallery', label: 'Pets', emoji: '🐶', href: '#/gallery' },
+    bracket && { name: 'bracket', label: 'Bracket', emoji: '🏆', href: '#/bracket' },
+    done && { name: 'results', label: 'Results', emoji: '👑', href: '#/results' },
+    { name: 'shelters', label: 'Shelters', emoji: '❤️', href: '#/shelters' },
+    { name: 'rules', label: 'Rules', emoji: '📋', href: '#/rules' },
   ].filter(Boolean)
 }
 
@@ -32,7 +32,10 @@ export default function Nav({ route }) {
           {items.map((item) => (
             <li key={item.name}>
               <a href={item.href} aria-current={current === item.name ? 'page' : undefined}>
-                {item.label}
+                <span className="nav-emoji" aria-hidden="true">
+                  {item.emoji}
+                </span>
+                <span className="nav-label">{item.label}</span>
               </a>
             </li>
           ))}

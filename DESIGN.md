@@ -467,3 +467,12 @@ A slate-ruled paper masthead carries WPR's badge and wordmark, then the teal-dee
   round resolving while the page is open mounts the next column's names,
   and they arrive the same way. On a phone, one round at a time, the column
   delay is zero. Reduced motion turns it all off.
+
+## The section bar (Oct. 25, 2026)
+
+The sections share the nav evenly, each with an emoji (🏠 Home, 📸 Enter,
+🐶 Pets, 🏆 Bracket, 👑 Results, ❤️ Shelters, 📋 Rules; `aria-hidden`, so
+the word is the name). On a phone it is a tab bar, emoji over the word; from
+720px one row with the call to action at the end. The current section is
+washed and underlined across its share. The paw was tried for Pets and set
+aside: it disappears on dark paper.

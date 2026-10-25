@@ -6,7 +6,10 @@
 // VITE_NEWSROOM (default wpr); the demo switches at runtime by setting
 // data-newsroom on <html> before the app loads (src/demo/shim.js).
 import { DEFAULT_NEWSROOM, NEWSROOMS } from './newsrooms.js'
-import { EMBEDDED } from './lib/env.js'
+
+// Not lib/env.js: the Node scripts (share pages, the deck) import this file
+// through lib/format.js, and env.js reads Vite's import.meta.env.
+const EMBEDDED = typeof window !== 'undefined' && window.parent !== window && !window.WPR_DEMO
 
 const picked =
   (typeof document !== 'undefined' && document.documentElement.dataset.newsroom) || import.meta.env?.VITE_NEWSROOM || DEFAULT_NEWSROOM
