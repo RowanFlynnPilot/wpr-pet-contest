@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { useContest } from './ContestContext.jsx'
 import { useBracket, useContestTotals, useRoundTotals } from '../lib/data.js'
 import { milestone } from '../lib/milestones.js'
+import { fmtMoney } from '../lib/format.js'
 import { entryStates } from '../lib/bracketState.js'
 import { Camera } from './Icons.jsx'
 
@@ -26,6 +27,10 @@ function Live({ entry, onClose, owner }) {
     [inBracket, entry, c.rounds, bracket.matchups, c.bracketSize],
   )
   const ready = c.roundsLoaded && !(inBracket && bracket.loading) && !(liveRound && totals.loading)
+  // For the keepsake: what voters raised, at the finish only, and the day
+  // the last round was decided.
+  const raisedCents = Number(c.stats?.shelter_cents ?? 0) + Number(c.stats?.match_cents ?? 0)
+  const endedAt = c.phase === 'complete' ? c.rounds.map((r) => r.resolved_at).filter(Boolean).sort().at(-1) || null : null
   return (
     <ShareImagePanel
       entry={entry}
@@ -42,6 +47,11 @@ function Live({ entry, onClose, owner }) {
       club={milestone(contestTotals.get(entry.id)).earned}
       owner={owner}
       now={c.now}
+      total={contestTotals.get(entry.id) || 0}
+      raised={c.phase === 'complete' && raisedCents > 0 ? fmtMoney(raisedCents, { whole: true }) : null}
+      shelterNames={c.shelters.map((s) => s.name)}
+      entries={Number(c.stats?.entries ?? 0)}
+      endedAt={endedAt}
     />
   )
 }

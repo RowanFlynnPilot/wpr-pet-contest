@@ -7,6 +7,7 @@ import { NEWSROOM } from '../../config.js'
 import { apDate, apDateTime, plural } from '../format.js'
 import { matchupStanding, votesToPass } from '../rank.js'
 import { bracketSeedOrder, finalSeq, roundLabel, roundShortLabel } from '../rounds.js'
+import { clubLabel } from '../milestones.js'
 
 const done = (r) => r && (r.status === 'resolved' || r.status === 'closed')
 const bySeq = (a, b) => a.seq - b.seq
@@ -259,5 +260,41 @@ export function sampleScenario(entries, { bracketSize = 16, now = Date.now() } =
     openResults: roundResults({ rounds: [{ ...r1, status: 'resolved' }], matchups: [], entries: seeded, totals: totals1, bracketSize: size }),
     champion: { entry: champ, seed: 1, votes: 1204, opponent: runnerUp, opponentSeed: runnerUp.seed, opponentVotes: 1150 },
     shelterCents: 425000,
+  }
+}
+
+// ---------------------------------------------------------------- keepsake
+
+// The keepsake certificate every entrant can make once their pet's run is
+// over (or at the finish): what the pet did, its votes over the whole
+// contest, its club, and, at the finish, what voters raised. Only true
+// things, and never "donation".
+//   state: entryStates() row (champion | out | unseeded), or null when the
+//          pet ran only in the Open Round of a contest with no bracket yet
+//   total: the pet's votes over every round (useContestTotals)
+//   raised: dollars raised for the shelters, as text, only at the finish
+export function keepsakeCopy({ name, year, contestName, state, total = 0, club = null, raised = null, shelters = [], entries = 0, endedAt = null }) {
+  const pet = String(name || 'This pet').trim()
+  const contest = contestName || `Cutest Pet in ${NEWSROOM.region}`
+  let feat
+  if (state?.status === 'champion') feat = `is the ${year ? `${year} ` : ''}champion of ${contest}`
+  else if (state?.status === 'out' && state.label) feat = `made the ${state.label} of ${contest}${year ? ` ${year}` : ''}`
+  else feat = `ran in ${contest}${year ? ` ${year}` : ''}${entries > 1 ? `, one of ${plural(entries, 'pet')}` : ''}`
+  const bits = [feat]
+  if (total > 0) bits.push(`with ${plural(total, 'vote')} in all`)
+  // A no-break space keeps "500 Club" on one line.
+  const clubPart = club ? ` A member of the ${clubLabel(club).replace(/ (Club)$/, '\u00a0$1')}.` : ''
+  const achievement = `${bits.join(', ')}.${clubPart}`
+  const names = shelters.filter(Boolean)
+  const who = names.length === 1 ? names[0] : 'local animal shelters'
+  const raisedLine = raised ? `Together, voters raised ${raised} for ${who}.` : 'Every vote pack helped local animal shelters.'
+  return {
+    kicker: glue(`${contest}${year ? ` · ${year}` : ''}`),
+    title: state?.status === 'champion' ? 'Certificate of Champion Cuteness' : 'Certificate of Cuteness',
+    lead: 'This certifies that',
+    name: pet,
+    achievement: glue(achievement),
+    raised: glue(raisedLine),
+    date: endedAt ? glue(apDate(endedAt, { weekday: false, year: true })) : null,
   }
 }

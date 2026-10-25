@@ -566,3 +566,10 @@ aside: it disappears on dark paper.
   counted, then the winner's photo for half a day. A one-line notice on the
   pet pages while one runs. Every card says sprint votes count toward the
   round like any other.
+- **The keepsake.** Once a pet's run is over (at the finish, or out of the
+  bracket), the image maker offers a certificate: 11 x 8.5 landscape, cream
+  inside a thick-over-thin frame, the photo with its club on the left, and
+  on the right "Certificate of Cuteness" (of Champion Cuteness for the
+  winner), what the pet did, its votes over the whole contest, what voters
+  raised at the finish, and the newsroom's name on a signature line. At the
+  finish it is the image maker's first choice.
