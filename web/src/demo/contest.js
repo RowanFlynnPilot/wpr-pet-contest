@@ -99,7 +99,7 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const contest = {
       id: id('c1', 1), year: 2026, name: `Cutest Pet in ${region}`,
       status: submissions ? 'submissions_open' : current === 'complete' ? 'complete' : 'voting',
-      beneficiary_split_pct: 30, bracket_size: 16, bracket_round_hours: 48,
+      beneficiary_split_pct: 50, bracket_size: 16, bracket_round_hours: 48,
       submissions_open_at: iso(submissions ? now - 3 * DAY : now - 14 * DAY),
       submissions_close_at: iso(submissions ? now + 4 * DAY : now - 7 * DAY),
       free_vote_enabled: true,
@@ -186,8 +186,8 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
         { id: id('5e', 1), contest_id: contest.id, name: 'Moments Foster Care', url: 'https://www.facebook.com/p/Moments-Foster-Care-Inc-100064839574671/', logo_path: 'shelters/moments-foster-care.jpg', payout_weight: 1 },
       ],
       contest_stats: submissions
-        ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
-        : [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 30, entries: entries.length, votes: totals.reduce((n, t) => n + t.votes, 0), gross_cents: gross, shelter_cents: Math.round(gross * 0.3), match_cents: current === 'bracket' ? 12500 : 0 }],
+        ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 50, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
+        : [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 50, entries: entries.length, votes: totals.reduce((n, t) => n + t.votes, 0), gross_cents: gross, shelter_cents: Math.round(gross * 0.5), match_cents: current === 'bracket' ? 12500 : 0 }],
       recent_activity: [
         ...paid.slice().reverse().map((p) => ({ round_id: p.round_id, entry_id: p.entry_id, votes: p.votes, bonus_multiplier: p.multiplier, confirmed_at: p.confirmed_at })),
         ...live.slice(0, 10).map((t, i) => ({ round_id: t.round_id, entry_id: t.entry_id, votes: 25, bonus_multiplier: 1, confirmed_at: iso(now - (i + 1) * 7 * 60e3) })),

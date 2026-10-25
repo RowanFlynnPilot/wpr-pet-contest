@@ -15,16 +15,17 @@ for (const key of ['ink', 'ink2', 'muted', 'paper', 'cream', 'creamDeep', 'rule'
   Object.defineProperty(C, key, { enumerable: true, get: () => palette()[key] })
 }
 
-const SERIF = "Fraunces, Georgia, 'Times New Roman', serif"
+const DISPLAY = "'Bricolage Grotesque', Arial, sans-serif"
 const SANS = "'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif"
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-const serif = () => tokenFont('--display', SERIF)
+const display = () => tokenFont('--display', DISPLAY)
 const sans = () => tokenFont('--sans', SANS)
 const mono = () => tokenFont('--mono', MONO)
 
 export const F = {
-  display: (weight = 600) => (size) => `${weight} ${size}px ${serif()}`,
-  italic: (weight = 500) => (size) => `italic ${weight} ${size}px ${serif()}`,
+  display: (weight = 600) => (size) => `${weight} ${size}px ${display()}`,
+  // The display face has no italic; what was italic is the lighter weight.
+  italic: (weight = 500) => (size) => `${weight} ${size}px ${display()}`,
   sans: (weight = 700) => (size) => `${weight} ${size}px ${sans()}`,
   mono: (weight = 700) => (size) => `${weight} ${size}px ${mono()}`,
 }
@@ -39,7 +40,7 @@ const withTimeout = (p, ms, fallback) => Promise.race([p, new Promise((r) => set
 export function loadFonts(text = '') {
   if (typeof document === 'undefined' || !document.fonts?.load) return Promise.resolve()
   const sample = `${text} Aa0123456789$%`
-  const d = `"${firstFamily(serif())}"`
+  const d = `"${firstFamily(display())}"`
   const s = `"${firstFamily(sans())}"`
   const specs = [`600 80px ${d}`, `italic 500 80px ${d}`, `600 40px ${s}`, `700 40px ${s}`, `800 40px ${s}`, `700 40px "${firstFamily(mono())}"`]
   const all = Promise.all(specs.map((s) => document.fonts.load(s, sample).catch(() => []))).then(() => document.fonts.ready)
@@ -260,7 +261,7 @@ export const trackedMeasurer = (ctx, font, em, tight = false) => (text, size) =>
   return trackedWidth(ctx, text, size * em, tight)
 }
 
-// Ascent used to place the first baseline: close to Fraunces' and Public
+// Ascent used to place the first baseline: close to the display face's and Public
 // Sans' cap-plus-ascender height.
 const ASC = 0.8
 

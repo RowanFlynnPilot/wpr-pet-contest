@@ -8,7 +8,7 @@ whole field, then a 16-entry bracket.
 
 Supabase (Postgres + Storage + Edge Functions) for all state, Stripe for
 payments, React/Vite on GitHub Pages, WordPress iframe embed. Design system:
-teal `#3A867C`, cream `#F6F2E9`, Fraunces display, Public Sans body, JetBrains
+teal `#3A867C`, cream `#F6F2E9`, Bricolage Grotesque display, Public Sans body, JetBrains
 Mono for vote counts.
 
 Unlike the Ledger tools there is no scraper and no static JSON. This is

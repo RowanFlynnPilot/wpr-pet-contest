@@ -12,7 +12,7 @@ const done = (r) => r && (r.status === 'resolved' || r.status === 'closed')
 const bySeq = (a, b) => a.seq - b.seq
 const future = (v, now) => v && new Date(v).getTime() > now
 
-// "30% of every vote pack helps local animal shelters"
+// "50% of every vote pack helps local animal shelters"
 export function shelterLine(pct) {
   const n = Number(pct)
   return n > 0 ? `${n}% of every vote pack helps local animal shelters` : 'Every vote pack helps local animal shelters'

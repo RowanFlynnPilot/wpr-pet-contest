@@ -30,6 +30,8 @@ SUN = (244, 185, 66)
 CREAM = (246, 242, 233)
 MINT = (214, 230, 226)
 
+DISPLAY = "https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz%2Cwdth%2Cwght%5D.ttf"
+# The newsroom page's card (newsroom-card.py) keeps WPR's house serif.
 FRAUNCES = "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf"
 FRAUNCES_ITALIC = "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces-Italic%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf"
 PUBLIC_SANS = "https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf"
@@ -115,7 +117,7 @@ def wrap(text, f, width):
 def main():
     paper = newsroom()
     c = palette(paper.get("theme"))
-    fraunces = fetch(FRAUNCES)
+    display = fetch(DISPLAY)
     sans = fetch(PUBLIC_SANS)
 
     img = Image.new("RGB", (1200, 630), c["deep"])
@@ -135,11 +137,11 @@ def main():
 
     # "Cutest Pet / in Marathon / County": the region wrapped to the room left of the paw.
     size = 92
-    head = font(fraunces, size, {"opsz": 144, "wght": 650})
+    head = font(display, size, {"opsz": 96, "wght": 650})
     lines = ["Cutest Pet"] + wrap(f"in {paper['region']}", head, 640)
     if len(lines) > 3:
         size = 76
-        head = font(fraunces, size, {"opsz": 144, "wght": 650})
+        head = font(display, size, {"opsz": 96, "wght": 650})
         lines = ["Cutest Pet"] + wrap(f"in {paper['region']}", head, 660)
     for i, line in enumerate(lines):
         d.text((72, 128 + i * (size + 6)), line, font=head, fill="white")
@@ -161,7 +163,7 @@ def main():
         chip.paste(badge, (pad, pad))
         chip.paste(word, (pad + 64 + 14, pad + (64 - wh) // 2))
     else:
-        name_font = font(fraunces, 36, {"opsz": 36, "wght": 650})
+        name_font = font(display, 36, {"opsz": 36, "wght": 650})
         tw = round(name_font.getlength(paper["name"]))
         chip_w, chip_h = tw + pad * 2 + 12, 64 + pad * 2
         chip = Image.new("RGB", (chip_w, chip_h), "white")

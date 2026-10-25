@@ -27,32 +27,32 @@ colors:
   board-text: "#e3efec"
 typography:
   display-xl:
-    fontFamily: "Fraunces, 'Fraunces Display Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Bricolage Grotesque', 'Bricolage Display Fallback', Arial, sans-serif"
     fontSize: "clamp(46px, 13vw, 88px)"
     fontWeight: 650
     lineHeight: 0.9
     letterSpacing: "-0.03em"
-    fontVariation: "'opsz' 144"
+    fontVariation: "'opsz' 96"
   display:
-    fontFamily: "Fraunces, 'Fraunces Display Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Bricolage Grotesque', 'Bricolage Display Fallback', Arial, sans-serif"
     fontSize: "clamp(34px, 9vw, 64px)"
     fontWeight: 650
     lineHeight: 0.98
     letterSpacing: "-0.025em"
-    fontVariation: "'opsz' 144"
+    fontVariation: "'opsz' 96"
   headline:
-    fontFamily: "Fraunces, 'Fraunces Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif"
     fontSize: "clamp(24px, 4.2vw, 34px)"
     fontWeight: 600
     lineHeight: 1.1
     letterSpacing: "-0.01em"
   title:
-    fontFamily: "Fraunces, 'Fraunces Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif"
     fontSize: "19px"
     fontWeight: 650
     lineHeight: 1.1
   caption:
-    fontFamily: "Fraunces, 'Fraunces Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif"
     fontSize: "20px"
     fontWeight: 400
     lineHeight: 1.4
@@ -213,7 +213,7 @@ Sun yellow is held back for the moments that count: a lit lamp, the leader's tug
 **Key Characteristics:**
 - Cream newsroom ground with one deep-teal arena panel per screen.
 - JetBrains Mono digits in dark fixed cells over ghost 8s; tabular figures everywhere a number is counted.
-- Fraunces at optical size 144 for pet names and big lines, set over the photo behind a teal scrim.
+- Bricolage Grotesque at optical size 96 for pet names and big lines, set over the photo behind a teal scrim.
 - The road: teal dots, solid where the pet has traveled and dashed ahead, ending in a drawn crown.
 - Pill-shaped controls with soft, teal-tinted drop shadows.
 - Drawn SVG marks for arrows, checks, crosses and the crown; never text glyphs.
@@ -259,7 +259,7 @@ A newsroom is a theme block on `:root[data-theme='…']` plus an entry in `src/n
 
 ## Typography
 
-**Display Font:** Fraunces (with size-adjusted Georgia fallbacks, `Fraunces Fallback` and `Fraunces Display Fallback`, so lines do not rewrap when the web font arrives)
+**Display Font:** Bricolage Grotesque (with size-adjusted Arial fallbacks, `Bricolage Fallback`, `Bricolage Display Fallback` and `Bricolage Figure Fallback`, so lines do not rewrap when the web font arrives). Chosen Oct. 24, 2026 over the fleet's Fraunces, which carries eighteen WPR tools: this one should look like its own product. It has no italic, so emphasis is weight (the headline's `em` at 760) and color; the dek and the owner's caption are upright at 400.
 **Body Font:** Public Sans (with the system UI stack)
 **Label/Mono Font:** JetBrains Mono, for vote counts, seeds, prices, ranks and clocks
 
@@ -270,7 +270,7 @@ A newsroom is a theme block on `:root[data-theme='…']` plus an entry in `src/n
 - **Display** (650, clamp(34px, 9vw, 64px), line height 0.98, -0.025em, opsz 144, display fallback face): Home's title, balanced over two to three lines on a phone, with its key word in teal-ink italic.
 - **Headline** (600, clamp(24px, 4.2vw, 34px), line height 1.1): section headings.
 - **Title** (600 to 650, 17 to 21px): team names on the board, leader-row names, the contest bar's title (19px), card names and pet-card names (26px on the gallery's featured card).
-- **Caption / Dek** (Fraunces italic, 17 to 20px, line height 1.4 to 1.45, 62ch max): the owner's caption in teal curly quotes, and deks under headings.
+- **Caption / Dek** (the display face, upright, 400, 17 to 20px, line height 1.45, 62ch max): the owner's caption in teal curly quotes, and deks under headings.
 - **Body** (400, 16px, line height 1.55): everything else. Small print runs 12.5 to 13.5px in muted.
 - **Section count** (Public Sans 700, 14px, muted, 6px below the heading): a count or status under a heading.
 - **Label** (800, 11.5 to 12px, 0.12 to 0.14em, uppercase): the scoreboard's round name, its lamp and unit labels, bracket column heads, the champion's story line (13px, 0.06em), the road stops (sentence case, 0.03em), and table headers.
@@ -279,7 +279,7 @@ A newsroom is a theme block on `:root[data-theme='…']` plus an entry in `src/n
 ### Named Rules
 **The Counted-In-Mono Rule.** Any number a reader might compare (votes, seeds, ranks, prices per vote, clocks) sets in JetBrains Mono with tabular figures. Dollar headline amounts set in Fraunces at opsz 144.
 
-**The Big-Line Optical Size Rule.** Fraunces lines larger than about 30px use `'opsz' 144` with the display fallback face; smaller Fraunces stays at the default optical size with the regular fallback.
+**The Big-Line Optical Size Rule.** Display lines larger than about 30px use `'opsz' 96` with the display fallback face; smaller display text stays at the automatic optical size with the regular fallback.
 
 **The Under-Never-Over Rule.** A count or status sits under its heading, never above it as a kicker. Headings carry no kicker at all. A section count goes beneath the heading, and only when it says something the heading doesn't. The scoreboard's round name is the board's header row, not a kicker over a heading.
 

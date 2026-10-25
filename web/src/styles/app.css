@@ -84,7 +84,7 @@ p { margin: 0 0 0.8em; }
 .section-count { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: var(--muted); }
 /* Drawn arrows ride the text baseline. */
 .more svg, .sponsor-go svg, .w-cta svg { display: inline-block; vertical-align: -2px; }
-.dek { font-family: var(--display); font-style: italic; color: var(--muted); font-size: 17px; line-height: 1.45; margin: 6px 0 0; max-width: 62ch; }
+.dek { font-family: var(--display); font-weight: 400; color: var(--muted); font-size: 17px; line-height: 1.45; margin: 6px 0 0; max-width: 62ch; }
 
 /* ---------------------------------------------------------------- masthead */
 .masthead {
@@ -132,7 +132,7 @@ p { margin: 0 0 0.8em; }
 }
 .banner-title {
   font-family: var(--display-xl); font-size: clamp(30px, 6.4vw, 56px); font-weight: 650; letter-spacing: -0.02em; line-height: 1.02;
-  font-variation-settings: 'opsz' 144;
+  font-variation-settings: 'opsz' 96;
 }
 .banner-title a { color: inherit; text-decoration: none; }
 .banner.compact { padding: 10px 0; }
@@ -218,9 +218,9 @@ p { margin: 0 0 0.8em; }
 }
 .home-title {
   grid-area: title; font-family: var(--display-xl); font-size: clamp(34px, 9vw, 64px); font-weight: 650;
-  letter-spacing: -0.025em; line-height: 0.98; font-variation-settings: 'opsz' 144; text-wrap: balance;
+  letter-spacing: -0.025em; line-height: 0.98; font-variation-settings: 'opsz' 96; text-wrap: balance;
 }
-.home-title em { font-style: italic; color: var(--teal-ink); font-weight: 600; }
+.home-title em { font-style: normal; color: var(--teal-ink); font-weight: 760; }
 .home-board { grid-area: board; min-width: 0; }
 .home-actions { grid-area: actions; margin-top: 0; }
 .home-lede { grid-area: lede; margin: 0; }
@@ -260,7 +260,7 @@ p { margin: 0 0 0.8em; }
 }
 .polaroid .cap {
   position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-family: var(--display);
-  font-style: italic; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px;
+  font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px;
 }
 .polaroid:nth-child(1) { left: 0; top: 18px; transform: rotate(-6deg); z-index: 1; }
 .polaroid:nth-child(2) { right: 0; top: 0; transform: rotate(5deg); z-index: 2; }
@@ -277,7 +277,7 @@ p { margin: 0 0 0.8em; }
   border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
 }
 @media (min-width: 720px) { .raised { grid-template-columns: auto 1fr; gap: 28px; } }
-.raised-amount { font-family: var(--display-figure); font-weight: 700; font-size: clamp(40px, 9vw, 64px); line-height: 1; color: var(--teal-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-variation-settings: 'opsz' 144; }
+.raised-amount { font-family: var(--display-figure); font-weight: 700; font-size: clamp(40px, 9vw, 64px); line-height: 1; color: var(--teal-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-variation-settings: 'opsz' 96; }
 .raised-label { font-weight: 700; font-size: 15px; margin-top: 4px; }
 .raised-facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--muted); }
 .raised-facts b { font-family: var(--mono); color: var(--ink); font-size: 16px; }
@@ -538,7 +538,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .pet-title { position: absolute; left: var(--pad-l); right: var(--pad-r); bottom: 14px; z-index: 1; color: #fff; }
 .pet-name {
   font-family: var(--display-xl); font-size: clamp(46px, 13vw, 88px); font-weight: 650; line-height: 0.9; letter-spacing: -0.03em;
-  overflow-wrap: anywhere; text-wrap: balance; font-variation-settings: 'opsz' 144;
+  overflow-wrap: anywhere; text-wrap: balance; font-variation-settings: 'opsz' 96;
 }
 .pet-meta { margin: 7px 0 0; font-size: 14px; font-weight: 700; letter-spacing: 0.01em; color: #f3eadb; }
 .pet-back {
@@ -558,7 +558,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 }
 
 .caption {
-  font-family: var(--display); font-style: italic; font-size: 20px; line-height: 1.4; color: var(--ink-2);
+  font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.45; color: var(--ink-2);
   margin: 4px 0 0; quotes: '\201C' '\201D';
 }
 .caption::before { content: open-quote; color: var(--teal); }
@@ -818,7 +818,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 @media (min-width: 760px) { .champ-photo { width: 100%; } }
 .champion .photo { border-radius: 8px; border: 6px solid #fff; box-shadow: 0 14px 28px -16px rgba(31, 43, 40, 0.55); transform: rotate(-2deg); }
 .champ-photo .crown-mark { position: absolute; top: -26px; left: -10px; fill: var(--sun); stroke: var(--ink); transform: rotate(-14deg); filter: drop-shadow(0 4px 6px rgba(31, 43, 40, 0.35)); }
-.champion h2 { font-family: var(--display-xl); font-size: clamp(44px, 9vw, 76px); letter-spacing: -0.03em; line-height: 0.95; overflow-wrap: anywhere; font-variation-settings: 'opsz' 144; }
+.champion h2 { font-family: var(--display-xl); font-size: clamp(44px, 9vw, 76px); letter-spacing: -0.03em; line-height: 0.95; overflow-wrap: anywhere; font-variation-settings: 'opsz' 96; }
 .champion .champ-meta { margin: 8px 0 0; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: 13px; color: var(--ink); }
 .champion p { color: var(--ink-2); font-size: 16px; margin-top: 8px; }
 .champion .btn-primary { margin-top: 14px; }

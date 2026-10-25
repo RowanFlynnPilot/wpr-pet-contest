@@ -97,7 +97,7 @@ def main(manifest_path, out_dir):
     if not specs:
         print("[matchup-cards] nothing to draw")
         return 0
-    fraunces = og.fetch(og.FRAUNCES)
+    fraunces = og.fetch(og.DISPLAY)
     sans = og.fetch(og.PUBLIC_SANS)
     out = Path(out_dir)
     failed = 0

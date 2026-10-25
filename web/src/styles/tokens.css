@@ -71,11 +71,14 @@
   --danger-deep: color-mix(in oklab, var(--danger) 80%, black);
   --danger-deeper: color-mix(in oklab, var(--danger) 60%, black);
 
-  --display: 'Fraunces', 'Fraunces Fallback', Georgia, 'Times New Roman', serif;
-  /* For text set at 'opsz' 144. */
-  --display-xl: 'Fraunces', 'Fraunces Display Fallback', Georgia, 'Times New Roman', serif;
-  /* For a figure set at 'opsz' 144 (the money counter). */
-  --display-figure: 'Fraunces', 'Fraunces Figure Fallback', Georgia, 'Times New Roman', serif;
+  /* Bricolage Grotesque: warm, a little cheeky, and not the face of any other
+     WPR tool (Fraunces carries eighteen of them). No italic; emphasis is
+     weight and color. */
+  --display: 'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif;
+  /* For text set at 'opsz' 96, the top of its optical range. */
+  --display-xl: 'Bricolage Grotesque', 'Bricolage Display Fallback', Arial, sans-serif;
+  /* For a figure set at 'opsz' 96 (the money counter). */
+  --display-figure: 'Bricolage Grotesque', 'Bricolage Figure Fallback', Arial, sans-serif;
   --sans: 'Public Sans', 'Public Sans Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', 'JetBrains Mono Fallback', 'JetBrains Mono Fallback Menlo', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
@@ -116,25 +119,18 @@
   --shadow-lift: 0 2px 4px rgba(29, 53, 87, 0.08), 0 12px 28px rgba(29, 53, 87, 0.14);
 }
 
-/* Georgia scaled to Fraunces' width, so a headline keeps its line breaks
-   when the web font arrives instead of rewrapping and shoving the page down
-   (on a phone over slow 4G the Home headline went from three lines to two).
-   Measured in Edge against Fraunces at the settings each style is used with.
-   Where Georgia is not installed (Android) these faces simply do not load. */
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia'); font-weight: 400 500; size-adjust: 95%; }
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 93%; }
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia Italic'), local('Georgia-Italic'); font-style: italic; font-weight: 400 500; size-adjust: 97.5%; }
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia Bold Italic'), local('Georgia-BoldItalic'); font-style: italic; font-weight: 600 800; size-adjust: 86%; }
-/* At optical size 144, the big display lines, Fraunces is far narrower.
-   The open-round headline sits a hair under two lines at 1350px, so the
-   fallback is set 1.5% narrow (76.5%; 77.8% and up wrapped it to three until
-   the font came) rather than at its measured width, 77.7%.
-   Figures are another matter: Fraunces's lining numerals at 144 run wider
-   than Georgia Bold's ("$1,188" is 164px in Fraunces, 158 in the display
-   fallback), so the money counter has its own, measured in place. */
-@font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 76.5%; }
-@font-face { font-family: 'Fraunces Figure Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 80.7%; }
-@font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold Italic'), local('Georgia-BoldItalic'); font-style: italic; font-weight: 600 800; size-adjust: 73%; }
+/* Arial scaled to Bricolage Grotesque's width, so a headline keeps its line
+   breaks when the web font arrives instead of rewrapping and shoving the
+   page down. Measured in Edge: at text sizes Bricolage is 5% wider than
+   Arial at 400 and 2% at 600 to 700; at optical size 96, the big lines, it
+   is 9% narrower, and its figures 11%. Arial is on Windows, macOS and iOS;
+   Android takes Roboto, which runs within 1% of Arial. A line that sits on
+   a wrap boundary can still flip, so check the home headline at 1350px
+   after changing these. */
+@font-face { font-family: 'Bricolage Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'); font-weight: 200 500; size-adjust: 104.9%; }
+@font-face { font-family: 'Bricolage Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 101.8%; }
+@font-face { font-family: 'Bricolage Display Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 91.3%; }
+@font-face { font-family: 'Bricolage Figure Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 89.4%; }
 /* Public Sans is 4-5% wider than Segoe UI, Arial and Roboto at text weights
    and within 1% at bold (measured in Edge); without the adjustment the match
    bar wrapped to a second line when the font arrived on a phone. Arial is on
