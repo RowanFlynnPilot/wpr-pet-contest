@@ -101,7 +101,7 @@ Text:
 
 Facebook:
 > [Pet] is officially entered in Wausau Pilot & Review's Cutest Pet in Marathon
-> County contest. Voting opens [date], and I'll post the link again then. 30%
+> County contest. Voting opens [date], and I'll post the link again then. 50%
 > of vote pack sales goes to Moments Foster Care. [link]
 
 Story: the Story image (it says when voting opens), with a link sticker.
@@ -111,7 +111,7 @@ Story: the Story image (it says when voting opens), with a link sticker.
 Start with the people closest to you.
 
 Text:
-> Voting's open! If you'd like to vote for [Pet], packs start at $5 and 30%
+> Voting's open! If you'd like to vote for [Pet], packs start at $5 and 50%
 > goes to Moments Foster Care: [link]. The top 16 pets make the bracket on
 > [day].
 

@@ -286,7 +286,7 @@ Facts to cite:
 - The running total on the contest page comes from confirmed payments, less
   refunds.
 - After the final, WPR prints a payout statement (sales, refunds, chargebacks,
-  net, the 30%). It's marked preliminary until the contest is complete. A
+  net, the 50%). It's marked preliminary until the contest is complete. A
   signed copy is filed with Moments' agreement, and the check is presented on
   [date].
 
