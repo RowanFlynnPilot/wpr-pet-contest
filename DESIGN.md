@@ -693,3 +693,21 @@ aside: it disappears on dark paper.
   tables; a deadline in running text spells its day out.
 - **The root address previews like the demo** on Facebook and in texts: the
   forwarding page carries the demo's own title and preview tags.
+
+## The desk, the kit, the mail and the embed (Oct. 25, 2026)
+
+- **The staff desk on a phone.** The mock answers a pretend staff sign-in
+  (`web/scripts/mock-staff.mjs`), so every desk tab is screenshotted and
+  audited at phone width in CI. Approve and Reject stay under the thumb as a
+  moderation card scrolls; keyboard hints hide on touch; the email log
+  stacks into short labeled rows; editing grids scroll inside their box;
+  staff times read "Oct. 25, 1:54 p.m. CDT".
+- **Emails** open with a hidden preview line (the news itself), then the seal
+  on a white disc and the newsroom's name over the thick-and-thin rule, with
+  a dark version for the mail apps that ask. Code emails carry no images.
+- **The finale names the presenting sponsor** ("The finale · presented by"),
+  as part of that placement.
+- **The embed** forwards a hash change on the same page into the frame.
+- **A 30-second walkthrough** (`docs/video/`): a cover, four real screens in
+  a phone (enter, the Open Round, checkout, a matchup) and an end card, in
+  two cuts, WPR's teaser and the pitch to other newsrooms.

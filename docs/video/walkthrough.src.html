@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cutest Pet in Marathon County: the walkthrough</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=JetBrains+Mono:wght@700&family=Public+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* A 30-second walkthrough of the contest, phone first: a cover, four real
+   screens in a phone (enter, the Open Round, checkout, a matchup), an end
+   card. Every frame is a pure function of time (seek). build.mjs inlines the
+   capture's rects and writes the two cuts (data-cut: contest | newsroom). */
+:root {
+  --brand: #3a867c; --deep: #1f4b45; --cream: #f6f2e9; --ink: #1a1a1a; --ink-2: #3d3a35; --sun: #f4b942;
+  --muted: #6b6560; --paper: #ffffff;
+  --display: 'Bricolage Grotesque', Georgia, serif;
+  --sans: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+html, body { margin: 0; background: var(--deep) }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--deep); font-family: var(--sans); color: var(--ink) }
+.scene { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; background: var(--cream); visibility: hidden; will-change: transform }
+.scene.turning { box-shadow: -30px 0 60px rgba(0, 0, 0, .28) }
+.abs { position: absolute; margin: 0 }
+.fx { will-change: transform, opacity }
+.ring { position: absolute; box-sizing: border-box; border: 7px solid var(--sun); border-radius: 26px; opacity: 0; pointer-events: none; box-shadow: 0 0 0 4px rgba(255, 255, 255, .85) }
+
+/* Paw prints on the dark cards, placed from an index. */
+.paws { left: 0; top: 0; width: 1080px; height: 1920px; opacity: .07 }
+
+/* Cover */
+.cover, .end { background: var(--deep); color: #fff }
+.mast { left: 80px; top: 120px; display: flex; align-items: center; gap: 22px }
+.mast img.badge { width: 92px; height: 92px; border-radius: 50%; background: #fff }
+.mast img.word { height: 46px; filter: invert(1) }
+.c-rule { left: 80px; top: 262px; width: 920px; height: 4px; background: #fff; box-shadow: 0 10px 0 -8px #fff }
+.c-stack { left: 80px; top: 560px; width: 920px; display: flex; flex-direction: column; gap: 34px }
+.kick { margin: 0; font: 800 30px/1.2 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--sun) }
+.c-h { margin: 0; font: 760 172px/.9 var(--display); letter-spacing: -.035em }
+.c-h span { display: block }
+.c-h .sm { font-size: 96px; font-weight: 640; letter-spacing: -.025em; margin-top: 18px }
+.c-h em { font-style: normal; color: var(--sun) }
+.c-sub { margin: 0; font: 400 46px/1.4 var(--sans); color: #d9ebe7; max-width: 860px }
+.c-foot { left: 80px; bottom: 120px; width: 920px; font: 600 30px/1.4 var(--sans); color: #b9d6d0 }
+
+/* Phone scenes: the caption at the top, the phone below. */
+.cap-band { left: 80px; top: 110px; width: 920px; display: flex; flex-direction: column; gap: 18px }
+.step { margin: 0; font: 700 30px/1 var(--mono); letter-spacing: .04em; color: var(--brand) }
+.cap { margin: 0; font: 720 70px/1.04 var(--display); letter-spacing: -.025em; color: var(--ink); text-wrap: balance }
+.note { margin: 0; font: 400 34px/1.4 var(--sans); color: var(--ink-2) }
+.sample { left: 0; bottom: 34px; width: 1080px; text-align: center; font: 600 22px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+/* The phone: a 560 px screen (the capture's 390 CSS px at 1.436), a status
+   bar above the page so the notch never sits on it. */
+.phone { left: 250px; top: 500px; width: 580px; height: 1250px; border-radius: 70px; background: #121514; box-shadow: 0 40px 80px -30px rgba(20, 40, 36, .55); transform-origin: 50% 0 }
+.screen { position: absolute; left: 10px; top: 10px; width: 560px; height: 1230px; border-radius: 60px; overflow: hidden; background: #fff }
+.viewport { position: absolute; left: 0; top: 64px; width: 560px; height: 1166px; overflow: hidden }
+.screen img { position: absolute; left: 0; top: 0; width: 560px; display: block; transform-origin: 0 0 }
+.status { position: absolute; left: 0; top: 0; width: 560px; height: 64px; background: #fff; z-index: 2 }
+.status b { position: absolute; left: 52px; top: 22px; font: 700 22px/1 var(--sans); color: #111 }
+.status i { position: absolute; right: 52px; top: 26px; width: 40px; height: 16px; border: 2px solid #111; border-radius: 5px; box-sizing: border-box }
+.status i::after { content: ''; position: absolute; left: 2px; top: 2px; width: 26px; height: 8px; background: #111; border-radius: 2px }
+.notch { position: absolute; left: 50%; top: 18px; width: 130px; height: 34px; margin-left: -65px; border-radius: 18px; background: #121514; z-index: 3 }
+
+/* End */
+.e-stack { left: 80px; top: 600px; width: 920px; display: flex; flex-direction: column; gap: 30px }
+.e-h { margin: 0; font: 760 140px/.95 var(--display); letter-spacing: -.035em }
+.e-h em { font-style: normal; color: var(--sun) }
+.e-p { margin: 0; font: 400 46px/1.4 var(--sans); color: #d9ebe7 }
+.e-url { margin: 30px 0 0; font: 700 50px/1.25 var(--sans); color: #fff; padding-top: 30px; border-top: 3px solid rgba(255, 255, 255, .35) }
+.e-url small { display: block; font: 600 30px/1.4 var(--sans); color: #b9d6d0; margin-top: 10px }
+.e-mast { left: 80px; bottom: 130px; display: flex; align-items: center; gap: 22px }
+.e-mast img.badge { width: 84px; height: 84px; border-radius: 50%; background: #fff }
+.e-mast img.word { height: 40px; filter: invert(1) }
+[data-cut="contest"] .only-newsroom, [data-cut="newsroom"] .only-contest { display: none }
+</style>
+</head>
+<body data-cut="__CUT__">
+<div id="stage">
+
+  <section class="scene cover" id="s0">
+    <svg class="abs paws" id="paws0" viewBox="0 0 1080 1920" aria-hidden="true"></svg>
+    <div class="abs mast"><img class="badge" src="../../web/public/wpr-typewriter-badge.png" alt=""><img class="word" src="../../web/public/wpr-wordmark.png" alt="Wausau Pilot &amp; Review"></div>
+    <span class="abs c-rule"></span>
+    <div class="abs c-stack">
+      <p class="kick fx" id="c-kick">A reader contest · Nov. 14 to Dec. 5</p>
+      <h1 class="c-h"><span><em>Cutest</em> Pet</span><span class="sm">in Marathon County</span></h1>
+      <p class="c-sub fx" id="c-sub">Readers enter their pets free, back them with vote packs, and half the money goes to a local shelter.</p>
+    </div>
+    <p class="abs c-foot fx" id="c-foot">With Moments Foster Care, Hatley</p>
+  </section>
+
+  <section class="scene" id="s1">
+    <div class="abs cap-band">
+      <p class="step">01 · ENTER</p>
+      <h2 class="cap fx" id="cap1">Enter your pet free, with one phone photo.</h2>
+      <p class="note fx" id="note1">An editor checks every entry before it goes live.</p>
+    </div>
+    <div class="abs phone fx" id="ph1"><div class="screen"><span class="notch"></span><span class="status"><b>9:41</b><i></i></span><div class="viewport"><img id="img1" src="shots/enter.png" alt=""></div></div></div>
+    <p class="abs sample">Sample pets, numbers and dates</p>
+  </section>
+
+  <section class="scene" id="s2">
+    <div class="abs cap-band">
+      <p class="step">02 · VOTE</p>
+      <h2 class="cap fx" id="cap2">Readers back their favorites with vote packs.</h2>
+      <p class="note fx" id="note2">The top 16 make the bracket. Totals reset every round.</p>
+    </div>
+    <div class="abs phone fx" id="ph2"><div class="screen"><span class="notch"></span><span class="status"><b>9:41</b><i></i></span><div class="viewport"><img id="img2" src="shots/home.png" alt=""><span class="ring" id="ring2"></span></div></div></div>
+    <p class="abs sample">Sample pets, numbers and dates</p>
+  </section>
+
+  <section class="scene" id="s3">
+    <div class="abs cap-band">
+      <p class="step">03 · GIVE</p>
+      <h2 class="cap fx" id="cap3">Half of every vote pack goes to Moments Foster Care.</h2>
+      <p class="note fx" id="note3">Packs from $5. Checkout shows what each one does for the pet.</p>
+    </div>
+    <div class="abs phone fx" id="ph3"><div class="screen"><span class="notch"></span><span class="status"><b>9:41</b><i></i></span><div class="viewport"><img id="img3" src="shots/checkout.png" alt=""><span class="ring" id="ring3a"></span><span class="ring" id="ring3b"></span></div></div></div>
+    <p class="abs sample">Sample pets, numbers and dates</p>
+  </section>
+
+  <section class="scene" id="s4">
+    <div class="abs cap-band">
+      <p class="step">04 · THE BRACKET</p>
+      <h2 class="cap fx" id="cap4">Then the top 16 go head to head.</h2>
+      <p class="note fx" id="note4">Every matchup starts at zero. The champion is crowned Dec. 5.</p>
+    </div>
+    <div class="abs phone fx" id="ph4"><div class="screen"><span class="notch"></span><span class="status"><b>9:41</b><i></i></span><div class="viewport"><img id="img4" src="shots/bracket.png" alt=""><span class="ring" id="ring4"></span></div></div></div>
+    <p class="abs sample">Sample pets, numbers and dates</p>
+  </section>
+
+  <section class="scene end" id="s5">
+    <svg class="abs paws" id="paws5" viewBox="0 0 1080 1920" aria-hidden="true"></svg>
+    <div class="abs e-stack only-contest">
+      <p class="kick fx" id="e-kick">Entries open</p>
+      <h2 class="e-h fx" id="e-h"><em>Saturday,</em><br>Nov. 14</h2>
+      <p class="e-p fx" id="e-p">Enter free. Vote all the way to the champion, Dec. 5.</p>
+      <p class="e-url fx" id="e-url">wausaupilotandreview.com<small>Vote packs are not donations; half of every pack goes to Moments Foster Care.</small></p>
+    </div>
+    <div class="abs e-stack only-newsroom">
+      <p class="kick fx" id="n-kick">For newsrooms</p>
+      <h2 class="e-h fx" id="n-h">Run it in <em>your</em> town.</h2>
+      <p class="e-p fx" id="n-p">A reader pet contest that pays your local shelter, built and run by Wausau Pilot &amp; Review.</p>
+      <p class="e-url fx" id="n-url">See the demo<small>rowanflynnpilot.github.io/wpr-pet-contest</small></p>
+    </div>
+    <div class="abs e-mast fx" id="e-mast"><img class="badge" src="../../web/public/wpr-typewriter-badge.png" alt=""><img class="word" src="../../web/public/wpr-wordmark.png" alt="Wausau Pilot &amp; Review"></div>
+  </section>
+
+</div>
+<script>
+window.COMPOSITION = { width: 1080, height: 1920, fps: 30, duration: 30 };
+// The capture's sizes and rects, in CSS px (build.mjs inlines shots/shots.json).
+const SHOTS = __SHOTS__;
+
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sx = (t) => ((ax * t + bx) * t + cx) * t, sy = (t) => ((ay * t + by) * t + cy) * t;
+  return (x) => {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 40; i++) { const v = sx(t); if (Math.abs(v - x) < 1e-7) break; if (v < x) lo = t; else hi = t; t = (lo + hi) / 2; }
+    return sy(t);
+  };
+}
+const OUT = bezier(.16, 1, .3, 1);
+const INOUT = (k) => (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const BACK = (k) => 1 + 2.70158 * Math.pow(k - 1, 3) + 1.70158 * Math.pow(k - 1, 2);
+const LIN = (k) => k;
+const p = (t, a, b, e = OUT) => (t <= a ? 0 : t >= b ? 1 : e((t - a) / (b - a)));
+const lerp = (a, b, k) => a + (b - a) * k;
+const $ = (id) => document.getElementById(id);
+function arrive(el, k, dy = 60) { el.style.opacity = k; el.style.transform = 'translateY(' + ((1 - k) * dy).toFixed(1) + 'px)'; }
+function ring(el, k) { el.style.opacity = k.toFixed(3); el.style.transform = 'scale(' + lerp(1.12, 1, k).toFixed(4) + ')'; }
+
+// Screen pixels per CSS pixel of the capture (390 CSS px across 560 screen px).
+const S = 560 / 390;
+// A ring around a captured part, in screen pixels, padded.
+function placeRing(el, r, pad = 10) {
+  el.style.left = (r.x * S - pad).toFixed(1) + 'px';
+  el.style.top = (r.y * S - pad).toFixed(1) + 'px';
+  el.style.width = (r.w * S + pad * 2).toFixed(1) + 'px';
+  el.style.height = (r.h * S + pad * 2).toFixed(1) + 'px';
+}
+// Scroll a capture: the image and its rings move together.
+function scrollTo(img, rings, cssY) {
+  const y = -cssY * S;
+  img.style.transform = 'translateY(' + y.toFixed(1) + 'px)';
+  for (const r of rings) r.style.marginTop = y.toFixed(1) + 'px';
+}
+// A phone arriving: rises and straightens as the page lands.
+function phoneIn(el, k) {
+  el.style.opacity = Math.min(1, k * 1.6).toFixed(3);
+  el.style.transform = 'translateY(' + ((1 - k) * 120).toFixed(1) + 'px) rotate(' + ((1 - k) * -2.5).toFixed(2) + 'deg)';
+}
+
+// Paw prints: rows of four ovals and a pad, spread from an index.
+function drawPaws(svg) {
+  let out = '';
+  for (let i = 0; i < 22; i++) {
+    const x = 60 + ((i * 397) % 980), y = 80 + ((i * 263) % 1780), r = ((i * 47) % 50) - 25, s = 0.8 + ((i * 13) % 5) / 10;
+    out += `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})" fill="#fff"><ellipse cx="0" cy="18" rx="22" ry="18"/><ellipse cx="-24" cy="-8" rx="8" ry="11"/><ellipse cx="-8" cy="-18" rx="8" ry="11"/><ellipse cx="8" cy="-18" rx="8" ry="11"/><ellipse cx="24" cy="-8" rx="8" ry="11"/></g>`;
+  }
+  svg.innerHTML = out;
+}
+
+const TURN = 0.6;
+const PAGES = [[null, 3.6], [3.6, 9.2], [9.2, 15.2], [15.2, 20.8], [20.8, 26.0], [26.0, null]];
+
+function seek(t) {
+  PAGES.forEach(([tin, tout], i) => {
+    const el = $('s' + i);
+    const inK = tin === null ? 1 : p(t, tin, tin + TURN, INOUT);
+    const outK = tout === null ? 0 : p(t, tout, tout + TURN, INOUT);
+    el.style.visibility = (tin === null || t >= tin) && (tout === null || t < tout + TURN) ? 'visible' : 'hidden';
+    el.style.zIndex = i;
+    el.style.transform = 'translateX(' + (inK < 1 ? lerp(1080, 0, inK) : -240 * outK).toFixed(2) + 'px)';
+    el.classList.toggle('turning', inK > 0 && inK < 1);
+  });
+
+  // Cover: composed on frame 0; the line under the title and the shelter arrive.
+  $('paws0').style.transform = 'translateY(' + (-t * 8).toFixed(1) + 'px)';
+  arrive($('c-kick'), 1, 0);
+  arrive($('c-sub'), p(t, 0.5, 1.3), 30);
+  arrive($('c-foot'), p(t, 1.1, 1.8), 20);
+
+  // 01 Enter: the phone lands, then the form scrolls from the top to the town.
+  phoneIn($('ph1'), p(t, 3.9, 4.8));
+  arrive($('cap1'), p(t, 4.0, 4.7), 30);
+  arrive($('note1'), p(t, 4.5, 5.2), 20);
+  scrollTo($('img1'), [], lerp(0, 380, p(t, 5.4, 8.6, INOUT)));
+
+  // 02 Vote: the board, ringed; then down to the top 16 and the cut.
+  phoneIn($('ph2'), p(t, 9.5, 10.4));
+  arrive($('cap2'), p(t, 9.6, 10.3), 30);
+  arrive($('note2'), p(t, 10.1, 10.8), 20);
+  ring($('ring2'), p(t, 10.9, 11.4) * (1 - p(t, 12.2, 12.5, LIN)));
+  scrollTo($('img2'), [$('ring2')], lerp(0, TOP16 - 40, p(t, 12.4, 14.4, INOUT)));
+
+  // 03 Give: the packs, then the line that says what this one does.
+  phoneIn($('ph3'), p(t, 15.5, 16.4));
+  arrive($('cap3'), p(t, 15.6, 16.3), 30);
+  arrive($('note3'), p(t, 16.1, 16.8), 20);
+  ring($('ring3a'), p(t, 16.9, 17.4) * (1 - p(t, 18.3, 18.6, LIN)));
+  ring($('ring3b'), p(t, 18.6, 19.1));
+
+  // 04 The bracket: a matchup, ringed, then down past the vote button.
+  phoneIn($('ph4'), p(t, 21.1, 22.0));
+  arrive($('cap4'), p(t, 21.2, 21.9), 30);
+  arrive($('note4'), p(t, 21.7, 22.4), 20);
+  ring($('ring4'), p(t, 22.6, 23.1));
+
+  // End card.
+  $('paws5').style.transform = 'translateY(' + (-(t - 26) * 8).toFixed(1) + 'px)';
+  for (const [k, h, pp, u] of [['e-kick', 'e-h', 'e-p', 'e-url'], ['n-kick', 'n-h', 'n-p', 'n-url']]) {
+    arrive($(k), p(t, 26.5, 27.1), 30);
+    const q = p(t, 26.7, 27.3, BACK);
+    $(h).style.opacity = p(t, 26.7, 26.9, LIN);
+    $(h).style.transformOrigin = '0 50%';
+    $(h).style.transform = 'scale(' + lerp(1.25, 1, q).toFixed(4) + ')';
+    arrive($(pp), p(t, 27.3, 28.0), 30);
+    arrive($(u), p(t, 27.8, 28.5), 20);
+  }
+  arrive($('e-mast'), p(t, 28.2, 28.9), 20);
+}
+
+let TOP16 = 0;
+window.ready = (async () => {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((img) => img.decode().catch(() => null)));
+  drawPaws($('paws0'));
+  drawPaws($('paws5'));
+  placeRing($('ring2'), SHOTS.home.parts.board);
+  placeRing($('ring3a'), SHOTS.checkout.parts.packs);
+  placeRing($('ring3b'), SHOTS.checkout.parts.impact, 8);
+  placeRing($('ring4'), SHOTS.bracket.parts.matchup);
+  TOP16 = SHOTS.home.parts.top16.y;
+  seek(0);
+  return window.COMPOSITION;
+})();
+window.seek = seek;
+</script>
+</body>
+</html>
