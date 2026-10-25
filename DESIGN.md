@@ -602,3 +602,23 @@ aside: it disappears on dark paper.
   checkout doesn't finish, email me once before voting closes." The email
   leads with "you haven't been charged", and its button reopens checkout on
   the same pack.
+
+## The polish pass after the cheers (Oct. 25, 2026)
+
+- **Checkout's Continue stays in reach** on phones: pinned to the bottom of
+  the sheet over a fade, with the phone's safe area under it.
+- **Home's Coming up card.** A sprint on its way and the finale before its
+  last day share one quiet card (a clock row, a calendar row with "Where to
+  watch" and "Add to calendar"); a big card only for a sprint that is
+  running or just won, and the finale on its last day or live.
+- **Results:** "Live now" sits above "And the cutest pet in Marathon County
+  is…", so the sentence runs straight into its answer.
+- **Cheers keep their emoji outside the quotes** (“Paws up for Biscuit!”
+  🐾), so the wide glyph opens no gap; the thank-you screen says the votes
+  are in before it mentions the cheer. Small numbers are spelled out (AP).
+- **Social desk:** a sprint announcement (the day, then the hours large), a
+  live sprint with its top three, a sprint winner, a Last Chance board, and
+  a finale card with the two finalists face to face. Square hero cards put
+  the photo beside the words when above them it would be a sliver.
+- **Owner images, the widget and the newsletter block know Last Chance**;
+  the newsletter block also carries a sprint on its way and the finale.

@@ -28,6 +28,11 @@ export function fmtMoney(cents, { whole = false, exact = false } = {}) {
 
 export const plural = (n, one, many = `${one}s`) => `${fmtInt(n)} ${n === 1 ? one : many}`
 
+// AP style: spell out one through nine, figures from 10. "five pets", "12 pets".
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+export const apNumber = (n) => (Number.isInteger(n) && n >= 0 && n < 10 ? WORDS[n] : fmtInt(n))
+export const apCount = (n, one, many = `${one}s`) => `${apNumber(n)} ${n === 1 ? one : many}`
+
 export function countdownParts(msLeft) {
   const s = Math.max(0, Math.floor(msLeft / 1000))
   return {

@@ -20,15 +20,36 @@ export function pickSprint(sprints = [], now = Date.now()) {
   return null
 }
 
+// The next sprint starting within two days, for the Coming up row, even
+// while another sprint's card (running, or just won) is on the page.
+export function nextSprint(sprints = [], now = Date.now()) {
+  const t = Number(now)
+  return (
+    sprints
+      .filter((s) => !s.cancelled_at && ms(s.starts_at) > t && ms(s.starts_at) - t <= 48 * HOUR)
+      .sort((a, b) => ms(a.starts_at) - ms(b.starts_at))[0] || null
+  )
+}
+
+// The day and the hours apart: { day: "Tuesday, Nov. 17", time: "6 to 9 p.m." },
+// or across midnight { day: "Tuesday, Nov. 17, into Wednesday", time:
+// "10 p.m. to 1 a.m." }.
+export function sprintParts(s) {
+  const a = apTime(s.starts_at)
+  const b = apTime(s.ends_at)
+  const same = ['a.m.', 'p.m.'].find((m) => a.endsWith(` ${m}`) && b.endsWith(` ${m}`))
+  const from = same ? a.slice(0, -(same.length + 1)) : a
+  const overnight = apDate(s.starts_at) !== apDate(s.ends_at)
+  const day = overnight ? `${apDate(s.starts_at)}, into ${apDate(s.ends_at).split(',')[0]}` : apDate(s.starts_at)
+  return { day, time: `${from} to ${b}`, overnight }
+}
+
 // "6 to 9 p.m. Tuesday, Nov. 17", or across midnight "Tuesday, Nov. 17 at
 // 10 p.m. to Wednesday, Nov. 18 at 2 a.m."
 export function sprintWhen(s) {
-  const a = apTime(s.starts_at)
-  const b = apTime(s.ends_at)
-  if (apDate(s.starts_at) !== apDate(s.ends_at)) return `${apDateTime(s.starts_at)} to ${apDateTime(s.ends_at)}`
-  const same = ['a.m.', 'p.m.'].find((m) => a.endsWith(` ${m}`) && b.endsWith(` ${m}`))
-  const from = same ? a.slice(0, -(same.length + 1)) : a
-  return `${from} to ${b} ${apDate(s.starts_at)}`
+  const p = sprintParts(s)
+  if (p.overnight) return `${apDateTime(s.starts_at)} to ${apDateTime(s.ends_at)}`
+  return `${p.time} ${p.day}`
 }
 
 // Every sprint's own name, for the rules page and the admin list.

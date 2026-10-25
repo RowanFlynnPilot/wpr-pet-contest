@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { CHEER_CODES, CHEERS, cheerText, cleanCheerName } from '../src/lib/cheers.js'
+import { CHEER_CODES, CHEERS, cheerLabel, cheerQuote, cheerText, cleanCheerName } from '../src/lib/cheers.js'
 
 const root = new URL('../../', import.meta.url)
 const read = (path) => readFileSync(new URL(path, root), 'utf8')
@@ -15,12 +15,16 @@ describe('cheers', () => {
   })
   it('writes each cheer with the pet in it, and never a donation', () => {
     for (const c of CHEERS) {
-      const t = c.text('Biscuit')
+      const t = c.words('Biscuit')
       expect(t.length).toBeGreaterThan(5)
       expect(t).not.toMatch(/donat/i)
     }
     expect(cheerText('go', 'Biscuit')).toBe('Go Biscuit!')
     expect(cheerText('nope', 'Biscuit')).toBe(null)
+    // The emoji sits outside the quote, where its wide glyph opens no gap.
+    expect(cheerLabel('paws', 'Biscuit')).toBe('Paws up for Biscuit! 🐾')
+    expect(cheerQuote('paws', 'Biscuit')).toBe('“Paws up for Biscuit!” 🐾')
+    expect(cheerQuote('go', 'Biscuit')).toBe('“Go Biscuit!”')
   })
   it('takes a first name in any alphabet, empty for anonymous, and refuses anything else', () => {
     expect(cleanCheerName('  Jo ')).toBe('Jo')

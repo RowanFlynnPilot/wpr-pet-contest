@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { NOPTIN_LIMIT, bonusLine, buildNewsletterBlock, contestLink, esc, photoBox } from '../src/lib/newsletter.js'
+import { NOPTIN_LIMIT, bonusLine, buildNewsletterBlock, contestLink, esc, finaleLine, photoBox, sprintLine } from '../src/lib/newsletter.js'
 
 const BASE = 'https://wausaupilotandreview.com/cutest-pet/'
 const NOW = Date.parse('2026-10-27T11:05:00Z') // 6:05 a.m. Tuesday in Wausau
@@ -208,5 +208,33 @@ describe('square photos without object-fit', () => {
     expect(html).not.toContain('height="')
     expect(html).toContain('height:auto')
     expect(photoBox(null, 44)).not.toContain('<img')
+  })
+})
+
+describe('the newsletter block, new moments', () => {
+  const round = { id: 'r1', seq: 1, closes_at: '2026-10-28T01:00:00Z', overtime_closes_at: '2026-10-29T01:00:00Z' }
+  it('becomes Last Chance during the overtime, with the pool and the words spelled out', () => {
+    const rows = [1, 2, 3, 4, 5].map((i) => ({ rank: i, entry: pet(i), votes: 200 - i * 10 }))
+    const html = build({ phase: 'voting', round: { ...round, closes_at: round.overtime_closes_at, mainClosesAt: round.closes_at }, leaders: [], lastChance: { rows } })
+    expect(html).toContain('Pet 1 leads Last Chance')
+    expect(html).toContain('five pets just below the line')
+    expect(html).toContain('Vote in Last Chance')
+    expect(html).toContain('seed 16')
+  })
+  it('carries a sprint on its way and the finale', () => {
+    const sprints = [{ id: 's', label: 'Tuesday night sprint', prize: 'a $50 gift card', sponsor_name: 'Example Pet Supply', starts_at: '2026-10-27T23:00:00Z', ends_at: '2026-10-28T02:00:00Z', cancelled_at: null }]
+    expect(sprintLine(sprints, NOW).span).toBe('6 to 9 p.m. Tuesday, Oct. 27')
+    expect(sprintLine(sprints, Date.parse('2026-10-28T00:00:00Z')).span).toBe('on now until 9 p.m.')
+    expect(sprintLine([{ ...sprints[0], cancelled_at: '2026-10-26T00:00:00Z' }], NOW)).toBe(null)
+    const finaleContest = { ...contest, finale_at: '2026-10-30T00:00:00Z' }
+    expect(finaleLine(finaleContest, NOW).when).toBe('Thursday, Oct. 29 at 7 p.m.')
+    expect(finaleLine({ ...contest, finale_at: '2026-11-20T00:00:00Z' }, NOW)).toBe(null)
+    const html = buildNewsletterBlock(
+      { contest: finaleContest, now: NOW, stats: null, windows: [], sprints, phase: 'voting', round: { id: 'r1', seq: 1, closes_at: '2026-10-30T01:00:00Z' }, leaders: [] },
+      { base: BASE },
+    )
+    expect(html).toContain('Tuesday night sprint')
+    expect(html).toContain('the most votes wins a $50 gift card, from Example Pet Supply')
+    expect(html).toContain('The finale:')
   })
 })

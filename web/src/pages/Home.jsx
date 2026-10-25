@@ -3,7 +3,7 @@ import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { useBracket, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { useFavorites } from '../lib/favorites.js'
-import { apWhen, fmtInt, fmtMoney } from '../lib/format.js'
+import { apCount, apWhen, fmtInt, fmtMoney } from '../lib/format.js'
 import { cheapestPerVote } from '../lib/packs.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { climbers, cutline, matchupStanding, rankOpenRound } from '../lib/rank.js'
@@ -13,6 +13,8 @@ import RaisedCounter from '../components/RaisedCounter.jsx'
 import SprintCard from '../components/SprintCard.jsx'
 import FinaleCard from '../components/FinaleCard.jsx'
 import { finaleState } from '../lib/finale.js'
+import { nextSprint } from '../lib/sprints.js'
+import ComingUp from '../components/ComingUp.jsx'
 import { lastChanceRanked, rankPool } from '../lib/lastChance.js'
 import HowItWorks from '../components/HowItWorks.jsx'
 import AdoptButton from '../components/AdoptButton.jsx'
@@ -281,7 +283,7 @@ function Arena({ c, entries, byId, totals }) {
           <em>Last Chance</em> for the bracket
         </>
       )
-      lede = `The top ${bracketSize - 1} are in. ${c.lastChance.size} pets just below the line race for the last spot; their Open Round votes carry over.`
+      lede = `The top ${bracketSize - 1} are in. ${apCount(c.lastChance.size, 'pet')} just below the line race for the last spot; their Open Round votes carry over.`
       board = <LastChanceBoard c={c} byId={byId} totals={totals} />
     }
   } else if (phase === 'voting' || phase === 'counting') {
@@ -494,19 +496,33 @@ export default function Home() {
   // the first screen: they follow the money raised or the presenting sponsor,
   // or, before either shows, the round's preview.
   const favRow = c.phase === 'voting' && <FavoritesRow c={c} byId={byId} />
+  // Things on their way share one quiet card; a big card only for what is
+  // running, or the finale on its last day.
+  const finale = finaleState(c.contest, c.phase, c.now)
+  const finaleFull = finale && (finale.state === 'live' || (finale.state === 'soon' && Date.parse(finale.at) - c.now <= 24 * 3600e3))
+  const finaleRow = finale?.state === 'soon' && !finaleFull
+  const sprintPhase = ['voting', 'counting', 'intermission'].includes(c.phase)
+  const sprintFull = sprintPhase && c.sprint && c.sprint.state !== 'soon'
+  const upcoming = sprintPhase ? nextSprint(c.sprints, c.now) : null
+  const sprintRow = upcoming && !(sprintFull && c.sprint.sprint.id === upcoming.id) ? upcoming : null
   const favEarly = raised || Boolean(SPONSORS.presenting)
   return (
     <>
       <Arena c={c} entries={entries} byId={byId} totals={totals} />
       <div className="wrap">
-        {finaleState(c.contest, c.phase, c.now) && (
+        {finaleFull && (
           <div className="section" style={{ paddingTop: 20, paddingBottom: 0 }}>
             <FinaleCard />
           </div>
         )}
-        {c.sprint && (
-          <div className="section" style={{ paddingTop: 20 }}>
+        {sprintFull && (
+          <div className="section" style={{ paddingTop: 20, paddingBottom: 0 }}>
             <SprintCard byId={byId} />
+          </div>
+        )}
+        {(finaleRow || sprintRow) && (
+          <div className="section" style={{ paddingTop: 20, paddingBottom: 0 }}>
+            <ComingUp finale={finaleRow ? finale : null} sprint={sprintRow} />
           </div>
         )}
         {raised && (

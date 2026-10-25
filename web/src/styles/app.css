@@ -1343,7 +1343,7 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
   display: flex; align-items: center; gap: 6px; margin: 0;
   font: 700 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text);
 }
-.sprint-kicker .countdown-inline { font-family: var(--mono); letter-spacing: 0; text-transform: none; }
+.sprint-kicker .countdown-inline { font-family: var(--mono); letter-spacing: 0; text-transform: none; white-space: nowrap; }
 .sprint-head { margin: 0; font-size: clamp(20px, 4.4vw, 26px); line-height: 1.2; text-wrap: balance; }
 .sprint-top { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
 .sprint-top li {
@@ -1410,3 +1410,22 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
 }
 .pet-cheer-text { font-family: var(--display); font-weight: 600; font-size: 16px; line-height: 1.25; color: var(--ink); }
 .pet-cheer-meta { font-size: 12.5px; color: var(--muted); }
+
+/* The checkout's Continue, pinned to the bottom of the sheet on phones. */
+@media (max-width: 560px) {
+  .checkout-cta {
+    position: sticky; bottom: 0; z-index: 2; margin: 0 -18px; padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--paper) 0%, transparent), var(--paper) 28%);
+  }
+}
+.countdown-inline { white-space: nowrap; }
+
+/* Coming up: sprints and the finale before they start, quietly. */
+.coming-up { padding: 14px 16px; border-radius: var(--radius); background: var(--paper); border: 1px solid var(--rule); }
+.coming-up-title {
+  margin: 0 0 8px; font: 800 12px/1.2 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text);
+}
+.coming-up ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.coming-up li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.45; }
+.coming-up li svg { flex: none; margin-top: 2px; color: var(--brand-text); }
+.coming-up li > span { min-width: 0; }

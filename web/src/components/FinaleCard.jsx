@@ -10,13 +10,25 @@ import { apDateTime, period } from '../lib/format.js'
 
 const watch = (where) => track('Finale', { where })
 
+// The finale as a calendar event: an hour from its start, a reminder before.
+export function finaleIcs(contest, f) {
+  const name = contest?.name || `Cutest Pet in ${NEWSROOM.region}`
+  return eventIcs({
+    uid: `finale-${contest.id}`,
+    title: `The finale: ${name}`,
+    startsAt: f.at,
+    endsAt: new Date(Date.parse(f.at) + 3600e3),
+    url: f.url || PUBLIC_URL,
+    description: `${NEWSROOM.name} reveals the champion live.${f.url ? ` Watch: ${f.url}` : ''}`,
+  })
+}
+
 // The finale on Home and Results: a countdown and a calendar link before
 // it, "live now" while it runs, and a quiet replay link after.
 export default function FinaleCard({ where = 'home' }) {
   const c = useContest()
   const f = finaleState(c.contest, c.phase, c.now)
   if (!f) return null
-  const name = c.contest?.name || `Cutest Pet in ${NEWSROOM.region}`
 
   if (f.state === 'replay') {
     return (
@@ -44,14 +56,7 @@ export default function FinaleCard({ where = 'home' }) {
     )
   }
 
-  const ics = eventIcs({
-    uid: `finale-${c.contest.id}`,
-    title: `The finale: ${name}`,
-    startsAt: f.at,
-    endsAt: new Date(Date.parse(f.at) + 3600e3),
-    url: f.url || PUBLIC_URL,
-    description: `${NEWSROOM.name} reveals the champion live.${f.url ? ` Watch: ${f.url}` : ''}`,
-  })
+  const ics = finaleIcs(c.contest, f)
   return (
     <section className="finale-card" aria-labelledby="finale-title">
       <p className="finale-kicker">The finale</p>

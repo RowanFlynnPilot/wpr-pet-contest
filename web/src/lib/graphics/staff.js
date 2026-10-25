@@ -2,7 +2,8 @@
 // champion and money raised. Every card comes in 1080x1080 and 1080x1350 and
 // is laid out from the edges in, so both sizes share one drawing function.
 import { NEWSROOM } from '../../config.js'
-import { apDateTime, fmtMoney } from '../format.js'
+import { apDateTime, apTime, fmtMoney } from '../format.js'
+import { sprintParts, sprintTitle, sprintWhen } from '../sprints.js'
 import { C, F, doubleRule, drawBlock, drawFlag, drawPhoto, fillRect, fitBlock, loadPhoto, pawTexture, render, roundRect, runs, sampleBands, textBlock, trackedMeasurer } from './draw.js'
 import { fileName, fmtCount, timeLeft } from './layout.js'
 import { glue, leaderboardRows, matchupLine, shelterLine, winnerLines } from './content.js'
@@ -299,6 +300,27 @@ async function heroCard(ctx, W, H, brand, o, { kicker, entry, seed, title, line1
   const stack = 30 + name.height + (l1 ? 8 + l1.height : 0) + (l2 ? 14 + l2.height : 0) + (l3 ? 14 + l3.height : 0) + 30
   const py = top + 24
   const ph = Math.max(300, Math.min(CW * 0.9, bottom - py - stack))
+  // In the square the photo above the words would be a sliver (a nose and
+  // no eyes), so it stands beside them instead, as tall as the space allows.
+  if (bottom - py - stack < CW * 0.62) {
+    const pw = Math.round(CW * 0.46)
+    const tall = bottom - py - 24
+    drawPhoto(ctx, await photo, M, py, pw, tall, { radius: 24 })
+    seedPill(ctx, seed, M + 20, py + 20, 24)
+    const tx = M + pw + 40
+    const tw = CW - pw - 40
+    const n2 = fitBlock(ctx, title, { maxWidth: tw, font: F.display(600), maxSize: 96, floor: 64, wrapSize: 72, minSize: 40, maxLines: 3, leading: 1.0 })
+    const a2 = line1 ? fitBlock(ctx, line1, { maxWidth: tw, font: F.italic(500), maxSize: 46, floor: 34, minSize: 24, maxLines: 3, leading: 1.15 }) : null
+    const b2 = line2 ? fitBlock(ctx, line2, { maxWidth: tw, font: F.sans(600), maxSize: 26, floor: 22, minSize: 17, maxLines: 3, leading: 1.25 }) : null
+    const c2 = line3 ? fitBlock(ctx, line3, { maxWidth: tw, font: F.sans(800), maxSize: 28, floor: 22, minSize: 18, maxLines: 3, leading: 1.25 }) : null
+    const h2 = n2.height + (a2 ? 12 + a2.height : 0) + (b2 ? 18 + b2.height : 0) + (c2 ? 18 + c2.height : 0)
+    let y2 = py + Math.max(0, (tall - h2) / 2)
+    y2 = drawBlock(ctx, n2, { x: tx, y: y2, color: '#ffffff' })
+    if (a2) y2 = drawBlock(ctx, a2, { x: tx, y: y2 + 12, color: C.sun })
+    if (b2) y2 = drawBlock(ctx, b2, { x: tx, y: y2 + 18, color: C.onDeep })
+    if (c2) drawBlock(ctx, c2, { x: tx, y: y2 + 18, color: '#ffffff' })
+    return
+  }
   drawPhoto(ctx, await photo, M, py, CW, ph, { radius: 24 })
   seedPill(ctx, seed, M + 20, py + 20, 24)
   let y = drawBlock(ctx, name, { x: M, y: py + ph + 30, color: '#ffffff', align: 'center' })
@@ -435,6 +457,137 @@ function milestone({ cents, exact, shelters }, o) {
   }
 }
 
+// ------------------------------------------------- sprints, Last Chance, finale
+
+// A sprint (0030): announced or running, or its winner.
+function sprintCard({ sprint, state, top = [], winner = null }, o) {
+  const title = sprintTitle(sprint)
+  if (state === 'won' && winner) {
+    return {
+      key: `sprint-won-${sprint.id}`,
+      meta: { kind: 'sprintWinner', sprint, winner, o },
+      label: `${title}: ${winner.entry.pet_name} won`,
+      file: `sprint-winner-${winner.entry.pet_name}`,
+      draw: (ctx, W, H, { brand }) =>
+        heroCard(ctx, W, H, brand, o, {
+          kicker: `${title} winner`,
+          entry: winner.entry,
+          seed: winner.entry.seed,
+          title: winner.entry.pet_name,
+          line1: `won ${sprint.prize}`,
+          line2: glue(`${fmtCount(winner.votes)} votes, ${sprintWhen(sprint)}`),
+          line3: `Prize from ${sprint.sponsor_name}`,
+          urlLead: 'Follow along at',
+          extra: 'Thank you for voting',
+        }),
+    }
+  }
+  const live = state === 'live'
+  return {
+    key: `sprint-${state}-${sprint.id}`,
+    meta: { kind: 'sprint', sprint, state, top, o },
+    label: live ? `${title}: on now` : `${title}: announcement`,
+    file: `sprint-${live ? 'live' : 'announce'}`,
+    async draw(ctx, W, H, { brand }) {
+      ground(ctx, W, H, 'dark')
+      const top0 = header(ctx, W, brand, {
+        tone: 'dark',
+        kicker: live ? `${title} · on now` : title,
+        title: `The most votes wins ${sprint.prize}`,
+        titleSize: 66,
+        sub: live ? glue(`Until ${apTime(sprint.ends_at)}`) : null,
+      })
+      const bottom = footer(ctx, W, H, o, { tone: 'dark', extra: 'Sprint votes count toward the round like any other' })
+      const CW = W - M * 2
+      const from = fitBlock(ctx, `Prize from ${sprint.sponsor_name}`, { maxWidth: CW, font: F.italic(500), maxSize: 46, floor: 34, minSize: 26, maxLines: 2, leading: 1.15 })
+      const avail = bottom - top0 - 40
+      if (live && top.length) {
+        // The top three, centered with the prize line under them.
+        const th = Math.min(3 * 118, avail - from.height - 40)
+        const y0 = top0 + 20 + (avail - th - 40 - from.height) / 2
+        const end = await table(ctx, top, { x: M, y: y0, w: CW, h: th, second: (r) => (r.entry.town ? { text: r.entry.town } : null), rows: 3 })
+        drawBlock(ctx, from, { x: M, y: end + 40, color: C.sun, align: 'center' })
+        return
+      }
+      // The day, then the hours large, a sun rule, then the prize line.
+      const p = sprintParts(sprint)
+      const day = fitBlock(ctx, glue(p.day), { maxWidth: CW, font: F.sans(700), maxSize: 38, floor: 30, minSize: 22, maxLines: 2, leading: 1.2 })
+      const time = fitBlock(ctx, glue(p.time), { maxWidth: CW, font: F.display(600), maxSize: 120, floor: 72, minSize: 44, maxLines: 2, leading: 1.02 })
+      const block = day.height + 14 + time.height + 34 + 8 + 34 + from.height
+      let y = top0 + 20 + (avail - block) / 2
+      y = drawBlock(ctx, day, { x: M, y, color: C.onDeep, align: 'center' }) + 14
+      y = drawBlock(ctx, time, { x: M, y, color: '#ffffff', align: 'center' }) + 34
+      fillRect(ctx, W / 2 - 60, y, 120, 8, C.sun, 4)
+      drawBlock(ctx, from, { x: M, y: y + 8 + 34, color: C.sun, align: 'center' })
+    },
+  }
+}
+
+// Last Chance (0032): the pets racing for the last seed, best first.
+function lastChanceCard({ rows, closesAt }, o) {
+  return {
+    key: `lastchance-${closesAt}`,
+    meta: { kind: 'lastchance', rows, closesAt, o },
+    label: `Last Chance (${rows.length} pets)`,
+    file: 'last-chance',
+    async draw(ctx, W, H, { brand }) {
+      ground(ctx, W, H, 'light')
+      const left = timeLeft(closesAt, o.now)
+      const top = header(ctx, W, brand, {
+        tone: 'light',
+        kicker: 'Open Round · Last Chance',
+        title: 'One spot left',
+        sub: [left && left !== 'Voting has closed' ? left : null, 'Open Round votes carry over'].filter(Boolean).join(' · '),
+      })
+      const bottom = footer(ctx, W, H, o, { tone: 'light', extra: `The most votes takes seed ${o.bracketSize}` })
+      await table(ctx, rows, {
+        x: M,
+        y: top + 26,
+        w: W - M * 2,
+        h: bottom - top - 26 - 30,
+        second: (r) => (r.entry.town ? { text: r.entry.town } : null),
+      })
+    },
+  }
+}
+
+// The finale (0031): when the champion is revealed, with the two finalists
+// once the Championship is set.
+function finaleCard({ at, finalists }, o) {
+  return {
+    key: `finale-${at}`,
+    meta: { kind: 'finale', at, finalists, o },
+    label: finalists ? `The finale: ${finalists[0].entry.pet_name} vs. ${finalists[1].entry.pet_name}` : 'The finale',
+    file: 'finale',
+    async draw(ctx, W, H, { brand }) {
+      ground(ctx, W, H, 'dark')
+      const top = header(ctx, W, brand, { tone: 'dark', kicker: o.contestName, title: 'The champion is revealed live', titleSize: 66, sub: glue(apDateTime(at)) })
+      const bottom = footer(ctx, W, H, o, { tone: 'dark', urlLead: 'Countdown at', extra: 'Watch the reveal live' })
+      const CW = W - M * 2
+      if (!finalists) {
+        const when = fitBlock(ctx, glue(apDateTime(at)), { maxWidth: CW, font: F.display(600), maxSize: 96, floor: 64, minSize: 40, maxLines: 2, leading: 1.05 })
+        drawBlock(ctx, when, { x: M, y: top + (bottom - top - when.height) / 2, color: '#ffffff', align: 'center' })
+        return
+      }
+      // The two finalists side by side, "vs." between them.
+      const photos = await Promise.all(finalists.map((f) => loadPhoto(f.entry, 800)))
+      const g = 70
+      const cw = (CW - g) / 2
+      const names = finalists.map((f) => fitBlock(ctx, f.entry.pet_name, { maxWidth: cw, font: F.display(600), maxSize: 56, floor: 40, minSize: 24, maxLines: 2, leading: 1.02 }))
+      const nameH = Math.max(...names.map((n) => n.height))
+      const ph = Math.min(cw * 1.15, bottom - top - 60 - nameH - 20)
+      const py = top + 30 + (bottom - top - 60 - ph - nameH - 20) / 2
+      finalists.forEach((f, i) => {
+        const x = M + i * (cw + g)
+        drawPhoto(ctx, photos[i], x, py, cw, ph, { radius: 22 })
+        seedPill(ctx, f.seed, x + 14, py + 14, 22)
+        drawBlock(ctx, names[i], { x, y: py + ph + 20, color: '#ffffff', align: 'center' })
+      })
+      textBlock(ctx, 'vs.', { x: M + cw, y: py + ph / 2 - 24, maxWidth: g, font: F.display(600), color: C.sun, align: 'center', maxSize: 44, maxLines: 1 })
+    },
+  }
+}
+
 // ---------------------------------------------------------------- build
 
 // Every card worth posting right now. `s` comes from the Social tab:
@@ -464,6 +617,9 @@ export function buildCards(s) {
   if (s.results?.winners.length && !s.results.final) {
     groups.push({ key: 'results', title: `${s.results.label} results`, cards: [field(s.results, o), ...s.results.winners.map((w) => winner(w, s.results, o))] })
   }
+  if (s.lastChance?.rows.length) groups.push({ key: 'lastchance', title: 'Last Chance', cards: [lastChanceCard(s.lastChance, o)] })
+  if (s.sprints?.length) groups.push({ key: 'sprints', title: 'Sprints', cards: s.sprints.map((sp) => sprintCard(sp, o)) })
+  if (s.finale) groups.push({ key: 'finale', title: 'The finale', cards: [finaleCard(s.finale, o)] })
   if (s.champion?.entry) groups.push({ key: 'champion', title: 'Champion', cards: [champion(s.champion, o)] })
   if (o.shelterCents > 0) {
     const cents = s.milestone && s.milestoneCents ? s.milestoneCents : o.shelterCents

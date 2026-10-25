@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchEntries, fetchMatchups, fetchRounds, fetchShelters, fetchStats, fetchTotalsByRound } from '../lib/api.js'
+import { fetchEntries, fetchLastChance, fetchMatchups, fetchRounds, fetchShelters, fetchSprints, fetchSprintStandings, fetchStats, fetchTotalsByRound } from '../lib/api.js'
+import { finaleState } from '../lib/finale.js'
+import { lastChanceState, rankPool } from '../lib/lastChance.js'
+import { finalSeq } from '../lib/rounds.js'
+import { nextSprint, pickSprint } from '../lib/sprints.js'
 import { stamp } from '../lib/datetime.js'
 import { PUBLIC_URL } from '../lib/env.js'
 import { contestPhase } from '../lib/phase.js'
@@ -25,8 +29,18 @@ async function load(cid) {
   const [rounds, entries, stats, shelters] = await Promise.all([fetchRounds(cid), fetchEntries(cid), fetchStats(cid), fetchShelters(cid)])
   const bracketIds = rounds.filter((r) => r.kind === 'bracket').map((r) => r.id)
   const started = rounds.filter((r) => r.status !== 'pending').map((r) => r.id)
-  const [matchups, totals] = await Promise.all([fetchMatchups(bracketIds), fetchTotalsByRound(started)])
-  return { rounds, entries, stats, shelters, matchups, totals, at: Date.now() }
+  const r1 = rounds.find((r) => r.seq === 1)
+  const [matchups, totals, sprints, lastChance] = await Promise.all([
+    fetchMatchups(bracketIds),
+    fetchTotalsByRound(started),
+    fetchSprints(cid),
+    r1?.overtime_closes_at ? fetchLastChance(r1.id) : [],
+  ])
+  // A running sprint's top three, for its card.
+  const at = Date.now()
+  const picked = pickSprint(sprints, at)
+  const standings = picked?.state === 'live' ? await fetchSprintStandings(picked.sprint.id, 3) : []
+  return { rounds, entries, stats, shelters, matchups, totals, sprints, lastChance, standings, at }
 }
 
 // What there is to post, from live data.
@@ -53,6 +67,33 @@ function liveScene(contest, d) {
     // close_round decides the final and completes the contest in one step.
     if (s.results?.final) s.champion = s.results.winners[0] || null
   }
+  // Sprints (0030): the one on now or just won, and the next announced.
+  const picked = pickSprint(d.sprints || [], now)
+  const cards = []
+  if (picked && picked.state !== 'counting') {
+    if (picked.state === 'won') {
+      const w = byId.get(picked.sprint.winner_entry_id)
+      if (w) cards.push({ sprint: picked.sprint, state: 'won', winner: { entry: w, votes: picked.sprint.winner_votes } })
+    } else {
+      const top = (d.standings || []).map((r) => ({ rank: r.place, votes: r.votes, entry: byId.get(r.entry_id) })).filter((r) => r.entry)
+      cards.push({ sprint: picked.sprint, state: picked.state, top })
+    }
+  }
+  const next = nextSprint(d.sprints || [], now)
+  if (next && next.id !== picked?.sprint.id) cards.push({ sprint: next, state: 'soon' })
+  if (cards.length) s.sprints = cards
+  // Last Chance (0032): the pool, best first, while it runs.
+  const lc = lastChanceState(r1, d.lastChance || [], now)
+  if (lc?.active) s.lastChance = { rows: rankPool(lc, d.totals.get(r1.id) || new Map(), byId), closesAt: lc.closesAt }
+  // The finale (0031), before it airs, with the finalists once they are set.
+  const f = finaleState(contest, phase, now)
+  if (f?.state === 'soon') {
+    const final = d.rounds.find((r) => r.seq === finalSeq(bracketSize))
+    const m = final && d.matchups.find((x) => x.round_id === final.id)
+    const a = m && byId.get(m.entry_a_id)
+    const b = m && byId.get(m.entry_b_id)
+    s.finale = { at: f.at, finalists: a && b ? [{ entry: a, seed: a.seed }, { entry: b, seed: b.seed }] : null }
+  }
   return s
 }
 
@@ -73,6 +114,22 @@ function sampleScene(contest, d) {
     bracket: { round: sc.bracketRound, label: roundLabel(2, sc.bracketSize), cards: matchupCards(sc.matchups, sc.bracketRound, sc.bracketTotals, sc.byId) },
     results: sc.results,
     champion: sc.champion,
+    // A sprint announced and one won, Last Chance, and the finale.
+    sprints: [
+      { sprint: { id: 'sample-sprint', label: 'Tuesday night sprint', prize: 'a $50 gift card', sponsor_name: 'Example Pet Supply', starts_at: new Date(d.at + 20 * 3600e3).toISOString(), ends_at: new Date(d.at + 23 * 3600e3).toISOString() }, state: 'soon' },
+      { sprint: { id: 'sample-sprint-won', label: 'Sprint', prize: 'a bag of treats', sponsor_name: 'Example Pet Supply', starts_at: new Date(d.at - 6 * 3600e3).toISOString(), ends_at: new Date(d.at - 3 * 3600e3).toISOString() }, state: 'won', winner: { entry: sc.ranked[3].entry, votes: 212 } },
+    ],
+    lastChance: {
+      rows: sc.ranked.slice(sc.bracketSize - 1, sc.bracketSize + 4).map((r, i) => ({ ...r, rank: i + 1 })),
+      closesAt: new Date(d.at + 20 * 3600e3).toISOString(),
+    },
+    finale: {
+      at: new Date(d.at + 2 * 86400e3).toISOString(),
+      finalists: [
+        { entry: sc.champion.entry, seed: sc.champion.seed },
+        { entry: sc.champion.opponent, seed: sc.champion.opponentSeed },
+      ],
+    },
   }
 }
 

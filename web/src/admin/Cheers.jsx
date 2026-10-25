@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { stamp } from '../lib/datetime.js'
-import { cheerText } from '../lib/cheers.js'
+import { cheerQuote } from '../lib/cheers.js'
 import { admin, q, SessionError, view } from './adminClient.js'
 import { ErrorNote, useAsync, useDesk } from './shared.jsx'
 
@@ -57,7 +57,7 @@ export default function CheersReview({ contestId }) {
         <ul className="plain-list">
           {list.map((r) => (
             <li key={r.id}>
-              <strong>{r.cheer_name}</strong> · &ldquo;{cheerText(r.cheer, r.entries?.pet_name || 'this pet')}&rdquo; ·{' '}
+              <strong>{r.cheer_name}</strong> · {cheerQuote(r.cheer, r.entries?.pet_name || 'this pet')} ·{' '}
               <span className="muted">{stamp(r.confirmed_at)}</span>{' '}
               {r.cheer_hidden_at ? (
                 <span className="muted small">hidden</span>

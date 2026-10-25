@@ -242,7 +242,7 @@ export function render(row: QueueRow, links: Links): Message {
       const votes = (row.my_votes ?? 0).toLocaleString("en-US");
       const behind = row.cut_margin ?? 0;
       return compose(`${pet} gets a Last Chance at the bracket`, first, [
-        `${pet} finished${row.rank ? ` No. ${row.rank}` : ""} in the Open Round, just below the bracket line. Now ${pet} and ${others} other pet${others === 1 ? "" : "s"} race for the last spot in the bracket${closes ? `, until ${closes}` : ""}.`,
+        `${pet} finished${row.rank ? ` No. ${row.rank}` : ""} in the Open Round, just below the bracket line. Now ${pet} and ${apNumber(others)} other pet${others === 1 ? "" : "s"} race for the last spot in the bracket${closes ? `, until ${closes}` : ""}.`,
         behind > 0
           ? `Open Round votes carry over: ${pet} has ${votes}, ${behind.toLocaleString("en-US")} behind the leader. The most votes at the end takes the spot.`
           : `Open Round votes carry over: ${pet} leads with ${votes}. The most votes at the end takes the spot.`,
@@ -489,6 +489,12 @@ export function formatWhen(iso: string): string {
     time = `${h}${minute ? `:${String(minute).padStart(2, "0")}` : ""} ${hour24 < 12 ? "a.m." : "p.m."}`;
   }
   return `${get("weekday")}, ${AP_MONTHS[Number(get("month")) - 1]} ${get("day")} at ${time}`;
+}
+
+// AP style: one through nine in words, figures from 10.
+const AP_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+export function apNumber(n: number): string {
+  return Number.isInteger(n) && n >= 0 && n < 10 ? AP_WORDS[n] : n.toLocaleString("en-US");
 }
 
 export function dollars(cents: number): string {

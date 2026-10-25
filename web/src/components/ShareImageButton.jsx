@@ -37,8 +37,9 @@ function Live({ entry, onClose, owner }) {
       onClose={onClose}
       ready={ready}
       contest={c.contest}
-      // During Last Chance a pet outside its pool can no longer be voted for.
-      phase={c.lastChance?.active && !c.lastChance.pool.has(entry.id) ? 'counting' : c.phase}
+      phase={c.phase}
+      // During Last Chance: racing, already in, or done (lib/lastChance.js).
+      lastChance={c.lastChance && c.round?.mainClosesAt ? { inPool: c.lastChance.pool.has(entry.id), place: c.lastChance.place.get(entry.id) ?? null } : null}
       round={c.round}
       nextRound={c.nextRound}
       rounds={c.rounds}

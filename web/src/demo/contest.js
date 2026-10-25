@@ -167,7 +167,16 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
         for (let s = 0; s < field.length / 2; s++) {
           const a = field[s * 2]
           const b = field[s * 2 + 1]
-          const [ta, tb] = totalsFor(seq * 10 + s, [a.id, b.id])
+          let [ta, tb] = totalsFor(seq * 10 + s, [a.id, b.id])
+          // The live round reads like a real one: the better seed leads every
+          // matchup but one, so "Upset alert" means something. Finished
+          // rounds keep their story (a No. 16 seed takes the crown).
+          if (open) {
+            const favoriteIsA = (a.seed ?? 99) < (b.seed ?? 99)
+            const aShouldLead = s === 5 ? !favoriteIsA : favoriteIsA
+            if (ta.votes >= tb.votes !== aShouldLead) [ta, tb] = [{ ...ta, votes: tb.votes }, { ...tb, votes: ta.votes }]
+            if (ta.votes === tb.votes) ta = { ...ta, votes: ta.votes + (aShouldLead ? 7 : -7) }
+          }
           totals.push({ round_id: r.id, ...ta }, { round_id: r.id, ...tb })
           const winner = open ? null : ta.votes >= tb.votes ? a : b
           matchups.push({ id: id('m1', seq * 100 + s), round_id: r.id, slot: s, entry_a_id: a.id, entry_b_id: b.id, winner_entry_id: winner?.id || null })

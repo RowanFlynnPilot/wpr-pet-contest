@@ -10,7 +10,8 @@
 // And the contest's own: vote packs are never donations, totals reset every
 // round, nothing names an owner, nothing invents urgency.
 import { NEWSROOM } from '../../config.js'
-import { apDateTime, fmtInt, fmtMoney, plural } from '../format.js'
+import { apCount, apDateTime, apTime, fmtInt, fmtMoney, plural } from '../format.js'
+import { sprintTitle, sprintWhen } from '../sprints.js'
 import { isUpset } from '../rank.js'
 
 export const FOLD = { facebook: 80, instagram: 125 }
@@ -30,6 +31,53 @@ export function joinNames(names) {
 
 // card.meta -> { hook, body, cta, path } for one post.
 const WRITERS = {
+  sprint({ sprint, state, top }) {
+    const leader = top?.[0]
+    if (state === 'live') {
+      return {
+        hook: `The ${sprintTitle(sprint).toLowerCase() === 'sprint' ? 'sprint' : sprintTitle(sprint)} is on: the most votes by ${apTime(sprint.ends_at)} wins ${sprint.prize}.`,
+        body: `${leader ? `${petName(leader)} leads with ${plural(leader.votes, 'vote')}. ` : ''}The prize is from ${sprint.sponsor_name}, and sprint votes count toward the round like any other.`,
+        cta: 'Vote now:',
+        path: 'gallery',
+      }
+    }
+    return {
+      hook: `Sprint: the most votes from ${sprintWhen(sprint)} wins ${sprint.prize}.`,
+      body: `The prize is from ${sprint.sponsor_name}. Sprint votes count toward the round like any other, so pick your pet and mark the time.`,
+      cta: 'Pick your pet:',
+      path: 'gallery',
+    }
+  },
+
+  sprintWinner({ sprint, winner }) {
+    return {
+      hook: `${petName(winner)} won the ${sprintTitle(sprint).toLowerCase() === 'sprint' ? 'sprint' : sprintTitle(sprint)} and ${sprint.prize}!`,
+      body: `${plural(winner.votes, 'vote')}, ${sprintWhen(sprint)}. Thank you to ${sprint.sponsor_name} and to everyone who voted.`,
+      cta: `See ${petName(winner)}:`,
+      path: `pet/${winner.entry.id}`,
+    }
+  },
+
+  lastchance({ rows, closesAt, o }) {
+    const leader = rows[0]
+    if (!leader) return null
+    return {
+      hook: `Last Chance: ${apCount(rows.length, 'pet')} race for the last spot in the bracket.`,
+      body: `${petName(leader)} leads with ${plural(leader.votes, 'vote')}. Open Round votes carry over, the most votes takes seed ${o.bracketSize}, and voting closes ${apDateTime(closesAt)}.`,
+      cta: 'Vote:',
+      path: 'gallery',
+    }
+  },
+
+  finale({ at, finalists }) {
+    return {
+      hook: `The champion is revealed live ${apDateTime(at)}.`,
+      body: finalists ? `It's ${seeded(finalists[0])} against ${seeded(finalists[1])} in the Championship. Totals reset for the final, so it's anyone's.` : 'The Championship decides it, and every total starts at zero.',
+      cta: 'The countdown and where to watch:',
+      path: '',
+    }
+  },
+
   leaderboard({ ranked, round, final, o }) {
     const top = ranked[0]
     if (!top) return null

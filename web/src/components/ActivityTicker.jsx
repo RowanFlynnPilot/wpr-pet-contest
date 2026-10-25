@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useActivity } from '../lib/data.js'
 import { fmtInt, timeAgo } from '../lib/format.js'
 import { useNow, useReducedMotion } from '../lib/hooks.js'
-import { cheerText } from '../lib/cheers.js'
+import { cheerQuote } from '../lib/cheers.js'
 
 // "25 votes for Biscuit · 2 min ago", and the pack's cheer when it has one
 // ("Go Biscuit!" from Jo). The view carries pet, size, time and the cheer
@@ -22,7 +22,7 @@ export default function ActivityTicker({ roundId, byId }) {
   if (!items.length) return null
   const a = items[i % items.length]
   const pet = byId.get(a.entry_id)
-  const cheer = a.cheer ? cheerText(a.cheer, pet.pet_name) : null
+  const cheer = a.cheer ? cheerQuote(a.cheer, pet.pet_name) : null
   return (
     <div className="ticker" aria-label="Recent votes">
       <span className="live-dot" aria-hidden="true" />
@@ -32,7 +32,7 @@ export default function ActivityTicker({ roundId, byId }) {
         {cheer && (
           <>
             {' '}
-            · <span className="ticker-cheer">&ldquo;{cheer}&rdquo;{a.cheer_name ? ` from ${a.cheer_name}` : ''}</span>
+            · <span className="ticker-cheer">{cheer}{a.cheer_name ? ` from ${a.cheer_name}` : ''}</span>
           </>
         )}{' '}
         · {timeAgo(a.confirmed_at, now)}

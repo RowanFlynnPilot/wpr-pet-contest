@@ -58,7 +58,7 @@ Deno.test("Last Chance names the place, the race, the deadline and the gap", () 
   const msg = render(row, LINKS);
   assertEquals(msg.subject, "Biscuit gets a Last Chance at the bracket");
   assertStringIncludes(msg.text, "No. 17");
-  assertStringIncludes(msg.text, "4 other pets");
+  assertStringIncludes(msg.text, "four other pets");
   assertStringIncludes(msg.text, "412, 18 behind the leader");
   assertStringIncludes(msg.text, "/p/7a000000-0000-0000-0000-00000000000a/?via=o");
   const leading = render({ ...row, cut_margin: 0 }, LINKS);

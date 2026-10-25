@@ -161,8 +161,9 @@ export default function Results() {
   return (
     <div className="wrap">
       <div className="section" style={{ paddingBottom: 12 }}>
-        <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', marginBottom: 18 }}>And the cutest pet in {NEWSROOM.region} is…</h1>
+        {/* Above the heading, so "is…" runs straight into its answer. */}
         <FinaleCard where="results" />
+        <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', marginBottom: 18 }}>And the cutest pet in {NEWSROOM.region} is…</h1>
         <Champion c={c} byId={byId} />
       </div>
       <div className="section" style={{ paddingTop: 12 }}>

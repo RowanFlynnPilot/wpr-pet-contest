@@ -14,7 +14,7 @@ import './graphics.css'
 // card in the browser, in the sizes Instagram, Facebook and a printer want.
 // It opens inline under the share buttons (no overlay), which also keeps it
 // where the reader is inside the WordPress iframe.
-export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, club = null, owner = false, now, total = 0, raised = null, shelterNames = [], entries = 0, endedAt = null }) {
+export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, club = null, owner = false, now, total = 0, raised = null, shelterNames = [], entries = 0, endedAt = null, lastChance = null }) {
   // The keepsake certificate, once the pet's run is over: at the finish, or
   // when it missed the bracket or lost a matchup.
   const runOver = phase === 'complete' || ['out', 'unseeded', 'champion'].includes(state?.status)
@@ -41,6 +41,7 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     // Round 1 is staged to open when entries close; whichever is next.
     opensAt: [r1?.opens_at, contest?.submissions_close_at].filter((v) => v && new Date(v).getTime() > now).sort((a, b) => new Date(a) - new Date(b))[0] || null,
     now,
+    lastChance,
   })
   const url = owner ? ownerLink(petPublicUrl(PUBLIC_URL, entry.id)) : petPublicUrl(PUBLIC_URL, entry.id)
   const data = {

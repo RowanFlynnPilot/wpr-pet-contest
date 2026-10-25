@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pickSprint, sprintTitle, sprintWhen } from '../src/lib/sprints.js'
+import { nextSprint, pickSprint, sprintTitle, sprintWhen } from '../src/lib/sprints.js'
 
 const H = 3600e3
 // Tuesday, Nov. 17, 2026, 6 to 9 p.m. Central.
@@ -47,5 +47,14 @@ describe('sprintTitle', () => {
     expect(sprintTitle({ label: 'Tuesday night sprint' })).toBe('Tuesday night sprint')
     expect(sprintTitle({ label: 'Sprint' })).toBe('Sprint')
     expect(sprintTitle({})).toBe('Sprint')
+  })
+})
+
+describe('nextSprint', () => {
+  it('finds the next one within two days, even while another is showing', () => {
+    const next = { ...S, id: 's2', starts_at: '2026-11-18T18:00:00Z', ends_at: '2026-11-18T19:00:00Z' }
+    expect(nextSprint([S, next], t0 + 4 * H).id).toBe('s2')
+    expect(nextSprint([S, next], t0 - 49 * H)).toBe(null)
+    expect(nextSprint([{ ...next, cancelled_at: '2026-11-17T00:00:00Z' }], t0)).toBe(null)
   })
 })

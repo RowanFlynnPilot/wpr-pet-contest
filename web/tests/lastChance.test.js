@@ -64,3 +64,18 @@ describe('contestPhase with Last Chance', () => {
     expect(p.overtime).toBeUndefined()
   })
 })
+
+describe('the owner share image during Last Chance', () => {
+  it('says Last Chance for a pet in the race, made the bracket for a pet already in', async () => {
+    const { ownerCopy } = await import('../src/lib/graphics/content.js')
+    const round = { ...round1, closes_at: round1.overtime_closes_at, mainClosesAt: round1.closes_at }
+    const racing = ownerCopy({ name: 'Gus', phase: 'voting', round, bracketSize: 16, lastChance: { inPool: true, place: 17 }, now })
+    expect(racing.headline).toBe('Last Chance for Gus')
+    expect(racing.showVotes).toBe(true)
+    const inAlready = ownerCopy({ name: 'Ziggy', phase: 'voting', round, bracketSize: 16, lastChance: { inPool: false, place: 3 }, now })
+    expect(inAlready.headline).toBe('Ziggy made the bracket!')
+    expect(inAlready.showVotes).toBe(false)
+    const out = ownerCopy({ name: 'Moe', phase: 'voting', round, bracketSize: 16, lastChance: { inPool: false, place: null }, now })
+    expect(out.tone).toBe('thanks')
+  })
+})

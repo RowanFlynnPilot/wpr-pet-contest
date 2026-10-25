@@ -23,7 +23,7 @@ import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
 import { entryStates } from '../lib/bracketState.js'
 import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
-import { apDate, apDateTime, apWhen, fmtInt, fmtMoney, plural } from '../lib/format.js'
+import { apCount, apDate, apDateTime, apWhen, fmtInt, fmtMoney, plural } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { useLive } from '../lib/live.js'
 import { cheapestPerVote } from '../lib/packs.js'
@@ -388,7 +388,7 @@ function LastChancePanel({ c, entry, byId }) {
             ? `${entry.pet_name} finished No. ${place} and is in the bracket. `
             : `Voting has closed for ${entry.pet_name}. `}
           {voting
-            ? `${lc.size} pets just below the line have until ${apWhen(c.round.closes_at, c.now)} to win the last spot in Last Chance.`
+            ? `${apCount(lc.size, 'pet')} just below the line have until ${apWhen(c.round.closes_at, c.now)} to win the last spot in Last Chance.`
             : 'The bracket is set shortly after Last Chance ends.'}
         </p>
       </Scoreboard>
@@ -424,7 +424,7 @@ function LastChancePanel({ c, entry, byId }) {
               ? `${entry.pet_name} needs ${plural(behind, 'vote')} to take the lead. `
               : ''}
           {voting
-            ? `${entry.pet_name} and ${others} other pet${others === 1 ? '' : 's'} finished just below the line. Open Round votes carry over, and the most votes when Last Chance ends takes the last spot in the bracket.`
+            ? `${entry.pet_name} and ${apCount(others, 'other pet')} finished just below the line. Open Round votes carry over, and the most votes when Last Chance ends takes the last spot in the bracket.`
             : 'Results are finalized shortly after Last Chance ends.'}
         </p>
       </Scoreboard>

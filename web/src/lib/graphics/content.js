@@ -35,7 +35,9 @@ const closes = (at) => glue(`Voting closes ${apDateTime(at)}`)
 //   tone: vote | cheer (advanced) | thanks (out) | champion
 //   urlLead: the words before the contest's address ("Vote at", or
 //   "Follow along at" once this pet can no longer be voted for)
-export function ownerCopy({ name, phase, round, nextRound, state, seed, bracketSize = 16, year, contestName, opensAt, now = Date.now() }) {
+// lastChance: during Last Chance (lib/lastChance.js), { inPool, place } for
+// this pet; the round then carries Last Chance's close.
+export function ownerCopy({ name, phase, round, nextRound, state, seed, bracketSize = 16, year, contestName, opensAt, now = Date.now(), lastChance = null }) {
   const pet = String(name || 'this pet').trim()
   const label = round ? roundLabel(round.seq, bracketSize) : null
   const base = { kicker: contestName || `Cutest Pet in ${NEWSROOM.region}`, showVotes: false, votesLabel: null, closesAt: null, urlLead: 'Vote at' }
@@ -51,6 +53,29 @@ export function ownerCopy({ name, phase, round, nextRound, state, seed, bracketS
       return { ...base, urlLead: 'Results at', tone: 'champion', headline: `${year ? `${year} ` : ''}Champion`, detail: 'Thank you to everyone who voted!' }
     }
     return thanks('Results at')
+  }
+
+  // Last Chance: racing for the last seed, already in, or finished.
+  if (lastChance && round?.mainClosesAt && (phase === 'voting' || phase === 'counting')) {
+    if (lastChance.inPool) {
+      if (phase === 'counting') {
+        return { ...base, urlLead: 'Results at', tone: 'vote', headline: `Thanks for voting for ${pet}!`, detail: 'Last Chance has closed. Results are being finalized.' }
+      }
+      return {
+        ...base,
+        kicker: 'Last Chance',
+        tone: 'vote',
+        headline: `Last Chance for ${pet}`,
+        detail: closes(round.closes_at),
+        closesAt: round.closes_at,
+        showVotes: true,
+        votesLabel: 'Open Round',
+      }
+    }
+    if (lastChance.place != null && lastChance.place < bracketSize) {
+      return { ...base, urlLead: 'Follow along at', tone: 'cheer', headline: `${pet} made the bracket!`, detail: `Finished No. ${lastChance.place} in the Open Round.` }
+    }
+    return thanks()
   }
 
   if (phase === 'voting' || phase === 'counting') {

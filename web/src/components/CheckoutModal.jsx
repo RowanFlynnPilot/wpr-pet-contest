@@ -13,7 +13,7 @@ import { boostLive, useLive } from '../lib/live.js'
 import { totalsKey, useActivity, useContestTotals } from '../lib/data.js'
 import { clubLabel, milestone } from '../lib/milestones.js'
 import { viaFor } from '../lib/referral.js'
-import { CHEERS, cheerText, cleanCheerName } from '../lib/cheers.js'
+import { CHEERS, cheerLabel, cheerQuote, cleanCheerName } from '../lib/cheers.js'
 import { multiplierWord, windowTitle } from '../lib/bonus.js'
 import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
@@ -333,7 +333,7 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
                 {CHEERS.map((ch) => (
                   <label key={ch.code} className={`chip${cheer === ch.code ? ' is-on' : ''}`}>
                     <input type="radio" className="sr-only" name="cheer" value={ch.code} checked={cheer === ch.code} onChange={() => setCheer(ch.code)} />
-                    {ch.text(entry.pet_name)}
+                    {cheerLabel(ch.code, entry.pet_name)}
                   </label>
                 ))}
                 {cheer && (
@@ -392,9 +392,13 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
               </span>
             </div>
           ) : (
-            <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={!pack || busy}>
-              {busy ? 'One moment…' : pack ? `Continue · ${fmtMoney(pack.cents)}` : 'Choose a pack'}
-            </button>
+            // Pinned to the bottom of the sheet on phones, where the packs,
+            // the cheer and the boxes push it below the first screen.
+            <div className="checkout-cta">
+              <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={!pack || busy}>
+                {busy ? 'One moment…' : pack ? `Continue · ${fmtMoney(pack.cents)}` : 'Choose a pack'}
+              </button>
+            </div>
           )}
           <Legal split={split} label={label} />
         </form>
@@ -454,7 +458,7 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
           split={c.contest?.beneficiary_split_pct}
           shelter={c.shelters.length === 1 ? c.shelters[0] : null}
           canBuyAgain={!closed}
-          cheer={cheer ? cheerText(cheer, entry.pet_name) : null}
+          cheer={cheer ? cheerQuote(cheer, entry.pet_name) : null}
           cheerFrom={cheer ? cleanCheerName(cheerName) || null : null}
           onAgain={() => {
             request.current = null
@@ -647,12 +651,6 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVo
           .
         </p>
       )}
-      {!late && cheer && (
-        <p className="done-cheer">
-          <span className="done-cheer-text">&ldquo;{cheer}&rdquo;</span>
-          {cheerFrom ? ` from ${cheerFrom}` : ''} {outcome === 'credited' ? 'is' : 'goes'} up on {entry.pet_name}&rsquo;s page.
-        </p>
-      )}
       <div className="done-status">
         <p aria-live="polite">
           {outcome === 'credited' && (
@@ -679,6 +677,12 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVo
             </>
           )}
         </p>
+        {!late && cheer && (
+          <p className="done-cheer">
+            <span className="done-cheer-text">{cheer}</span>
+            {cheerFrom ? ` from ${cheerFrom}` : ''} {outcome === 'credited' ? 'is' : 'goes'} up on {entry.pet_name}&rsquo;s page.
+          </p>
+        )}
         {outcome === 'credited' && <ClubNudge name={entry.pet_name} total={contestVotes} bought={intent.votes} />}
       </div>
 
