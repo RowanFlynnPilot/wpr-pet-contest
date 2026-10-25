@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchEntries, fetchLastChance, fetchMatchups, fetchRounds, fetchShelters, fetchSprints, fetchSprintStandings, fetchStats, fetchTotalsByRound } from '../lib/api.js'
+import { fetchEntries, fetchLastChance, fetchMatchups, fetchPacks, fetchRounds, fetchShelters, fetchSprints, fetchSprintStandings, fetchStats, fetchTotalsByRound } from '../lib/api.js'
 import { finaleState } from '../lib/finale.js'
 import { lastChanceState, rankPool } from '../lib/lastChance.js'
 import { finalSeq } from '../lib/rounds.js'
@@ -9,7 +9,7 @@ import { PUBLIC_URL } from '../lib/env.js'
 import { contestPhase } from '../lib/phase.js'
 import { rankOpenRound } from '../lib/rank.js'
 import { roundLabel } from '../lib/rounds.js'
-import { bubbleRows, currentBracketRound, lastDecidedRound, matchupCards, milestoneCents, roundResults, sampleScenario } from '../lib/graphics/content.js'
+import { bubbleRows, currentBracketRound, lastDecidedRound, launchStage, matchupCards, milestoneCents, roundResults, sampleScenario } from '../lib/graphics/content.js'
 import { displayUrl } from '../lib/graphics/layout.js'
 import { STAFF_SIZES, buildCards, cardFile, renderCard } from '../lib/graphics/staff.js'
 import { captionsFor } from '../lib/graphics/captions.js'
@@ -18,15 +18,16 @@ import { downloadBlob, pause } from '../lib/graphics/save.js'
 import { ErrorNote, useAsync, useDesk } from './shared.jsx'
 import '../components/graphics.css'
 
-// Ready-to-post images for the promotion calendar (docs/LAUNCH.md section 8):
-// the daily leaderboard and bubble, a card per matchup, round results, the
-// champion and the shelter total. Public data only, read the way the public
+// Ready-to-post images for the promotion calendar (docs/campaign/calendar.md):
+// the launch (announcement, how it works, the countdown, entries open, entries
+// so far, last call, the field), the daily leaderboard and bubble, a card per
+// matchup, round results, the champion and the shelter total. Public data only, read the way the public
 // site reads it, so nothing here can carry an owner's name or email.
 
 const done = (r) => r?.status === 'resolved' || r?.status === 'closed'
 
 async function load(cid) {
-  const [rounds, entries, stats, shelters] = await Promise.all([fetchRounds(cid), fetchEntries(cid), fetchStats(cid), fetchShelters(cid)])
+  const [rounds, entries, stats, shelters, packs] = await Promise.all([fetchRounds(cid), fetchEntries(cid), fetchStats(cid), fetchShelters(cid), fetchPacks(cid)])
   const bracketIds = rounds.filter((r) => r.kind === 'bracket').map((r) => r.id)
   const started = rounds.filter((r) => r.status !== 'pending').map((r) => r.id)
   const r1 = rounds.find((r) => r.seq === 1)
@@ -40,8 +41,11 @@ async function load(cid) {
   const at = Date.now()
   const picked = pickSprint(sprints, at)
   const standings = picked?.state === 'live' ? await fetchSprintStandings(picked.sprint.id, 3) : []
-  return { rounds, entries, stats, shelters, matchups, totals, sprints, lastChance, standings, at }
+  return { rounds, entries, stats, shelters, packs, matchups, totals, sprints, lastChance, standings, at }
 }
+
+// The cheapest pack, for "Packs from $5".
+const fromCents = (packs) => (packs?.length ? Math.min(...packs.map((p) => p.cents)) : null)
 
 // What there is to post, from live data.
 function liveScene(contest, d) {
@@ -51,6 +55,11 @@ function liveScene(contest, d) {
   const byId = new Map(d.entries.map((e) => [e.id, e]))
   const s = { contest, bracketSize, phase, now, stats: d.stats, shelters: d.shelters }
   const r1 = d.rounds.find((r) => r.seq === 1)
+  // Before and during entries: the launch cards (D-14 to the Open Round).
+  const stage = launchStage(contest, phase)
+  if (stage) {
+    s.launch = { stage, opensAt: contest.submissions_open_at, closesAt: contest.submissions_close_at, votingAt: r1?.opens_at || null, entries: d.entries, fromCents: fromCents(d.packs), shelters: d.shelters }
+  }
   const bracketStarted = d.rounds.some((r) => r.kind === 'bracket' && r.status !== 'pending')
   if (r1 && (r1.status === 'open' || (done(r1) && !bracketStarted))) {
     s.openRound = r1
@@ -108,6 +117,16 @@ function sampleScene(contest, d) {
     now: d.at,
     shelters: d.shelters,
     stats: { shelter_cents: sc.shelterCents },
+    // Every launch card at once, on made-up dates.
+    launch: {
+      stage: 'all',
+      opensAt: new Date(d.at + 6 * 86400e3).toISOString(),
+      closesAt: new Date(d.at + 30 * 3600e3).toISOString(),
+      votingAt: new Date(d.at + 7 * 86400e3).toISOString(),
+      entries: d.entries,
+      fromCents: fromCents(d.packs),
+      shelters: d.shelters,
+    },
     openRound: sc.openRound,
     ranked: sc.ranked,
     bubble: bubbleRows(sc.ranked, sc.bracketSize),
@@ -309,8 +328,9 @@ export default function SocialDesk() {
       {!loading && !groups.length && (
         <div className="notice">
           <span>
-            <strong>Nothing to post yet.</strong> Leaderboard cards appear when the Open Round opens, matchup cards once the bracket is built,
-            and the shelter total after the first vote pack sells. Tick &ldquo;sample numbers&rdquo; to preview the layouts now.
+            <strong>Nothing to post yet.</strong> The launch cards appear once the contest has its entry dates (Setup), leaderboard cards when
+            the Open Round opens, matchup cards once the bracket is built, and the shelter total after the first vote pack sells. Tick
+            &ldquo;sample numbers&rdquo; to preview the layouts now.
           </span>
         </div>
       )}

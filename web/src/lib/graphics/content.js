@@ -4,7 +4,7 @@
 //   * the public sees the pet, never the owner: entries here carry only the
 //     public columns (pet_name, town, photo_path, seed)
 import { NEWSROOM } from '../../config.js'
-import { apDate, apDateTime, plural } from '../format.js'
+import { TIME_ZONE, apDate, apDateTime, plural } from '../format.js'
 import { matchupStanding, votesToPass } from '../rank.js'
 import { bracketSeedOrder, finalSeq, roundLabel, roundShortLabel } from '../rounds.js'
 import { clubLabel } from '../milestones.js'
@@ -322,4 +322,32 @@ export function keepsakeCopy({ name, year, contestName, state, total = 0, club =
     raised: glue(raisedLine),
     date: endedAt ? glue(apDate(endedAt, { weekday: false, year: true })) : null,
   }
+}
+
+// ---------------------------------------------------------------- the launch
+
+// Which launch cards the Social desk offers (D-14 to the Open Round): 'soon'
+// before entries open (a draft with its dates, or submissions staged),
+// 'open' while they are, 'closed' after, until voting starts. null otherwise.
+export function launchStage(contest, phase) {
+  if (!contest) return null
+  if (contest.status === 'draft' || phase === 'coming') return contest.submissions_open_at ? 'soon' : null
+  if (phase === 'submissions') return 'open'
+  if (phase === 'submissions_closed') return 'closed'
+  return null
+}
+
+// Calendar days from `now` to `at` on the newsroom's clock: 0 is today, 1
+// tomorrow, whatever the hour.
+const dayKey = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t))
+export function daysUntil(at, now = Date.now()) {
+  return Math.round((Date.parse(dayKey(at)) - Date.parse(dayKey(now))) / 86400000)
+}
+
+// The countdown's words: "6 days" until entries open, then "tomorrow", "today".
+export function countdownWords(at, now = Date.now()) {
+  const d = daysUntil(at, now)
+  if (d <= 0) return { big: 'Today', line: 'Entries open today', days: 0 }
+  if (d === 1) return { big: 'Tomorrow', line: 'Entries open tomorrow', days: 1 }
+  return { big: String(d), line: 'days until entries open', days: d }
 }

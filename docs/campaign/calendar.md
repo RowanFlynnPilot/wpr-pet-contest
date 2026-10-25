@@ -152,6 +152,14 @@ only on D-14 and D-1; the morning block runs every day in between.
 
 ## Pre-launch: D-14 to D-1
 
+Where the table says Screens, the Social desk's **launch** group has a card
+ready (Social tab, once the contest's entry dates are set in Setup): the
+announcement, the three-card "How it works" carousel, the countdown (which
+turns into "Entries open tomorrow"), and in entries week "Entries are open",
+"N pets entered so far", "Last 48 hours to enter" and, once entries close,
+the field. Each comes square, portrait and Story size (1080x1920, the
+backdrop for a countdown sticker), with captions to copy.
+
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | D-14 | Announcement | WPR story | Article | Screens (home page); Widget `view=enter` | R | Disclosure line: WPR runs the contest; 50% of vote pack sales after refunds goes to Moments Foster Care |

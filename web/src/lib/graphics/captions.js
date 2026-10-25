@@ -10,7 +10,7 @@
 // And the contest's own: vote packs are never donations, totals reset every
 // round, nothing names an owner, nothing invents urgency.
 import { NEWSROOM } from '../../config.js'
-import { apCount, apDateTime, apTime, fmtInt, fmtMoney, plural } from '../format.js'
+import { apCount, apDate, apDateTime, apTime, fmtInt, fmtMoney, period, plural } from '../format.js'
 import { sprintTitle, sprintWhen } from '../sprints.js'
 import { isUpset } from '../rank.js'
 
@@ -29,8 +29,80 @@ export function joinNames(names) {
   return `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`
 }
 
+// The launch posts' shared line: what the money does, never "donation".
+// AP: a sentence never starts with a figure, so 50% reads "Half".
+const shareLine = (o, who) => {
+  const pct = Number(o.splitPct) || 0
+  return pct === 50 ? `Half of every vote pack goes to ${who}.` : pct ? `Every vote pack sends ${pct}% to ${who}.` : `A share of every vote pack goes to ${who}.`
+}
+
 // card.meta -> { hook, body, cta, path } for one post.
 const WRITERS = {
+  announce({ o, opensAt, who }) {
+    return {
+      hook: `Is your pet the cutest in ${NEWSROOM.region}? Entries for ${o.contestName} open ${apDate(opensAt)}.`,
+      body: `Enter free with one photo. Readers vote with vote packs, and ${shareLine(o, who).replace(/^./, (c) => c.toLowerCase())} Vote packs are not donations.`,
+      cta: 'The details:',
+      path: 'rules',
+    }
+  },
+
+  // One caption for the three-card carousel, whichever card it rides on.
+  how({ o, who }) {
+    return {
+      hook: `How ${o.contestName} works: enter free, vote with vote packs, then a ${o.bracketSize}-pet bracket.`,
+      body: `Every pet starts in one open round. The top ${o.bracketSize} go head to head, and vote totals reset every round. ${shareLine(o, who)}`,
+      cta: 'The rules:',
+      path: 'rules',
+    }
+  },
+
+  countdown({ o, opensAt, cd }) {
+    return {
+      // AP: a sentence never starts with a number.
+      hook: cd.days > 1 ? `Entries for ${o.contestName} open in ${apCount(cd.days, 'day')}.` : period(`Entries open ${cd.days === 1 ? 'tomorrow' : 'today'} for ${o.contestName}: ${apDateTime(opensAt)}`),
+      body: 'Get your best photo ready: one pet, face in the light, no people in the frame. Entering is free.',
+      cta: 'Get ready:',
+      path: '',
+    }
+  },
+
+  entriesOpen({ o, closesAt }) {
+    return {
+      hook: `Entries are open: enter your pet in ${o.contestName}, free.`,
+      body: `${period(`One photo, a name and a town, until ${apDateTime(closesAt)}`)} An editor checks every entry before it goes live.`,
+      cta: 'Enter here:',
+      path: 'enter',
+    }
+  },
+
+  entriesSoFar({ count, closesAt }) {
+    return {
+      hook: `So far, ${apCount(count, 'pet')} ${count === 1 ? 'is' : 'are'} in.`,
+      body: `${period(`Enter yours by ${apDateTime(closesAt)}`)} It's free, with one photo.`,
+      cta: 'Enter here:',
+      path: 'enter',
+    }
+  },
+
+  fieldSet({ o, count, votingAt }) {
+    return {
+      hook: `The field is set: ${apCount(count, 'pet')}.`,
+      body: `${votingAt ? `The Open Round opens ${apDateTime(votingAt)}, and the` : 'The'} top ${o.bracketSize} make the bracket. Vote totals reset every round.`,
+      cta: 'Meet them:',
+      path: 'gallery',
+    }
+  },
+
+  lastCall({ closesAt, lastDay }) {
+    return {
+      hook: period(`${lastDay ? 'Last day to enter' : 'Two days left to enter'}: entries close ${apDateTime(closesAt)}`),
+      body: 'Entering is free, with one photo. An editor checks every entry before it goes live.',
+      cta: 'Enter here:',
+      path: 'enter',
+    }
+  },
+
   sprint({ sprint, state, top }) {
     const leader = top?.[0]
     if (state === 'live') {

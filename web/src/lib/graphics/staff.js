@@ -1,16 +1,19 @@
-// The newsroom's daily posts: leaderboard, the bubble, matchups, results,
-// champion and money raised. Every card comes in 1080x1080 and 1080x1350 and
-// is laid out from the edges in, so both sizes share one drawing function.
+// The newsroom's daily posts: the launch (before and during entries), the
+// leaderboard, the bubble, matchups, results, champion and money raised.
+// Every card comes square, portrait and story size, laid out from the edges
+// in, so all three share one drawing function.
 import { NEWSROOM } from '../../config.js'
-import { apDateTime, apTime, fmtMoney } from '../format.js'
+import { apCount, apDate, apDateTime, apTime, fmtMoney } from '../format.js'
 import { sprintParts, sprintTitle, sprintWhen } from '../sprints.js'
 import { C, F, doubleRule, drawBlock, drawFlag, drawPhoto, fillRect, fitBlock, loadPhoto, pawTexture, render, roundRect, runs, sampleBands, textBlock, trackedMeasurer } from './draw.js'
 import { fileName, fmtCount, timeLeft } from './layout.js'
-import { glue, leaderboardRows, matchupLine, shelterLine, winnerLines } from './content.js'
+import { countdownWords, glue, leaderboardRows, matchupLine, shelterLine, winnerLines } from './content.js'
 
 export const STAFF_SIZES = [
   { id: 'square', label: 'Square', width: 1080, height: 1080 },
   { id: 'portrait', label: 'Portrait', width: 1080, height: 1350 },
+  // Instagram and Facebook Stories, and the countdown sticker's backdrop.
+  { id: 'story', label: 'Story', width: 1080, height: 1920 },
 ]
 
 const M = 60
@@ -81,11 +84,14 @@ function pill(ctx, text, x, y, { size = 22, fill = C.sun, color = C.ink }) {
 // ---------------------------------------------------------------- rows
 
 // A standings table: rank, photo, name over a second line, votes.
-// `slots` keeps two side-by-side tables on the same row height.
-async function table(ctx, rows, { x, y, w, h, cut = null, second, rows: slots = rows.length }) {
+// `slots` keeps two side-by-side tables on the same row height. Centered in
+// its box when the rows don't fill it (a story-size canvas); `maxRow` lets
+// rows grow there.
+async function table(ctx, rows, { x, y: boxY, w, h, cut = null, second, rows: slots = rows.length, maxRow = 118 }) {
   const cutBand = cut != null && rows.some((r) => r.rank > cut) && rows.some((r) => r.rank <= cut) ? 52 : 0
-  const rowH = Math.min(118, (h - cutBand) / slots)
+  const rowH = Math.min(maxRow, (h - cutBand) / slots)
   const total = rowH * rows.length + cutBand
+  const y = boxY + Math.max(0, (h - (rowH * slots + cutBand)) / 2)
   const photos = await Promise.all(rows.map((r) => loadPhoto(r.entry, 400)))
   fillRect(ctx, x, y, w, total, '#ffffff', 16)
   // Rank and vote columns as wide as their widest entry, so the names get
@@ -166,7 +172,7 @@ function leaderboard({ ranked, round, final }, o) {
         await table(ctx, rows.slice(0, half), { ...box, x: M, w: colW, second: town, rows: half })
         await table(ctx, rows.slice(half), { ...box, x: M + colW + g, w: colW, second: town, rows: half })
       } else {
-        await table(ctx, rows, { ...box, x: M, w: W - M * 2, second: town })
+        await table(ctx, rows, { ...box, x: M, w: W - M * 2, second: town, maxRow: H > 1500 ? 140 : 118 })
       }
     },
   }
@@ -195,6 +201,7 @@ function bubble({ rows, cut, round }, o) {
         h: bottom - top - 26 - 30,
         cut,
         second: (r) => ({ text: r.note, weight: 700, color: r.inside ? C.tealInk : C.sunInk }),
+        maxRow: H > 1500 ? 140 : 118,
       })
     },
   }
@@ -228,8 +235,8 @@ function matchup(st, round, label, o) {
       const showVotes = !pending
       const lead = fitBlock(ctx, matchupLine(st, { status: round.status }), { maxWidth: W - M * 2, font: F.italic(500), maxSize: 38, floor: 30, minSize: 24, maxLines: 2, leading: 1.2 })
       const stack = 26 + nameH + 6 + 32 + (showVotes ? 14 + 70 + 24 + 18 : 0) + 22 + lead.height + 26
-      const photoY = top + 26
-      const photoH = Math.max(260, Math.min(colW * 1.4, bottom - photoY - stack))
+      const photoH = Math.max(260, Math.min(colW * (H > 1500 ? 1.75 : 1.4), bottom - top - 26 - stack))
+      const photoY = top + 26 + Math.max(0, (bottom - top - 26 - photoH - stack) / 2)
       const imgs = await photos
       ;[st.a, st.b].forEach((s, i) => {
         const x = M + i * (colW + gap)
@@ -298,8 +305,8 @@ async function heroCard(ctx, W, H, brand, o, { kicker, entry, seed, title, line1
   const l2 = line2 ? fitBlock(ctx, line2, { maxWidth: CW, font: F.sans(600), maxSize: 28, floor: 24, minSize: 18, maxLines: 2, leading: 1.25 }) : null
   const l3 = line3 ? fitBlock(ctx, line3, { maxWidth: CW, font: F.sans(800), maxSize: 30, floor: 26, minSize: 20, maxLines: 2, leading: 1.25 }) : null
   const stack = 30 + name.height + (l1 ? 8 + l1.height : 0) + (l2 ? 14 + l2.height : 0) + (l3 ? 14 + l3.height : 0) + 30
-  const py = top + 24
-  const ph = Math.max(300, Math.min(CW * 0.9, bottom - py - stack))
+  const ph = Math.max(300, Math.min(CW * (H > 1500 ? 1.15 : 0.9), bottom - top - 24 - stack))
+  const py = top + 24 + (H > 1500 ? Math.max(0, (bottom - top - 24 - ph - stack) / 2) : 0)
   // In the square the photo above the words would be a sliver (a nose and
   // no eyes), so it stands beside them instead, as tall as the space allows.
   if (bottom - py - stack < CW * 0.62) {
@@ -547,6 +554,7 @@ function lastChanceCard({ rows, closesAt }, o) {
         w: W - M * 2,
         h: bottom - top - 26 - 30,
         second: (r) => (r.entry.town ? { text: r.entry.town } : null),
+        maxRow: H > 1500 ? 150 : 118,
       })
     },
   }
@@ -589,6 +597,210 @@ function finaleCard({ at, finalists }, o) {
   }
 }
 
+// ---------------------------------------------------------------- the launch
+
+// A centered stack of fitted blocks in the space between header and footer.
+function centerStack(ctx, blocks, top, bottom) {
+  const h = blocks.reduce((sum, b) => sum + (b.fit ? b.fit.height : b.h) + (b.gap || 0), 0)
+  let y = top + Math.max(0, (bottom - top - h) / 2)
+  for (const b of blocks) {
+    if (b.fit) y = drawBlock(ctx, b.fit, { x: b.x ?? M, y, color: b.color, align: 'center' })
+    else if (b.rule) {
+      fillRect(ctx, b.W / 2 - 60, y, 120, 8, C.sun, 4)
+      y += b.h
+    } else y += b.h
+    y += b.gap || 0
+  }
+}
+
+// Before and during entries (D-14 to the Open Round), when there are no
+// votes yet: the contest itself. `l`: { stage: 'soon' | 'open' | 'closed' |
+// 'all' (sample), opensAt, closesAt, votingAt, entries, fromCents, shelters }.
+function launchCards(l, o) {
+  const cards = []
+  const who = joinNames((l.shelters || []).map((s) => s.name)) || 'local animal shelters'
+  const pct = Number(o.splitPct) || 0
+  const share = pct ? `${pct}% of every pack` : 'a share of every pack'
+  const from = l.fromCents ? `Packs from ${fmtMoney(l.fromCents, { whole: true })}.` : ''
+  const region = NEWSROOM.region
+  const soon = l.stage === 'soon' || l.stage === 'all'
+  const open = l.stage === 'open' || l.stage === 'all'
+  const closed = l.stage === 'closed' || l.stage === 'all'
+  const meta = (kind, extra = {}) => ({ kind, o, ...l, who, ...extra })
+
+  if (soon) {
+    cards.push({
+      key: 'launch-announce',
+      meta: meta('announce'),
+      label: 'Announcement',
+      file: 'announce',
+      draw(ctx, W, H, { brand }) {
+        ground(ctx, W, H, 'dark')
+        const top = header(ctx, W, brand, { tone: 'dark', kicker: `${o.year} · a reader contest`, title: `Is your pet the cutest in ${region}?`, titleSize: 72 })
+        const bottom = footer(ctx, W, H, o, { tone: 'dark', urlLead: 'Details at', extra: 'Vote packs are not donations', shelter: false })
+        const CW = W - M * 2
+        const tall = H > 1500
+        centerStack(ctx, [
+          { fit: fitBlock(ctx, 'Entries open', { maxWidth: CW, font: F.sans(800), upper: true, track: 0.16, maxSize: 30, maxLines: 1 }), color: C.sun, gap: 18 },
+          { fit: fitBlock(ctx, glue(apDate(l.opensAt)), { maxWidth: CW, font: F.display(700), maxSize: tall ? 150 : 124, floor: 80, minSize: 56, maxLines: 2, leading: 1 }), color: '#ffffff', gap: 40 },
+          { rule: true, W, h: 8, gap: 40 },
+          { fit: fitBlock(ctx, `Enter free with one photo. Readers vote with vote packs, and ${share} goes to ${who}.`, { maxWidth: CW - 60, font: F.sans(600), maxSize: tall ? 40 : 34, floor: 26, minSize: 22, maxLines: 4, leading: 1.3 }), x: M + 30, color: C.onDeep },
+        ], top + 20, bottom - 20)
+      },
+    })
+    const cd = countdownWords(l.opensAt, o.now)
+    cards.push({
+      key: `launch-countdown-${cd.days}`,
+      meta: meta('countdown', { cd }),
+      label: cd.days > 1 ? `Countdown: ${cd.days} days` : cd.line,
+      file: cd.days > 1 ? `countdown-${cd.days}-days` : cd.days === 1 ? 'entries-open-tomorrow' : 'entries-open-today',
+      draw(ctx, W, H, { brand }) {
+        ground(ctx, W, H, 'dark')
+        const top = header(ctx, W, brand, { tone: 'dark', kicker: o.contestName })
+        const bottom = footer(ctx, W, H, o, { tone: 'dark', urlLead: 'Get ready at', extra: 'Enter free with one photo', shelter: false })
+        const CW = W - M * 2
+        const tall = H > 1500
+        const numeric = cd.days > 1
+        centerStack(ctx, [
+          { fit: fitBlock(ctx, cd.big, { maxWidth: CW, font: numeric ? F.mono(700) : F.display(700), maxSize: numeric ? (tall ? 420 : H > 1200 ? 360 : 300) : tall ? 180 : 150, floor: 100, minSize: 72, maxLines: 1, leading: 1 }), color: C.sun, gap: 20 },
+          { fit: fitBlock(ctx, numeric ? cd.line : 'Entries open', { maxWidth: CW, font: F.italic(500), maxSize: tall ? 72 : 60, floor: 40, minSize: 30, maxLines: 2, leading: 1.1 }), color: '#ffffff', gap: 30 },
+          { rule: true, W, h: 8, gap: 30 },
+          { fit: fitBlock(ctx, glue(apDateTime(l.opensAt)), { maxWidth: CW, font: F.sans(700), maxSize: tall ? 44 : 38, floor: 28, minSize: 22, maxLines: 2, leading: 1.2 }), color: C.onDeep },
+        ], top + 10, bottom - 20)
+      },
+    })
+  }
+
+  // How it works, as a three-card carousel: before entries open and while they are.
+  if (soon || open) {
+    const steps = [
+      ['Enter your pet free', `One phone photo, a name and a town. An editor checks every entry before it goes live.`],
+      ['Vote with vote packs', `${from} ${pct === 50 ? 'Half' : pct ? `Every pack sends ${pct}%` : 'A share'}${pct === 50 || !pct ? ' of every pack goes' : ''} to ${who}. Vote packs are purchases, not donations.`.trim()],
+      [`Then a ${o.bracketSize}-pet bracket`, `The top ${o.bracketSize} go head to head, two days a round. Vote totals reset every round, so any pet can win.`],
+    ]
+    steps.forEach(([title, body], i) => {
+      cards.push({
+        key: `launch-how-${i + 1}`,
+        meta: meta('how', { step: i + 1 }),
+        label: `How it works, ${i + 1} of 3`,
+        file: `how-it-works-${i + 1}`,
+        draw(ctx, W, H, { brand }) {
+          ground(ctx, W, H, 'light')
+          const top = header(ctx, W, brand, { tone: 'light', kicker: `How it works · ${i + 1} of 3`, title })
+          const bottom = footer(ctx, W, H, o, { tone: 'light', urlLead: 'The rules at', extra: i === 2 ? RESET : `Entries open ${glue(apDate(l.opensAt, { weekday: false }))}`, shelter: false })
+          const CW = W - M * 2
+          const tall = H > 1500
+          const d = tall ? 300 : H > 1200 ? 240 : 190
+          const copy = fitBlock(ctx, body, { maxWidth: CW - 40, font: F.sans(600), maxSize: tall ? 46 : 38, floor: 28, minSize: 22, maxLines: 5, leading: 1.32 })
+          const block = d + 50 + copy.height + 50 + 18
+          let y = top + Math.max(20, (bottom - top - block) / 2)
+          ctx.beginPath()
+          ctx.arc(W / 2, y + d / 2, d / 2, 0, Math.PI * 2)
+          ctx.fillStyle = C.sun
+          ctx.fill()
+          textBlock(ctx, String(i + 1), { x: W / 2 - d / 2, y: y + d * 0.16, maxWidth: d, font: F.display(700), color: C.ink, align: 'center', maxSize: Math.round(d * 0.66), maxLines: 1, leading: 1 })
+          y += d + 50
+          y = drawBlock(ctx, copy, { x: M + 20, y, color: C.ink2, align: 'center' }) + 50
+          // Three dots, this card's filled: it reads as a carousel.
+          ;[0, 1, 2].forEach((k) => {
+            ctx.beginPath()
+            ctx.arc(W / 2 + (k - 1) * 36, y + 9, 9, 0, Math.PI * 2)
+            ctx.fillStyle = k === i ? C.tealInk : C.ruleStrong
+            ctx.fill()
+          })
+        },
+      })
+    })
+  }
+
+  const closeAt = glue(apDateTime(l.closesAt))
+  if (open) {
+    cards.push({
+      key: 'launch-open',
+      meta: meta('entriesOpen'),
+      label: 'Entries are open',
+      file: 'entries-open',
+      draw(ctx, W, H, { brand }) {
+        ground(ctx, W, H, 'dark')
+        const top = header(ctx, W, brand, { tone: 'dark', kicker: o.contestName })
+        const bottom = footer(ctx, W, H, o, { tone: 'dark', urlLead: 'Enter at', extra: 'An editor checks every entry before it goes live', shelter: false })
+        const CW = W - M * 2
+        const tall = H > 1500
+        centerStack(ctx, [
+          { fit: fitBlock(ctx, 'Entries are open', { maxWidth: CW, font: F.display(700), maxSize: tall ? 150 : 124, floor: 80, minSize: 56, maxLines: 2, leading: 1 }), color: '#ffffff', gap: 24 },
+          { fit: fitBlock(ctx, 'Enter your pet free, with one photo', { maxWidth: CW, font: F.italic(500), maxSize: tall ? 60 : 52, floor: 36, minSize: 26, maxLines: 2, leading: 1.12 }), color: C.sun, gap: 40 },
+          { rule: true, W, h: 8, gap: 40 },
+          { fit: fitBlock(ctx, `Until ${closeAt}`, { maxWidth: CW, font: F.sans(700), maxSize: tall ? 44 : 38, floor: 28, minSize: 22, maxLines: 2, leading: 1.2 }), color: C.onDeep },
+        ], top + 20, bottom - 20)
+      },
+    })
+  }
+  // Entries so far, or the field once entries close: a grid of the newest.
+  const field = l.entries || []
+  for (const which of [open && 'so-far', closed && 'field'].filter(Boolean)) {
+    if (!field.length) continue
+    const n = field.length
+    const isField = which === 'field'
+    cards.push({
+      key: `launch-${which}-${n}`,
+      meta: meta(isField ? 'fieldSet' : 'entriesSoFar', { count: n }),
+      label: isField ? `The field: ${apCount(n, 'pet')}` : `Entries so far: ${n}`,
+      file: isField ? `the-field-${n}` : `entries-so-far-${n}`,
+      async draw(ctx, W, H, { brand }) {
+        ground(ctx, W, H, 'light')
+        const top = header(ctx, W, brand, {
+          tone: 'light',
+          kicker: isField ? 'Entries are closed' : 'Entries so far',
+          title: isField ? `The field is set: ${apCount(n, 'pet')}` : `${apCount(n, 'pet')} entered`,
+          sub: isField ? (l.votingAt ? glue(`The Open Round opens ${apDateTime(l.votingAt)}`) : null) : `Enter yours by ${closeAt}`,
+        })
+        const bottom = footer(ctx, W, H, o, isField ? { tone: 'light', urlLead: 'Meet them at', extra: `The top ${o.bracketSize} make the bracket` } : { tone: 'light', urlLead: 'Enter at', extra: 'Free to enter', shelter: false })
+        const CW = W - M * 2
+        const cols = 3
+        const g = 18
+        const cell = (CW - g * (cols - 1)) / cols
+        const capH = 46
+        const avail = bottom - top - 50
+        const rows = Math.max(1, Math.min(Math.ceil(Math.min(n, 12) / cols), Math.floor((avail + g) / (cell + capH + g))))
+        const shown = [...field].slice(-rows * cols).reverse()
+        const photos = await Promise.all(shown.map((e) => loadPhoto(e, 500)))
+        const gridH = rows * (cell + capH) + (rows - 1) * g
+        const y0 = top + 26 + Math.max(0, (avail - gridH) / 2)
+        shown.forEach((e, i) => {
+          const x = M + (i % cols) * (cell + g)
+          const y = y0 + Math.floor(i / cols) * (cell + capH + g)
+          drawPhoto(ctx, photos[i], x, y, cell, cell, { radius: 18 })
+          textBlock(ctx, e.pet_name, { x, y: y + cell + 8, maxWidth: cell, font: F.sans(700), color: C.ink, align: 'center', maxSize: 26, minSize: 16, floor: 20, maxLines: 1 })
+        })
+      },
+    })
+  }
+  // The last two days of entries.
+  const left = l.closesAt ? (Date.parse(l.closesAt) - o.now) / 3600000 : Infinity
+  if (open && (l.stage === 'all' || (left > 0 && left <= 48))) {
+    const lastDay = left <= 24
+    cards.push({
+      key: `launch-last-${lastDay ? 'day' : '48'}`,
+      meta: meta('lastCall', { lastDay }),
+      label: lastDay ? 'Last day to enter' : 'Last 48 hours to enter',
+      file: lastDay ? 'last-day-to-enter' : 'last-48-hours-to-enter',
+      draw(ctx, W, H, { brand }) {
+        ground(ctx, W, H, 'dark')
+        const top = header(ctx, W, brand, { tone: 'dark', kicker: 'Last call' })
+        const bottom = footer(ctx, W, H, o, { tone: 'dark', urlLead: 'Enter at', extra: 'Free to enter, with one photo', shelter: false })
+        const CW = W - M * 2
+        const tall = H > 1500
+        centerStack(ctx, [
+          { fit: fitBlock(ctx, lastDay ? 'Last day to enter' : 'Two days left to enter', { maxWidth: CW, font: F.display(700), maxSize: tall ? 140 : 116, floor: 80, minSize: 56, maxLines: 2, leading: 1 }), color: '#ffffff', gap: 30 },
+          { rule: true, W, h: 8, gap: 30 },
+          { fit: fitBlock(ctx, `Entries close ${closeAt}`, { maxWidth: CW, font: F.italic(500), maxSize: tall ? 60 : 52, floor: 36, minSize: 26, maxLines: 2, leading: 1.12 }), color: C.sun },
+        ], top + 20, bottom - 20)
+      },
+    })
+  }
+  return cards
+}
+
 // ---------------------------------------------------------------- build
 
 // Every card worth posting right now. `s` comes from the Social tab:
@@ -606,6 +818,7 @@ export function buildCards(s) {
     voting: s.phase === 'voting',
   }
   const groups = []
+  if (s.launch) groups.push({ key: 'launch', title: s.launch.stage === 'closed' ? 'The field' : 'The launch', cards: launchCards(s.launch, o) })
   if (s.openRound && s.ranked?.length) {
     const final = s.openRound.status !== 'open'
     const cards = [leaderboard({ ranked: s.ranked, round: s.openRound, final }, o)]
