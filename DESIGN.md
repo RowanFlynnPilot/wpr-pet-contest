@@ -586,3 +586,19 @@ aside: it disappears on dark paper.
   pet's page shows its place in the race and the votes to the lead; a pet
   already in reads "Finished No. 7 and is in the bracket" with no vote
   button. The demo bar has a Last Chance phase.
+
+## Cheers, Link and the one reminder (Oct. 25, 2026)
+
+- **Cheers.** At checkout, a closed "Add a cheer for Biscuit (optional)"
+  opens on six phrases as chips ("Go Biscuit!", "Paws up for Biscuit! 🐾",
+  "Cutest in Marathon County!", "We love you, Biscuit!", "Biscuit for
+  champion! 👑", "For the shelters ❤️") and an optional first name. Paid
+  cheers read as speech: in the display face, in teal-washed bubbles with
+  one squared corner, under "Cheers for Biscuit" on the pet page, and after
+  the pack in the live feed. The thank-you screen says where it went.
+- **Link.** The payment form receives the email already typed, so a buyer
+  who has saved details with Link anywhere pays in one click.
+- **The reminder.** One quiet checkbox under "plays again": "If this
+  checkout doesn't finish, email me once before voting closes." The email
+  leads with "you haven't been charged", and its button reopens checkout on
+  the same pack.

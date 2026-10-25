@@ -1273,7 +1273,9 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 .muted { color: var(--muted); }
 .small { font-size: 13.5px; }
 .nowrap { white-space: nowrap; }
-.split { display: grid; gap: 18px; }
+/* One column on phones, held to the screen: an implicit column would grow to
+   its widest unwrapped line (the live feed with a cheer in it). */
+.split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 @media (min-width: 900px) { .split { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 28px; align-items: start; } }
 .toast {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--paper);
@@ -1388,3 +1390,23 @@ html.is-embedded .toast { position: absolute; top: 12px; bottom: auto; }
   font: 800 10.5px/1.5 var(--sans); letter-spacing: 0.06em; text-transform: uppercase;
   background: var(--accent-wash); color: var(--accent-text); border: 1px solid var(--accent-rule);
 }
+
+/* Cheers (0033): the picker at checkout, the line in the feed, the list on
+   the pet page. The words are the pet's own, so they read as speech. */
+.cheer-box { margin: 4px 0 14px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
+.cheer-box > summary { cursor: pointer; font-weight: 700; font-size: 15px; }
+.cheer-box[open] > summary { margin-bottom: 10px; }
+.cheer-pick { margin: 0; padding: 0; border: 0; min-width: 0; }
+.cheer-pick .chip { cursor: pointer; }
+.ticker-cheer { font-style: normal; color: var(--brand-text); }
+.done-cheer { margin: 10px 0 0; font-size: 15px; }
+.done-cheer-text { font-family: var(--display); font-weight: 600; font-size: 18px; color: var(--brand-text); }
+.pet-cheers { margin-top: 16px; }
+.pet-cheers h2 { font-size: 20px; margin: 0 0 8px; }
+.pet-cheers ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.pet-cheers li {
+  display: grid; gap: 2px; padding: 8px 12px; border-radius: 14px 14px 14px 4px;
+  background: var(--teal-wash); border: 1px solid var(--teal-tint); max-width: 100%;
+}
+.pet-cheer-text { font-family: var(--display); font-weight: 600; font-size: 16px; line-height: 1.25; color: var(--ink); }
+.pet-cheer-meta { font-size: 12.5px; color: var(--muted); }

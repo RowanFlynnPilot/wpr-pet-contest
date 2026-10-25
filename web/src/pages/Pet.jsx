@@ -37,6 +37,8 @@ import { ownerPosts } from '../lib/ownerPosts.js'
 import { rememberVia } from '../lib/referral.js'
 import { canVoteNow, rankPool } from '../lib/lastChance.js'
 import { ownerLink, petPublicUrl } from '../lib/share.js'
+import { useCheckout } from '../components/Checkout.jsx'
+import PetCheers from '../components/PetCheers.jsx'
 
 const SPECIES = { dog: 'Dog', cat: 'Cat', other: 'Other' }
 const votesWord = (n) => (n === 1 ? 'vote' : 'votes')
@@ -591,10 +593,23 @@ export default function Pet({ route }) {
   const [photoOpen, setPhotoOpen] = useState(false)
   // Opened from an emailed free-vote link: the sheet opens ready to confirm.
   const freeRound =
-    c.phase === 'voting' && (!inBracket || (state?.status === 'alive' && state.matchup && c.round?.id === state.matchup.round_id))
+    c.phase === 'voting' &&
+    entry &&
+    canVoteNow(c.lastChance, entry.id) &&
+    (!inBracket || (state?.status === 'alive' && state.matchup && c.round?.id === state.matchup.round_id))
       ? c.round
       : null
   useFreeVoteLanding(entry, freeRound, route.params)
+  // Opened from the checkout reminder's link (?vote=<pack>): checkout opens
+  // on the pack the reader chose before, while the pet can still be voted for.
+  const openCheckout = useCheckout()
+  const wantPack = route.params?.vote
+  const openedFromLink = useRef(false)
+  useEffect(() => {
+    if (!wantPack || openedFromLink.current || !entry || !freeRound) return
+    openedFromLink.current = true
+    openCheckout(entry, freeRound, { pack: wantPack })
+  }, [wantPack, entry, freeRound, openCheckout])
   // Arrived through one of the owner's links: remember it for a week, so a
   // pack bought here counts toward "your link brought" (lib/referral.js).
   const via = route.params?.via
@@ -730,6 +745,7 @@ export default function Pet({ route }) {
           {liveRound && <SprintLine roundId={liveRound.id} />}
           {entry.goal_votes && liveRound ? <GoalLine entry={entry} round={liveRound} /> : null}
           <Milestones name={name} total={contestTotals.get(entry.id)} started={c.rounds.some((r) => r.status !== 'pending')} />
+          <PetCheers entry={entry} />
           {ownerToken && (
             <OwnerTools entry={entry} token={ownerToken} round={liveRound} c={c} standing={state} byId={byId} club={milestone(contestTotals.get(entry.id)).earned} />
           )}

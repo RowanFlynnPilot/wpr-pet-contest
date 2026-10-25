@@ -377,6 +377,39 @@ export function renderFreeVoteReminder(p: {
   );
 }
 
+// The one checkout reminder (0033): a buyer ticked "email me once if this
+// checkout doesn't finish", and it didn't. Plain truth: nothing was charged,
+// nothing is being held, here is the way back before voting closes, and
+// this is the only reminder.
+export function renderCheckoutReminder(p: {
+  petName: string;
+  contestName: string;
+  roundName: string;
+  closesAt: string;
+  votes: number;
+  cents: number;
+  link: string;
+  newsroom?: Newsroom;
+}): Message {
+  const votes = p.votes.toLocaleString("en-US");
+  // The exact price: dollars() rounds to whole dollars, fine for totals.
+  const price = p.cents % 100 === 0 ? dollars(p.cents) : `$${(p.cents / 100).toFixed(2)}`;
+  return composeMail(
+    `Still want to vote for ${p.petName}?`,
+    null,
+    [
+      `You started a checkout for ${votes} votes for ${p.petName} (${price}) in ${p.contestName}, but it wasn't finished, so you haven't been charged.`,
+      `If you'd still like to vote, the ${p.roundName} is open until ${formatWhen(p.closesAt)}. Vote packs are not tax-deductible.`,
+    ],
+    { label: `Vote for ${p.petName}`, url: p.link },
+    [`If you already finished paying, you can ignore this.`],
+    CHECKOUT_FOOTER,
+    p.newsroom,
+  );
+}
+
+const CHECKOUT_FOOTER =
+  "You asked for this at checkout: one email if your checkout didn't finish. It is the only reminder you will get for this round.";
 const FREE_VOTE_FOOTER = "You are getting this because you asked to vote free in the contest.";
 const ENTRANT_FOOTER =
   "You are getting this because you entered a pet in the contest. Vote packs are not tax-deductible donations.";

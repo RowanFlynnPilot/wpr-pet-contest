@@ -15,7 +15,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(35);
+select plan(38);
 
 -- ---------------------------------------------------------------- fixtures --
 insert into auth.users (id) values
@@ -64,7 +64,7 @@ grant select on our_functions, our_relations to anon, authenticated;
 -- ------------------------------------------------------------- privileges --
 select results_eq(
   $$ select name from our_relations where has_table_privilege('anon', oid, 'SELECT') order by 1 $$,
-  $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_referrals'), ('entry_round_momentum'), ('entry_round_totals'),
+  $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_cheers'), ('entry_referrals'), ('entry_round_momentum'), ('entry_round_totals'),
             ('last_chance_field'), ('matchups'), ('recent_activity'), ('rounds'), ('shelters'), ('side_awards'),
             ('sponsor_matches'), ('sprint_standings'), ('sprints'), ('vote_packs') $$,
   'anon can read exactly the public tables and views');
@@ -174,6 +174,25 @@ select ok(
   'Last Chance changes only through its functions: no hand-started overtime or hand-edited pool');
 
 select results_eq(
+  $$ select a.attname::text collate "default" from pg_attribute a
+     where a.attrelid = 'public.entry_cheers'::regclass and a.attnum > 0 and not a.attisdropped
+     order by a.attnum $$,
+  $$ values ('cheer_id'), ('round_id'), ('entry_id'), ('cheer'), ('cheer_name'), ('votes'), ('confirmed_at') $$,
+  'a cheer shows the code and the first name the buyer chose, never an address');
+
+select results_eq(
+  $$ select a.attname::text collate "default" from pg_attribute a
+     where a.attrelid = 'public.recent_activity'::regclass and a.attnum > 0 and not a.attisdropped
+     order by a.attnum $$,
+  $$ values ('round_id'), ('entry_id'), ('votes'), ('bonus_multiplier'), ('confirmed_at'), ('cheer'), ('cheer_name') $$,
+  'the live feed carries a pack and its cheer, never a buyer');
+
+select ok(
+  not has_table_privilege('authenticated', 'public.checkout_reminders', 'INSERT, UPDATE, DELETE')
+  and not has_table_privilege('anon', 'public.checkout_reminders', 'SELECT'),
+  'checkout reminders are written only by the sweep and read only by staff');
+
+select results_eq(
   $$ select name from our_functions where has_function_privilege('anon', oid, 'EXECUTE') order by 1 $$,
   $$ values ('is_admin'), ('round_label') $$,
   'anon can execute only pure, cheap helpers');
@@ -181,7 +200,7 @@ select results_eq(
 select results_eq(
   $$ select name from our_functions where has_function_privilege('authenticated', oid, 'EXECUTE') order by 1 $$,
   $$ values ('add_sprint'), ('cancel_sprint'), ('close_round'), ('create_contest'), ('delete_draft_contest'), ('disqualify_entry'),
-            ('erase_personal_data'), ('is_admin'), ('moderate_entry'), ('open_round'),
+            ('erase_personal_data'), ('hide_cheer'), ('is_admin'), ('moderate_entry'), ('open_round'),
             ('open_submissions'), ('rebuild_round_tally'), ('round_label'), ('set_contest_finale'), ('set_free_vote_enabled'), ('set_free_vote_paused'),
             ('set_last_chance_enabled'), ('set_shelter_goal'), ('set_sprints_enabled'), ('settle_sprint'), ('sponsor_match_cents'), ('start_last_chance'), ('update_draft_contest'),
             ('void_free_voters'), ('withdraw_entry') $$,
@@ -189,7 +208,7 @@ select results_eq(
 
 select results_eq(
   $$ select name from our_functions where has_function_privilege('service_role', oid, 'EXECUTE') order by 1 $$,
-  $$ values ('buyer_notice_queue'), ('buyer_notice_unsubscribe'), ('confirm_vote'), ('contest_health'),
+  $$ values ('buyer_notice_queue'), ('buyer_notice_unsubscribe'), ('checkout_reminder_queue'), ('confirm_vote'), ('contest_health'),
             ('create_pending_vote'), ('entrant_opt_out'), ('free_vote_cast'),
             ('free_vote_challenge'), ('free_vote_challenge_sent'), ('free_vote_device_status'),
             ('free_vote_preferences'), ('free_vote_reminder_queue'), ('free_vote_unsubscribe'),

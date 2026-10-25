@@ -13,6 +13,7 @@ import { boostLive, useLive } from '../lib/live.js'
 import { totalsKey, useActivity, useContestTotals } from '../lib/data.js'
 import { clubLabel, milestone } from '../lib/milestones.js'
 import { viaFor } from '../lib/referral.js'
+import { CHEERS, cheerText, cleanCheerName } from '../lib/cheers.js'
 import { multiplierWord, windowTitle } from '../lib/bonus.js'
 import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
@@ -62,14 +63,22 @@ const appearance = () => ({
 const FONTS = [{ cssSrc: NEWSROOM.fonts || 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap' }]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
-export default function CheckoutModal({ entry, round, onClose }) {
+// `initialPack`: a pack to start on (the checkout reminder's link names the
+// one the reader chose before).
+export default function CheckoutModal({ entry, round, onClose, initialPack = null }) {
   const c = useContest()
   const packs = useMemo(() => orderPacksForDisplay(c.packs), [c.packs])
-  const [picked, setSlug] = useState(null)
-  const slug = picked ?? defaultPack(c.packs)?.slug ?? null
+  const [picked, setSlug] = useState(initialPack)
+  const slug = (picked && c.packs.some((p) => p.slug === picked) ? picked : null) ?? defaultPack(c.packs)?.slug ?? null
   const [email, setEmail] = useState('')
   const [optIn, setOptIn] = useState(false)
   const [playsAgain, setPlaysAgain] = useState(false)
+  // A cheer (lib/cheers.js) and the first name to show with it, both
+  // optional; and the one reminder if this checkout doesn't finish.
+  const [cheer, setCheer] = useState(null)
+  const [cheerName, setCheerName] = useState('')
+  const [cheerNameError, setCheerNameError] = useState(null)
+  const [remind, setRemind] = useState(false)
   const [step, setStep] = useState('pack')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -121,6 +130,13 @@ export default function CheckoutModal({ entry, round, onClose }) {
       return
     }
     setEmailError(null)
+    const name = cheer ? cleanCheerName(cheerName) : ''
+    if (name === null) {
+      setCheerNameError('Use your first name: letters only, up to 20.')
+      document.getElementById('checkout-cheer-name')?.focus()
+      return
+    }
+    setCheerNameError(null)
     if (!pack || busy) return
     const body = {
       pack_slug: pack.slug,
@@ -131,6 +147,8 @@ export default function CheckoutModal({ entry, round, onClose }) {
       plays_again_opt_in: playsAgain,
       // Arrived through the owner's link this week (lib/referral.js).
       ...(viaFor(entry.id) ? { ref: 'owner' } : {}),
+      ...(cheer ? { cheer, ...(name ? { cheer_name: name } : {}) } : {}),
+      ...(remind ? { reminder_opt_in: true } : {}),
     }
     setBusy(true)
     // This pet's recent purchases before this one, so the success screen can
@@ -307,9 +325,53 @@ export default function CheckoutModal({ entry, round, onClose }) {
               </span>
             )}
           </div>
+          <details className="cheer-box" open={Boolean(cheer)}>
+            <summary>Add a cheer for {entry.pet_name} (optional)</summary>
+            <fieldset className="cheer-pick">
+              <legend className="sr-only">Pick a cheer</legend>
+              <div className="chips">
+                {CHEERS.map((ch) => (
+                  <label key={ch.code} className={`chip${cheer === ch.code ? ' is-on' : ''}`}>
+                    <input type="radio" className="sr-only" name="cheer" value={ch.code} checked={cheer === ch.code} onChange={() => setCheer(ch.code)} />
+                    {ch.text(entry.pet_name)}
+                  </label>
+                ))}
+                {cheer && (
+                  <button type="button" className="link-btn small" onClick={() => setCheer(null)}>
+                    No cheer
+                  </button>
+                )}
+              </div>
+            </fieldset>
+            {cheer && (
+              <div className="field" style={{ marginTop: 10, marginBottom: 0 }}>
+                <label htmlFor="checkout-cheer-name">Your first name (optional)</label>
+                <input
+                  id="checkout-cheer-name"
+                  type="text"
+                  autoComplete="given-name"
+                  maxLength={20}
+                  value={cheerName}
+                  onChange={(e) => setCheerName(e.target.value)}
+                  aria-invalid={cheerNameError ? 'true' : undefined}
+                  aria-describedby="checkout-cheer-hint"
+                />
+                <span className={cheerNameError ? 'error-text' : 'hint'} id="checkout-cheer-hint">
+                  {cheerNameError || 'Shown with your cheer. Leave it empty to cheer anonymously.'}
+                </span>
+              </div>
+            )}
+            <p className="small muted" style={{ margin: '8px 0 0' }}>
+              Cheers show in the live feed and on {entry.pet_name}&rsquo;s page once your payment goes through.
+            </p>
+          </details>
           <label className="check" style={{ marginBottom: 10 }}>
             <input type="checkbox" checked={playsAgain} onChange={(e) => setPlaysAgain(e.target.checked)} />
             <span>Email me when {entry.pet_name} plays again (this contest only, one email a round).</span>
+          </label>
+          <label className="check" style={{ marginBottom: 10 }}>
+            <input type="checkbox" checked={remind} onChange={(e) => setRemind(e.target.checked)} />
+            <span>If this checkout doesn&rsquo;t finish, email me once before voting closes.</span>
           </label>
           <label className="check" style={{ marginBottom: 14 }}>
             <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
@@ -392,6 +454,8 @@ export default function CheckoutModal({ entry, round, onClose }) {
           split={c.contest?.beneficiary_split_pct}
           shelter={c.shelters.length === 1 ? c.shelters[0] : null}
           canBuyAgain={!closed}
+          cheer={cheer ? cheerText(cheer, entry.pet_name) : null}
+          cheerFrom={cheer ? cleanCheerName(cheerName) || null : null}
           onAgain={() => {
             request.current = null
             setIntent(null)
@@ -493,7 +557,14 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
         <PaymentElement
           onReady={() => setReady(true)}
           onLoadError={() => setError('The payment form could not load. Check your connection, then close this window and try again.')}
-          options={{ layout: 'tabs', wallets: { applePay: 'auto', googlePay: 'auto' }, paymentMethodOrder: ['apple_pay', 'google_pay', 'card'] }}
+          // The email already typed, so Link (Stripe's saved-details
+          // wallet) recognizes a returning buyer and offers one-click pay.
+          options={{
+            layout: 'tabs',
+            wallets: { applePay: 'auto', googlePay: 'auto' },
+            paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
+            defaultValues: { billingDetails: { email } },
+          }}
         />
       </div>
       {error && (
@@ -532,7 +603,7 @@ function ClubNudge({ name, total, bought }) {
   )
 }
 
-function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVotes, contestName, split, shelter, canBuyAgain, onAgain, onClose }) {
+function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVotes, contestName, split, shelter, canBuyAgain, onAgain, onClose, cheer = null, cheerFrom = null }) {
   const votes = fmtInt(intent.votes)
   const late = outcome === 'late'
   const toShelters = split != null ? Math.round((intent.cents * split) / 100) : null
@@ -574,6 +645,12 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVo
             'local animal shelters'
           )}
           .
+        </p>
+      )}
+      {!late && cheer && (
+        <p className="done-cheer">
+          <span className="done-cheer-text">&ldquo;{cheer}&rdquo;</span>
+          {cheerFrom ? ` from ${cheerFrom}` : ''} {outcome === 'credited' ? 'is' : 'goes'} up on {entry.pet_name}&rsquo;s page.
         </p>
       )}
       <div className="done-status">

@@ -304,6 +304,12 @@ export default function Rules() {
           checkout gets one email per bracket round about the pets they backed, and can stop them from any such email. Entrants get a
           few tips about sharing during the Contest, and can stop those from any such email.
         </p>
+        <p>
+          A buyer may add a cheer to a vote pack, chosen from a short list, with a first name if they like. The cheer and that name, and
+          nothing else about the buyer, appear on the pet&rsquo;s page and in the live feed once the payment goes through.{' '}
+          {NEWSROOM.shortName} may remove a cheer. The name is erased with the email address. A buyer who checks the box at checkout gets one
+          email if that checkout isn&rsquo;t completed, and never once voting for that pet has closed.
+        </p>
         {free && (
           <p>
             Free voters&rsquo; email addresses are used to confirm free votes, to send reminders to those who ask for them and, for those who opt

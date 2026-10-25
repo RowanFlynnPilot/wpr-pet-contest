@@ -1,7 +1,8 @@
 // deno test --allow-env --allow-read supabase/functions/_shared
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import {
-  dollars, escape, formatWhen, matchupLine, type QueueRow, render, renderBuyerNote, renderFreeVoteCode, renderFreeVoteReminder,
+  dollars, escape, formatWhen, matchupLine, type QueueRow, render, renderBuyerNote, renderCheckoutReminder, renderFreeVoteCode,
+  renderFreeVoteReminder,
   standingLine,
 } from "./templates.ts";
 
@@ -30,6 +31,27 @@ const KINDS: QueueRow["kind"][] = [
   "nurture_ready", "nurture_open", "nurture_halfway", "nurture_last_day", "nurture_matchup_last_day", "nurture_thanks",
   "club_100", "club_500", "club_1000", "club_5000", "last_chance",
 ];
+
+Deno.test("the checkout reminder tells the truth and says it is the only one", () => {
+  const msg = renderCheckoutReminder({
+    petName: "Biscuit",
+    contestName: "Cutest Pet in Marathon County",
+    roundName: "Open Round",
+    closesAt: "2026-11-28T02:00:00Z",
+    votes: 25,
+    cents: 2000,
+    link: "https://wausaupilotandreview.com/pets/#/pet/7a000000-0000-0000-0000-00000000000a?vote=fan",
+  });
+  assertEquals(msg.subject, "Still want to vote for Biscuit?");
+  assertStringIncludes(msg.text, "25 votes for Biscuit ($20)");
+  assertStringIncludes(msg.text, "you haven't been charged");
+  assertStringIncludes(msg.text, "Friday, Nov. 27 at 8 p.m.");
+  assertStringIncludes(msg.text, "the only reminder");
+  assertStringIncludes(msg.html, "?vote=fan");
+  assert(!/donation/i.test(msg.text.replace("not tax-deductible", "")), "never a donation");
+  const odd = renderCheckoutReminder({ ...{ petName: "Biscuit", contestName: "C", roundName: "Open Round", closesAt: "2026-11-28T02:00:00Z", link: "x" }, votes: 5, cents: 750 });
+  assertStringIncludes(odd.text, "($7.50)");
+});
 
 Deno.test("Last Chance names the place, the race, the deadline and the gap", () => {
   const row = { ...base, kind: "last_chance" as const, round_name: "Last Chance", closes_at: "2026-11-25T02:00:00Z", rank: 17, field_size: 5, my_votes: 412, cut_margin: 18 };

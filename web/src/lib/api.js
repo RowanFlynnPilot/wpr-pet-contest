@@ -281,14 +281,26 @@ export function fetchMatchups(roundIds) {
   return rows(need().from('matchups').select(MATCHUP_COLS).in('round_id', roundIds).order('slot'))
 }
 
-export function fetchActivity(roundId) {
+// The live feed, with each pack's cheer where the backend has them (0033).
+export async function fetchActivity(roundId) {
+  const run = (cols) =>
+    optional(
+      need().from('recent_activity').select(cols).eq('round_id', roundId).order('confirmed_at', { ascending: false }).limit(10),
+      null,
+    )
+  const base = 'round_id, entry_id, votes, bonus_multiplier, confirmed_at'
+  return (await run(`${base}, cheer, cheer_name`)) ?? (await run(base)) ?? []
+}
+
+// A pet's cheers across the contest, newest first (entry_cheers, 0033).
+export function fetchCheers(entryId, limit = 8) {
   return optional(
     need()
-      .from('recent_activity')
-      .select('round_id, entry_id, votes, bonus_multiplier, confirmed_at')
-      .eq('round_id', roundId)
+      .from('entry_cheers')
+      .select('cheer_id, cheer, cheer_name, votes, confirmed_at')
+      .eq('entry_id', entryId)
       .order('confirmed_at', { ascending: false })
-      .limit(10),
+      .limit(limit),
     [],
   )
 }

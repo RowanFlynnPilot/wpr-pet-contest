@@ -51,6 +51,15 @@ deals and the dry run in section 8.
       "Vote pack: N votes for <pet>", never "donation".
 - [ ] Payment methods: cards, Apple Pay, Google Pay, Link. Wallets are most of
       the conversion on phones.
+- [ ] Link on under **Wallets** (Settings → Payment methods). Nothing else to
+      set: the checkout is a card integration, so Link arrives inside the
+      card form as a card payment, and the form is handed the receipt email
+      so a buyer with Link pays in one click. Stripe confirms every Link
+      payment immediately, whatever funds it (a card or Instant Bank
+      Payments), so the deadline rule holds. Do not add `link` to the
+      payment method types in `create-checkout`. If the Dashboard offers
+      Klarna inside Link, turn that off: votes on installments is not a good
+      look for a shelter fundraiser.
 - [ ] Apple Pay domains (Settings → Payment methods → Apple Pay): register
       **both** `rowanflynnpilot.github.io` and `wausaupilotandreview.com`. The
       checkout runs in an iframe; Apple checks the top-level page too.
@@ -141,6 +150,13 @@ pet is what sells votes, so this is worth the setup.
       entries × 8 plus opted-in buyers × 4 for the contest; the $20 Resend
       plan covers a 300-entry contest with room. Every one of these carries
       its own stop link (the `links` function; nothing to configure).
+- [ ] Checkout reminders: at most one per address per round, only to a
+      buyer who ticked "if this checkout doesn't finish, email me once", an
+      hour after it stalls. It needs the 15-minute sweep above; without it
+      the reminder goes whenever staff press Send in the Email tab, which may
+      be too late to help. Counsel: confirm the box's wording and that a
+      single reminder the buyer asked for needs no unsubscribe link (it says
+      it is the only one).
 
 ### Free daily vote (only if the contest turns it on)
 

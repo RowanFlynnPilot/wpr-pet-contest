@@ -3,6 +3,7 @@ import PetPhoto from '../components/PetPhoto.jsx'
 import { stamp } from '../lib/datetime.js'
 import { admin, callAdmin, q, SessionError } from './adminClient.js'
 import { ErrorNote, useAsync, useDesk } from './shared.jsx'
+import CheersReview from './Cheers.jsx'
 
 export const REJECT_PRESETS = [
   'Photo is not a pet',
@@ -562,6 +563,8 @@ export default function Moderation() {
           </ul>
         </section>
       )}
+
+      {contest.status !== 'draft' && <CheersReview contestId={cid} />}
 
       <section>
         <div className="panel-head">

@@ -178,6 +178,23 @@ These are load-bearing. Do not soften them.
   unrefunded packs per pet, never a buyer. The tag never changes a pack's
   votes, price or money, an unknown tag is dropped rather than refused, and
   no bonus votes ride on a referral.
+- **A cheer is a code, and a first name only by choice** (0033). Six fixed
+  phrases (`web/src/lib/cheers.js`; the same codes in
+  `supabase/functions/_shared/cheers.ts` and 0033's check constraint), never
+  free text, so the only typed thing is an optional first name, checked as a
+  name in the checkout function and again in the database. A cheer shows
+  only once its pack is paid (`entry_cheers`, `recent_activity`), never for
+  a pet no longer approved; staff hide one with `hide_cheer`. An unknown
+  code or a bad name is dropped, never refused. The name is erased with the
+  buyer's address.
+- **The checkout reminder is opt-in and single** (0033). A box at checkout
+  (`reminder_opt_in`); `checkout_reminder_queue` owes one email an hour
+  after an unfinished checkout, at most one per address per round
+  (`checkout_reminders`, unique), never with under 15 minutes to the pet's
+  deadline, and not if the address has since bought for that pet. The
+  15-minute notify schedule sends it. The email says nothing was charged
+  and that it is the only one; its link opens checkout on the same pack and
+  never carries the address.
 - **Sponsor matches are the sponsor's money, never votes.** `sponsor_matches`
   windows cannot overlap; `sponsor_match_cents` counts sales whose checkout
   began in the window, after refunds, up to the cap. It is added to the
@@ -272,7 +289,7 @@ weeks everyone is exhausted, staff included.
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, last chance, profile, referrals, sprints, finale, tally, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after

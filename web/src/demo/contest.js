@@ -79,6 +79,10 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
   const voteScale = Math.max(1, Number(scale) || 1)
   const intents = new Map() // id -> { id, round_id, entry_id, votes, cents, multiplier }
   const paid = [] // settled intents, in order
+  // Sample cheers for the demo's feed and pet pages: a code, sometimes a name.
+  const CHEER_CODES = ['go', 'paws', 'cutest', 'love', 'champion', 'shelters']
+  const CHEER_NAMES = ['Jo', null, 'Maria', 'Dev', null, 'Kim', 'Sam', null]
+  const sampleCheer = (i) => (i % 3 === 2 ? { cheer: null, cheer_name: null } : { cheer: CHEER_CODES[i % 6], cheer_name: CHEER_NAMES[i % 8] })
   const devices = new Map() // token -> { email, voted }
   const challenges = new Map() // id -> email
 
@@ -246,9 +250,18 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
         ? [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 50, entries: entries.length, votes: 0, gross_cents: 0, shelter_cents: 0 }]
         : [{ contest_id: contest.id, year: 2026, beneficiary_split_pct: 50, entries: entries.length, votes: totals.reduce((n, t) => n + t.votes, 0), gross_cents: gross, shelter_cents: Math.round(gross * 0.5), match_cents: current === 'bracket' ? 12500 : 0 }],
       recent_activity: [
-        ...paid.slice().reverse().map((p) => ({ round_id: p.round_id, entry_id: p.entry_id, votes: p.votes, bonus_multiplier: p.multiplier, confirmed_at: p.confirmed_at })),
-        ...live.slice(0, 10).map((t, i) => ({ round_id: t.round_id, entry_id: t.entry_id, votes: 25, bonus_multiplier: 1, confirmed_at: iso(now - (i + 1) * 7 * 60e3) })),
+        ...paid.slice().reverse().map((p) => ({ round_id: p.round_id, entry_id: p.entry_id, votes: p.votes, bonus_multiplier: p.multiplier, confirmed_at: p.confirmed_at, cheer: p.cheer || null, cheer_name: p.cheer_name || null })),
+        ...live.slice(0, 10).map((t, i) => ({ round_id: t.round_id, entry_id: t.entry_id, votes: 25, bonus_multiplier: 1, confirmed_at: iso(now - (i + 1) * 7 * 60e3), ...sampleCheer(i) })),
       ],
+      // Cheers (0033): a few on every other pet, and any the toy checkout took.
+      entry_cheers: submissions
+        ? []
+        : [
+          ...paid.filter((p) => p.cheer).reverse().map((p) => ({ cheer_id: `${p.id}-cheer`, round_id: p.round_id, entry_id: p.entry_id, cheer: p.cheer, cheer_name: p.cheer_name || null, votes: p.votes, confirmed_at: p.confirmed_at })),
+          ...entries.flatMap((e, i) => (i % 2 ? [] : [0, 1, 2].slice(0, 1 + (i % 3)).map((k) => ({
+            cheer_id: `c-${e.id}-${k}`, round_id: r1.id, entry_id: e.id, ...sampleCheer(i + k * 3), votes: [25, 75, 5][k], confirmed_at: iso(now - (k + 1) * (i + 2) * 41 * 60e3),
+          })))),
+        ].filter((x) => x.cheer),
       side_awards: current === 'bracket' || current === 'complete'
         ? ['dog', 'cat', 'other'].map((sp) => {
           const best = entries.filter((e) => e.species === sp)
@@ -277,7 +290,9 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const bonus = s.bonus_windows.find((w) => new Date(w.starts_at).getTime() <= t && t < new Date(w.ends_at).getTime())
     const multiplier = bonus ? bonus.multiplier : 1
     const pid = `pi_mock_${intents.size + 1}`
-    intents.set(pid, { id: pid, round_id: round.id, entry_id: entry.id, votes: pack.votes * multiplier, cents: pack.cents, multiplier })
+    // A cheer rides along, as the real checkout keeps it (0033).
+    const cheer = ['go', 'paws', 'cutest', 'love', 'champion', 'shelters'].includes(b.cheer) ? b.cheer : null
+    intents.set(pid, { id: pid, round_id: round.id, entry_id: entry.id, votes: pack.votes * multiplier, cents: pack.cents, multiplier, cheer, cheer_name: cheer ? b.cheer_name || null : null })
     return { body: { mock: true, id: pid, votes: pack.votes * multiplier, cents: pack.cents, multiplier, pet_name: entry.pet_name, client_secret: null } }
   }
   function mockPay(b) {

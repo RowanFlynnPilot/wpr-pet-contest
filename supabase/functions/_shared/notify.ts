@@ -9,7 +9,7 @@ import { emailEnabled, sendEmail } from "./email.ts";
 import { optionalEnv } from "./env.ts";
 import { NEWSROOM } from "./newsroom.ts";
 import { bytea, centralDay, newToken, sha256 } from "./freevote.ts";
-import { type BuyerNoteRow, type QueueRow, render, renderBuyerNote, renderFreeVoteReminder } from "./templates.ts";
+import { type BuyerNoteRow, type QueueRow, render, renderBuyerNote, renderCheckoutReminder, renderFreeVoteReminder } from "./templates.ts";
 
 const LINKS = {
   newsroom: NEWSROOM,
@@ -128,6 +128,76 @@ export async function sweepBuyerNotes(limit = 50): Promise<SweepResult> {
       .eq("email", row.email)
       .eq("round_id", row.round_id)
       .eq("kind", kind);
+    if (settleError) throw settleError;
+
+    if (result.ok) sent++;
+    else failed++;
+  }
+
+  return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+type CheckoutReminderRow = {
+  vote_id: string;
+  email: string;
+  round_id: string;
+  entry_id: string;
+  pet_name: string;
+  contest_name: string;
+  round_name: string;
+  closes_at: string;
+  votes: number;
+  cents: number;
+  pack_slug: string;
+};
+
+// The one checkout reminder (0033): whoever checkout_reminder_queue() says is
+// owed one. The database decides it (opted in, an hour stalled, time left
+// to act, nothing bought since). Claimed with a row per address per round
+// first, so overlapping sweeps send once and nobody gets a second.
+export async function sweepCheckoutReminders(limit = 50): Promise<SweepResult> {
+  const { data, error } = await service.rpc("checkout_reminder_queue", { p_limit: limit });
+  if (error) throw error;
+  const queue = (data ?? []) as CheckoutReminderRow[];
+
+  if (!emailEnabled) {
+    return { enabled: false, sent: 0, failed: 0, queued: queue.length, more: queue.length === limit };
+  }
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const [i, row] of queue.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
+
+    const { error: claimError } = await service.from("checkout_reminders").insert({
+      email: row.email,
+      round_id: row.round_id,
+      vote_id: row.vote_id,
+      status: "pending",
+    });
+    if (claimError?.code === "23505") continue;
+    if (claimError) throw claimError;
+
+    // The pet's page, opening its checkout on the same pack. No address in
+    // the link: the reader types it again.
+    const link = `${LINKS.publicUrl}#/pet/${row.entry_id}?vote=${encodeURIComponent(row.pack_slug)}`;
+    const msg = renderCheckoutReminder({
+      newsroom: NEWSROOM,
+      petName: row.pet_name,
+      contestName: row.contest_name,
+      roundName: row.round_name,
+      closesAt: row.closes_at,
+      votes: row.votes,
+      cents: row.cents,
+      link,
+    });
+    const result = await sendEmail({ to: row.email, ...msg, idempotencyKey: `checkout-remind:${row.vote_id}` });
+
+    const { error: settleError } = await service
+      .from("checkout_reminders")
+      .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })
+      .eq("vote_id", row.vote_id);
     if (settleError) throw settleError;
 
     if (result.ok) sent++;
