@@ -23,7 +23,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { loadEnv } from 'vite'
-import { apDateTime, period } from '../src/lib/format.js'
+import { apDateTime, packShareLine, period } from '../src/lib/format.js'
 import { roundLabel } from '../src/lib/rounds.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -74,10 +74,12 @@ async function allEntries() {
   }
 }
 
-export function sharePage({ entry, contestName, target, selfUrl, image, transforms }) {
+const MONEY = 'Every vote pack helps local animal shelters.'
+
+export function sharePage({ entry, contestName, target, selfUrl, image, transforms, money = MONEY }) {
   const title = `Vote for ${entry.pet_name} in the ${contestName} contest`
   const kind = SPECIES[entry.species] || 'pet'
-  const description = `${entry.pet_name}, a ${kind} from ${entry.town}, is in the running for ${contestName}. Every vote pack helps local animal shelters.`
+  const description = `${entry.pet_name}, a ${kind} from ${entry.town}, is in the running for ${contestName}. ${money}`
   const dims = transforms ? '\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">' : ''
   return `<!doctype html>
 <html lang="en">
@@ -125,7 +127,7 @@ export function matchupPage({ card, selfUrl, image, cardImage }) {
   const { a, b } = card
   const seed = (s) => (s.seed != null ? `No. ${s.seed} ` : '')
   const title = `${a.pet_name} vs. ${b.pet_name}: ${card.round}`
-  const description = `${seed(a)}${a.pet_name} meets ${seed(b)}${b.pet_name} in the ${card.round} of the ${card.contest} contest. ${period(`Voting closes ${card.closes}`)} Every vote pack helps local animal shelters.`
+  const description = `${seed(a)}${a.pet_name} meets ${seed(b)}${b.pet_name} in the ${card.round} of the ${card.contest} contest. ${period(`Voting closes ${card.closes}`)} ${card.money || MONEY}`
   const dims = cardImage ? '\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">' : ''
   const alt = cardImage ? `${a.pet_name} and ${b.pet_name}, ${card.round}` : `${a.pet_name}, a ${SPECIES[a.species] || 'pet'} from ${a.town}`
   return `<!doctype html>
@@ -264,10 +266,11 @@ async function main() {
     console.warn('[share-pages] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set; skipping per-pet share pages.')
     return
   }
-  let contests, entries
+  let contests, entries, shelters
   try {
-    contests = await rest('contests?select=id,name,status,bracket_size')
+    contests = await rest('contests?select=id,name,status,bracket_size,beneficiary_split_pct')
     entries = await allEntries()
+    shelters = await rest('shelters?select=contest_id,name&order=name').catch(() => [])
   } catch (err) {
     if (REQUIRED) {
       // A scheduled rebuild exists only to refresh these pages. Deploying
@@ -281,6 +284,8 @@ async function main() {
     return
   }
   const names = new Map(contests.map((c) => [c.id, c.name]))
+  const money = new Map(contests.map((c) => [c.id, packShareLine(c.beneficiary_split_pct, shelters.filter((s) => s.contest_id === c.id))]))
+  const moneyByName = new Map(contests.map((c) => [c.name, money.get(c.id)]))
   for (const entry of entries) {
     const dir = join(DIST, 'p', entry.id)
     await mkdir(dir, { recursive: true })
@@ -291,6 +296,7 @@ async function main() {
       selfUrl: `${SITE}p/${entry.id}/`,
       image: photoUrl(entry.photo_path),
       transforms: TRANSFORMS,
+      money: money.get(entry.contest_id),
     })
     await writeFile(join(dir, 'index.html'), html)
   }
@@ -299,6 +305,7 @@ async function main() {
 
   try {
     const cards = await matchupCards(contests, entries)
+    for (const card of cards) card.money = moneyByName.get(card.contest)
     await writeMatchupPages(cards)
     await writeShareManifest(entries.map((e) => e.id), cards.map((c) => c.id))
   } catch (err) {

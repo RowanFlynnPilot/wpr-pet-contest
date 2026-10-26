@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NEWSROOM } from '../config.js'
 import { track } from '../lib/analytics.js'
-import { apTime, fmtInt, fmtMoney, TIME_ZONE_NAME } from '../lib/format.js'
+import { apTime, fmtInt, fmtMoney, packShareLine, TIME_ZONE_NAME } from '../lib/format.js'
 import { dropLinkToken, freeVote, getDevice, setDevice } from '../lib/freeVote.js'
 import { roundLabel } from '../lib/rounds.js'
 import { useContest } from './ContestContext.jsx'
@@ -378,12 +378,13 @@ function CodeStep({ masked, busy, onSubmit, onRestart }) {
 
 // Every free vote ends on the packs: a free vote is one vote, a pack is many.
 function Offer({ entry, packs, onBuy }) {
+  const c = useContest()
   const from = packs?.length ? Math.min(...packs.map((p) => p.cents)) : null
   return (
     <div className="fv-offer">
       <p>
         Want to give {entry.pet_name} a bigger boost? {from != null ? `Vote packs start at ${fmtMoney(from)}, ` : 'Vote packs '}
-        and a share of every pack goes to local animal shelters.
+        and {packShareLine(c.contest?.beneficiary_split_pct, c.shelters).replace(/^Half/, 'half').replace(/^A share/, 'a share')}
       </p>
       <button type="button" className="btn btn-ghost btn-block" onClick={onBuy}>
         Buy a vote pack for {entry.pet_name}

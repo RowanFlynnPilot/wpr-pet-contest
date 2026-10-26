@@ -15,10 +15,12 @@ import { period } from './format.js'
 const tag = (s) => `#${String(s).replace(/^the /i, '').replace(/[^A-Za-z0-9]/g, '')}`
 const TAGS = (NEWSROOM.hashtags || [NEWSROOM.city, NEWSROOM.region, NEWSROOM.state]).filter(Boolean).map(tag).join(' ')
 
-function shelterLine(split, short = false) {
-  if (split === 50) return short ? 'half of every vote pack helps local shelters' : 'Half of every vote pack goes to local animal shelters.'
-  if (split != null) return short ? `${split}% of every vote pack helps local shelters` : `${split}% of every vote pack goes to local animal shelters.`
-  return short ? 'every vote pack helps local shelters' : 'Every vote pack helps local animal shelters.'
+// who: the shelters by name ("Moments Foster Care"), or the general phrase.
+function shelterLine(split, short = false, who = 'local animal shelters') {
+  const brief = who === 'local animal shelters' ? 'local shelters' : who
+  if (split === 50) return short ? `half of every vote pack goes to ${brief}` : `Half of every vote pack goes to ${who}.`
+  if (split != null) return short ? `${split}% of every vote pack goes to ${brief}` : `${split}% of every vote pack goes to ${who}.`
+  return short ? `every vote pack helps ${brief}` : `Every vote pack helps ${who}.`
 }
 
 // o: {
@@ -31,10 +33,11 @@ function shelterLine(split, short = false) {
 // }
 export function ownerPosts(o) {
   const { name, contest, url } = o
-  const share = shelterLine(o.split)
-  const shareShort = shelterLine(o.split, true)
+  const who = o.who || 'local animal shelters'
+  const share = shelterLine(o.split, false, who)
+  const shareShort = shelterLine(o.split, true, who)
   const club = o.club ? clubLabel(o.club) : null
-  const raised = o.raised ? `Together, voters raised ${o.raised} for local animal shelters.` : ''
+  const raised = o.raised ? `Together, voters raised ${o.raised} for ${who}.` : ''
   let facebook, instagram, text
   switch (o.stage) {
     case 'before':

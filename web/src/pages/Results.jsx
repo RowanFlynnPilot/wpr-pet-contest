@@ -7,7 +7,7 @@ import RaisedCounter from '../components/RaisedCounter.jsx'
 import FinaleCard from '../components/FinaleCard.jsx'
 import { useBracket, useContestTotals, useEntries, useSideAwards } from '../lib/data.js'
 import { CLUB_TIERS, clubLabel } from '../lib/milestones.js'
-import { apDate, fmtInt, fmtMoney } from '../lib/format.js'
+import { apDate, fmtInt, fmtMoney, shelterWho } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { finalSeq } from '../lib/rounds.js'
 import { BracketBoard } from './Bracket.jsx'
@@ -49,7 +49,7 @@ export function Champion({ c, byId }) {
         <p>
           {champ.pet_name}, of {champ.town}, is the {c.contest.name}
           {runnerUp ? `, beating ${runnerUp.pet_name} in the Championship` : ''}.
-          {c.stats ? ` Together, voters raised ${fmtMoney(c.stats.shelter_cents, { whole: true })} for local animal shelters.` : ''}
+          {c.stats ? ` Together, voters raised ${fmtMoney(c.stats.shelter_cents, { whole: true })} for ${shelterWho(c.shelters)}.` : ''}
         </p>
         <a className="btn btn-primary" href={`#/pet/${champ.id}`}>
           See {champ.pet_name}&rsquo;s road to the crown

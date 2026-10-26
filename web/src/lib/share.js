@@ -42,8 +42,9 @@ export const petSharePageUrl = (appBase, id) => sharePageUrl(appBase, `p/${id}/`
 // each round, since social sites cache previews.
 export const matchupSharePageUrl = (appBase, id) => sharePageUrl(appBase, `m/${id}/`)
 
-export function shareText(petName, contestName = `Cutest Pet in ${NEWSROOM.region}`) {
-  return `Vote for ${petName} in the ${contestName} contest! Every vote pack helps local animal shelters.`
+// money: packShareLine(split, shelters) where the caller knows the contest.
+export function shareText(petName, contestName = `Cutest Pet in ${NEWSROOM.region}`, money = 'Every vote pack helps local animal shelters.') {
+  return `Vote for ${petName} in the ${contestName} contest! ${money}`
 }
 
 export function shareLinks({ url, crawlerUrl = url, text, subject }) {

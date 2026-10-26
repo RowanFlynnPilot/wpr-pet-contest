@@ -136,3 +136,14 @@ export const period = (s) => (s.endsWith('.') ? s : `${s}.`)
 
 // "A", "A and B", "A, B and C" (AP: no serial comma).
 export const andList = (items) => (items.length <= 1 ? items[0] || '' : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
+
+// Who the money goes to: the contest's shelters by name, or the general
+// phrase until Setup has them.
+export const shelterWho = (shelters) => andList((shelters || []).map((s) => s?.name).filter(Boolean)) || 'local animal shelters'
+
+// "Half of every vote pack goes to Moments Foster Care.", from the split.
+export function packShareLine(split, shelters) {
+  const pct = Number(split)
+  const part = pct === 50 ? 'Half' : pct ? `${pct}%` : 'A share'
+  return `${part} of every vote pack goes to ${shelterWho(shelters)}.`
+}

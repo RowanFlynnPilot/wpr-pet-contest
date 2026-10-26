@@ -42,12 +42,27 @@ try {
   const browser = await chromium.launch({ channel: 'msedge' })
   const rect = (page, sel) => page.locator(sel).first().evaluate((el) => { const b = el.getBoundingClientRect(); return { x: b.x + scrollX, y: b.y + scrollY, w: b.width, h: b.height } })
 
-  async function shot(name, { phase, path, full = false, prepare, parts = {}, bonus = true }) {
+  async function shot(name, { phase, path, full = false, prepare, parts = {}, bonus = false }) {
     await fetch(`${MOCK}/__phase?set=${phase}`)
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' })
     const page = await ctx.newPage()
-    // No Double Vote Hour: the packs read at their real counts.
-    if (!bonus) await page.route('**/bonus_windows*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }))
+    // No Double Vote Hour, so the packs read at their real counts, and no
+    // sponsor bars: readers must never see a made-up sponsor.
+    const none = (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
+    if (!bonus) await page.route('**/bonus_windows*', none)
+    await page.route('**/sponsor_matches*', none)
+    // The real entry deadline (Friday, Nov. 20), never a sample date a reader
+    // could take for it.
+    await page.route('**/rest/v1/contests*', async (route) => {
+      const res = await route.fetch()
+      const rows = await res.json()
+      for (const r of [].concat(rows)) if (r && phase === 'submissions') r.submissions_close_at = '2026-11-21T05:59:00Z'
+      // The finale's real night, Saturday, Dec. 5 at 8 p.m., not a sample date.
+      for (const r of [].concat(rows)) if (r && r.finale_at) r.finale_at = '2026-12-06T02:00:00Z'
+      await route.fulfill({ response: res, json: rows })
+    })
+    // No money counter: before launch a sample "raised" figure reads as real.
+    await page.addInitScript(() => document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '.raised{display:none!important}'; document.head.append(st) }))
     await page.goto(`${SITE}/${path}`)
     await page.waitForLoadState('networkidle')
     await page.evaluate(() => document.fonts.ready)

@@ -3,7 +3,7 @@ import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { useBracket, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { useFavorites } from '../lib/favorites.js'
-import { andList, apCount, apNumber, apWhen, fmtInt, fmtMoney } from '../lib/format.js'
+import { andList, apCount, apNumber, apWhen, fmtInt, fmtMoney, packShareLine } from '../lib/format.js'
 import EntriesCalendar from '../components/EntriesCalendar.jsx'
 import { cheapestPerVote } from '../lib/packs.js'
 import { useDocumentTitle } from '../lib/hooks.js'
@@ -95,7 +95,7 @@ function EntryBoard({ c, entryCount }) {
       <p className="sb-note">
         {closed
           ? 'The field is set. Pick your favorite now; the whole field goes head to head when voting opens.'
-          : `Entering is free. Then readers vote with vote packs, and ${contest.beneficiary_split_pct}% of every pack goes to local animal shelters.`}
+          : `Entering is free. Then readers vote with vote packs, and ${packShareLine(contest.beneficiary_split_pct, c.shelters).replace(/^Half/, 'half')}`}
       </p>
     </Scoreboard>
   )

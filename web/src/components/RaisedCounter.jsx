@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { fmtInt, fmtMoney } from '../lib/format.js'
+import { fmtInt, fmtMoney, shelterWho } from '../lib/format.js'
 import { goalProgress } from '../lib/goal.js'
 import { apTime } from '../lib/format.js'
 import { withUtm } from './Sponsor.jsx'
@@ -52,7 +52,7 @@ export default function RaisedCounter() {
         </div>
         <div className="raised-label">
           <span className="sr-only">{fmtMoney(Number(cents), { whole: true })} </span>
-          raised for local animal shelters
+          raised for {shelterWho(shelters)}
         </div>
         {matched > 0 && (
           <div className="raised-matched">

@@ -23,7 +23,7 @@ import { track } from '../lib/analytics.js'
 import { fetchEntry } from '../lib/api.js'
 import { entryStates } from '../lib/bracketState.js'
 import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
-import { apCount, apDate, apDateTime, apWhen, fmtInt, fmtMoney, plural } from '../lib/format.js'
+import { apCount, apDate, apDateTime, apWhen, fmtInt, fmtMoney, plural, shelterWho } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { useLive } from '../lib/live.js'
 import { cheapestPerVote } from '../lib/packs.js'
@@ -172,6 +172,7 @@ function OwnerPosts({ entry, c, standing: state, byId, club }) {
     contest: c.contest?.name || `Cutest Pet in ${NEWSROOM.region}`,
     url,
     split: c.contest?.beneficiary_split_pct,
+    who: shelterWho(c.shelters),
     bracketSize: c.bracketSize,
     closes: closesAt ? apDateTime(closesAt) : 'soon',
     opens: r1?.opens_at ? apDateTime(r1.opens_at) : 'soon',

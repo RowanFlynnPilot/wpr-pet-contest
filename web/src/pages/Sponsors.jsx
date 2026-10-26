@@ -1,7 +1,7 @@
 import { NEWSROOM, SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { inquiryHref, useInquiry } from '../components/Sponsor.jsx'
-import { apDateTime, fmtInt } from '../lib/format.js'
+import { apDateTime, fmtInt, packShareLine } from '../lib/format.js'
 import { useDocumentTitle, useNow } from '../lib/hooks.js'
 import { windowTitle } from '../lib/bonus.js'
 import { Arrow } from '../components/Icons.jsx'
@@ -45,7 +45,7 @@ export default function Sponsors() {
       <p className="section-count">Sponsorships · {c.contest?.year}</p>
       <p className="dek">
         {c.contest?.name || 'The pet contest'} is {NEWSROOM.name}&rsquo;s biggest reader event of the year, and{' '}
-        {c.contest ? `${c.contest.beneficiary_split_pct}%` : 'a share'} of every vote pack goes to local animal shelters. Sponsors are seen
+        {packShareLine(c.contest?.beneficiary_split_pct, c.shelters).replace(/^Half/, 'half').replace(/\.$/, '')}. Sponsors are seen
         by pet lovers across {NEWSROOM.region}, in a story they want to share.
       </p>
       <div className="hero-actions">

@@ -1,3 +1,4 @@
+import { packShareLine } from '../lib/format.js'
 import { useEffect, useRef, useState } from 'react'
 import { PUBLIC_URL } from '../lib/env.js'
 import { ownerLink, petPublicUrl, shareText } from '../lib/share.js'
@@ -123,7 +124,7 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     if (!current?.file) return
     setError(null)
     try {
-      const shared = await shareFile(current.file, { title: `Vote for ${entry.pet_name}`, text: `${shareText(entry.pet_name, contest?.name)} ${url}` })
+      const shared = await shareFile(current.file, { title: `Vote for ${entry.pet_name}`, text: `${shareText(entry.pet_name, contest?.name, packShareLine(contest?.beneficiary_split_pct, shelterNames.map((name) => ({ name }))))} ${url}` })
       if (shared) track('Share Image', { format: format.id, from: 'pet', method: 'share' })
     } catch {
       setError(new Error('Sharing isn’t available here. Download the image, then post it from your photos.'))

@@ -1,3 +1,4 @@
+import { packShareLine } from '../lib/format.js'
 import { useEffect, useId, useRef, useState } from 'react'
 import { PUBLIC_URL } from '../lib/env.js'
 import { petPublicUrl, shareLinks, shareText } from '../lib/share.js'
@@ -89,7 +90,8 @@ function ShareMenu({ id, open, entry, url, text, log, onDone }) {
 // The pet card's quiet share button: the phone's own share sheet where there
 // is one, otherwise a small menu of the links ShareTools offers.
 export default function CardShare({ entry }) {
-  const contestName = useContest()?.contest?.name
+  const ctx = useContest()
+  const contestName = ctx?.contest?.name
   const [native, setNative] = useState(canNativeShare)
   const [open, setOpen] = useState(false)
   // Once opened the menu stays in the page, hidden, so a link still opens its
@@ -101,7 +103,7 @@ export default function CardShare({ entry }) {
   const id = useId()
   const name = entry.pet_name
   const url = petPublicUrl(PUBLIC_URL, entry.id)
-  const text = shareText(name, contestName)
+  const text = shareText(name, contestName, packShareLine(ctx?.contest?.beneficiary_split_pct, ctx?.shelters))
   const log = (network) => track('Share', { network, pet: name, from: 'card' })
 
   function show(next) {
