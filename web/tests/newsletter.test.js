@@ -44,6 +44,15 @@ describe('the newsletter block', () => {
     )
   })
 
+  it('names the shelter and the split once Setup has them', () => {
+    const shelters = [{ name: 'Moments Foster Care' }]
+    const coming = build({ phase: 'coming', contest: { ...contest, beneficiary_split_pct: 50 }, shelters })
+    expect(coming).toContain('Entering is free, and half of every vote pack goes to Moments Foster Care.')
+    const open = build({ phase: 'submissions', contest: { ...contest, beneficiary_split_pct: 50 }, shelters, recent: [] })
+    expect(open).toContain('half of every vote pack goes to Moments Foster Care')
+    expect(build({ phase: 'coming' })).toContain('of every vote pack goes to local animal shelters.')
+  })
+
   it('invites entries with the closing time, not a countdown', () => {
     const html = build({
       phase: 'submissions',

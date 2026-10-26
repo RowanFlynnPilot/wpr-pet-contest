@@ -13,7 +13,7 @@
 
 import { NEWSROOM } from '../config.js'
 import { windowTitle } from './bonus.js'
-import { apCount, apDate, apDateTime, apTime, fmtInt, fmtMoney, period, plural } from './format.js'
+import { andList, apCount, apDate, apDateTime, apTime, fmtInt, fmtMoney, period, plural } from './format.js'
 import { roundLabel } from './rounds.js'
 import { sprintTitle, sprintWhen } from './sprints.js'
 
@@ -231,27 +231,32 @@ function championPhoto(entry, ctx) {
 }
 
 const future = (v, now) => v && ms(v) > now
+// The shelters by name once Setup has them; the general phrase until then.
+const shelterNames = (shelters) => andList((shelters || []).map((s) => s.name).filter(Boolean)) || 'local animal shelters'
+// "half of every vote pack goes to Moments Foster Care", from the split.
+const shareClause = (contest, shelters) => {
+  const pct = Number(contest?.beneficiary_split_pct) || 0
+  return `${pct === 50 ? 'half' : pct ? `${pct}%` : 'a share'} of every vote pack goes to ${shelterNames(shelters)}`
+}
 const ENDS = ' Totals reset every round, so every pet started this one at zero.'
 
 // Each phase: kicker, headline, body (HTML), visual (HTML), button, and
 // whether it shows vote counts (and so needs a timestamp).
 const PHASES = {
-  coming: ({ contest }) => ({
+  coming: ({ contest, shelters }) => ({
     kicker: 'Entries open soon',
     headline: `Is your pet the cutest in ${NEWSROOM.region}?`,
-    body: esc(
-      `Entries open ${period(apDateTime(contest.submissions_open_at))} Entering is free, and every vote pack sold helps local animal shelters.`,
-    ),
+    body: esc(`Entries open ${period(apDateTime(contest.submissions_open_at))} Entering is free, and ${shareClause(contest, shelters)}.`),
     cta: ['See the rules', 'rules'],
   }),
 
-  submissions: ({ contest, stats, recent }, ctx) => {
+  submissions: ({ contest, stats, recent, shelters }, ctx) => {
     const n = stats?.entries || 0
     return {
       kicker: 'Entries open',
       headline: `Is your pet the cutest in ${NEWSROOM.region}?`,
       body: esc(
-        `Entering is free, and every vote pack sold helps local animal shelters. ` +
+        `Entering is free, and ${shareClause(contest, shelters)}. ` +
           `${n ? `${plural(n, 'pet is', 'pets are')} in so far. ` : ''}` +
           `Entries close ${period(apDateTime(contest.submissions_close_at))}`,
       ),
@@ -287,7 +292,7 @@ const PHASES = {
     }
   },
 
-  complete: ({ contest, champion, stats }, ctx) => {
+  complete: ({ contest, champion, stats, shelters }, ctx) => {
     const c = champion
     if (!c?.winner) return null
     const score = c.runnerUp
@@ -297,7 +302,7 @@ const PHASES = {
       : ''
     const raised =
       stats?.shelter_cents > 0
-        ? ` Readers raised ${fmtMoney(stats.shelter_cents, { whole: true })} for local animal shelters. Thank you.`
+        ? ` Readers raised ${fmtMoney(stats.shelter_cents, { whole: true })} for ${shelterNames(shelters)}. Thank you.`
         : ''
     return {
       kicker: `The ${contest.year} champion`,
@@ -393,7 +398,7 @@ export function buildNewsletterBlock(model, { base, campaign = '', sponsor = nul
   const fine = []
   if (part.counts) fine.push(`Standings as of ${apTime(now)} ${apDate(now)}`)
   if (!part.raisedInBody && model.stats?.shelter_cents > 0) {
-    fine.push(`${fmtMoney(model.stats.shelter_cents, { whole: true })} raised for local animal shelters so far`)
+    fine.push(`${fmtMoney(model.stats.shelter_cents, { whole: true })} raised for ${shelterNames(model.shelters)} so far`)
   }
   if (sponsor?.name) {
     const name = esc(sponsor.name)

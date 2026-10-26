@@ -1,12 +1,50 @@
 import { NEWSROOM, RULES } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
-import { apDate, apDateTime, fmtInt, fmtMoney, period, TIME_ZONE_NAME } from '../lib/format.js'
+import { andList, apDate, apDateTime, fmtInt, fmtMoney, period, TIME_ZONE_NAME } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { formatPerVote } from '../lib/packs.js'
 import { bracketRoundCount, roundLabel } from '../lib/rounds.js'
 import { windowTitle } from '../lib/bonus.js'
 import FairPlay from '../components/FairPlay.jsx'
 import { sprintTitle, sprintWhen } from '../lib/sprints.js'
+
+// What readers ask, answered from the same contest row as the rules, each
+// pointing at its section, so the newsroom's inbox gets the rest.
+function Questions({ c, free, n }) {
+  const k = c.contest
+  const pct = Number(k.beneficiary_split_pct) || 0
+  const who = andList(c.shelters.map((s) => s.name).filter(Boolean)) || 'the partner shelters'
+  const share = pct === 50 ? 'Half' : pct ? `${pct}%` : 'A share'
+  const qa = [
+    ['Is a vote pack a donation?', 'No. A vote pack buys votes, so it is a purchase, not a donation, and it is not tax-deductible.', [7]],
+    ['Where does the money go?', `${share} of vote pack sales, after refunds, goes to ${who}. Card fees come out of ${NEWSROOM.shortName}’s share, not theirs; the rest supports ${NEWSROOM.shortName}.`, [1]],
+    ['Why did my pet’s votes go back to zero?', `Vote totals reset at the start of every round. Open Round votes earn a place in the ${c.bracketSize}-pet bracket and a seed; after that, every matchup starts at zero.`, [5]],
+    ['When will my entry show up?', 'An editor reviews every entry, usually within a day. You get an email with your pet’s page once it is approved, or the reason if it is not.', [3]],
+    ['Can I enter more than one pet?', 'Yes, each in its own entry with its own photo. One email address may enter a limited number of pets.', [2]],
+    ['Can I vote for more than one pet?', `Yes. There is no limit on vote packs, and each pack goes to the one pet you choose.${free ? ' The free vote is once a day per verified email address.' : ''}`, free ? [7, 8] : [7]],
+    ['Did my vote count?', 'Votes count once the payment goes through, usually within seconds, and show on the pet’s page. A payment made after a round’s deadline does not count and is refunded automatically.', [7, n(9)]],
+    ['What if two pets tie?', 'In the Open Round, the pet entered first wins. In the bracket, the better seed wins. No coin flips.', [6]],
+    ['What if a pet is removed?', 'A pet removed for breaking the rules is disqualified, and every vote pack bought for it is refunded. A pet whose owner takes it out, because it died or was rehomed, is withdrawn, and packs bought for it are not refunded.', [n(10)]],
+    ['Who can enter?', `Anyone 18 or older who lives in ${NEWSROOM.state}, except ${NEWSROOM.shortName} staff and their households.`, [2]],
+    ['Is my name or email published?', `Never. The public sees a pet’s name, photo and town. Entrants’ and buyers’ names and emails are erased 12 months after the contest.`, [n(13)]],
+  ]
+  return (
+    <section className="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions readers ask</h2>
+      {qa.map(([q, a, secs]) => (
+        <details key={q}>
+          <summary>{q}</summary>
+          <p>
+            {a} <span className="faq-sec">{secs.length > 1 ? `Sections ${secs.join(' and ')}` : `Section ${secs[0]}`}</span>
+          </p>
+        </details>
+      ))}
+      <p className="faq-more">
+        Anything else: <a href={`mailto:${RULES.contact}`}>{RULES.contact}</a> or {NEWSROOM.phone}.
+      </p>
+    </section>
+  )
+}
 
 // Generated from the contest row, the packs table and the bonus schedule, so
 // the published rules cannot drift from what checkout actually does. DRAFT
@@ -49,6 +87,8 @@ export default function Rules() {
         </p>
 
         <FairPlay id="rules-fair-play" />
+
+        <Questions c={c} free={free} n={n} />
 
         <h2>1. The contest</h2>
         <p>

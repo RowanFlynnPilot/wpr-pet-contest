@@ -745,3 +745,16 @@ aside: it disappears on dark paper.
   "16") until the live counts are worth quoting.
 - The phase is `coming` in the mock, the demo bar ("Before entries"), the
   audit and the screenshot deck.
+
+## Questions readers ask (Oct. 25, 2026)
+
+- **The rules page opens with answers.** Under Fair play, eleven questions
+  as disclosure rows (a plus that turns to a minus, the whole row the
+  target): donation or not, where the money goes, why totals reset, when an
+  entry appears, more than one pet, did my vote count, ties, removed pets,
+  who can enter, privacy. Each answer is built from the same contest row as
+  the rules and ends with its section number in muted type, shifted when the
+  free daily vote adds a section.
+- **The newsletter block names the shelter** and the split ("half of every
+  vote pack goes to Moments Foster Care"), and falls back to "local animal
+  shelters" until Setup has one.

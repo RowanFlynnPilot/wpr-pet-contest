@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { SPONSORS } from '../config.js'
-import { fetchBonusWindows, fetchEntriesByAge, fetchEntriesByIds, fetchLastChance, fetchMatchups, fetchRounds, fetchSprints, fetchStats, fetchTotals } from '../lib/api.js'
+import { fetchBonusWindows, fetchEntriesByAge, fetchEntriesByIds, fetchLastChance, fetchMatchups, fetchRounds, fetchShelters, fetchSprints, fetchStats, fetchTotals } from '../lib/api.js'
 import { APP_BASE, PUBLIC_URL } from '../lib/env.js'
 import { TIME_ZONE, apTime, fmtInt } from '../lib/format.js'
 import { NOPTIN_LIMIT, buildNewsletterBlock } from '../lib/newsletter.js'
@@ -26,9 +26,9 @@ async function pairsFor(roundId) {
 
 export async function gatherNewsletter(contest, now = Date.now()) {
   const cid = contest.id
-  const [rounds, stats, windows, sprints] = await Promise.all([fetchRounds(cid), fetchStats(cid), fetchBonusWindows(cid), fetchSprints(cid)])
+  const [rounds, stats, windows, sprints, shelters] = await Promise.all([fetchRounds(cid), fetchStats(cid), fetchBonusWindows(cid), fetchSprints(cid), fetchShelters(cid)])
   const { phase, round, nextRound } = contestPhase(contest, rounds, now)
-  const model = { contest, phase, round, nextRound, stats, windows, sprints, now }
+  const model = { contest, phase, round, nextRound, stats, windows, sprints, shelters, now }
   const sizes = new Map()
   const want = (entry, size) =>
     entry &&

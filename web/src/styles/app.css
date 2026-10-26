@@ -1280,6 +1280,17 @@ html.is-embedded .modal { margin: 0 auto; max-height: none; border-radius: 0 0 1
 /* ------------------------------------------------------------------- rules */
 .draft-ribbon { background: var(--sun); color: var(--on-accent); font-size: 13px; font-weight: 700; text-align: center; padding: 8px 14px; }
 .rules h2 { font-size: 22px; margin: 30px 0 8px; }
+/* Questions readers ask, above the numbered rules: one line each until opened. */
+.faq { margin: 28px 0 6px; }
+.faq details { border-bottom: 1px solid var(--rule); }
+.faq details:first-of-type { border-top: 1px solid var(--rule); margin-top: 10px; }
+.faq summary { cursor: pointer; list-style: none; position: relative; padding: 13px 34px 13px 0; font-weight: 700; font-size: 16.5px; line-height: 1.35; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; content: '+' / ''; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 500; color: var(--teal-ink); }
+.faq details[open] summary::after { content: '\2212'; content: '\2212' / ''; }
+.faq details p { margin: 0 0 14px; }
+.faq-sec { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.faq-more { margin-top: 12px; font-size: 15px; color: var(--muted); }
 .rules p, .rules li { font-size: 16px; line-height: 1.65; }
 .rules ul { padding-left: 22px; }
 .rules table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 8px 0 12px; }
