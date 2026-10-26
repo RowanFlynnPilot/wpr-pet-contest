@@ -53,9 +53,8 @@ long single lines, but the text can still be searched.
   (`supabase/migrations/0018_contest_admin.sql`).
 - **Moments Foster Care** as the partner: confirmed by the shelter on
   Oct. 25, 2026. Its one-page MOU is still owed before launch.
-- **Match Hour, Sprint prize and the finale credit** (added Oct. 25, 2026):
-  the contest's sponsor matches (`sponsor_matches`, 0024),
-  sprints (0030, off until counsel signs off; docs/SPRINTS.md) and the live
+- **Match Hour and the finale credit** (added Oct. 25, 2026): the contest's
+  sponsor matches (`sponsor_matches`, 0024) and the live
   finale (0031), which now names the presenting sponsor.
 - **Rate-card anchors** in `proposed-packages.html` (leaderboard $300/week, run
   of site $150, newsletter slots): https://wausaupilotandreview.com/sponsorship-and-advertising/,

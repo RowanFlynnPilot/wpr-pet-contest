@@ -164,7 +164,12 @@ These are load-bearing. Do not soften them.
   untouched. In the front end the phase is `voting` with `overtime`, the
   round carries Last Chance's close (`mainClosesAt` keeps the Open
   Round's), and `canVoteNow` gates every vote button.
-- **Sprints are the sponsor's prize, never votes** (0030, docs/SPRINTS.md).
+- **No prize, ever** (decided Oct. 26, 2026). Nothing of value goes to the
+  champion, a finalist or any owner; copy says title, crowned, named, never
+  "prize". With no prize there is no lottery (Wis. Stat. 945.01). Sponsors
+  buy Double Vote Hours and Match Hours, never a prize.
+- **Sprints are the sponsor's prize, never votes** (0030, docs/SPRINTS.md),
+  so WPR does not run them: the Setup switch is gone from the admin panel.
   Off unless switched on while the contest is a draft
   (`set_sprints_enabled`), and only after counsel. `add_sprint` needs a
   day's notice and a window inside one round; sprints never overlap. A pack
@@ -350,7 +355,8 @@ Supabase does not. Test CORS in `cors_test.ts`, not through `functions serve`.
 - Checkout says **vote packs**, never "donation". Buying votes is not
   tax-deductible; the buyer receives something of value.
 - `entries.rights_accepted_at` is a legal artifact. Never backfill it.
-- WPR staff and their households may not enter (rules, Eligibility). The entry
+- WPR staff, their immediate families and their households may not enter
+  (rules, Eligibility). The entry
   form says so and `submit-entry` refuses work addresses
   (`STAFF_EMAIL_DOMAINS`, default `wausaupilotandreview.com`); moderation is
   the real check.

@@ -141,7 +141,7 @@ function Closed({ c }) {
             <li>Your name and email, for the editor. Neither is published.</li>
           </ul>
           <p className="small" style={{ margin: '12px 0 0' }}>
-            One pet per entry. {NEWSROOM.name} staff and their households can&rsquo;t enter. <a href="#/rules">Official rules</a>
+            One pet per entry. {NEWSROOM.name} staff, their immediate families and their households can&rsquo;t enter. <a href="#/rules">Official rules</a>
           </p>
         </div>
         <aside className="enter-aside" aria-label="Tips">
@@ -547,7 +547,7 @@ export default function Enter() {
                 media to promote this contest, now and in future contest coverage, without payment to me.
               </p>
               <p>3. I am 18 or older.</p>
-              <p>4. I don&rsquo;t work for {NEWSROOM.name}, and no one in my household does.</p>
+              <p>4. I don&rsquo;t work for {NEWSROOM.name}, and no one in my immediate family or household does.</p>
               <p>My name and email address are never published.</p>
             </div>
             {errors.rights && <span className="error-text">{errors.rights}</span>}

@@ -36,7 +36,7 @@ const PHASES = [
   ['submissions', 'Week 1: entries open', 'Owners enter one photo, a name and a town. Nothing is public until staff approve it. The money counter sits at zero and the site explains how the contest works.'],
   ['open', 'Week 2: the Open Round', 'Every approved pet is on the board. Readers buy vote packs (or cast the free daily vote, if that is switched on); the top 16 make the bracket. A sponsored Double Vote Hour is running in these shots.'],
   ['lastchance', 'If switched on: Last Chance', 'Off unless WPR turns it on before entries open. When the Open Round’s clock runs out, the top 15 are in and places 16 to 20 get about 24 more hours, with their Open Round votes carried over. The most votes at the end takes seed 16.'],
-  ['bracket', 'Weeks 3 and 4: the bracket', 'Sweet 16, Elite Eight, Final Four, Championship: two days a round, head to head, and every total starts over. A sponsor match hour is running in these shots, last night’s sprint has a winner, and the finale is two days out.'],
+  ['bracket', 'Weeks 3 and 4: the bracket', 'Sweet 16, Elite Eight, Final Four, Championship: two days a round, head to head, and every total starts over. A sponsor match hour is running in these shots, and the finale is two days out.'],
   ['complete', 'After the final', 'The champion, the full results, the side awards and the final total for the shelters. The site stays up as the record of the year.'],
 ]
 
@@ -54,7 +54,7 @@ const SHOTS = {
     ['shelters', 'Shelters', 'Moments Foster Care, called out with a Follow on Facebook button, and where the money goes.'],
   ],
   open: [
-    ['', 'Home', 'The live top 16 with the cut line, a sponsor’s sprint with its top three (only if sprints are on), the money counter, the bonus bar for the Double Vote Hour, and recent activity.'],
+    ['', 'Home', 'The live top 16 with the cut line, the money counter, the bonus bar for the Double Vote Hour, and recent activity.'],
     ['gallery', 'All pets', 'Every pet, with a heart to save favorites on this phone, a share button on each card, and filters by species and town.'],
     ['pet', 'A pet page', 'The Open Round scoreboard: this pet’s votes, its rank, how far it is from the cut, the vote button, the free daily vote, and “Remind me before voting closes.”'],
     ['checkout', 'Checkout', 'Vote packs, never a donation. Under the packs, what the chosen one would do for the pet on the standings right now. The receipt email, an optional cheer with a first name (opened here), the “tell me when this pet plays again” box, the one-time reminder box if the checkout doesn’t finish, and the newsletter box, grouped as optional emails. All unchecked.'],
@@ -63,7 +63,7 @@ const SHOTS = {
     ['widget', 'The article widget', 'The compact version that sits inside a WordPress article: the leaders and a vote button.'],
   ],
   bracket: [
-    ['', 'Home', 'The countdown to the live finale, the round’s matchups, the closest race, last night’s sprint winner, the money counter with the sponsor match included, and the match hour bar.'],
+    ['', 'Home', 'The countdown to the live finale, the round’s matchups, the closest race, the money counter with the sponsor match included, and the match hour bar.'],
     ['bracket', 'The bracket', 'All four rounds, winners carried forward, the live round lit.'],
     ['pet', 'A pet page in a matchup', 'Head to head with the opponent, the tug bar, the road through the bracket, the owner’s vote goal, and sharing that previews both pets.'],
     ['owner', 'The owner’s panel', 'What the link in the approval email opens: set or change the goal, ready-made posts for Facebook, Instagram and a text, and how many vote packs the owner’s own links have brought.'],

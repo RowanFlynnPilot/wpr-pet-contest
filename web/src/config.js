@@ -48,7 +48,7 @@ export const NEWSLETTER_URL = NEWSROOM.newsletterUrl
 export const RULES = {
   rulesApproved: false,
   contact: NEWSROOM.contact,
-  eligibility: `Entrants must be 18 or older and live in ${NEWSROOM.state}. One entry per pet. Employees of ${NEWSROOM.name} and members of their households may not enter. Employees of partner shelters may enter their own pets but are not eligible for side awards.`,
+  eligibility: `Entrants must be 18 or older and live in ${NEWSROOM.state}. One entry per pet. Employees of ${NEWSROOM.name} and members of their immediate families or households may not enter. Employees of partner shelters may enter their own pets but are not eligible for side awards.`,
 }
 
 // Sponsor slots. A slot is a sponsor object or null (null renders an upsell).

@@ -54,7 +54,21 @@ export type Links = {
   // Where the per-pet share pages live (GitHub Pages). Those carry the pet's
   // photo in the link preview; the WordPress page cannot.
   shareBase: string;
+  // The active contest's split and shelters, loaded once per sweep, so every
+  // email names them and says the same thing as the rules and checkout.
+  shelters?: { names: string[]; splitPct: number | null };
 };
+
+// "A", "A and B", "A, B and C" (AP: no serial comma).
+const andList = (items: string[]) => (items.length <= 1 ? items[0] ?? "" : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
+// Who the money goes to: the shelters by name, or the general phrase.
+export const shelterWho = (links: Links) => andList(links.shelters?.names ?? []) || "local animal shelters";
+// The split, as the rules state it: after refunds, card fees on the newsroom.
+export function shareLine(links: Links): string {
+  const pct = links.shelters?.splitPct ?? null;
+  const part = pct === 50 ? "Half" : pct ? `${pct}%` : "A share";
+  return `${part} of vote pack sales, after refunds, goes to ${shelterWho(links)}, and the card fees are ${(links.newsroom ?? DEFAULT_NEWSROOM).name}'s.`;
+}
 
 export type Message = { subject: string; html: string; text: string };
 
@@ -156,7 +170,7 @@ export function render(row: QueueRow, links: Links): Message {
         `${pet} is now live in ${row.contest_name}.`,
         `Round 1 is open to every pet. The top vote-getters make the bracket, so the most useful thing you can do is share ${pet}'s page with friends, family and your local Facebook groups:`,
       ], { label: `Share ${pet}'s page`, url: shareUrl }, [
-        `Every vote pack supports local animal shelters.`,
+        shareLine(links),
         `${pet} also has an owner's page, just for you: set a vote goal, make share images, and see ${pet}'s milestone badges.`,
       ], undefined, { photo, photoAlt: pet, secondary: { label: `Open ${pet}'s owner page`, url: ownerUrl(links, row) } });
 
@@ -181,7 +195,7 @@ export function render(row: QueueRow, links: Links): Message {
         `On ${pet}'s page, tap "Make a share image." You'll get an Instagram or Facebook story, a square post and a flyer to print. The flyer's QR code opens ${pet}'s page.`,
         `When you post on Facebook, use this link, because it shows ${pet}'s photo in the preview: ${shareUrl}`,
       ], { label: `Open ${pet}'s page`, url: ownerUrl(links, row) }, [
-        `When people ask: votes come in vote packs, starting at a few dollars. A pack is a purchase, so it isn't a donation and isn't tax-deductible. A share of vote pack sales after refunds goes to the contest's partner shelter.`,
+        `When people ask: votes come in vote packs, starting at a few dollars. A pack is a purchase, so it isn't a donation and isn't tax-deductible. ${shareLine(links)}`,
         stopLine,
       ]);
 
@@ -230,7 +244,7 @@ export function render(row: QueueRow, links: Links): Message {
     case "nurture_thanks":
       return compose(`Thank you for entering ${pet}`, first, [
         `The contest is over. ${row.champion_name ?? "The champion"} took the title, and the results page has the whole bracket and the side awards.`,
-        `Readers raised ${raised} for local animal shelters. Thank you for entering ${pet} and for every share.`,
+        `Readers raised ${raised} for ${shelterWho(links)}. Thank you for entering ${pet} and for every share.`,
         `About your information: we erase entrants' names and email addresses 12 months after the contest. ${pet}'s photo, name and town stay in our coverage, as the rules say.`,
       ], { label: "See the results", url: `${links.publicUrl}#/results` });
 
@@ -273,13 +287,13 @@ export function render(row: QueueRow, links: Links): Message {
     case "eliminated":
       return compose(`Thank you for entering ${pet}`, first, [
         `${pet}'s run ended in the ${row.round_name}${row.opponent_name ? `, against ${row.opponent_name}` : ""}. Thank you for being part of it.`,
-        `Together, this year's entrants have raised ${raised} for local animal shelters so far. You can keep following the bracket here:`,
+        `Together, this year's entrants have raised ${raised} for ${shelterWho(links)} so far. You can keep following the bracket here:`,
       ], { label: "See the bracket", url: `${links.publicUrl}#/bracket` });
 
     case "champion":
       return compose(`${pet} is the champion!`, first, [
         `${pet} won ${row.contest_name}. Congratulations!`,
-        `This year's contest raised ${raised} for local animal shelters. An editor will be in touch soon.`,
+        `This year's contest raised ${raised} for ${shelterWho(links)}. An editor will be in touch soon.`,
       ], { label: `See ${pet}'s page`, url: petUrl });
   }
 }
@@ -313,7 +327,7 @@ export function renderBuyerNote(row: BuyerNoteRow, links: Links, unsubscribe: st
     const c = row.champion[0];
     subject = `${c.pet} is the champion`;
     paras.push(
-      `${c.pet} is the ${row.contest_name}${c.opponent ? `, after beating ${c.opponent} in the Championship` : ""}. Thank you for backing ${c.pet}. Readers raised ${raised} for local animal shelters.`,
+      `${c.pet} is the ${row.contest_name}${c.opponent ? `, after beating ${c.opponent} in the Championship` : ""}. Thank you for backing ${c.pet}. Readers raised ${raised} for ${shelterWho(links)}.`,
     );
     button = { label: "See the results", url: `${links.publicUrl}#/results` };
   } else if (row.playing.length) {
@@ -332,7 +346,7 @@ export function renderBuyerNote(row: BuyerNoteRow, links: Links, unsubscribe: st
     button = { label: "See the bracket", url: `${links.publicUrl}#/bracket` };
   }
   for (const e of row.ended) {
-    paras.push(`${e.pet}'s run ended in the ${e.round}${e.opponent ? `, against ${e.opponent}` : ""}. Thank you for your votes.${row.champion.length || row.playing.length ? "" : ` So far the contest has raised ${raised} for local animal shelters.`}`);
+    paras.push(`${e.pet}'s run ended in the ${e.round}${e.opponent ? `, against ${e.opponent}` : ""}. Thank you for your votes.${row.champion.length || row.playing.length ? "" : ` So far the contest has raised ${raised} for ${shelterWho(links)}.`}`);
   }
   return composeMail(subject, null, paras, button, [], footer, links.newsroom);
 }

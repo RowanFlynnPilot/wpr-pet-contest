@@ -158,7 +158,8 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
       submissions_close_at: iso(coming ? now + 12 * DAY : submissions ? now + 4 * DAY : now - 7 * DAY),
       free_vote_enabled: true,
       free_vote_paused_at: null,
-      sprints_enabled: true,
+      // No prizes, so no sprints (docs/SPRINTS.md).
+      sprints_enabled: false,
       last_chance_enabled: true,
       // The finale (0031): two days out in the bracket, on air at the finish.
       finale_at: current === 'bracket' ? iso(now + 2 * DAY) : current === 'complete' ? iso(now - 30 * 60e3) : null,
@@ -247,7 +248,7 @@ export function createMock({ phase = 'open', scale = 1, region = 'Marathon Count
     const gross = totals.reduce((n, t) => n + t.votes * 80, 0)
     const sprintRows = () => {
       const open = rounds.find((r) => r.status === 'open')
-      if (!open || submissions) return { sprints: [], sprint_standings: [] }
+      if (!open || submissions || !contest.sprints_enabled) return { sprints: [], sprint_standings: [] }
       const base = { contest_id: contest.id, round_id: open.id, sponsor_name: data === 'worst' ? 'Northwoods Veterinary Clinic & Animal Hospital of Central Wisconsin' : 'Example Pet Supply', sponsor_url: 'https://example.org', cancelled_at: null }
       const ranked = live.filter((t) => t.round_id === open.id).slice().sort((x, y) => y.votes - x.votes)
       if (current === 'open') {

@@ -148,9 +148,12 @@ closing nights.
   made with "sample numbers" carry a DO NOT POST band and never go out.
 - Real deadlines only. No countdowns that reset, no "almost sold out," no
   invented statistics.
-- No prizes. The champion gets the title and bragging rights. Counsel is still
-  reviewing whether any prize changes the contest's legal status
-  (`docs/FREE-DAILY-VOTE.md`, section 9, Q2 and Q5).
+- No prizes, and never the word. The champion is crowned or named and gets
+  the title and a story, nothing of value: no gift cards, sponsor baskets,
+  merchandise or cash, for the champion, a finalist or anyone. Sponsors buy
+  Double Vote Hours and Match Hours, never a prize. That is what keeps the
+  contest clear of Wisconsin's lottery law (prize, chance and payment; Wis.
+  Stat. 945.01), confirmed Oct. 26, 2026.
 - Label sponsor mentions: "presented by [Sponsor]" in the copy, plus Meta's
   paid-partnership label on any post that names a paying sponsor.
 - WPR doesn't pick favorites. Every matchup gets its card, and staff never

@@ -1,5 +1,14 @@
 # Sprints
 
+> **Not used by WPR (decided Oct. 26, 2026).** Wisconsin treats a promotion
+> as a lottery only when prize, chance and payment are all present (Wis.
+> Stat. 945.01). WPR's footing is that the contest awards no prize: nothing
+> of value goes to the champion, a finalist or any owner, and sponsors may
+> buy Double Vote Hours and Match Hours but may not give one. A sprint
+> awards a sponsor's prize, so the Setup switch is gone from the admin panel
+> and the sponsor kit no longer sells it. The code stays for a newsroom whose
+> counsel decides otherwise.
+
 **Status:** built behind a contest switch that is off by default (migration
 0030, the Sprints section of Packs & bonuses, the Home card, the pet-page
 line and the rules paragraph). Turn it on only after counsel answers the

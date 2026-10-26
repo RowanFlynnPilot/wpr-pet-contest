@@ -25,7 +25,7 @@ function Questions({ c, free, n }) {
     ['Did my vote count?', 'Votes count once the payment goes through, usually within seconds, and show on the pet’s page. A payment made after a round’s deadline does not count and is refunded automatically.', [7, n(9)]],
     ['What if two pets tie?', 'In the Open Round, the pet entered first wins. In the bracket, the better seed wins. No coin flips.', [6]],
     ['What if a pet is removed?', 'A pet removed for breaking the rules is disqualified, and every vote pack bought for it is refunded. A pet whose owner takes it out, because it died or was rehomed, is withdrawn, and packs bought for it are not refunded.', [n(10)]],
-    ['Who can enter?', `Anyone 18 or older who lives in ${NEWSROOM.state}, except ${NEWSROOM.shortName} staff and their households.`, [2]],
+    ['Who can enter?', `Anyone 18 or older who lives in ${NEWSROOM.state}, except ${NEWSROOM.shortName} staff, their immediate families and their households.`, [2]],
     ['Is my name or email published?', `Never. The public sees a pet’s name, photo and town. Entrants’ and buyers’ names and emails are erased 12 months after the contest.`, [n(13)]],
   ]
   return (

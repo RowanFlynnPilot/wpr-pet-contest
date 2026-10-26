@@ -42,10 +42,12 @@ try {
   const browser = await chromium.launch({ channel: 'msedge' })
   const rect = (page, sel) => page.locator(sel).first().evaluate((el) => { const b = el.getBoundingClientRect(); return { x: b.x + scrollX, y: b.y + scrollY, w: b.width, h: b.height } })
 
-  async function shot(name, { phase, path, full = false, prepare, parts = {} }) {
+  async function shot(name, { phase, path, full = false, prepare, parts = {}, bonus = true }) {
     await fetch(`${MOCK}/__phase?set=${phase}`)
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' })
     const page = await ctx.newPage()
+    // No Double Vote Hour: the packs read at their real counts.
+    if (!bonus) await page.route('**/bonus_windows*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }))
     await page.goto(`${SITE}/${path}`)
     await page.waitForLoadState('networkidle')
     await page.evaluate(() => document.fonts.ready)
@@ -68,7 +70,8 @@ try {
 
   await shot('enter', { phase: 'submissions', path: '#/enter', full: true, parts: { photo: '.field, .photo-pick, input[type=file]' } })
   await shot('home', { phase: 'open', path: '#/', full: true, parts: { board: '.scoreboard', top16: 'section:has(#top16-title), section:has(h2:text("top 16"))' } })
-  // Checkout: a pet a little down the board, the cheer left closed.
+  // Checkout: a pet a little down the board, the cheer left closed, no bonus
+  // running, so the packs show the real ladder (5 votes for $5 to 600 for $250).
   const pets = await (await fetch(`${MOCK}/rest/v1/entries?select=id&status=eq.approved&order=created_at`)).json()
   await shot('checkout', {
     phase: 'open', path: `#/pet/${pets[4].id}`,
@@ -78,6 +81,7 @@ try {
       await sleep(900)
     },
     parts: { impact: '.pack-impact', packs: '.packs' },
+    bonus: false,
   })
   await shot('bracket', { phase: 'bracket', path: '#/', full: true, parts: { matchup: '.scoreboard' } })
   await browser.close()

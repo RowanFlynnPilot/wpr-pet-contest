@@ -85,7 +85,7 @@ Work out which claim it is:
 - A sudden jump: the biggest pack is 600 votes, and a pack started during a
   Double Vote Hour counts twice. Check that the jump matches credited payments
   on the Money tab. If it doesn't, that's high severity: call the developer.
-- A staff member's pet: WPR employees and their households can't enter
+- A staff member's pet: WPR employees, their immediate families and their households can't enter
   (decided Oct. 24). If one slipped through, it is disqualified as an
   ineligible entrant, and its buyers are refunded.
 - "WPR decides": votes come only from payments Stripe confirms, and ties
@@ -115,7 +115,7 @@ A sudden jump:
 
 A staff member's pet:
 
-> Wausau Pilot & Review employees and their households can't enter the
+> Wausau Pilot & Review employees, their immediate families and their households can't enter the
 > contest. If you think an entry breaks that rule, email [contest inbox] and an
 > editor will look into it. [rules link]
 
@@ -141,7 +141,7 @@ a person or accuses WPR of fraud and is spreading.
 Don't say cheating is impossible. Card fraud exists, which is why disputed
 payments come off the board. Don't share anyone's purchases.
 
-Settled Oct. 24: staff and their households are not eligible. The entry
+Settled Oct. 24: staff, their immediate families and their households are not eligible. The entry
 form says so, and the entry function refuses work addresses.
 
 ## 2. A stolen photo

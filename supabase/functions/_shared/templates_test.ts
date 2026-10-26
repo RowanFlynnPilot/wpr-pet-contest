@@ -254,3 +254,13 @@ Deno.test("every email opens with a preview line and the masthead", () => {
   const hidden = msg.html.slice(preview, msg.html.indexOf("</div>", preview));
   assert(!hidden.includes("Hi Jo"), "the preview is the news, not the greeting");
 });
+
+Deno.test("emails name the shelter and state the split as the rules do", () => {
+  const links = { ...LINKS, shelters: { names: ["Moments Foster Care"], splitPct: 50 } };
+  const approved = render({ ...base, kind: "entry_approved" }, links);
+  assertStringIncludes(approved.text, "Half of vote pack sales, after refunds, goes to Moments Foster Care, and the card fees are Wausau Pilot & Review's.");
+  const thanks = render({ ...base, kind: "champion", raised_cents: 500000 }, links);
+  assert(!thanks.text.includes("local animal shelters"));
+  // Before the sweep has loaded them: the general wording, never a blank.
+  assertStringIncludes(render({ ...base, kind: "entry_approved" }, LINKS).text, "goes to local animal shelters");
+});

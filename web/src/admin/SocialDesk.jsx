@@ -133,11 +133,7 @@ function sampleScene(contest, d) {
     bracket: { round: sc.bracketRound, label: roundLabel(2, sc.bracketSize), cards: matchupCards(sc.matchups, sc.bracketRound, sc.bracketTotals, sc.byId) },
     results: sc.results,
     champion: sc.champion,
-    // A sprint announced and one won, Last Chance, and the finale.
-    sprints: [
-      { sprint: { id: 'sample-sprint', label: 'Tuesday night sprint', prize: 'a $50 gift card', sponsor_name: 'Example Pet Supply', starts_at: new Date(d.at + 20 * 3600e3).toISOString(), ends_at: new Date(d.at + 23 * 3600e3).toISOString() }, state: 'soon' },
-      { sprint: { id: 'sample-sprint-won', label: 'Sprint', prize: 'a bag of treats', sponsor_name: 'Example Pet Supply', starts_at: new Date(d.at - 6 * 3600e3).toISOString(), ends_at: new Date(d.at - 3 * 3600e3).toISOString() }, state: 'won', winner: { entry: sc.ranked[3].entry, votes: 212 } },
-    ],
+    // Last Chance and the finale. (No sprints: no prizes.)
     lastChance: {
       rows: sc.ranked.slice(sc.bracketSize - 1, sc.bracketSize + 4).map((r, i) => ({ ...r, rank: i + 1 })),
       closesAt: new Date(d.at + 20 * 3600e3).toISOString(),

@@ -354,18 +354,6 @@ const SHOTS = {
     await compose('match-mobile', raw, joined, [barRing, noteRing], 'Match Hour sponsor')
     await ctx.close()
   },
-
-  // Sprint prize: the card on the home page while a sprint runs (open phase).
-  async 'sprint-home-mobile'() {
-    const { ctx, page } = await open({ url: `${APP}#/`, ...M, phase: 'open', bonus: false })
-    await normalize(page)
-    await settleImages(page)
-    const card = await rectOf(page, '.sprint-card')
-    const clip = { x: 0, y: Math.round(card.y - 40), width: 390, height: Math.round(card.height + 80) }
-    const raw = await clipShot(page, 'sprint-home-mobile', clip)
-    await compose('sprint-home-mobile', raw, clip, [card], 'Sprint prize sponsor')
-    await ctx.close()
-  },
 }
 
 async function openCheckout(size, { bonus, demo }) {

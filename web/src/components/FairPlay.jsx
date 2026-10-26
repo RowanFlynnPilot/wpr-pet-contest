@@ -27,7 +27,7 @@ export default function FairPlay({ id = 'fair-play', wide = false }) {
     ['One price list for everyone.', 'The packs listed in the rules are the only prices. During a bonus window, checkout shows the votes you get before you pay.'],
     ['Results stand.', 'Once a round is decided its totals never change. A later refund changes the money raised, never a result.'],
     ...(k.free_vote_enabled ? [['One free vote a day.', 'Per verified email address, counted as one vote, never multiplied.']] : []),
-    ['Staff stay out.', `${NEWSROOM.shortName} staff and their households may not enter.`],
+    ['Staff stay out.', `${NEWSROOM.shortName} staff, their immediate families and their households may not enter.`],
   ]
   return (
     <section className={`fair-play${wide ? ' wide' : ''}`} aria-labelledby={`${id}-title`}>

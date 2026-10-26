@@ -1,5 +1,11 @@
 # Free daily vote
 
+> **Legal position (Oct. 26, 2026, from WPR's editor; confirming with
+> Lawyers for Reporters).** The contest awards no prize, so selling vote
+> packs raises no lottery question (Wis. Stat. 945.01), and a free route
+> would not have cured one anyway. Turning the free vote on is a product
+> decision, not a legal one.
+
 **Status:** built behind a contest switch that is off by default (migration
 0019, the `free-vote` function, the pet-page sheet and the Free votes tab).
 Decided Oct. 23, 2026: build now and switch on after counsel answers section

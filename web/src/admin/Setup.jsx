@@ -10,7 +10,6 @@ import { useNow } from '../lib/hooks.js'
 import { admin, q, SessionError } from './adminClient.js'
 import { ErrorNote, TypedConfirm, useAsync, useDesk } from './shared.jsx'
 import { FreeVoteSetting } from './FreeVotes.jsx'
-import { SprintSetting } from './Sprints.jsx'
 import LastChanceSetting from './LastChance.jsx'
 
 const BRACKETS = [8, 16, 32]
@@ -82,7 +81,7 @@ export function NewContestForm({ from, onCreated, onCancel }) {
   const [d, setD] = useState({
     year,
     name: from?.name?.replace(/\d{4}/, String(year)) || `Cutest Pet in Marathon County ${year}`,
-    split: from?.beneficiary_split_pct ?? 30,
+    split: from?.beneficiary_split_pct ?? 50,
     open: '',
     close: '',
     bracket: from?.bracket_size || 16,
@@ -473,7 +472,7 @@ export default function Setup() {
       {d && (contest.status === 'draft' || contest.status === 'submissions_open') && <Readiness contest={contest} {...d} />}
       {draft ? <DraftSettings key={cid} contest={contest} onSaved={reloadContest} /> : <LockedSettings contest={contest} />}
       <FreeVoteSetting contest={contest} draft={draft} onSaved={reloadContest} />
-      <SprintSetting contest={contest} draft={draft} onSaved={reloadContest} />
+      {/* No sprint switch: a sprint awards a sponsor's prize, and WPR's contest awards none (docs/SPRINTS.md). */}
       <LastChanceSetting contest={contest} draft={draft} onSaved={reloadContest} />
       <ShelterGoalSetting contest={contest} draft={draft} onSaved={reloadContest} />
       {d && <Shelters contest={contest} shelters={d.shelters} onChange={data.reload} />}

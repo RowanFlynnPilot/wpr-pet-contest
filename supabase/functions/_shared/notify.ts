@@ -19,6 +19,22 @@ const LINKS = {
   shareBase: optionalEnv("SHARE_BASE_URL") ?? "https://rowanflynnpilot.github.io/wpr-pet-contest/",
 };
 
+// The newest published contest's split and shelters, once per sweep, so the
+// emails name them. A failed read leaves the general wording, never a stopped
+// sweep.
+async function withShelters(): Promise<typeof LINKS & { shelters?: { names: string[]; splitPct: number | null } }> {
+  try {
+    const { data: contests } = await service.from("contests").select("id, beneficiary_split_pct").neq("status", "draft").order("year", { ascending: false }).limit(1);
+    const contest = contests?.[0];
+    if (!contest) return LINKS;
+    const { data: shelters } = await service.from("shelters").select("name").eq("contest_id", contest.id).order("name");
+    return { ...LINKS, shelters: { names: (shelters ?? []).map((s: { name: string }) => s.name).filter(Boolean), splitPct: contest.beneficiary_split_pct ?? null } };
+  } catch (err) {
+    console.warn("shelters not loaded", err);
+    return LINKS;
+  }
+}
+
 // Resend's default rate limit is 2 requests a second.
 const SPACING_MS = 550;
 
@@ -41,11 +57,12 @@ export async function sweep(limit = 50): Promise<SweepResult> {
 
   let sent = 0;
   let failed = 0;
+  const links = await withShelters();
 
   for (const [i, row] of queue.entries()) {
     if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
 
-    const msg = render(row, LINKS);
+    const msg = render(row, links);
     const result = await sendEmail({
       to: row.to_email,
       ...msg,
@@ -92,6 +109,7 @@ export async function sweepBuyerNotes(limit = 50): Promise<SweepResult> {
   const fnUrl = optionalEnv("SUPABASE_URL");
   let sent = 0;
   let failed = 0;
+  const links = await withShelters();
 
   for (const [i, row] of queue.entries()) {
     if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
@@ -109,7 +127,7 @@ export async function sweepBuyerNotes(limit = 50): Promise<SweepResult> {
     if (claimError) throw claimError;
 
     const unsubscribe = `${LINKS.publicUrl}#/unsubscribe?bn=${unsubToken}`;
-    const msg = renderBuyerNote(row, LINKS, unsubscribe);
+    const msg = renderBuyerNote(row, links, unsubscribe);
     const result = await sendEmail({
       to: row.email,
       ...msg,

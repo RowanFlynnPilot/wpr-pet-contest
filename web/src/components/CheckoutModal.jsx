@@ -5,7 +5,7 @@ import { NEWSLETTER_URL, NEWSROOM, RULES, SUPPORT_URL } from '../config.js'
 import { tokenColor, tokenFont } from '../lib/theme.js'
 import { createCheckout, fetchActivity, fetchTotals, mockPay } from '../lib/api.js'
 import { APP_BASE, MOCK_CHECKOUT, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
-import { apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
+import { andList, apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
 import { defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
 import { roundLabel } from '../lib/rounds.js'
@@ -106,6 +106,7 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
   const canPay = Boolean(STRIPE_PUBLISHABLE_KEY) || MOCK_CHECKOUT
   const multiplier = c.bonus?.multiplier || 1
   const split = c.contest?.beneficiary_split_pct
+  const who = andList(c.shelters.map((s) => s.name).filter(Boolean)) || 'the partner shelters'
   const label = roundLabel(round.seq, c.bracketSize)
   const packVotes = pack ? votesWithBonus(pack, multiplier) : 0
   const impact = useMemo(
@@ -425,7 +426,7 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
               </button>
             </div>
           )}
-          <Legal split={split} label={label} />
+          <Legal split={split} who={who} label={label} />
         </form>
       )}
 
@@ -457,7 +458,7 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
             </div>
           ) : stripe.status === 'ready' ? (
             <Elements stripe={stripe.value} options={{ clientSecret: intent.client_secret, appearance: appearance(), fonts: FONTS }}>
-              <PayForm intent={intent} entry={entry} email={email.trim()} onPaid={paid} onBusy={setPaying} split={split} label={label} />
+              <PayForm intent={intent} entry={entry} email={email.trim()} onPaid={paid} onBusy={setPaying} split={split} who={who} label={label} />
             </Elements>
           ) : (
             <div className="stripe-slot skeleton" style={{ height: 220 }} role="status" aria-label="Loading the payment form" />
@@ -498,13 +499,16 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
   )
 }
 
-function Legal({ split, label }) {
+// Shown before payment, on both steps, so no buyer can say they missed it:
+// the split as the rules state it, and what happens if a pet leaves.
+function Legal({ split, who, label }) {
+  const share = split === 50 ? 'Half' : split != null ? `${split}%` : 'A share'
   return (
     <p className="legal">
-      <strong>Vote pack purchases are not tax-deductible.</strong>{' '}
-      {split != null ? `${split}% of proceeds go to the partner shelters.` : 'A share of proceeds goes to the partner shelters.'}{' '}
-      Votes count in the {label} only; totals reset every round. Vote packs aren&rsquo;t refunded if an owner withdraws a pet.{' '}
-      <a href="#/rules">Rules</a>
+      <strong>Vote pack purchases are not tax-deductible.</strong> {share} of vote pack sales, after refunds, goes to {who}; card fees are{' '}
+      {NEWSROOM.shortName}&rsquo;s. Votes count in the {label} only; totals reset every round.{' '}
+      <strong>If an owner withdraws their pet, vote packs already bought for it are not refunded.</strong> If a pet is disqualified, they
+      are. <a href="#/rules">Rules</a>
     </p>
   )
 }
@@ -544,7 +548,7 @@ function MockPay({ intent, onPaid }) {
   )
 }
 
-function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
+function PayForm({ intent, entry, email, onPaid, onBusy, split, who, label }) {
   const stripe = useStripe()
   const elements = useElements()
   const [ready, setReady] = useState(false)
@@ -604,7 +608,7 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
       <button type="submit" className="btn btn-primary btn-lg btn-block" style={{ marginTop: 14 }} disabled={!stripe || !ready || busy}>
         {busy ? 'Processing…' : `Pay ${fmtMoney(intent.cents)}`}
       </button>
-      <Legal split={split} label={label} />
+      <Legal split={split} who={who} label={label} />
     </form>
   )
 }

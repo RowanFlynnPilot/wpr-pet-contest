@@ -14,8 +14,8 @@ Until the opening time set in Setup, the site shows a countdown, a calendar
 button and what entrants will need, and the database refuses entries; then
 the form opens by itself. Run it later and the announcement's links land on an
 empty site, because a draft contest is invisible to the public. It freezes the
-split and the draft-only switches (free daily vote, Last Chance, sprints), so
-settle those with counsel before D-14.
+split and the draft-only switches (free daily vote, Last Chance), so settle
+those before D-14. Sprints are not used: no prizes.
 
 | Days | Phase event | What runs it |
 | --- | --- | --- |
