@@ -95,7 +95,7 @@ try {
       await page.getByRole('dialog').waitFor()
       await sleep(900)
     },
-    parts: { impact: '.pack-impact', packs: '.packs' },
+    parts: { impact: '.pack-impact', packs: '.packs', pay: 'button:has-text("Continue")' },
     bonus: false,
   })
   await shot('bracket', { phase: 'bracket', path: '#/', full: true, parts: { matchup: '.scoreboard' } })
