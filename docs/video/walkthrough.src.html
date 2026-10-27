@@ -41,7 +41,9 @@ html, body { margin: 0; background: var(--deep) }
 .c-h .sm { font-size: 96px; font-weight: 640; letter-spacing: -.025em; margin-top: 18px }
 .c-h em { font-style: normal; color: var(--sun) }
 .c-sub { margin: 0; font: 400 46px/1.4 var(--sans); color: #d9ebe7; max-width: 860px }
-.c-foot { left: 80px; bottom: 120px; width: 920px; font: 600 30px/1.4 var(--sans); color: #b9d6d0 }
+.c-foot { left: 80px; bottom: 120px; width: 920px; font: 600 30px/1.4 var(--sans); color: #b9d6d0; display: flex; align-items: center; gap: 24px }
+/* Moments' logo: a drawing by the owner's son. */
+.c-foot img { width: 104px; height: 104px; flex: none; border-radius: 20px; border: 4px solid #fff; object-fit: cover; background: #fff }
 
 /* Phone scenes: the caption at the top, the phone below. */
 .cap-band { left: 80px; top: 110px; width: 920px; display: flex; flex-direction: column; gap: 18px }
@@ -133,7 +135,8 @@ html, body { margin: 0; background: var(--deep) }
 [data-format="square"] .c-h { font-size: 150px }
 [data-format="square"] .c-h .sm { font-size: 84px }
 [data-format="square"] .c-sub { font-size: 38px }
-[data-format="square"] .c-foot { left: 70px; bottom: 64px; width: 940px; font-size: 28px }
+[data-format="square"] .c-foot { left: 70px; bottom: 52px; width: 940px; font-size: 28px; gap: 18px }
+[data-format="square"] .c-foot img { width: 76px; height: 76px; border-radius: 16px }
 [data-format="square"] .cap-band { left: 64px; top: 50%; width: 470px; gap: 18px; transform: translateY(-50%) }
 [data-format="square"] .step { font-size: 26px }
 [data-format="square"] .cap { font-size: 60px }
@@ -162,7 +165,7 @@ html, body { margin: 0; background: var(--deep) }
       <h1 class="c-h"><span><em>Cutest</em> Pet</span><span class="sm">in Marathon County</span></h1>
       <p class="c-sub fx" id="c-sub">Readers enter their pets free and back them with vote packs. Half of sales goes to Moments Foster Care.</p>
     </div>
-    <p class="abs c-foot fx" id="c-foot">With Moments Foster Care, Hatley</p>
+    <p class="abs c-foot fx" id="c-foot"><img src="../../web/public/moments-foster-care.jpg" alt=""><span>With Moments Foster Care, Hatley</span></p>
     <div class="abs" id="faces"></div>
   </section>
 

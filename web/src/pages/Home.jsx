@@ -385,8 +385,8 @@ function PackCard({ c }) {
     <div className="card sun">
       <h3>Every vote pack helps a shelter</h3>
       <p className="small" style={{ margin: '0 0 12px' }}>
-        Vote packs from {fmtMoney(from)}, down to {low} a vote in bulk. {c.contest.beneficiary_split_pct}% of every pack goes to local animal
-        shelters. Not tax-deductible.
+        Vote packs from {fmtMoney(from)}, down to {low} a vote in bulk. {packShareLine(c.contest.beneficiary_split_pct, c.shelters)} Not
+        tax-deductible.
       </p>
       <a className="btn btn-primary" href="#/gallery">
         Pick a pet to vote for
