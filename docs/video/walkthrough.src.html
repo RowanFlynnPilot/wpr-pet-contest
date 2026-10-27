@@ -150,7 +150,7 @@ html, body { margin: 0; background: var(--deep) }
 [data-format="square"] .e-mast img.word { height: 36px }
 </style>
 </head>
-<body data-cut="__CUT__" data-format="__FORMAT__">
+<body data-cut="__CUT__" data-format="__FORMAT__" data-length="__LENGTH__">
 <div id="stage">
 
   <section class="scene cover" id="s0">
@@ -236,7 +236,13 @@ html, body { margin: 0; background: var(--deep) }
 // The canvas and the phone's scale for each format (data-format, set by build.mjs).
 const FORMATS = { portrait: [1080, 1920, 1], wide: [1920, 1080, 0.76], square: [1080, 1080, 0.74] };
 const [W, H, PHONE_SCALE] = FORMATS[document.body.dataset.format] || FORMATS.portrait;
-window.COMPOSITION = { width: W, height: H, fps: 30, duration: 30 };
+// The 15-second cut keeps the cover, the vote landing, the flight and the
+// end card: its own page order, each scene's motion read from the long
+// timeline (the gaps are whole bars, so the music stays on the beat).
+const SHORT = document.body.dataset.length === 'short';
+const SHORT_MAP = [[0, 0], [3.555, 10], [9.555, 14]]; // [from short time, add]
+const longTime = (ts) => { let add = 0; for (const [from, a] of SHORT_MAP) if (ts >= from) add = a; return ts + add; };
+window.COMPOSITION = { width: W, height: H, fps: 30, duration: SHORT ? 15 : 30 };
 // The capture's sizes and rects, in CSS px (build.mjs inlines shots/shots.json).
 const SHOTS = __SHOTS__;
 
@@ -390,8 +396,12 @@ function layoutBracket() {
   FLIGHT.crown = crown;
 }
 
-function seek(t) {
-  PAGES.forEach(([tin, tout], i) => {
+function seek(ts) {
+  const t = SHORT ? longTime(ts) : ts;
+  const order = SHORT ? [[0, null, 3.555], [3, 3.555, 9.555], [5, 9.555, 11.555], [6, 11.555, null]] : PAGES.map(([a, b], i) => [i, a, b]);
+  for (let i = 0; i < PAGES.length; i++) if (!order.some(([n]) => n === i)) $('s' + i).style.visibility = 'hidden';
+  order.forEach(([i, tin, tout]) => {
+    const t = ts;
     const el = $('s' + i);
     const inK = tin === null ? 1 : p(t, tin, tin + TURN, INOUT);
     const outK = tout === null ? 0 : p(t, tout, tout + TURN, INOUT);

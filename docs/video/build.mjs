@@ -16,7 +16,13 @@ const shots = await readFile(join(HERE, 'shots', 'shots.json'), 'utf8')
 for (const [cut, base] of [['contest', 'walkthrough'], ['newsroom', 'walkthrough-newsrooms']]) {
   for (const [format, suffix] of [['portrait', ''], ['wide', '-wide'], ['square', '-square']]) {
     const file = `${base}${suffix}.html`
-    await writeFile(join(HERE, file), src.replace('__CUT__', cut).replace('__FORMAT__', format).replace('__SHOTS__', shots.trim()))
+    await writeFile(join(HERE, file), src.replace('__CUT__', cut).replace('__FORMAT__', format).replace('__LENGTH__', 'full').replace('__SHOTS__', shots.trim()))
     console.log('wrote', file)
   }
+}
+// The 15-second reader cut, for Stories and boosted posts.
+for (const [format, suffix] of [['portrait', ''], ['square', '-square']]) {
+  const file = `walkthrough-15s${suffix}.html`
+  await writeFile(join(HERE, file), src.replace('__CUT__', 'contest').replace('__FORMAT__', format).replace('__LENGTH__', 'short').replace('__SHOTS__', shots.trim()))
+  console.log('wrote', file)
 }
