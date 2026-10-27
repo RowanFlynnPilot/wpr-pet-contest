@@ -117,14 +117,17 @@
   --danger-deep: color-mix(in oklab, var(--danger) 80%, black);
   --danger-deeper: color-mix(in oklab, var(--danger) 60%, black);
 
-  /* Bricolage Grotesque: warm, a little cheeky, and not the face of any other
-     WPR tool (Fraunces carries eighteen of them). No italic; emphasis is
-     weight and color. */
-  --display: 'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif;
-  /* For text set at 'opsz' 96, the top of its optical range. */
-  --display-xl: 'Bricolage Grotesque', 'Bricolage Display Fallback', Arial, sans-serif;
-  /* For a figure set at 'opsz' 96 (the money counter). */
-  --display-figure: 'Bricolage Grotesque', 'Bricolage Figure Fallback', Arial, sans-serif;
+  /* Schibsted Grotesk (chosen Oct. 26, 2026, over Bricolage Grotesque, whose
+     display f's read as a gimmick): made for a news publisher, plain and
+     sturdy at headline weights, and not the face of any other WPR tool
+     (Fraunces carries eighteen of them). No italic; emphasis is weight and
+     color. It has no optical-size axis, so the 'opsz' settings left in the
+     styles do nothing. */
+  --display: 'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif;
+  /* For the big lines, set heavy. */
+  --display-xl: 'Schibsted Grotesk', 'Schibsted Display Fallback', Arial, sans-serif;
+  /* For a figure (the money counter). */
+  --display-figure: 'Schibsted Grotesk', 'Schibsted Figure Fallback', Arial, sans-serif;
   --sans: 'Public Sans', 'Public Sans Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', 'JetBrains Mono Fallback', 'JetBrains Mono Fallback Menlo', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
@@ -256,18 +259,18 @@
   --shadow-lift: 0 2px 4px rgba(29, 53, 87, 0.08), 0 12px 28px rgba(29, 53, 87, 0.14);
 }
 
-/* Arial scaled to Bricolage Grotesque's width, so a headline keeps its line
+/* Arial scaled to Schibsted Grotesk's width, so a headline keeps its line
    breaks when the web font arrives instead of rewrapping and shoving the
-   page down. Measured in Edge: at text sizes Bricolage is 5% wider than
-   Arial at 400 and 2% at 600 to 700; at optical size 96, the big lines, it
-   is 9% narrower, and its figures 11%. Arial is on Windows, macOS and iOS;
+   page down. Measured in Edge (Oct. 26, 2026): Schibsted is 5% wider than
+   Arial at 400, 2% at 600 to 700, 4% at 800, the big lines, and its
+   figures 7% at 800. Arial is on Windows, macOS and iOS;
    Android takes Roboto, which runs within 1% of Arial. A line that sits on
    a wrap boundary can still flip, so check the home headline at 1350px
    after changing these. */
-@font-face { font-family: 'Bricolage Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'); font-weight: 200 500; size-adjust: 104.9%; }
-@font-face { font-family: 'Bricolage Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 101.8%; }
-@font-face { font-family: 'Bricolage Display Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 91.3%; }
-@font-face { font-family: 'Bricolage Figure Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 89.4%; }
+@font-face { font-family: 'Schibsted Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'); font-weight: 200 500; size-adjust: 104.9%; }
+@font-face { font-family: 'Schibsted Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 900; size-adjust: 102%; }
+@font-face { font-family: 'Schibsted Display Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 900; size-adjust: 103.8%; }
+@font-face { font-family: 'Schibsted Figure Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 900; size-adjust: 107.3%; }
 /* Public Sans is 4-5% wider than Segoe UI, Arial and Roboto at text weights
    and within 1% at bold (measured in Edge); without the adjustment the match
    bar wrapped to a second line when the font arrived on a phone. Arial is on

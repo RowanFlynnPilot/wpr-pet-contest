@@ -27,32 +27,32 @@ colors:
   board-text: "#e3efec"
 typography:
   display-xl:
-    fontFamily: "'Bricolage Grotesque', 'Bricolage Display Fallback', Arial, sans-serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Display Fallback', Arial, sans-serif"
     fontSize: "clamp(46px, 13vw, 88px)"
     fontWeight: 650
     lineHeight: 0.9
     letterSpacing: "-0.03em"
     fontVariation: "'opsz' 96"
   display:
-    fontFamily: "'Bricolage Grotesque', 'Bricolage Display Fallback', Arial, sans-serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Display Fallback', Arial, sans-serif"
     fontSize: "clamp(34px, 9vw, 64px)"
     fontWeight: 650
     lineHeight: 0.98
     letterSpacing: "-0.025em"
     fontVariation: "'opsz' 96"
   headline:
-    fontFamily: "'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif"
     fontSize: "clamp(24px, 4.2vw, 34px)"
     fontWeight: 600
     lineHeight: 1.1
     letterSpacing: "-0.01em"
   title:
-    fontFamily: "'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif"
     fontSize: "19px"
     fontWeight: 650
     lineHeight: 1.1
   caption:
-    fontFamily: "'Bricolage Grotesque', 'Bricolage Fallback', Arial, sans-serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif"
     fontSize: "20px"
     fontWeight: 400
     lineHeight: 1.4
@@ -213,7 +213,7 @@ Sun yellow is held back for the moments that count: a lit lamp, the leader's tug
 **Key Characteristics:**
 - Cream newsroom ground with one deep-teal arena panel per screen.
 - JetBrains Mono digits in dark fixed cells over ghost 8s; tabular figures everywhere a number is counted.
-- Bricolage Grotesque at optical size 96 for pet names and big lines, set over the photo behind a teal scrim.
+- Schibsted Grotesk, heavy, for pet names and big lines, set over the photo behind a teal scrim.
 - The road: teal dots, solid where the pet has traveled and dashed ahead, ending in a drawn crown.
 - Pill-shaped controls with soft, teal-tinted drop shadows.
 - Drawn SVG marks for arrows, checks, crosses and the crown; never text glyphs.
@@ -259,7 +259,7 @@ A newsroom is a theme block on `:root[data-theme='…']` plus an entry in `src/n
 
 ## Typography
 
-**Display Font:** Bricolage Grotesque (with size-adjusted Arial fallbacks, `Bricolage Fallback`, `Bricolage Display Fallback` and `Bricolage Figure Fallback`, so lines do not rewrap when the web font arrives). Chosen Oct. 24, 2026 over the fleet's Fraunces, which carries eighteen WPR tools: this one should look like its own product. It has no italic, so emphasis is weight (the headline's `em` at 760) and color; the dek and the owner's caption are upright at 400.
+**Display Font:** Schibsted Grotesk (with size-adjusted Arial fallbacks, `Schibsted Fallback`, `Schibsted Display Fallback` and `Schibsted Figure Fallback`, so lines do not rewrap when the web font arrives). Chosen Oct. 26, 2026, replacing Bricolage Grotesque (Oct. 24), whose display f's read as a gimmick; both over the fleet's Fraunces, which carries eighteen WPR tools, so this one looks like its own product. Schibsted was drawn for a news publisher: plain, sturdy f's and figures at headline weights. It has no italic, so emphasis is weight and color; the dek and the owner's caption are upright at 400.
 **Body Font:** Public Sans (with the system UI stack)
 **Label/Mono Font:** JetBrains Mono, for vote counts, seeds, prices, ranks and clocks
 

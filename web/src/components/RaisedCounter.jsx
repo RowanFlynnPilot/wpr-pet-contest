@@ -48,7 +48,11 @@ export default function RaisedCounter() {
     <section className="raised" aria-label="Money raised for shelters">
       <div>
         <div className="raised-amount" aria-hidden="true">
-          {fmtMoney(shown, { whole: true })}
+          {/* Tabular digits so the roll doesn't jitter; the comma set
+              proportionally, since Schibsted's tabular comma is a figure wide. */}
+          {fmtMoney(shown, { whole: true })
+            .split(/(,)/)
+            .map((part, i) => (part === ',' ? <span key={i} className="raised-sep">,</span> : part))}
         </div>
         <div className="raised-label">
           <span className="sr-only">{fmtMoney(Number(cents), { whole: true })} </span>

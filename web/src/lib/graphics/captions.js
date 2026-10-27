@@ -252,7 +252,7 @@ const WRITERS = {
 
   champion({ c, o }) {
     const town = c.entry.town ? ` of ${c.entry.town}` : ''
-    const raised = o.shelterCents > 0 ? ` Together, readers raised ${fmtMoney(o.shelterCents, { whole: true })} for local animal shelters.` : ''
+    const raised = o.shelterCents > 0 ? ` Together, readers raised ${fmtMoney(o.shelterCents, { whole: true })} for ${joinNames(o.shelterNames || []) || 'local animal shelters'}.` : ''
     return {
       hook: `${petName(c)}${town} is the ${o.year} ${o.contestName}.`,
       body: `${c.opponent ? `${petName(c)} beat ${c.opponent.pet_name} in the Championship, ${score(c.votes, c.opponentVotes)}.` : ''}${raised} Thank you for voting.`.trim(),
@@ -266,7 +266,7 @@ const WRITERS = {
     const pct = Number(o.splitPct) || 0
     const who = joinNames(shelters.map((s) => s.name)) || 'local animal shelters'
     return {
-      hook: `${cents < exact ? 'More than ' : ''}${money} raised for local animal shelters.`,
+      hook: `${cents < exact ? 'More than ' : ''}${money} raised for ${who}.`,
       body: `${pct ? `${pct}% of every vote pack` : 'A share of every vote pack'} goes to ${who}.`,
       cta: o.voting ? 'Vote for your favorite:' : 'See the results:',
       path: o.voting ? 'gallery' : 'results',

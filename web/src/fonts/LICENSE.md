@@ -7,7 +7,7 @@ which permits bundling and redistribution with software.
 
 | File | Typeface | Copyright |
 |------|----------|-----------|
-| `bricolage-grotesque-latin.woff2` | Bricolage Grotesque (variable: opsz, wght 200–800) | Copyright 2022 The Bricolage Grotesque Project Authors |
+| `schibsted-grotesk-latin.woff2` | Schibsted Grotesk (variable: wght 400–900; Oct. 26, 2026) | Copyright 2022 The Schibsted Grotesk Project Authors |
 | `public-sans-latin.woff2` | Public Sans (variable: wght 400–800) | Copyright 2015 The Public Sans Project Authors (USWDS) |
 | `public-sans-italic-latin.woff2` | Public Sans Italic (400) | Copyright 2015 The Public Sans Project Authors (USWDS) |
 | `jetbrains-mono-latin.woff2` | JetBrains Mono (variable: wght 500–700) | Copyright 2020 The JetBrains Mono Project Authors |

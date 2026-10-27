@@ -60,7 +60,7 @@ function header(ctx, W, brand, { tone, kicker, title, titleSize = 74, sub }) {
 function footer(ctx, W, H, o, { tone, extra = RESET, urlLead = 'Vote at', shelter = true } = {}) {
   const dark = tone === 'dark'
   const CW = W - M * 2
-  const fine = fitBlock(ctx, [extra, shelter ? shelterLine(o.splitPct) : null].filter(Boolean).join(' · '), { maxWidth: CW, font: F.sans(600), maxSize: 22, floor: 19, minSize: 16, maxLines: 2, leading: 1.3 })
+  const fine = fitBlock(ctx, [extra, shelter ? shelterLine(o.splitPct, o.shelterNames) : null].filter(Boolean).join(' · '), { maxWidth: CW, font: F.sans(600), maxSize: 22, floor: 19, minSize: 16, maxLines: 2, leading: 1.3 })
   const fineY = H - 50 - fine.height
   drawBlock(ctx, fine, { x: M, y: fineY, color: dark ? C.onDeep : C.muted, align: 'center' })
   const base = fineY - 16
@@ -427,7 +427,7 @@ function champion(c, o) {
         title: c.entry.pet_name,
         line1: `is the ${o.contestName}`,
         line2: c.opponent ? glue(`Beat ${c.opponent.pet_name} in the Championship, ${fmtCount(c.votes)}–${fmtCount(c.opponentVotes)}`) : null,
-        line3: o.shelterCents > 0 ? `${fmtMoney(o.shelterCents, { whole: true })} raised for local animal shelters` : null,
+        line3: o.shelterCents > 0 ? `${fmtMoney(o.shelterCents, { whole: true })} raised for ${joinNames(o.shelterNames) || 'local animal shelters'}` : null,
         urlLead: 'Results at',
         extra: 'Thank you for voting',
       }),
@@ -452,10 +452,10 @@ function milestone({ cents, exact, shelters }, o) {
       const CW = W - M * 2
       const list = joinNames(shelters.map((s) => s.name).filter(Boolean))
       const pct = Number(o.splitPct) || 0
-      const body = list ? `${pct ? `${pct}% of every vote pack` : 'A share of every vote pack'} goes to ${list}.` : `${shelterLine(o.splitPct)}.`
+      const body = list ? `${pct ? `${pct}% of every vote pack` : 'A share of every vote pack'} goes to ${list}.` : `${shelterLine(o.splitPct, o.shelterNames)}.`
       const lead = rounded ? fitBlock(ctx, 'More than', { maxWidth: CW, font: F.italic(500), maxSize: 56, maxLines: 1, leading: 1.1 }) : null
       const big = fitBlock(ctx, money, { maxWidth: CW, font: F.display(700), maxSize: H > 1100 ? 300 : 260, floor: 120, minSize: 100, maxLines: 1, leading: 1 })
-      const label = fitBlock(ctx, 'raised for local animal shelters', { maxWidth: CW, font: F.italic(500), maxSize: 64, floor: 48, minSize: 32, maxLines: 2, leading: 1.1 })
+      const label = fitBlock(ctx, `raised for ${list || 'local animal shelters'}`, { maxWidth: CW, font: F.italic(500), maxSize: 64, floor: 48, minSize: 32, maxLines: 2, leading: 1.1 })
       const copy = fitBlock(ctx, body, { maxWidth: CW - 80, font: F.sans(600), maxSize: 32, floor: 26, minSize: 20, maxLines: 4, leading: 1.3 })
       const block = (lead ? lead.height + 6 : 0) + big.height + 10 + label.height + 44 + 8 + 44 + copy.height
       let y = top + (bottom - top - block) / 2
@@ -885,6 +885,8 @@ export function buildCards(s) {
     bracketSize: s.bracketSize,
     now: s.now,
     shelterCents: s.stats?.shelter_cents || 0,
+    // The shelters by name, for every card's money line.
+    shelterNames: (s.shelters || s.launch?.shelters || []).map((x) => x.name).filter(Boolean),
     voting: s.phase === 'voting',
   }
   const groups = []

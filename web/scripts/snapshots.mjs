@@ -306,22 +306,22 @@ async function html(sections, extras, date) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cutest Pet in Marathon County: how it looks today</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,650&family=Public+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;700&family=Public+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root { --teal: #3a867c; --teal-deep: #1f4b45; --cream: #f6f2e9; --ink: #1a1a1a; --muted: #5b5b5b; --rule: #e3ddd0; --sun: #f4b942; }
 body { margin: 0; background: var(--cream); color: var(--ink); font: 16px/1.55 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 header { background: var(--teal-deep); color: #fff; padding: 36px 20px 30px; border-top: 8px solid var(--sun); }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
-h1 { font: 650 clamp(30px, 5vw, 48px)/1.05 'Bricolage Grotesque', Arial, sans-serif; margin: 0 0 10px; }
+h1 { font: 800 clamp(30px, 5vw, 48px)/1.05 'Schibsted Grotesk', Arial, sans-serif; margin: 0 0 10px; }
 header p { margin: 6px 0 0; color: #cfe3de; max-width: 760px; }
 .kicker { font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sun); margin-bottom: 10px; }
 nav ol { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0; margin: 18px 0 0; list-style: none; }
 nav a { color: #fff; font-weight: 600; text-decoration: none; border-bottom: 2px solid rgba(255,255,255,0.35); }
-h2 { font: 650 30px/1.1 'Bricolage Grotesque', Arial, sans-serif; color: var(--teal-deep); margin: 44px 0 6px; }
+h2 { font: 800 30px/1.1 'Schibsted Grotesk', Arial, sans-serif; color: var(--teal-deep); margin: 44px 0 6px; }
 .intro { color: var(--muted); max-width: 760px; margin: 0 0 18px; }
 .shot { margin: 0 0 28px; background: #fff; border: 1px solid var(--rule); border-radius: 14px; padding: 16px; box-shadow: 0 10px 24px -20px rgba(31,75,69,0.6); }
 .shot figcaption { margin: 0 0 12px; max-width: 900px; }
-.shot figcaption strong { font: 650 19px/1.2 'Bricolage Grotesque', Arial, sans-serif; color: var(--teal-deep); display: block; margin-bottom: 2px; }
+.shot figcaption strong { font: 700 19px/1.2 'Schibsted Grotesk', Arial, sans-serif; color: var(--teal-deep); display: block; margin-bottom: 2px; }
 .pair { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
 .pair img { width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 8px; background: #fff; }
 .card img { max-width: 720px; width: 100%; border-radius: 10px; border: 1px solid var(--rule); }

@@ -4,7 +4,7 @@
 //   * the public sees the pet, never the owner: entries here carry only the
 //     public columns (pet_name, town, photo_path, seed)
 import { NEWSROOM } from '../../config.js'
-import { TIME_ZONE, apDate, apDateTime, plural } from '../format.js'
+import { TIME_ZONE, andList, apDate, apDateTime, plural } from '../format.js'
 import { matchupStanding, votesToPass } from '../rank.js'
 import { bracketSeedOrder, finalSeq, roundLabel, roundShortLabel } from '../rounds.js'
 import { clubLabel } from '../milestones.js'
@@ -13,10 +13,12 @@ const done = (r) => r && (r.status === 'resolved' || r.status === 'closed')
 const bySeq = (a, b) => a.seq - b.seq
 const future = (v, now) => v && new Date(v).getTime() > now
 
-// "50% of every vote pack helps local animal shelters"
-export function shelterLine(pct) {
+// "Half of every vote pack goes to Moments Foster Care": the split, and the
+// shelters by name once Setup has them.
+export function shelterLine(pct, names = []) {
   const n = Number(pct)
-  return n > 0 ? `${n}% of every vote pack helps local animal shelters` : 'Every vote pack helps local animal shelters'
+  const who = andList(names.filter(Boolean)) || 'local animal shelters'
+  return n === 50 ? `Half of every vote pack goes to ${who}` : n > 0 ? `${n}% of every vote pack goes to ${who}` : `Every vote pack helps ${who}`
 }
 
 // The badge on a vote count: "Open Round", "Sweet 16", "Elite 8".

@@ -215,7 +215,8 @@ describe('ownerCopy by phase', () => {
 
 describe('shelterLine', () => {
   it('states the split', () => {
-    expect(shelterLine(30)).toBe('30% of every vote pack helps local animal shelters')
+    expect(shelterLine(30)).toBe('30% of every vote pack goes to local animal shelters')
+    expect(shelterLine(50, ['Moments Foster Care'])).toBe('Half of every vote pack goes to Moments Foster Care')
     expect(shelterLine(null)).toBe('Every vote pack helps local animal shelters')
   })
 })

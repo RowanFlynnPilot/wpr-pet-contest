@@ -296,6 +296,7 @@ p { margin: 0 0 0.8em; }
 }
 @media (min-width: 720px) { .raised { grid-template-columns: auto 1fr; gap: 28px; } }
 .raised-amount { font-family: var(--display-figure); font-weight: 700; font-size: clamp(40px, 9vw, 64px); line-height: 1; color: var(--brand-text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-variation-settings: 'opsz' 96; }
+.raised-sep { font-variant-numeric: proportional-nums; }
 .raised-label { font-weight: 700; font-size: 15px; margin-top: 4px; }
 .raised-facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--muted); }
 .raised-facts b { font-family: var(--mono); color: var(--ink); font-size: 16px; }

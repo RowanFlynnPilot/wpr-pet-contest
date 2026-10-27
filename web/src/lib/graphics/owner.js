@@ -7,7 +7,7 @@ import { shelterLine } from './content.js'
 import { drawQr } from './qr.js'
 import { clubLabel } from '../milestones.js'
 
-// d: { entry, copy (ownerCopy), votes, where, shareUrl, splitPct }
+// d: { entry, copy (ownerCopy), votes, where, shareUrl, splitPct, shelterNames }
 
 // The vote count as a sun sticker on the photo's corner.
 function voteSticker(ctx, cx, cy, d, votes, label) {
@@ -134,7 +134,7 @@ async function story(ctx, d, { brand }) {
   const town = fitBlock(ctx, d.entry.town || '', { maxWidth: CW, font: F.sans(600), maxSize: 40, floor: 32, minSize: 26, maxLines: 2, leading: 1.2 })
   const cta = fitBlock(ctx, copy.headline, { maxWidth: CW - 80, font: F.sans(800), maxSize: 46, floor: 38, minSize: 30, maxLines: 2, leading: 1.14 })
   const detail = copy.detail ? fitBlock(ctx, copy.detail, { maxWidth: CW, font: F.sans(600), maxSize: 34, floor: 28, minSize: 24, maxLines: 2, leading: 1.25 }) : null
-  const share = fitBlock(ctx, shelterLine(d.splitPct), { maxWidth: CW, font: F.sans(600), maxSize: 30, floor: 26, minSize: 22, maxLines: 2, leading: 1.25 })
+  const share = fitBlock(ctx, shelterLine(d.splitPct, d.shelterNames), { maxWidth: CW, font: F.sans(600), maxSize: 30, floor: 26, minSize: 22, maxLines: 2, leading: 1.25 })
 
   const padY = 26
   const stack = 44 + name.height + 10 + town.height + 40 + cta.height + padY * 2 + (detail ? 28 + detail.height : 0) + 40 + 44 + 18 + share.height
@@ -171,7 +171,7 @@ async function square(ctx, d, { brand }) {
   const top = doubleRule(ctx, M, 142, CW, '#ffffff', { thick: 6, gap: 5, thin: 2 }) + 30
 
   // Bottom up: the shelter line, where to vote, then the call to action.
-  const share = fitBlock(ctx, shelterLine(d.splitPct), { maxWidth: CW, font: F.sans(600), maxSize: 26, minSize: 20, floor: 22, maxLines: 1 })
+  const share = fitBlock(ctx, shelterLine(d.splitPct, d.shelterNames), { maxWidth: CW, font: F.sans(600), maxSize: 26, minSize: 20, floor: 22, maxLines: 1 })
   const shareY = H - 44 - share.height
   const urlBase = shareY - 22
   const cta = fitBlock(ctx, copy.headline, { maxWidth: CW - 70, font: F.sans(800), maxSize: 40, floor: 34, minSize: 26, maxLines: 2, leading: 1.14 })
@@ -258,7 +258,7 @@ async function flyer(ctx, d, { brand }) {
   if (copy.detail) y = textBlock(ctx, copy.detail, { x: M, y, maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 30, floor: 26, minSize: 22, maxLines: 2, leading: 1.25 }).bottom + 18
   runs(ctx, voteAt(d, 34), { x: M, y: y + 34, maxWidth: colW })
   y += 34 + 26
-  y = textBlock(ctx, shelterLine(d.splitPct), { x: M, y, maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 28, floor: 24, minSize: 20, maxLines: 2, leading: 1.25 }).bottom
+  y = textBlock(ctx, shelterLine(d.splitPct, d.shelterNames), { x: M, y, maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 28, floor: 24, minSize: 20, maxLines: 2, leading: 1.25 }).bottom
   textBlock(ctx, `A reader contest from ${NEWSROOM.name} · ${NEWSROOM.phone}`, { x: M, y: Math.max(y + 18, H - 62), maxWidth: colW, font: F.sans(600), color: C.onDeep, maxSize: 20, minSize: 16, maxLines: 1 })
 }
 

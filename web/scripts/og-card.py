@@ -30,7 +30,7 @@ SUN = (244, 185, 66)
 CREAM = (246, 242, 233)
 MINT = (214, 230, 226)
 
-DISPLAY = "https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz%2Cwdth%2Cwght%5D.ttf"
+DISPLAY = "https://raw.githubusercontent.com/google/fonts/main/ofl/schibstedgrotesk/SchibstedGrotesk%5Bwght%5D.ttf"
 # The newsroom page's card (newsroom-card.py) keeps WPR's house serif.
 FRAUNCES = "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf"
 FRAUNCES_ITALIC = "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces-Italic%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf"
@@ -144,17 +144,20 @@ def main():
 
     # "Cutest Pet / in Marathon / County": the region wrapped to the room left of the paw.
     size = 92
-    head = font(display, size, {"opsz": 96, "wght": 650})
+    head = font(display, size, {"wght": 800})
     lines = ["Cutest Pet"] + wrap(f"in {paper['region']}", head, 640)
     if len(lines) > 3:
         size = 76
-        head = font(display, size, {"opsz": 96, "wght": 650})
+        head = font(display, size, {"wght": 800})
         lines = ["Cutest Pet"] + wrap(f"in {paper['region']}", head, 660)
     for i, line in enumerate(lines):
         d.text((72, 128 + i * (size + 6)), line, font=head, fill="white")
 
     sub = font(sans, 30, {"wght": 400})
-    d.text((78, 446), "Enter free. Vote packs help local animal shelters.", font=sub, fill=c["tint"])
+    # WPR names its partner, as every page does; another newsroom keeps the
+    # general line until its own partner is set here.
+    line = "Enter free. Half of vote pack sales goes to Moments Foster Care." if paper.get("key") == "wpr" else "Enter free. Vote packs help local animal shelters."
+    d.text((78, 446), line, font=sub, fill=c["tint"])
 
     # The flag on a white chip, bottom left: badge and wordmark when the
     # newsroom has them, else its name in the display face.

@@ -74,7 +74,7 @@ describe('captionsFor', () => {
 
   it('names the shelter and the share, and rounds honestly', () => {
     const c = captionsFor(cards.milestone, { publicUrl: URL_ })
-    expect(c.hook).toBe('More than $1,500 raised for local animal shelters.')
+    expect(c.hook).toBe('More than $1,500 raised for Moments Foster Care.')
     expect(c.facebook).toMatch(/30% of every vote pack goes to Moments Foster Care/)
   })
 

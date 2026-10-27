@@ -52,6 +52,7 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     where: displayUrl(PUBLIC_URL),
     shareUrl: url,
     splitPct: contest?.beneficiary_split_pct,
+    shelterNames,
     // The highest milestone club, drawn as a badge (lib/graphics/owner.js).
     club,
     keepsake: runOver

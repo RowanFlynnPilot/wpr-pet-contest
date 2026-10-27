@@ -16,7 +16,7 @@ for (const key of ['ink', 'ink2', 'muted', 'paper', 'cream', 'creamDeep', 'rule'
   Object.defineProperty(C, key, { enumerable: true, get: () => palette({ light: true })[key] })
 }
 
-const DISPLAY = "'Bricolage Grotesque', Arial, sans-serif"
+const DISPLAY = "'Schibsted Grotesk', Arial, sans-serif"
 const SANS = "'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif"
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 const display = () => tokenFont('--display', DISPLAY)
