@@ -3,3 +3,4 @@ shots/
 out/
 walkthrough*.html
 !walkthrough.src.html
+audio/
