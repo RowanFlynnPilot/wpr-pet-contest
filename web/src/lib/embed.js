@@ -5,6 +5,9 @@ import { EMBEDDED } from './env.js'
 
 let last = 0
 let queued = false
+// The article widget posts its own type, so a page carrying both the contest
+// and a widget never resizes one frame to the other's height.
+let heightType = 'wpr-pets-height'
 
 // body, not documentElement: the root's scrollHeight never drops below the
 // iframe's current height, so the frame could grow but never shrink back.
@@ -20,7 +23,7 @@ export function postHeight() {
     const height = measure()
     if (height !== last) {
       last = height
-      window.parent.postMessage({ type: 'wpr-pets-height', height }, '*')
+      window.parent.postMessage({ type: heightType, height }, '*')
     }
   })
 }
@@ -30,8 +33,9 @@ export function postNav() {
   window.parent.postMessage({ type: 'wpr-pets-nav' }, '*')
 }
 
-export function startEmbedReporting() {
+export function startEmbedReporting({ type } = {}) {
   if (!EMBEDDED) return
+  if (type) heightType = type
   document.documentElement.classList.add('is-embedded')
   const ro = new ResizeObserver(postHeight)
   ro.observe(document.documentElement)

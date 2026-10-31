@@ -7,7 +7,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(14);
+select plan(15);
 
 insert into auth.users (id) values
   ('11111111-1111-1111-1111-111111111111'),
@@ -89,6 +89,17 @@ select is(
   (select count(*)::int from rejected_photos_live where pet_name = 'Pending 1'),
   0,
   'a rejected entry whose object is gone is not listed');
+
+-- Its thumbnail is a second public file, and a leak in its own right.
+update entries set thumb_path = 'c1/pending-1.thumb.jpg' where id = (select id from queue where pet_name = 'Pending 1');
+insert into storage.objects (bucket_id, name) values ('pets', 'c1/pending-1.thumb.jpg');
+
+set local role authenticated;
+select results_eq(
+  $$ select object_name from rejected_photos_live where pet_name = 'Pending 1' $$,
+  $$ values ('c1/pending-1.thumb.jpg'::text) $$,
+  'a rejected entry''s leftover thumbnail is listed too, by name');
+reset role;
 
 
 -- ------------------------------------------------ after the field is set --

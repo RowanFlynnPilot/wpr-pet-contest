@@ -8,8 +8,10 @@ import { SUPABASE_URL } from './env.js'
 
 const CONTEST_COLS =
   'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at, bracket_size, bracket_round_hours'
+const CONTEST_FREE_COLS = `${CONTEST_COLS}, free_vote_enabled, free_vote_paused_at`
 const CONTEST_BASE_COLS = 'id, year, name, status, beneficiary_split_pct, submissions_open_at, submissions_close_at'
-const ENTRY_COLS = 'id, contest_id, pet_name, species, town, caption, photo_path, shelter_id, seed, created_at'
+const ENTRY_COLS =
+  'id, contest_id, pet_name, species, town, caption, photo_path, thumb_path, shelter_id, seed, created_at, goal_votes, profile_nickname, profile_favorite, profile_trick'
 const ENTRY_BASE_COLS = 'id, contest_id, pet_name, species, town, photo_path, shelter_id, seed, created_at'
 const ROUND_COLS = 'id, contest_id, seq, kind, status, opens_at, closes_at, resolved_at'
 const MATCHUP_COLS = 'id, round_id, slot, entry_a_id, entry_b_id, winner_entry_id'
@@ -64,17 +66,38 @@ async function withFallback(run, cols, baseCols) {
   }
 }
 
-export function fetchContests() {
+const CONTEST_COL_SETS = [
+  `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled, finale_at, finale_url, last_chance_enabled`,
+  `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled, finale_at, finale_url`,
+  `${CONTEST_FREE_COLS}, shelter_goal_cents, sprints_enabled`,
+  `${CONTEST_FREE_COLS}, shelter_goal_cents`,
+  CONTEST_FREE_COLS,
+  CONTEST_COLS,
+  CONTEST_BASE_COLS,
+]
+
+export async function fetchContests() {
   const db = need()
-  return withFallback(
-    (cols) => rows(db.from('contests').select(cols).order('year', { ascending: false })),
-    CONTEST_COLS,
-    CONTEST_BASE_COLS,
-  )
+  // Newest columns first; a backend a few migrations behind still loads.
+  for (const [i, cols] of CONTEST_COL_SETS.entries()) {
+    try {
+      return await rows(db.from('contests').select(cols).order('year', { ascending: false }))
+    } catch (e) {
+      if (!isUnavailable(e) || i === CONTEST_COL_SETS.length - 1) throw e
+    }
+  }
 }
 
 export function fetchRounds(contestId) {
-  return rows(need().from('rounds').select(ROUND_COLS).eq('contest_id', contestId).order('seq'))
+  const run = (cols) => rows(need().from('rounds').select(cols).eq('contest_id', contestId).order('seq'))
+  // overtime_closes_at: Last Chance (0032), where the backend has it.
+  return withFallback(run, `${ROUND_COLS}, overtime_closes_at`, ROUND_COLS)
+}
+
+// Last Chance's snapshot (0032): places 1 to bracket_size + 4 when it
+// started, and which of them race. Empty where the table is missing.
+export function fetchLastChance(roundId) {
+  return optional(need().from('last_chance_field').select('entry_id, place, pool').eq('round_id', roundId).order('place'), [])
 }
 
 export function fetchShelters(contestId) {
@@ -104,15 +127,37 @@ export function fetchBonusWindows(contestId) {
   )
 }
 
-export async function fetchStats(contestId) {
-  const data = await optional(
+// Sponsor matches: "X matches every vote pack from 6 to 7 p.m., up to $500."
+export function fetchAllSponsorMatches() {
+  return optional(
     need()
-      .from('contest_stats')
-      .select('contest_id, entries, votes, gross_cents, shelter_cents, beneficiary_split_pct')
-      .eq('contest_id', contestId)
-      .limit(1),
+      .from('sponsor_matches')
+      .select('id, contest_id, starts_at, ends_at, ratio, cap_cents, sponsor_name, sponsor_url')
+      .order('starts_at'),
     [],
   )
+}
+
+// Every contest's windows (a handful a year), so the page can ask for them
+// alongside the contest list instead of after it: a Double Votes bar that
+// lands after the page has painted shoves everything below it down.
+export function fetchAllBonusWindows() {
+  return optional(
+    need()
+      .from('bonus_windows')
+      .select('id, contest_id, starts_at, ends_at, multiplier, label, sponsor_name, sponsor_url')
+      .order('starts_at')
+      .limit(500),
+    [],
+  )
+}
+
+// match_cents (sponsor matches, 0024) rides along where the backend has it:
+// the counter adds it to the shelters' share.
+const STATS_COLS = 'contest_id, entries, votes, gross_cents, shelter_cents, beneficiary_split_pct'
+export async function fetchStats(contestId) {
+  const run = (cols) => optional(need().from('contest_stats').select(cols).eq('contest_id', contestId).limit(1), null)
+  const data = (await run(`${STATS_COLS}, match_cents`)) ?? (await run(STATS_COLS)) ?? []
   return data[0] || null
 }
 
@@ -140,12 +185,38 @@ export async function fetchEntry(id) {
   return withFallback(run, ENTRY_COLS, ENTRY_BASE_COLS)
 }
 
-// Map<entry_id, { votes }> for one round.
+// A few entries by id, for views that show a handful (the article widget)
+// without loading the whole field.
+export function fetchEntriesByIds(ids) {
+  if (!ids.length) return Promise.resolve([])
+  const db = need()
+  const run = (cols) => rows(db.from('entries').select(cols).in('id', ids).eq('status', 'approved'))
+  return withFallback(run, ENTRY_COLS, ENTRY_BASE_COLS)
+}
+
+// The earliest (or newest) `limit` approved entries.
+export function fetchEntriesByAge(contestId, limit, { newest = false } = {}) {
+  const db = need()
+  const run = (cols) =>
+    rows(
+      db
+        .from('entries')
+        .select(cols)
+        .eq('contest_id', contestId)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: !newest })
+        .order('id')
+        .limit(limit),
+    )
+  return withFallback(run, ENTRY_COLS, ENTRY_BASE_COLS)
+}
+
+// Map<entry_id, { votes, free }> for one round. votes is paid plus free;
+// free is the free share, shown under the count.
 export async function fetchTotals(roundId) {
-  const data = await fetchAll(() =>
-    need().from('entry_round_totals').select('entry_id, votes').eq('round_id', roundId).order('entry_id'),
-  )
-  return new Map(data.map((r) => [r.entry_id, { votes: r.votes }]))
+  const run = (cols) => fetchAll(() => need().from('entry_round_totals').select(cols).eq('round_id', roundId).order('entry_id'))
+  const data = await withFallback(run, 'entry_id, votes, free_votes', 'entry_id, votes')
+  return new Map(data.map((r) => [r.entry_id, { votes: r.votes, free: r.free_votes || 0 }]))
 }
 
 // Map<round_id, Map<entry_id, { votes }>> for several (small) bracket rounds.
@@ -159,19 +230,77 @@ export async function fetchTotalsByRound(roundIds) {
   return out
 }
 
+// Map<entry_id, votes in the last 24 hours> for an open round, behind the
+// "climbing" marks (entry_round_momentum, 0027). Empty, not an error, where
+// the view is missing or the read fails: the marks are decoration.
+export async function fetchMomentum(roundId) {
+  try {
+    const data = await fetchAll(() => need().from('entry_round_momentum').select('entry_id, votes_24h').eq('round_id', roundId).order('entry_id'))
+    return new Map(data.map((r) => [r.entry_id, r.votes_24h]))
+  } catch {
+    return new Map()
+  }
+}
+
+// { packs, votes } bought by readers who came through the owner's links
+// (entry_referrals, 0029), or null where the view is missing or the read
+// fails: the owner panel then leaves the line out.
+export async function fetchReferrals(entryId) {
+  try {
+    const data = await fetchAll(() => need().from('entry_referrals').select('packs, votes').eq('entry_id', entryId))
+    return data[0] ? { packs: data[0].packs, votes: data[0].votes } : { packs: 0, votes: 0 }
+  } catch {
+    return null
+  }
+}
+
+// Sprints (0030), cancelled ones included: the page skips them, and the
+// rules list what was scheduled.
+export function fetchSprints(contestId) {
+  return optional(
+    need()
+      .from('sprints')
+      .select('id, contest_id, round_id, label, prize, sponsor_name, sponsor_url, starts_at, ends_at, cancelled_at, settled_at, winner_entry_id, winner_votes')
+      .eq('contest_id', contestId)
+      .order('starts_at'),
+    [],
+  )
+}
+
+// The top of one sprint: [{ entry_id, votes, place }], live until it is
+// settled and the frozen snapshot after.
+export function fetchSprintStandings(sprintId, limit = 3) {
+  return optional(
+    need().from('sprint_standings').select('entry_id, votes, place').eq('sprint_id', sprintId).order('place').limit(limit),
+    [],
+  )
+}
+
 export function fetchMatchups(roundIds) {
   if (!roundIds.length) return Promise.resolve([])
   return rows(need().from('matchups').select(MATCHUP_COLS).in('round_id', roundIds).order('slot'))
 }
 
-export function fetchActivity(roundId) {
+// The live feed, with each pack's cheer where the backend has them (0033).
+export async function fetchActivity(roundId) {
+  const run = (cols) =>
+    optional(
+      need().from('recent_activity').select(cols).eq('round_id', roundId).order('confirmed_at', { ascending: false }).limit(10),
+      null,
+    )
+  const base = 'round_id, entry_id, votes, bonus_multiplier, confirmed_at'
+  return (await run(`${base}, cheer, cheer_name`)) ?? (await run(base)) ?? []
+}
+
+// A pet's cheers across the contest, newest first (entry_cheers, 0033).
+export function fetchCheers(entryId, limit = 8) {
   return optional(
     need()
-      .from('recent_activity')
-      .select('round_id, entry_id, votes, bonus_multiplier, confirmed_at')
-      .eq('round_id', roundId)
+      .from('entry_cheers')
+      .select('cheer_id, cheer, cheer_name, votes, confirmed_at')
+      .eq('entry_id', entryId)
       .order('confirmed_at', { ascending: false })
-      .limit(10),
+      .limit(limit),
     [],
   )
 }
@@ -216,7 +345,11 @@ export async function callFunction(name, { json, form, token } = {}) {
 }
 
 export const submitEntry = (form) => callFunction('submit-entry', { form })
+// Acting on a link from an email: an owner's goal or opt-out, a buyer's unsubscribe.
+export const callLinks = (action, json) => callFunction('links', { json: { action, ...json } })
 export const createCheckout = (json) => callFunction('create-checkout', { json })
+// Settles a toy intent on the mock API; see MOCK_CHECKOUT.
+export const mockPay = (id) => callFunction('mock-pay', { json: { id } })
 
 const ADOPTABLE_URL = 'https://rowanflynnpilot.github.io/wpr-adopt-widget/snapshots/featured-pet.json'
 

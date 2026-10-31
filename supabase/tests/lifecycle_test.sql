@@ -9,7 +9,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(55);
+select plan(56);
 
 -- ---------------------------------------------------------------- fixtures --
 insert into auth.users (id) values
@@ -268,6 +268,10 @@ select results_eq(
      order by q.pet_name $$,
   $$ values ('Alpha'::text, 'Bravo'::text, 'Championship'::text), ('Bravo', 'Alpha', 'Championship') $$,
   'while the final is ahead, both finalists are owed an advancement email naming their opponent');
+select ok((select bool_and(q.matchup_id is not null) from notification_queue(500) q
+           join entries e on e.id = q.entry_id
+           where e.contest_id = '77777777-7777-7777-7777-777777777777' and q.kind = 'advanced'),
+  'and each carries its matchup, for the two-pet share page');
 
 select throws_ok(
   $$ select * from vote_quote(

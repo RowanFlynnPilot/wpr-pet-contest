@@ -5,28 +5,35 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/build-share-pages.mjs",
+    "build": "vite build && node scripts/build-share-pages.mjs && node scripts/adoptables.mjs dist",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "og-card": "python scripts/og-card.py"
+    "og-card": "python scripts/og-card.py",
+    "e2e": "playwright test",
+    "audit": "playwright test -c playwright.audit.config.js",
+    "snapshots": "node scripts/snapshots.mjs",
+    "demo": "node scripts/build-demo.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.12.0",
     "@stripe/stripe-js": "^9.17.0",
     "@supabase/postgrest-js": "^2.117.2",
     "@supabase/supabase-js": "^2.110.2",
+    "qrcode-generator": "2.0.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
     "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.7.0",
     "vite": "^8.1.4",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.12"
   }
 }

@@ -11,7 +11,20 @@ export function leaderboardRows(ranked, { cut = 16, top = 5, around = 2, bubble 
   return [...keep].sort((a, b) => a - b).map((i) => ranked[i])
 }
 
-export default function Leaderboard({ ranked, limit = 10, cut = 16, bubble = false }) {
+// ▲n beside a pet that rose n places since yesterday (lib/rank.js climbers).
+export function Climb({ up }) {
+  if (!up) return null
+  return (
+    <span className="climb" title={`Up ${up} places since yesterday`}>
+      <span aria-hidden="true">▲{up}</span>
+      <span className="sr-only">, up {up} places since yesterday</span>
+    </span>
+  )
+}
+
+// `pool`: during Last Chance (lib/lastChance.js), the pets racing below the
+// line, tagged; the line sits above them.
+export default function Leaderboard({ ranked, limit = 10, cut = 16, bubble = false, climb = null, pool = null }) {
   const rows = leaderboardRows(ranked, { cut, bubble, limit })
   return (
     <ol className="board" aria-label="Open Round standings">
@@ -24,14 +37,18 @@ export default function Leaderboard({ ranked, limit = 10, cut = 16, bubble = fal
           )}
           {r.rank === cut + 1 && (
             <div className="board-cut" aria-hidden="true">
-              Top {cut} advance ▲
+              {pool ? `Top ${cut} are in ▲ · Last Chance below` : `Top ${cut} advance ▲`}
             </div>
           )}
           <a className="board-row" href={`#/pet/${r.entry.id}`}>
             <span className="board-rank">{r.rank}</span>
             <PetPhoto entry={r.entry} width={120} square alt="" />
             <span style={{ minWidth: 0 }}>
-              <span className="board-name">{r.entry.pet_name}</span>
+              <span className="board-name">
+                {r.entry.pet_name}
+                <Climb up={climb?.get(r.entry.id)} />
+                {pool?.has(r.entry.id) && <span className="board-tag">Last Chance</span>}
+              </span>
               <span className="board-town" style={{ display: 'block' }}>
                 {r.entry.town}
               </span>

@@ -1,7 +1,13 @@
 import { fmtInt } from '../lib/format.js'
-import { matchupStanding } from '../lib/rank.js'
+import { isUpset, matchupStanding } from '../lib/rank.js'
+import { Check } from './Icons.jsx'
+import { Lamp } from './Scoreboard.jsx'
 import PetPhoto from './PetPhoto.jsx'
 import VoteButton from './VoteButton.jsx'
+
+// A side that names an entry the public cannot see was disqualified or withdrawn (every
+// approved entry is loaded). "TBD" is only for a slot not yet decided.
+const sideName = (side) => side.entry?.pet_name || (side.id ? 'Removed' : 'TBD')
 
 function Side({ side, cls, share, showVotes, seedOverride }) {
   const e = side.entry
@@ -11,7 +17,15 @@ function Side({ side, cls, share, showVotes, seedOverride }) {
         {seedOverride ?? side.seed ?? '–'}
       </span>
       <PetPhoto entry={e} width={120} square alt="" />
-      <span className="matchup-name">{e ? <a href={`#/pet/${e.id}`}>{e.pet_name}</a> : 'TBD'}</span>
+      <span className="matchup-name">
+        {e ? <a href={`#/pet/${e.id}`}>{e.pet_name}</a> : sideName(side)}
+        {cls.includes('won') && (
+          <>
+            <Check size={14} />
+            <span className="sr-only"> (won)</span>
+          </>
+        )}
+      </span>
       {showVotes && (
         <span className="matchup-votes">
           {fmtInt(side.votes)}
@@ -47,18 +61,34 @@ export default function MatchupCard({ matchup, totals, byId, round, live = false
     const id = key === 'a' ? s.a.id : s.b.id
     return `${key} ${s.winner === id ? 'won' : 'lost'}`
   }
-  const names = `${s.a.entry?.pet_name || 'TBD'} versus ${s.b.entry?.pet_name || 'TBD'}`
+  const names = `${sideName(s.a)} versus ${sideName(s.b)}`
+  const walkover = !decided && s.a.id && s.b.id && Boolean(s.a.entry) !== Boolean(s.b.entry)
+  // The worse seed ahead (or through): the lamp lights on the card.
+  const upset = (live || decided) && s.a.entry && s.b.entry && isUpset(s)
+  const remaining = s.a.entry || s.b.entry
   return (
-    <div className={`matchup${live ? ' is-live' : ''}`} role="group" aria-label={names}>
+    <div className={`matchup${live ? ' is-live' : ''}${upset ? ' is-upset' : ''}`} role="group" aria-label={names}>
+      {upset && (
+        <div className="matchup-head">
+          <Lamp on sr={decided ? 'Upset: the lower seed won.' : 'Upset: the lower seed leads.'}>
+            {decided ? 'Upset' : 'Upset alert'}
+          </Lamp>
+        </div>
+      )}
       <Side side={s.a} cls={cls('a')} share={share(s.a.votes)} showVotes={live || decided} />
       <Side side={s.b} cls={cls('b')} share={share(s.b.votes)} showVotes={live || decided} />
+      {walkover && (
+        <p className="matchup-foot small muted" style={{ margin: 0 }}>
+          {remaining.pet_name} advances: its opponent is out of the contest.
+        </p>
+      )}
       {live && s.a.entry && s.b.entry && (
         <div className="matchup-foot">
-          <VoteButton entry={s.a.entry} round={round} className="btn btn-primary btn-sm">
-            Vote {s.a.entry.pet_name}
+          <VoteButton entry={s.a.entry} round={round} className="btn btn-ghost btn-sm">
+            <span className="btn-clip">Vote {s.a.entry.pet_name}</span>
           </VoteButton>
-          <VoteButton entry={s.b.entry} round={round} className="btn btn-sun btn-sm">
-            Vote {s.b.entry.pet_name}
+          <VoteButton entry={s.b.entry} round={round} className="btn btn-ghost btn-sm">
+            <span className="btn-clip">Vote {s.b.entry.pet_name}</span>
           </VoteButton>
         </div>
       )}

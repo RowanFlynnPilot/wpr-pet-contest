@@ -18,29 +18,32 @@ serve(async (req) => {
   const entryId = uuid(body.entry_id, "Entry");
   const decision = oneOf(body.decision, ["approve", "reject", "purge"] as const, "Decision");
 
-  let photoPath: string;
-
   if (decision === "purge") {
     // Read through the moderator's session: RLS confirms they may see it.
     const { data, error } = await staff
-      .from("entries").select("status, photo_path").eq("id", entryId).single();
+      .from("entries").select("status").eq("id", entryId).single();
     if (error) throw error;
-    if (data.status !== "rejected") throw new HttpError(400, "Only a rejected entry's photo can be purged.");
-    photoPath = data.photo_path;
+    if (data.status !== "rejected" && data.status !== "disqualified" && data.status !== "withdrawn") {
+      throw new HttpError(400, "Only a rejected, disqualified or withdrawn entry's photo can be purged.");
+    }
   } else {
-    const { data, error } = await staff.rpc("moderate_entry", {
+    const { error } = await staff.rpc("moderate_entry", {
       p_entry_id: entryId,
       p_approve: decision === "approve",
       p_reason: optionalText(body.reason, "Reason", 200),
     });
     if (error) throw error;
-    photoPath = data as string;
   }
 
+  // The photo and its thumbnail, both public until deleted.
   let photoDeleted = false;
   if (decision !== "approve") {
-    const { error } = await service.storage.from("pets").remove([photoPath]);
-    if (error) console.error("photo delete failed", entryId, photoPath, error);
+    const { data: files, error: readError } = await service
+      .from("entries").select("photo_path, thumb_path").eq("id", entryId).single();
+    if (readError) throw readError;
+    const paths = [files.photo_path, files.thumb_path].filter(Boolean) as string[];
+    const { error } = await service.storage.from("pets").remove(paths);
+    if (error) console.error("photo delete failed", entryId, paths, error);
     else photoDeleted = true;
   }
 

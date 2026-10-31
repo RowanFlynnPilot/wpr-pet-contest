@@ -10,8 +10,8 @@ name: pages
 
 on:
   push:
-    branches: [main]
-    paths: ['web/**', '.github/workflows/pages.yml']
+    branches: [main, free-vote-favorites]
+    paths: ['web/**', 'docs/newsroom-kit/**', '.github/workflows/pages.yml']
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
@@ -29,8 +29,9 @@ jobs:
   build:
     # GitHub Pages needs a public repo on the free plan. Until it is enabled,
     # set nothing and this workflow does nothing, rather than failing every 30
-    # minutes and teaching everyone to ignore red checks.
-    if: vars.PAGES_ENABLED == 'true'
+    # minutes and teaching everyone to ignore red checks. The 30-minute rebuild
+    # is for share pages, which need Supabase: without it, only pushes deploy.
+    if: vars.PAGES_ENABLED == 'true' && (github.event_name != 'schedule' || vars.VITE_SUPABASE_URL != '')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,8 +44,14 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # Matchup share cards (web/scripts/matchup-cards.py) are drawn with Pillow.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
       - run: npm run build
         env:
+          SHARE_CARDS: 'true'
           # All public by design: the anon key and the Stripe publishable key
           # are meant for browsers. Row level security is the boundary.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
@@ -52,6 +59,27 @@ jobs:
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_PUBLIC_URL: ${{ vars.VITE_PUBLIC_URL }}
           VITE_IMAGE_TRANSFORMS: ${{ vars.VITE_IMAGE_TRANSFORMS }}
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
+          # The 30-minute rebuild is only for share pages: if Supabase is
+          # unreachable, fail it rather than deploy a site without them.
+          SHARE_PAGES_REQUIRED: ${{ github.event_name == 'schedule' }}
+      # The demo (the site with its backend inside the browser, placeholder
+      # pets) lives at /demo/ for showing the newsroom. Until the real site
+      # is configured, the root points there too.
+      - name: Add the demo at /demo/
+        run: |
+          npm run demo
+          mkdir -p dist/demo && cp -r dist-demo/. dist/demo/
+          # The page for other newsrooms, beside the demo it embeds.
+          mkdir -p dist/for-newsrooms && cp -r ../docs/newsroom-kit/. dist/for-newsrooms/
+          if [ -z "${{ vars.VITE_SUPABASE_URL }}" ]; then
+            # The root forwards to the demo, carrying the demo's own title and
+            # link-preview tags, so a shared root link previews like the demo
+            # (Facebook's crawler reads the page it is given, not the refresh).
+            TITLE=$(grep -oE '<title>[^<]*</title>' dist-demo/index.html | head -1)
+            META=$(grep -oE '<meta (name="description"|property="og:[a-z:_]+"|name="twitter:[a-z:_]+")[^>]*>' dist-demo/index.html | tr -d '\n')
+            printf '%s\n' "<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=./demo/\">${TITLE}${META}<p><a href=\"./demo/\">Open the demo</a></p>" > dist/index.html
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

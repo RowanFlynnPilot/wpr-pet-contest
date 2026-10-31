@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { apDate, apDateTime, apTime, countdownParts, describeCountdown, fmtInt, fmtMoney, formatCountdown, plural, timeAgo } from '../src/lib/format.js'
+import { apDate, apDateTime, apTime, apWhen, countdownParts, describeCountdown, fmtInt, fmtMoney, formatCountdown, plural, timeAgo } from '../src/lib/format.js'
 
 const S = 1000
 const M = 60 * S
@@ -21,8 +21,8 @@ describe('countdown', () => {
     expect(formatCountdown(9 * S + 400)).toBe('9s')
   })
   it('reads naturally for screen readers', () => {
-    expect(describeCountdown(2 * D + 4 * H)).toBe('2 days, 4 hours')
-    expect(describeCountdown(1 * H + 1 * M)).toBe('1 hour, 1 minute')
+    expect(describeCountdown(2 * D + 4 * H)).toBe('two days, four hours')
+    expect(describeCountdown(1 * H + 1 * M)).toBe('one hour, one minute')
     expect(describeCountdown(20 * S)).toBe('less than a minute')
   })
 })
@@ -31,13 +31,15 @@ describe('money and numbers', () => {
   it('formats cents', () => {
     expect(fmtMoney(2000)).toBe('$20')
     expect(fmtMoney(2050)).toBe('$20.50')
+    expect(fmtMoney(2000, { exact: true })).toBe('$20.00')
+    expect(fmtMoney(123456, { exact: true })).toBe('$1,234.56')
     expect(fmtMoney(123456789)).toBe('$1,234,567.89')
     expect(fmtMoney(123456789, { whole: true })).toBe('$1,234,568')
     expect(fmtMoney(0)).toBe('$0')
   })
   it('formats counts', () => {
     expect(fmtInt(12345)).toBe('12,345')
-    expect(plural(1, 'vote')).toBe('1 vote')
+    expect(plural(1, 'vote')).toBe('one vote')
     expect(plural(1200, 'vote')).toBe('1,200 votes')
   })
 })
@@ -66,5 +68,13 @@ describe('timeAgo', () => {
     expect(timeAgo(now - 2 * M, now)).toBe('2 min ago')
     expect(timeAgo(now - 3 * H, now)).toBe('3 hr ago')
     expect(timeAgo(now - 2 * D, now)).toBe('2 days ago')
+  })
+})
+
+describe('a deadline beside a clock', () => {
+  const now = Date.parse('2026-10-23T17:00:00Z') // Friday noon in Wausau
+  it('names the weekday within the week, the date beyond it', () => {
+    expect(apWhen('2026-10-25T01:00:00Z', now)).toBe('Sat. at 8 p.m.')
+    expect(apWhen('2026-10-31T01:00:00Z', now)).toBe('Oct. 30 at 8 p.m.')
   })
 })

@@ -4,12 +4,21 @@
 //
 // The client address is hashed before it is stored. Fails open: if the limiter
 // itself breaks, buyers must not be locked out of paying.
+//
+// `failClosed` is for the free vote, where a reader asked to retry loses
+// nothing: no address means one shared bucket, and a broken limiter refuses.
 
 import { service } from "./db.ts";
 import { HttpError } from "./http_error.ts";
 
-export async function rateLimit(req: Request, name: string, limit: number, windowSeconds: number) {
-  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
+export async function rateLimit(
+  req: Request,
+  name: string,
+  limit: number,
+  windowSeconds: number,
+  { failClosed = false }: { failClosed?: boolean } = {},
+) {
+  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || (failClosed ? "shared" : "");
   if (!ip) return;
 
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${name}:${ip}`));
@@ -22,6 +31,7 @@ export async function rateLimit(req: Request, name: string, limit: number, windo
   });
   if (error) {
     console.error("rate limiter unavailable", error);
+    if (failClosed) throw new HttpError(503, "Free voting is busy. Please try again in a few minutes.");
     return;
   }
   if (data === false) {

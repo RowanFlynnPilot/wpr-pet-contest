@@ -10,7 +10,19 @@ const KIND = {
   advanced: 'Advanced',
   eliminated: 'Eliminated',
   champion: 'Champion',
+  last_chance: 'Last Chance',
+  nurture_ready: 'Tip: get ready',
+  nurture_open: 'Tip: voting is open',
+  nurture_halfway: 'Tip: halfway',
+  nurture_last_day: 'Tip: last day',
+  nurture_matchup_last_day: 'Tip: matchup last day',
+  nurture_thanks: 'Tip: thanks',
+  club_100: 'Club note: 100',
+  club_500: 'Club note: 500',
+  club_1000: 'Club note: 1,000',
+  club_5000: 'Club note: 5,000',
 }
+const STATUS_CLASS = { sent: 'good', failed: 'bad', pending: 'status-pending' }
 
 export default function Email() {
   const { onSessionLost } = useDesk()
@@ -69,11 +81,13 @@ export default function Email() {
           rows={log.data}
           rowKey={(r) => r.id}
           empty="Nothing sent yet."
+          label="Recent notifications"
+          stack
           columns={[
             { key: 'created_at', label: 'When', render: (r) => stamp(r.created_at) },
             { key: 'kind', label: 'Kind', render: (r) => KIND[r.kind] || r.kind },
             { key: 'to_email', label: 'To' },
-            { key: 'status', label: 'Status', render: (r) => <span className={r.status === 'sent' ? 'good' : 'bad'}>{r.status}</span> },
+            { key: 'status', label: 'Status', render: (r) => <span className={STATUS_CLASS[r.status] || 'bad'}>{r.status}</span> },
             { key: 'error', label: 'Error', render: (r) => (r.error ? <code>{r.error.slice(0, 120)}</code> : '') },
           ]}
         />

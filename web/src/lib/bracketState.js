@@ -19,7 +19,9 @@ export function entryStates(entries, rounds, matchups, bracketSize = 16) {
   const out = new Map()
   for (const e of entries) {
     const hit = latest.get(e.id)
-    if (e.seed == null || !hit) {
+    // A pet in a matchup is in the bracket, even if this copy of the field
+    // was loaded before close_round wrote its seed.
+    if (!hit) {
       out.set(e.id, { status: e.seed == null ? 'unseeded' : 'alive', seq: null })
       continue
     }

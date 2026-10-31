@@ -95,4 +95,12 @@ describe('entryStates', () => {
     const final = [...matchups, { round_id: 'r4', entry_a_id: 'w', entry_b_id: 'zz', winner_entry_id: 'w' }]
     expect(entryStates(entries, rounds, final, 8).get('w').status).toBe('champion')
   })
+
+  it('trusts a matchup over a field loaded before the seeds were written', () => {
+    const stale = [e('a', 1, { seed: null }), e('b', 2, { seed: null }), e('c', 3, { seed: null })]
+    const s = entryStates(stale, rounds, [{ round_id: 'r2', entry_a_id: 'a', entry_b_id: 'b', winner_entry_id: null }], 8)
+    expect(s.get('a').status).toBe('alive')
+    expect(s.get('b').status).toBe('alive')
+    expect(s.get('c').status).toBe('unseeded')
+  })
 })

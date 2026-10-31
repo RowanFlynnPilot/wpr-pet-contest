@@ -1,35 +1,28 @@
-import { useMemo } from 'react'
+import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
+import Confetti from '../components/Confetti.jsx'
+import { CrownMark } from '../components/Scoreboard.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
 import RaisedCounter from '../components/RaisedCounter.jsx'
-import { useBracket, useEntries, useSideAwards } from '../lib/data.js'
-import { fmtInt, fmtMoney } from '../lib/format.js'
-import { useDocumentTitle, useReducedMotion } from '../lib/hooks.js'
+import FinaleCard from '../components/FinaleCard.jsx'
+import { useBracket, useContestTotals, useEntries, useSideAwards } from '../lib/data.js'
+import { CLUB_TIERS, clubLabel } from '../lib/milestones.js'
+import { apDate, fmtInt, fmtMoney, shelterWho } from '../lib/format.js'
+import { useDocumentTitle } from '../lib/hooks.js'
 import { finalSeq } from '../lib/rounds.js'
 import { BracketBoard } from './Bracket.jsx'
 
-const CONFETTI = ['#f4b942', '#3a867c', '#ffffff', '#e1edea', '#f7c860']
+// On the sun field, pieces that show against it.
+const ON_SUN = ['#1f4b45', '#3a867c', '#ffffff', '#2b655d', '#fcefd0']
 
-function Confetti() {
-  const reduced = useReducedMotion()
-  const bits = useMemo(
-    () =>
-      Array.from({ length: 36 }, (_, i) => ({
-        left: `${(i * 37) % 100}%`,
-        delay: `${(i % 9) * 0.12}s`,
-        color: CONFETTI[i % CONFETTI.length],
-        rotate: `${(i * 47) % 360}deg`,
-      })),
-    [],
-  )
-  if (reduced) return null
-  return (
-    <div className="confetti" aria-hidden="true">
-      {bits.map((b, i) => (
-        <i key={i} style={{ left: b.left, animationDelay: b.delay, background: b.color, transform: `rotate(${b.rotate})` }} />
-      ))}
-    </div>
-  )
+// Addressed directly: "Thank you, Marathon County", never "Thank you, the Example Valley".
+const PLACE = NEWSROOM.region.replace(/^the /i, '')
+
+// The story of the win in a line, under the name.
+function story(seed, size) {
+  if (seed === 1) return 'The top seed holds on'
+  if (seed > size / 2) return `A No. ${seed} seed takes the crown`
+  return `No. ${seed} seed takes the crown`
 }
 
 export function Champion({ c, byId }) {
@@ -40,19 +33,26 @@ export function Champion({ c, byId }) {
   const runnerUp = champ && byId.get(m.entry_a_id === champ.id ? m.entry_b_id : m.entry_a_id)
   if (!champ) return null
   return (
+    // A staged reveal: the photo settles and the crown drops onto it, then
+    // the name lands a beat later, so "is…" has its answer arrive.
     <section className="champion" aria-labelledby="champ-title">
-      <Confetti />
-      <PetPhoto entry={champ} width={800} eager />
-      <div>
-        <p className="kicker">{c.contest.year} champion · seed {champ.seed}</p>
+      <Confetti colors={ON_SUN} />
+      <div className="champ-photo">
+        <PetPhoto entry={champ} width={800} eager />
+        <CrownMark size={64} />
+      </div>
+      <div className="champ-copy">
         <h2 id="champ-title">{champ.pet_name}</h2>
-        <p>
-          of {champ.town} is the {c.contest.name}
-          {runnerUp ? `, beating ${runnerUp.pet_name} in the Championship` : ''}.
-          {c.stats ? ` Together, voters raised ${fmtMoney(c.stats.shelter_cents, { whole: true })} for local animal shelters.` : ''}
+        <p className="champ-meta">
+          {c.contest.year} champion · {story(champ.seed, c.bracketSize)}
         </p>
-        <a className="btn btn-sun" href={`#/pet/${champ.id}`}>
-          Congratulate {champ.pet_name}
+        <p>
+          {champ.pet_name}, of {champ.town}, is the {c.contest.name}
+          {runnerUp ? `, beating ${runnerUp.pet_name} in the Championship` : ''}.
+          {c.stats ? ` Together, voters raised ${fmtMoney(c.stats.shelter_cents, { whole: true })} for ${shelterWho(c.shelters)}.` : ''}
+        </p>
+        <a className="btn btn-primary" href={`#/pet/${champ.id}`}>
+          See {champ.pet_name}&rsquo;s road to the crown
         </a>
       </div>
     </section>
@@ -70,8 +70,8 @@ export function SideAwards({ c, byId }) {
     <section className="section" aria-labelledby="awards-title">
       <div className="section-head">
         <div>
-          <p className="kicker">Side awards · from Open Round votes</p>
           <h2 id="awards-title">Best in species</h2>
+          <p className="section-count">Side awards, from Open Round votes</p>
         </div>
       </div>
       <div className="awards">
@@ -94,19 +94,68 @@ export function SideAwards({ c, byId }) {
   )
 }
 
+// The milestone clubs at the finish: how many pets reached each one over
+// the whole contest, highest club first, and the pets in the top club.
+function ClubSummary({ c, entries }) {
+  const totals = useContestTotals(c.rounds)
+  if (!totals.size || !entries.length) return null
+  const count = (tier) => entries.filter((e) => (totals.get(e.id) || 0) >= tier).length
+  const reached = [...CLUB_TIERS].reverse().filter((t) => count(t) > 0)
+  if (!reached.length) return null
+  const top = reached[0]
+  const topPets = entries.filter((e) => (totals.get(e.id) || 0) >= top).sort((a, b) => (totals.get(b.id) || 0) - (totals.get(a.id) || 0))
+  const anyClub = count(CLUB_TIERS[0])
+  return (
+    <section className="section" aria-labelledby="clubs-title">
+      <div className="section-head">
+        <div>
+          <h2 id="clubs-title">The clubs</h2>
+          <p className="section-count">
+            {fmtInt(anyClub)} of {fmtInt(entries.length)} pets earned a badge, counting every round
+          </p>
+        </div>
+      </div>
+      <ul className="club-tally">
+        {reached.slice(0, 4).map((t) => (
+          <li key={t}>
+            <span className="club-tally-n">{fmtInt(count(t))}</span>
+            <span className="club-tally-label">
+              <span aria-hidden="true">🏅</span> {clubLabel(t)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="club-top">
+        In the {clubLabel(top)}:{' '}
+        {topPets.slice(0, 6).map((e, i) => (
+          <span key={e.id}>
+            {i > 0 && (i === Math.min(topPets.length, 6) - 1 ? ' and ' : ', ')}
+            <a href={`#/pet/${e.id}`}>{e.pet_name}</a>
+          </span>
+        ))}
+        {topPets.length > 6 ? `, and ${fmtInt(topPets.length - 6)} more` : ''}.
+      </p>
+    </section>
+  )
+}
+
 export default function Results() {
   const c = useContest()
-  const { byId } = useEntries(c.contest?.id)
-  useDocumentTitle('Results — Wausau Pilot & Review')
+  const { entries, byId } = useEntries(c.contest?.id)
+  useDocumentTitle(`Results — ${NEWSROOM.name}`)
 
   if (c.phase !== 'complete') {
     return (
       <div className="wrap section">
         <div className="card">
           <h1 style={{ fontSize: 30 }}>No champion yet</h1>
-          <p style={{ marginTop: 10 }}>The contest is still under way. Results post here when the Championship closes.</p>
-          <a className="btn btn-primary" href="#/bracket">
-            See the bracket
+          <p style={{ marginTop: 10 }}>
+            {c.phase === 'coming'
+              ? `The contest starts when entries open ${apDate(c.contest.submissions_open_at)}. Results post here when the Championship closes.`
+              : 'The contest is still under way. Results post here when the Championship closes.'}
+          </p>
+          <a className="btn btn-primary" href={c.phase === 'coming' ? '#/enter' : '#/bracket'}>
+            {c.phase === 'coming' ? 'How to enter' : 'See the bracket'}
           </a>
         </div>
       </div>
@@ -116,14 +165,16 @@ export default function Results() {
   return (
     <div className="wrap">
       <div className="section" style={{ paddingBottom: 12 }}>
-        <p className="kicker">{c.contest.year} results</p>
-        <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', marginBottom: 18 }}>And the cutest pet in Marathon County is…</h1>
+        {/* Above the heading, so "is…" runs straight into its answer. */}
+        <FinaleCard where="results" />
+        <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', marginBottom: 18 }}>And the cutest pet in {NEWSROOM.region} is…</h1>
         <Champion c={c} byId={byId} />
       </div>
       <div className="section" style={{ paddingTop: 12 }}>
         <RaisedCounter />
       </div>
       <SideAwards c={c} byId={byId} />
+      <ClubSummary c={c} entries={entries} />
       <section className="section" aria-labelledby="final-title">
         <div className="section-head">
           <h2 id="final-title">The final bracket</h2>
@@ -132,7 +183,7 @@ export default function Results() {
       </section>
       <section className="section">
         <div className="card sun">
-          <h2 style={{ fontSize: 22 }}>Thank you, Marathon County</h2>
+          <h2 style={{ fontSize: 22 }}>Thank you, {PLACE}</h2>
           <p style={{ margin: '8px 0 0' }}>
             Every vote pack sent {c.contest.beneficiary_split_pct}% to our partner shelters. See you next year, and in the meantime,{' '}
             <a href="#/shelters">meet some pets who need a home</a>.

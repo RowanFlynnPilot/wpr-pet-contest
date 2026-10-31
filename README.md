@@ -35,6 +35,9 @@ bracket rounds. There is nothing for a human to adjudicate.
 | Sponsored Double Vote windows: a sponsor pays for an hour in which every pack counts twice | `bonus_windows` |
 | Sponsor slots: presenting, gallery, bracket, post-purchase thank-you, each an upsell card when unsold | `web/src/config.js` |
 | Per-pet share pages, so a Facebook share shows the pet's face | `web/scripts/build-share-pages.mjs` |
+| An article widget for any WPR story: entries, the live top five, the closest matchup or the champion, whichever the contest is doing, with the Double Vote banner and the presenting sponsor | `web/widget.html`, `web/EMBED.md` |
+| A newsletter block, built from live numbers and pasted into the daily newsletters as one Noptin block | admin Newsletter tab, `web/src/lib/newsletter.js` |
+| Share images: owners make a story, square post or printable QR flyer from their pet's page; staff generate leaderboard, matchup and results cards from live numbers | `web/src/lib/graphics/`, admin Social tab |
 | Approval email with the owner's share link (off until configured) | `notify` function |
 | Live "raised for shelters" counter and anonymous purchase ticker | `contest_stats`, `recent_activity` |
 | Newsletter opt-in at entry and checkout, and a separate, tax-deductible donate ask after purchase | `newsletter_signups`; the thank-you screen |
@@ -62,6 +65,18 @@ supabase functions serve --env-file .env
 deno test --allow-env --allow-read supabase/functions/_shared
 cd web && cp .env.example .env.local && npm install && npm run dev
 ```
+
+Without Docker, the front end runs against a mock of the public API, with a
+made-up field of 24 pets in whichever phase you ask for:
+
+```bash
+node web/scripts/mock-api.mjs                 # http://127.0.0.1:8787
+VITE_SUPABASE_URL=http://127.0.0.1:8787 VITE_SUPABASE_ANON_KEY=mock npm --prefix web run dev
+curl "http://127.0.0.1:8787/__phase?set=bracket"   # submissions | open | bracket | complete
+```
+
+The mock is read-only and has no edge functions or sign-in: good for layout,
+the widget and screenshots, not for checkout or the desk.
 
 `supabase db reset` leaves you with a contest accepting submissions, five vote
 packs, a Double Vote window tomorrow evening, 20 approved entries, and 3 in the
@@ -109,11 +124,26 @@ including the one that credits votes.
 | `access_test.sql` | The whole privilege surface, and anon, non-admin and admin probes |
 | `bracket_test.sql` | Seed ordering, bracket construction, a full playthrough, per-round vote isolation, the guards |
 | `lifecycle_test.sql` | Pricing, bonus windows, confirmation, the deadline and settle period, late payments, disputes and partial refunds, frozen results, round windows, race-free entry, side awards, the email queue |
-| `moderation_test.sql` | The audit trail, one-way rejection, the rejected-photo check |
-| `functions/_shared/*_test.ts` | Photo type sniffing and metadata stripping, input validation, CORS, email templates |
+| `moderation_test.sql` | The audit trail, one-way rejection, the rejected-photo check (thumbnails included) |
+| `health_test.sql` | Every live-contest check, and the bookkeeping that reports a problem once |
+| `disqualify_test.sql` | Removal mid-contest: the guards, refunds in every round, walkovers, no stray email, the alert |
+| `contest_admin_test.sql` | Creating and editing a draft from the desk, the payout statement to the cent, shelter shares that add up, erasing personal data |
+| `functions/_shared/*_test.ts` | Photo type sniffing and metadata stripping, input validation, CORS, email and alert text |
+| `tests/integration/functions.test.mjs` | Every edge function over HTTP against the running stack: real uploads, moderation as a real staff session, checkout validation and rate limits, signed Stripe webhooks, health checks |
+| `web/e2e/contest.spec.js` | A real browser: a reader enters from a phone photo, staff moderate and open voting, a paid vote appears live, checkout's packs and legal copy |
+| `web/audit/pages.spec.js` | At phone size, every public page, the checkout dialog, the staff sign-in and the article widget, in every contest phase: no WCAG 2.2 AA or best-practice problems axe can find, and nothing wider than the screen. Runs against the mock API (`npm --prefix web run audit`), so it needs no database |
+| `scripts/preflight.test.mjs` | The launch preflight's every verdict, on synthetic facts. `node scripts/preflight.mjs` runs the same checks against production (`docs/LAUNCH.md`, Launch preflight) |
 
 CI runs all of it, plus the front end's lint, unit tests and build, on every
-pull request.
+pull request. The integration and browser suites need the stack and the
+functions running:
+
+```bash
+supabase start && supabase db reset
+supabase functions serve --env-file supabase/tests/integration/functions.env
+npm --prefix web run e2e
+supabase db reset && node --test supabase/tests/integration/functions.test.mjs
+```
 
 ## Why a separate Stripe account
 
@@ -152,6 +182,11 @@ chargebacks after the fact still come off the money raised.
 close it should empty itself within a minute or two; anything that stays needs
 a manual refund in Stripe.
 
+Disqualifying a pet after voting starts refunds every pack ever bought for it
+and hands any matchup it is in to its opponent (`disqualify`). Running it again
+retries refunds that did not go through, and the health checks alert on any
+still outstanding after fifteen minutes.
+
 Chargebacks mark the vote `disputed` and take its votes back out of any round
 still in play. Partial refunds leave the votes in place but come off the money
 raised, and so off the shelters' share; refund in full to remove the votes.
@@ -170,9 +205,36 @@ client's claim, and strips metadata again, keeping only orientation. Phone EXIF
 carries GPS coordinates, which for most entrants is their house, and the bucket
 serves originals publicly.
 
-Rejecting an entry deletes its photo in the same request (`moderate`).
-`rejected_photos_live` lists any rejected entry whose photo is still in the
-bucket; it should always be empty.
+The browser also uploads an 800px copy, stored as `thumb_path` and checked and
+stripped like the original, so the gallery is fast on phones without the paid
+plan's image resizing. A missing or bad thumbnail falls back to the original.
+
+Rejecting an entry deletes its photo and thumbnail in the same request
+(`moderate`). `rejected_photos_live` lists any rejected entry with a file still
+in the bucket; it should always be empty.
+
+## Running it from the desk
+
+No SQL is needed to run a contest. The admin desk's **Setup** tab creates the
+contest (a draft with the recommended packs, or a copy of last year's), edits
+it until submissions open, manages the shelters and their payout weights, and
+checks what is still missing. **Wrap-up** prints the shelter payout statement
+(the split of sales after refunds; card fees are WPR's), downloads the
+contest's archive (no owner or buyer details), and erases entrant and buyer
+emails a year on, as the rules promise. **Newsletter** builds the contest's
+section for the morning and afternoon newsletters from the live numbers, ready
+to paste, and exports the opt-in list.
+
+## Alerts during a contest
+
+The `health` function runs every ten minutes while `HEALTH_CHECKS` is on. It
+reports late payments whose refund is stuck, rejected photos still public, a
+moderation queue more than a day behind, rounds left unopened or unfinalized,
+and the failure that matters most: payments Stripe says succeeded that never
+became votes, which means the webhook is broken. Problems go to staff email
+or a Slack/Discord/Teams webhook when they start, every two hours while they
+last, and when they clear. The admin desk's Health tab shows the same checks
+live. Setup is in `docs/LAUNCH.md`, section 6.
 
 ## Email
 
@@ -202,6 +264,12 @@ supabase/
     0012_hardening.sql       review fixes: deadline by payment time, frozen
                              results, unlistable bucket, race-free entries,
                              partial refunds, rate limits
+    0013_round_one.sql       open_submissions stages round 1
+    0014_thumbnails.sql      thumb_path, and thumbnails in the leak check
+    0015_health.sql          live-contest checks and alert bookkeeping
+    0016_disqualified_status.sql
+    0017_disqualification.sql  removal mid-contest, with refunds and walkovers
+    0018_contest_admin.sql   contest setup from the desk, payout statement, erasure
   functions/
     _shared/                 CORS, errors, validation, photo stripping, email
     submit-entry/            the only anonymous write path in the system
@@ -209,9 +277,14 @@ supabase/
     stripe-webhook/          the only place a vote becomes real
     moderate/                approve, reject (deletes the photo), purge
     notify/                  the email sweep
-  tests/
+    health/                  live-contest checks and staff alerts
+    disqualify/              remove a pet mid-contest; refunds its buyers
+  tests/                     pgTAP suites, plus integration/ (HTTP) and fixtures/
   seed.sql
-web/                         the React front end, share pages, admin panel
+web/                         the React front end, article widget, share pages,
+                             admin panel; e2e/ holds the browser tests, audit/
+                             the accessibility and phone-layout audit, and
+                             scripts/mock-api.mjs a mock API for both
 docs/LAUNCH.md               setup, dry run, promotion calendar
 ```
 
