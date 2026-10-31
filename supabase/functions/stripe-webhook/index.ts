@@ -8,13 +8,12 @@
 // (a missing or forged signature); 500 means "retry later", which Stripe does
 // for up to three days. Only a real failure on our side may return 500.
 
-import Stripe from "npm:stripe@17";
 import { service as db } from "../_shared/db.ts";
 import { requireEnv } from "../_shared/env.ts";
+import { Stripe, stripeClient } from "../_shared/stripe.ts";
 
-const stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
-  httpClient: Stripe.createFetchHttpClient(),
-});
+// Restricted key: Refunds write (for late payments).
+const stripe = stripeClient("STRIPE_KEY_WEBHOOK");
 const WEBHOOK_SECRET = requireEnv("STRIPE_WEBHOOK_SECRET");
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
@@ -51,6 +50,11 @@ Deno.serve(async (req) => {
         break;
       case "charge.dispute.created":
         await disputed(event.data.object);
+        break;
+      case "charge.dispute.closed":
+        // Won: the money stayed, so the votes count again and the shelters'
+        // share includes the pack. Lost: it stays disputed.
+        if (event.data.object.status === "won") await disputeWon(event.data.object);
         break;
     }
   } catch (err) {
@@ -120,6 +124,14 @@ async function disputed(dispute: Stripe.Dispute) {
     : dispute.payment_intent?.id;
   if (!intent) return;
   await ignoringForeign(db.rpc("mark_vote_disputed", { p_payment_intent: intent }));
+}
+
+async function disputeWon(dispute: Stripe.Dispute) {
+  const intent = typeof dispute.payment_intent === "string"
+    ? dispute.payment_intent
+    : dispute.payment_intent?.id;
+  if (!intent) return;
+  await ignoringForeign(db.rpc("mark_dispute_won", { p_payment_intent: intent }));
 }
 
 // Refunds and disputes on charges that were never vote packs are not ours.

@@ -5,7 +5,7 @@
 
 ## What's proposed
 
-Readers vote in WPR's pet contest by buying **vote packs** ($5 to $250). Buyers get votes in return, so a pack is a purchase, labeled "not tax-deductible" and never called a donation. A published share of pack sales after refunds (30% in the mockup) goes to the partner shelter, Moments Foster Care, also a nonprofit. WPR's own link for tax-deductible gifts already appears separately, after checkout.
+Readers vote in WPR's pet contest by buying **vote packs** ($5 to $250). Buyers get votes in return, so a pack is a purchase, labeled "not tax-deductible" and never called a donation. Half of pack sales after refunds goes to the partner shelter, Moments Foster Care, also a nonprofit. WPR's own link for tax-deductible gifts already appears separately, after checkout.
 
 The idea is an **optional gift** added on top of a pack at checkout: $5, $10, $25 or another amount, with "No thanks" as the default. The gift buys no votes and is listed on its own line, so only the gift is presented as deductible. Over $75, the receipt would state the value of the votes. The gift could go to WPR or to Moments; that is not decided.
 
@@ -25,7 +25,7 @@ If Moments receives the gift, the text says WPR received it on Moments' behalf. 
 ## Questions for you
 
 1. **Which organization receives the gift?** If Moments, can WPR collect it through its own Stripe account and pass it on, or should Moments receive it directly (for example, by Stripe Connect)? Who issues the acknowledgment? Does the Moments MOU need a gift clause?
-2. **How does the gift interact with the shelter's share?** The rules pay a share of "vote pack sales after refunds." Should gifts be kept out of "sales"? Counted, Moments gets 30% of a gift meant for WPR, or WPR keeps 70% of one meant for Moments. WPR pays card fees today; who bears the fee on the gift?
+2. **How does the gift interact with the shelter's share?** The rules pay a share of "vote pack sales after refunds." Should gifts be kept out of "sales"? Counted, Moments gets half of a gift meant for WPR, or WPR keeps half of one meant for Moments. WPR pays card fees today; who bears the fee on the gift?
 3. **What disclosure is needed at $75 or less, and over it?** Is a list-price pack plus a separately listed gift, paid together, one "quid pro quo contribution," or a purchase plus a gift? Is the pack price a fair value for the votes, even in Double Vote windows, when it buys twice as many? If Moments gets the gift but WPR sold the votes, does the disclosure apply? Gifts of $250 or more commonly need a written acknowledgment. Does the emailed receipt serve, and must it name the donor? Checkout asks only for an email.
 4. **How should the two parts be recorded in Stripe and the books?** One charge with the split noted, or two charges (two fees, two statement lines)? How is Stripe's fee divided? A pack is commonly booked as exchange revenue and a gift as a contribution. Does that fit? Is a gift for Moments a liability until paid over?
 5. **Is anything required at the state level?** Do WPR's and Moments' Wisconsin charitable registrations (Department of Financial Institutions) cover a gift requested inside a paid contest? Does asking on Moments' behalf need an agreement, a filing or a set disclosure? Does listing the pack separately affect anything else, such as sales tax?

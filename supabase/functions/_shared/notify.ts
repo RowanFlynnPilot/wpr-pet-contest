@@ -7,12 +7,33 @@
 import { service } from "./db.ts";
 import { emailEnabled, sendEmail } from "./email.ts";
 import { optionalEnv } from "./env.ts";
-import { type QueueRow, render } from "./templates.ts";
+import { NEWSROOM } from "./newsroom.ts";
+import { bytea, centralDay, newToken, sha256 } from "./freevote.ts";
+import { type BuyerNoteRow, type QueueRow, render, renderBuyerNote, renderCheckoutReminder, renderFreeVoteReminder } from "./templates.ts";
 
 const LINKS = {
+  newsroom: NEWSROOM,
+  // Supabase sets it in every function: where the public photos are.
+  storageUrl: optionalEnv("SUPABASE_URL"),
   publicUrl: optionalEnv("PUBLIC_URL") ?? "https://wausaupilotandreview.com/",
   shareBase: optionalEnv("SHARE_BASE_URL") ?? "https://rowanflynnpilot.github.io/wpr-pet-contest/",
 };
+
+// The newest published contest's split and shelters, once per sweep, so the
+// emails name them. A failed read leaves the general wording, never a stopped
+// sweep.
+async function withShelters(): Promise<typeof LINKS & { shelters?: { names: string[]; splitPct: number | null } }> {
+  try {
+    const { data: contests } = await service.from("contests").select("id, beneficiary_split_pct").neq("status", "draft").order("year", { ascending: false }).limit(1);
+    const contest = contests?.[0];
+    if (!contest) return LINKS;
+    const { data: shelters } = await service.from("shelters").select("name").eq("contest_id", contest.id).order("name");
+    return { ...LINKS, shelters: { names: (shelters ?? []).map((s: { name: string }) => s.name).filter(Boolean), splitPct: contest.beneficiary_split_pct ?? null } };
+  } catch (err) {
+    console.warn("shelters not loaded", err);
+    return LINKS;
+  }
+}
 
 // Resend's default rate limit is 2 requests a second.
 const SPACING_MS = 550;
@@ -36,11 +57,12 @@ export async function sweep(limit = 50): Promise<SweepResult> {
 
   let sent = 0;
   let failed = 0;
+  const links = await withShelters();
 
   for (const [i, row] of queue.entries()) {
     if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
 
-    const msg = render(row, LINKS);
+    const msg = render(row, links);
     const result = await sendEmail({
       to: row.to_email,
       ...msg,
@@ -64,6 +86,229 @@ export async function sweep(limit = 50): Promise<SweepResult> {
     });
     // 23505: another sweep recorded it first. Resend deduplicated the send.
     if (insertError && insertError.code !== "23505") throw insertError;
+
+    if (result.ok) sent++;
+    else failed++;
+  }
+
+  return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+// The buyer notes: whoever buyer_notice_queue() says is owed one, now that a
+// bracket round has opened or the final is decided. Claimed with a row per
+// buyer per round first, so overlapping sweeps send once.
+export async function sweepBuyerNotes(limit = 50): Promise<SweepResult> {
+  const { data, error } = await service.rpc("buyer_notice_queue", { p_limit: limit });
+  if (error) throw error;
+  const queue = (data ?? []) as (BuyerNoteRow & { round_id: string })[];
+
+  if (!emailEnabled) {
+    return { enabled: false, sent: 0, failed: 0, queued: queue.length, more: queue.length === limit };
+  }
+
+  const fnUrl = optionalEnv("SUPABASE_URL");
+  let sent = 0;
+  let failed = 0;
+  const links = await withShelters();
+
+  for (const [i, row] of queue.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
+
+    const unsubToken = newToken();
+    const kind = row.is_final ? "final" : "round";
+    const { error: claimError } = await service.from("buyer_notices").insert({
+      email: row.email,
+      round_id: row.round_id,
+      kind,
+      unsub_hash: bytea(await sha256(unsubToken)),
+      status: "pending",
+    });
+    if (claimError?.code === "23505") continue;
+    if (claimError) throw claimError;
+
+    const unsubscribe = `${LINKS.publicUrl}#/unsubscribe?bn=${unsubToken}`;
+    const msg = renderBuyerNote(row, links, unsubscribe);
+    const result = await sendEmail({
+      to: row.email,
+      ...msg,
+      idempotencyKey: `buyer-note:${row.round_id}:${kind}:${await hexOf(row.email)}`,
+      headers: fnUrl
+        ? {
+          "List-Unsubscribe": `<${fnUrl}/functions/v1/links?unsubscribe=${unsubToken}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+        : { "List-Unsubscribe": `<${unsubscribe}>` },
+    });
+
+    const { error: settleError } = await service
+      .from("buyer_notices")
+      .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })
+      .eq("email", row.email)
+      .eq("round_id", row.round_id)
+      .eq("kind", kind);
+    if (settleError) throw settleError;
+
+    if (result.ok) sent++;
+    else failed++;
+  }
+
+  return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+type CheckoutReminderRow = {
+  vote_id: string;
+  email: string;
+  round_id: string;
+  entry_id: string;
+  pet_name: string;
+  contest_name: string;
+  round_name: string;
+  closes_at: string;
+  votes: number;
+  cents: number;
+  pack_slug: string;
+};
+
+// The one checkout reminder (0033): whoever checkout_reminder_queue() says is
+// owed one. The database decides it (opted in, an hour stalled, time left
+// to act, nothing bought since). Claimed with a row per address per round
+// first, so overlapping sweeps send once and nobody gets a second.
+export async function sweepCheckoutReminders(limit = 50): Promise<SweepResult> {
+  const { data, error } = await service.rpc("checkout_reminder_queue", { p_limit: limit });
+  if (error) throw error;
+  const queue = (data ?? []) as CheckoutReminderRow[];
+
+  if (!emailEnabled) {
+    return { enabled: false, sent: 0, failed: 0, queued: queue.length, more: queue.length === limit };
+  }
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const [i, row] of queue.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
+
+    const { error: claimError } = await service.from("checkout_reminders").insert({
+      email: row.email,
+      round_id: row.round_id,
+      vote_id: row.vote_id,
+      status: "pending",
+    });
+    if (claimError?.code === "23505") continue;
+    if (claimError) throw claimError;
+
+    // The pet's page, opening its checkout on the same pack. No address in
+    // the link: the reader types it again.
+    const link = `${LINKS.publicUrl}#/pet/${row.entry_id}?vote=${encodeURIComponent(row.pack_slug)}`;
+    const msg = renderCheckoutReminder({
+      newsroom: NEWSROOM,
+      petName: row.pet_name,
+      contestName: row.contest_name,
+      roundName: row.round_name,
+      closesAt: row.closes_at,
+      votes: row.votes,
+      cents: row.cents,
+      link,
+    });
+    const result = await sendEmail({ to: row.email, ...msg, idempotencyKey: `checkout-remind:${row.vote_id}` });
+
+    const { error: settleError } = await service
+      .from("checkout_reminders")
+      .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })
+      .eq("vote_id", row.vote_id);
+    if (settleError) throw settleError;
+
+    if (result.ok) sent++;
+    else failed++;
+  }
+
+  return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+// An idempotency key must not carry the address itself.
+async function hexOf(text: string): Promise<string> {
+  const bytes = await sha256(text.toLowerCase());
+  return [...bytes.slice(0, 12)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+type ReminderRow = {
+  voter_id: string;
+  email: string;
+  pet_id: string | null;
+  pet_name: string | null;
+  round_kind: "open" | "bracket";
+  round_label: string;
+  closes_at: string;
+  contest_name: string;
+};
+
+// The free-vote morning reminders: whoever free_vote_reminder_queue() says is
+// owed one. The database decides the hour in Chicago. Each send is claimed
+// with a row first (one per voter per day), so overlapping sweeps send once.
+export async function sweepReminders(limit = 50): Promise<SweepResult> {
+  const { data, error } = await service.rpc("free_vote_reminder_queue", { p_limit: limit });
+  if (error) throw error;
+  const queue = (data ?? []) as ReminderRow[];
+
+  if (!emailEnabled) {
+    return { enabled: false, sent: 0, failed: 0, queued: queue.length, more: queue.length === limit };
+  }
+
+  const fnUrl = optionalEnv("SUPABASE_URL");
+  let sent = 0;
+  let failed = 0;
+
+  for (const [i, row] of queue.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
+
+    // Two tokens: the vote link proves the address (once); the unsubscribe
+    // link proves nothing, so it can sit in a header and a server log.
+    const token = newToken();
+    const unsubToken = newToken();
+    const day = centralDay();
+    const { error: claimError } = await service.from("free_vote_reminders").insert({
+      voter_id: row.voter_id,
+      reminder_day: day,
+      link_hash: bytea(await sha256(token)),
+      unsub_hash: bytea(await sha256(unsubToken)),
+      status: "pending",
+    });
+    if (claimError?.code === "23505") continue;
+    if (claimError) throw claimError;
+
+    // The link opens the reader's pet ready to cast, or the field if that
+    // pet is out. It proves the address; the vote takes one more tap.
+    const where = row.pet_id ? `pet/${row.pet_id}` : row.round_kind === "bracket" ? "bracket" : "gallery";
+    const link = `${LINKS.publicUrl}#/${where}?fv=r.${token}`;
+    const unsubscribe = `${LINKS.publicUrl}#/unsubscribe?fv=u.${unsubToken}`;
+    const msg = renderFreeVoteReminder({
+      newsroom: NEWSROOM,
+      petName: row.pet_name,
+      contestName: row.contest_name,
+      roundName: row.round_label,
+      closesAt: row.closes_at,
+      link,
+      unsubscribe,
+    });
+    const result = await sendEmail({
+      to: row.email,
+      ...msg,
+      idempotencyKey: `free-remind:${row.voter_id}:${day}`,
+      // RFC 8058: exactly one HTTPS address, which a mail client POSTs to.
+      headers: fnUrl
+        ? {
+          "List-Unsubscribe": `<${fnUrl}/functions/v1/free-vote?unsubscribe=${unsubToken}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+        : { "List-Unsubscribe": `<${unsubscribe}>` },
+    });
+
+    const { error: settleError } = await service
+      .from("free_vote_reminders")
+      .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })
+      .eq("voter_id", row.voter_id)
+      .eq("reminder_day", day);
+    if (settleError) throw settleError;
 
     if (result.ok) sent++;
     else failed++;

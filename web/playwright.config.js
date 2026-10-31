@@ -34,7 +34,10 @@ export default defineConfig({
     env: {
       VITE_SUPABASE_URL: stack.API_URL,
       VITE_SUPABASE_ANON_KEY: stack.PUBLISHABLE_KEY || stack.ANON_KEY,
-      VITE_STRIPE_PUBLISHABLE_KEY: '',
+      // A placeholder: enough for the checkout to offer Continue, so the
+      // request it sends can be checked. The secret side refuses it, so
+      // nothing is ever charged.
+      VITE_STRIPE_PUBLISHABLE_KEY: 'pk_test_placeholder',
       VITE_PUBLIC_URL: `http://127.0.0.1:${PORT}/`,
       VITE_IMAGE_TRANSFORMS: 'false',
     },

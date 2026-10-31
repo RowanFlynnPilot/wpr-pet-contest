@@ -31,9 +31,10 @@ test('a reader enters a pet from a phone photo', async ({ page }) => {
 
   // 400×300 with EXIF orientation 6 (a portrait phone shot) and GPS.
   await page.locator('input[type=file]').first().setInputFiles(fixturePath('gps.jpg'))
-  await page.getByLabel("Pet's name").fill(PET)
+  await page.getByLabel(/^Pet.s name/).fill(PET)
   await page.locator('.chips label', { hasText: 'Dog' }).click()
   await page.locator('select#town').selectOption('Wausau')
+  await page.getByLabel('Favorite thing').fill('  The squeaky hedgehog ')
   await page.getByLabel('Your name').fill('E2E Tester')
   await page.getByLabel('Your email').fill('e2e@example.com')
   await page.getByLabel('I agree to the photo release below.').check()
@@ -41,8 +42,10 @@ test('a reader enters a pet from a phone photo', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: `${PET} is entered!` })).toBeVisible()
 
-  const [row] = (await rest(`entries?select=status,photo_path,thumb_path&pet_name=eq.${encodeURIComponent(PET)}`)).body
+  const [row] = (await rest(`entries?select=status,photo_path,thumb_path,profile_favorite,profile_nickname&pet_name=eq.${encodeURIComponent(PET)}`)).body
   expect(row.status).toBe('pending')
+  expect(row.profile_favorite, 'a profile answer arrives trimmed').toBe('The squeaky hedgehog')
+  expect(row.profile_nickname, 'an unanswered prompt stays empty').toBeNull()
   expect(row.thumb_path, 'the browser made and sent a thumbnail').toMatch(/\.thumb\.jpg$/)
 
   const photo = await object(row.photo_path)
@@ -64,10 +67,15 @@ test('staff work the moderation queue and open voting', async ({ page }) => {
   const clear = page.getByText('The queue is clear. Nothing waiting.')
   await expect(pending).toBeVisible()
   await expect(pending).not.toHaveText(/…/)
+  const approve = page.getByRole('button', { name: /^Approve/ }).first()
   for (let i = 0; i < 10 && !(await clear.isVisible()); i++) {
     const before = await pending.innerText()
-    await page.getByRole('button', { name: /^Approve/ }).first().click()
+    await approve.click()
     await expect(pending).not.toHaveText(before)
+    // The count and the list update separately. Let the list settle before
+    // asking whether anything is left, or the next click finds a row that
+    // is about to vanish.
+    await expect(clear.or(approve)).toBeVisible()
   }
   await expect(clear).toBeVisible()
 
@@ -82,7 +90,7 @@ test('staff work the moderation queue and open voting', async ({ page }) => {
 test('a paid vote appears on the pet page without a reload', async ({ page }) => {
   const [pet] = (await rest(`entries?select=id&pet_name=eq.${encodeURIComponent(PET)}`)).body
   await page.goto(`/#/pet/${pet.id}`)
-  await expect(page.getByRole('heading', { name: PET })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: PET })).toBeVisible()
 
   // Stripe's side, simulated: a pending vote from checkout, then the signed
   // success event. The page must pick it up by polling.
@@ -131,18 +139,29 @@ test('checkout offers the database packs and never calls it a donation', async (
   const text = (await dialog.innerText()).toLowerCase().replace(/[’']/g, "'")
   expect(text).toContain('not tax-deductible')
   expect(text.replace(/(isn't|not)( a| tax-deductible)? donations?/g, '')).not.toMatch(/donat/)
+
+  // The "plays again" box reaches the checkout call. The placeholder Stripe
+  // key means the server answers with a readable error and nothing is parked.
+  await dialog.getByLabel(/email for your receipt/i).fill('e2e-buyer@example.com')
+  await dialog.getByLabel(/plays again/i).check()
+  const [request] = await Promise.all([
+    page.waitForRequest((r) => r.url().includes('/functions/v1/create-checkout')),
+    dialog.getByRole('button', { name: /^Continue/ }).click(),
+  ])
+  expect(request.postDataJSON()).toMatchObject({ pack_slug: 'fan', plays_again_opt_in: true, newsletter_opt_in: false })
+  await expect(dialog.getByRole('alert')).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
 })
 
 test('staff read the payout statement and set up next year from the desk', async ({ page }) => {
   await signIn(page, '/#/admin/wrapup')
-  // The one $20 pack bought earlier, 30% to the shelters.
+  // The one $20 pack bought earlier, half to the shelters.
   const statement = page.locator('.print-area')
   await expect(statement).toContainText('Shelter payout statement')
   await expect(statement).toContainText('PRELIMINARY')
   await expect(statement.locator('tr', { hasText: 'Net vote pack sales' })).toContainText('$20.00')
-  await expect(statement.locator('tr', { hasText: 'Shelter share (30%)' })).toContainText('$6.00')
+  await expect(statement.locator('tr', { hasText: 'Shelter share (50%)' })).toContainText('$10.00')
 
   // The archive: three files, standings by pet name, and no owner details.
   const files = []

@@ -1,42 +1,34 @@
 // Canvas drawing for the social graphics. Layout decisions live in layout.js
 // and content.js; this file only turns them into pixels.
-import { WPR_BADGE, WPR_LOGO } from '../../config.js'
+import { NEWSROOM } from '../../config.js'
 import { entryPhotoUrl } from '../photos.js'
+import { firstFamily, palette, tokenFont } from '../theme.js'
 import { coverRect, ellipsize, fitText } from './layout.js'
 
-// The contest's tokens (web/src/styles/app.css). Teal and sun are fills;
-// text uses their -ink variants. Every pairing below measures AA or better.
-export const C = {
-  ink: '#1a1a1a',
-  ink2: '#3a3a3a',
-  muted: '#5f5f5f',
-  paper: '#ffffff',
-  cream: '#f6f2e9',
-  creamDeep: '#ede6d6',
-  rule: '#e3ddd0',
-  ruleStrong: '#cfc6b3',
-  slate: '#32373c',
-  teal: '#3a867c',
-  tealInk: '#2b655d',
-  tealDeep: '#1f4b45',
-  tealTint: '#e1edea',
-  sun: '#f4b942',
-  sunInk: '#7a5500',
-  sunTint: '#fcefd0',
-  red: '#9b2226',
-  // Secondary text on teal-deep: 7.6:1.
-  onDeep: '#d6e6e2',
+// The contest's tokens (web/src/styles/tokens.css), resolved from the theme
+// the page is wearing when a color is read, so a newsroom's share images
+// come out in its colors. "teal" and "sun" are the brand and the accent, by
+// the names this module grew up with; they are fills, text uses their -ink
+// variants. Every pairing measures AA or better in the default theme.
+export const C = {}
+for (const key of ['ink', 'ink2', 'muted', 'paper', 'cream', 'creamDeep', 'rule', 'ruleStrong', 'slate', 'teal', 'tealInk', 'tealDeep', 'tealTint', 'sun', 'sunInk', 'sunTint', 'red', 'onDeep']) {
+  // The brand's light look, whatever the reader's mode: a share image is a poster.
+  Object.defineProperty(C, key, { enumerable: true, get: () => palette({ light: true })[key] })
 }
 
-const SERIF = "Fraunces, Georgia, 'Times New Roman', serif"
+const DISPLAY = "'Schibsted Grotesk', Arial, sans-serif"
 const SANS = "'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif"
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+const display = () => tokenFont('--display', DISPLAY)
+const sans = () => tokenFont('--sans', SANS)
+const mono = () => tokenFont('--mono', MONO)
 
 export const F = {
-  display: (weight = 600) => (size) => `${weight} ${size}px ${SERIF}`,
-  italic: (weight = 500) => (size) => `italic ${weight} ${size}px ${SERIF}`,
-  sans: (weight = 700) => (size) => `${weight} ${size}px ${SANS}`,
-  mono: (weight = 700) => (size) => `${weight} ${size}px ${MONO}`,
+  display: (weight = 600) => (size) => `${weight} ${size}px ${display()}`,
+  // The display face has no italic; what was italic is the lighter weight.
+  italic: (weight = 500) => (size) => `${weight} ${size}px ${display()}`,
+  sans: (weight = 700) => (size) => `${weight} ${size}px ${sans()}`,
+  mono: (weight = 700) => (size) => `${weight} ${size}px ${mono()}`,
 }
 
 // ------------------------------------------------------------------ loading
@@ -49,7 +41,9 @@ const withTimeout = (p, ms, fallback) => Promise.race([p, new Promise((r) => set
 export function loadFonts(text = '') {
   if (typeof document === 'undefined' || !document.fonts?.load) return Promise.resolve()
   const sample = `${text} Aa0123456789$%`
-  const specs = ['600 80px Fraunces', 'italic 500 80px Fraunces', '600 40px "Public Sans"', '700 40px "Public Sans"', '800 40px "Public Sans"', '700 40px "JetBrains Mono"']
+  const d = `"${firstFamily(display())}"`
+  const s = `"${firstFamily(sans())}"`
+  const specs = [`600 80px ${d}`, `italic 500 80px ${d}`, `600 40px ${s}`, `700 40px ${s}`, `800 40px ${s}`, `700 40px "${firstFamily(mono())}"`]
   const all = Promise.all(specs.map((s) => document.fonts.load(s, sample).catch(() => []))).then(() => document.fonts.ready)
   return withTimeout(all, 5000, null)
 }
@@ -110,10 +104,14 @@ function wordmarkMask(img) {
     x.drawImage(img, 0, 0)
     const data = x.getImageData(0, 0, c.width, c.height)
     const p = data.data
+    // Ink is dark and opaque: darkness times the pixel's own alpha, so a
+    // wordmark on white and one on transparency (the committed file is the
+    // latter, for dark mode) both mask to the type alone.
     for (let i = 0; i < p.length; i += 4) {
       const lum = p[i] * 0.299 + p[i + 1] * 0.587 + p[i + 2] * 0.114
+      const a = p[i + 3] / 255
       p[i] = p[i + 1] = p[i + 2] = 0
-      p[i + 3] = Math.round(Math.min(255, Math.max(0, (255 - lum) * 1.08)))
+      p[i + 3] = Math.round(Math.min(255, Math.max(0, (255 - lum) * 1.08 * a)))
     }
     x.putImageData(data, 0, 0)
     return c
@@ -125,7 +123,8 @@ function wordmarkMask(img) {
 let brand = null
 export function loadBrand() {
   if (!brand) {
-    brand = Promise.all([loadImage(WPR_BADGE), loadImage(WPR_LOGO)]).then(([badge, logo]) => ({
+    const maybe = (src) => (src ? loadImage(src) : Promise.resolve(null))
+    brand = Promise.all([maybe(NEWSROOM.badge), maybe(NEWSROOM.wordmark)]).then(([badge, logo]) => ({
       badge,
       mask: logo ? wordmarkMask(logo) : null,
       tints: new Map(),
@@ -267,7 +266,7 @@ export const trackedMeasurer = (ctx, font, em, tight = false) => (text, size) =>
   return trackedWidth(ctx, text, size * em, tight)
 }
 
-// Ascent used to place the first baseline: close to Fraunces' and Public
+// Ascent used to place the first baseline: close to the display face's and Public
 // Sans' cap-plus-ascender height.
 const ASC = 0.8
 
@@ -356,38 +355,42 @@ export function runs(ctx, parts, { x, y, maxWidth, align = 'left' }) {
 
 // ------------------------------------------------------------------ brand
 
-// WPR's flag in compact form: seal plus wordmark, centered on `cx`, top at
-// `y`. tone 'dark' sets the wordmark in white for teal grounds.
+// The newsroom's flag in compact form: seal plus wordmark, centered on `cx`,
+// top at `y`. tone 'dark' sets the wordmark in white for dark grounds. A
+// newsroom without a seal or a wordmark gets its name in the display face.
 export function drawFlag(ctx, b, { cx, y, badge = 92, wordmark = 42, gap = 22, tone = 'light' }) {
   const color = tone === 'dark' ? '#ffffff' : '#111111'
   const mark = b && tint(b, color)
+  const seal = b?.badge ? badge : 0
   const markW = mark ? (mark.width / mark.height) * wordmark : 0
   let textW = markW
-  const font = F.sans(800)
+  const font = mark || seal ? F.sans(800) : F.display(700)
+  const nameSize = Math.round(wordmark * (mark || seal ? 0.95 : 1.1))
   if (!mark) {
-    ctx.font = font(Math.round(wordmark * 0.95))
-    textW = ctx.measureText('Wausau Pilot & Review').width
+    ctx.font = font(nameSize)
+    textW = ctx.measureText(NEWSROOM.name).width
   }
-  const total = badge + gap + textW
+  const total = seal + (seal ? gap : 0) + textW
   const left = cx - total / 2
   const mid = y + badge / 2
-  // The seal: a white disc either way, so it reads on teal and on cream.
-  ctx.save()
-  ctx.beginPath()
-  ctx.arc(left + badge / 2, mid, badge / 2, 0, Math.PI * 2)
-  ctx.closePath()
-  ctx.fillStyle = '#ffffff'
-  ctx.fill()
-  if (b?.badge) {
+  if (seal) {
+    // The seal: a white disc either way, so it reads on dark and on cream.
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(left + seal / 2, mid, seal / 2, 0, Math.PI * 2)
+    ctx.closePath()
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
     ctx.clip()
-    ctx.drawImage(b.badge, left, y, badge, badge)
+    ctx.drawImage(b.badge, left, y, seal, seal)
+    ctx.restore()
   }
-  ctx.restore()
-  if (mark) ctx.drawImage(mark, left + badge + gap, mid - wordmark / 2, markW, wordmark)
+  const textLeft = left + seal + (seal ? gap : 0)
+  if (mark) ctx.drawImage(mark, textLeft, mid - wordmark / 2, markW, wordmark)
   else {
-    ctx.font = font(Math.round(wordmark * 0.95))
+    ctx.font = font(nameSize)
     ctx.fillStyle = color
-    ctx.fillText('Wausau Pilot & Review', left + badge + gap, mid + wordmark * 0.34)
+    ctx.fillText(NEWSROOM.name, textLeft, mid + wordmark * 0.34)
   }
   return { width: total, height: badge, bottom: y + badge }
 }

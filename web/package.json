@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/build-share-pages.mjs",
+    "build": "vite build && node scripts/build-share-pages.mjs && node scripts/adoptables.mjs dist",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
     "og-card": "python scripts/og-card.py",
     "e2e": "playwright test",
-    "audit": "playwright test -c playwright.audit.config.js"
+    "audit": "playwright test -c playwright.audit.config.js",
+    "snapshots": "node scripts/snapshots.mjs",
+    "demo": "node scripts/build-demo.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.12.0",

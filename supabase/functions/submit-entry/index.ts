@@ -7,6 +7,7 @@
 
 import { service as db } from "../_shared/db.ts";
 import { optionalEnv } from "../_shared/env.ts";
+import { NEWSROOM } from "../_shared/newsroom.ts";
 import { badRequest, serve } from "../_shared/http.ts";
 import { extensionFor, type ImageType, sniffImageType, stripMetadata, UnreadableImage } from "../_shared/image.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
@@ -22,6 +23,17 @@ const MAX_THUMB_BYTES = 1024 * 1024;
 //
 // The type is read from the bytes, not from photo.type, which is whatever the
 // client claims.
+const STAFF_DOMAINS = (optionalEnv("STAFF_EMAIL_DOMAINS") ?? "wausaupilotandreview.com")
+  .split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+
+function notStaff(address: string): string {
+  const domain = address.split("@").pop()?.toLowerCase() ?? "";
+  if (STAFF_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))) {
+    throw badRequest(`${NEWSROOM.name} staff and their households can't enter this contest.`);
+  }
+  return address;
+}
+
 const SPECIES = ["dog", "cat", "other"] as const;
 
 // Enough for a household with several pets; low enough that one person cannot
@@ -40,6 +52,10 @@ serve(async (req) => {
   // it worked so they have no reason to adapt.
   if (form.get("website")) return { received: true };
 
+  // WPR staff and their households may not enter (rules, Eligibility). A
+  // personal address gets past this; moderation is the real check. This only
+  // stops the honest mistake of entering from a work address.
+
   const photo = form.get("photo");
   // Not just falsy: a text field named "photo" has no .size, and
   // `undefined > MAX_BYTES` is false, so it would slip the size check below.
@@ -53,9 +69,13 @@ serve(async (req) => {
     pet_name: requiredText(form.get("pet_name"), "Pet name", 40),
     species: oneOf(form.get("species"), SPECIES, "Species"),
     owner_name: requiredText(form.get("owner_name"), "Your name", 80),
-    owner_email: email(form.get("owner_email")),
+    owner_email: notStaff(email(form.get("owner_email"))),
     town: requiredText(form.get("town"), "Town", 60),
     caption: optionalText(form.get("caption"), "Caption", 280),
+    // "Get to know" answers (0026): optional, moderated with the caption.
+    profile_nickname: optionalText(form.get("profile_nickname"), "Nickname", 40),
+    profile_favorite: optionalText(form.get("profile_favorite"), "Favorite thing", 60),
+    profile_trick: optionalText(form.get("profile_trick"), "Trick or quirk", 80),
     newsletter_opt_in: form.get("newsletter_opt_in") === "true",
   };
 
@@ -119,6 +139,9 @@ serve(async (req) => {
     p_newsletter_opt_in: entry.newsletter_opt_in,
     p_max_per_email: MAX_ENTRIES_PER_EMAIL,
     p_thumb_path: thumbPath,
+    p_profile_nickname: entry.profile_nickname,
+    p_profile_favorite: entry.profile_favorite,
+    p_profile_trick: entry.profile_trick,
   });
   if (insertError) {
     // The objects are already public at their URLs but would have no entry

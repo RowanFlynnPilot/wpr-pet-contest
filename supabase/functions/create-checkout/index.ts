@@ -7,16 +7,15 @@
 // Order matters: vote_quote validates the vote before Stripe is touched, so a
 // request for a closed round or an eliminated pet creates no payment intent.
 
-import Stripe from "npm:stripe@17";
 import { service as db } from "../_shared/db.ts";
-import { requireEnv } from "../_shared/env.ts";
+import { Stripe, stripeClient } from "../_shared/stripe.ts";
 import { HttpError, readJson, serve } from "../_shared/http.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 import { email, slug, uuid } from "../_shared/validate.ts";
+import { cheerCode, cheerName } from "../_shared/cheers.ts";
 
-const stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
-  httpClient: Stripe.createFetchHttpClient(),
-});
+// Restricted key: PaymentIntents write.
+const stripe = stripeClient("STRIPE_KEY_CHECKOUT");
 
 type Quote = { contest_id: string; pet_name: string; votes: number; cents: number; multiplier: number };
 type Parked = { votes: number; cents: number; multiplier: number };
@@ -32,6 +31,19 @@ serve(async (req) => {
   const packSlug = slug(body.pack_slug, "Vote pack");
   const buyerEmail = email(body.buyer_email);
   const optIn = body.newsletter_opt_in === true;
+  // "Tell me when this pet plays again": one email a round, enrolled only
+  // once the webhook credits the payment.
+  const playsAgain = body.plays_again_opt_in === true;
+  // The buyer came through one of the owner's links in the last week (0029).
+  // Attribution only: it changes nothing about the pack. Anything else is
+  // ignored, never refused.
+  const ref = body.ref === "owner" ? "owner" : null;
+  // A cheer (0033): one of the six codes, and a first name only with one.
+  // Anything else is dropped, never refused.
+  const cheer = cheerCode(body.cheer);
+  const cheerFrom = cheer ? cheerName(body.cheer_name) : null;
+  // "Email me once if this checkout doesn't finish": opt-in only.
+  const remind = body.reminder_opt_in === true;
   // One per checkout attempt, from the browser. A double-click or a retried
   // request reuses it, and Stripe hands back the same payment intent instead
   // of a second one.
@@ -52,9 +64,13 @@ serve(async (req) => {
       // is not tax-deductible. A clear description also heads off "I don't
       // recognize this charge" disputes.
       description: `Vote pack: ${quote.votes} votes for ${quote.pet_name}`,
-      // Cards, which includes Apple Pay and Google Pay. Not "automatic": that can
-      // switch on bank debits, which settle days later, after the round has
-      // closed, and would be refunded as late every time.
+      // Cards, which includes Apple Pay and Google Pay, and Link once it is on
+      // under Wallets in the Stripe Dashboard: a card integration carries Link
+      // as a card (wallet type "link"), and Stripe confirms every Link payment
+      // immediately whatever funds it, so the deadline holds. Do not add
+      // "link" here: that would make it a separate payment method type. Not
+      // "automatic" either: that can switch on bank debits, which settle days
+      // later, after the round has closed, and would be refunded as late.
       payment_method_types: ["card"],
       metadata: {
         kind: "vote_pack",
@@ -80,6 +96,12 @@ serve(async (req) => {
       p_buyer_email: buyerEmail,
       p_payment_intent: intent.id,
       p_newsletter_opt_in: optIn,
+      p_plays_again_opt_in: playsAgain,
+      // Sent only when set, so a checkout still parks against a database a
+      // migration behind.
+      ...(ref ? { p_ref: ref } : {}),
+      ...(cheer ? { p_cheer: cheer, p_cheer_name: cheerFrom } : {}),
+      ...(remind ? { p_reminder_opt_in: true } : {}),
     })
     .single<Parked>();
 

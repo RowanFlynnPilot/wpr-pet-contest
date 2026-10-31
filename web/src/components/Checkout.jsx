@@ -50,7 +50,8 @@ export function CheckoutProvider({ children }) {
   const [target, setTarget] = useState(null)
   const [CheckoutModal, setModal] = useState(() => lazy(loadModal))
   const [attempts, setAttempts] = useState(0)
-  const open = useCallback((entry, round) => setTarget({ entry, round, key: Date.now() }), [])
+  // opts.pack: a pack to start on (the checkout reminder's link).
+  const open = useCallback((entry, round, opts = {}) => setTarget({ entry, round, pack: opts.pack || null, key: Date.now() }), [])
   const close = useCallback(() => setTarget(null), [])
   const retry = () => {
     setModal(() => lazy(loadModal))
@@ -62,7 +63,7 @@ export function CheckoutProvider({ children }) {
       {target && (
         <LoadBoundary key={attempts} fallback={<LoadFailed again={attempts > 0} onRetry={retry} onClose={close} />}>
           <Suspense fallback={null}>
-            <CheckoutModal key={target.key} entry={target.entry} round={target.round} onClose={close} />
+            <CheckoutModal key={target.key} entry={target.entry} round={target.round} initialPack={target.pack} onClose={close} />
           </Suspense>
         </LoadBoundary>
       )}

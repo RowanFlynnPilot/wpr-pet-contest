@@ -5,7 +5,7 @@ import { Lamp } from './Scoreboard.jsx'
 import PetPhoto from './PetPhoto.jsx'
 import VoteButton from './VoteButton.jsx'
 
-// A side that names an entry the public cannot see was disqualified (every
+// A side that names an entry the public cannot see was disqualified or withdrawn (every
 // approved entry is loaded). "TBD" is only for a slot not yet decided.
 const sideName = (side) => side.entry?.pet_name || (side.id ? 'Removed' : 'TBD')
 
@@ -79,16 +79,16 @@ export default function MatchupCard({ matchup, totals, byId, round, live = false
       <Side side={s.b} cls={cls('b')} share={share(s.b.votes)} showVotes={live || decided} />
       {walkover && (
         <p className="matchup-foot small muted" style={{ margin: 0 }}>
-          {remaining.pet_name} advances: its opponent was disqualified.
+          {remaining.pet_name} advances: its opponent is out of the contest.
         </p>
       )}
       {live && s.a.entry && s.b.entry && (
         <div className="matchup-foot">
           <VoteButton entry={s.a.entry} round={round} className="btn btn-ghost btn-sm">
-            Vote {s.a.entry.pet_name}
+            <span className="btn-clip">Vote {s.a.entry.pet_name}</span>
           </VoteButton>
           <VoteButton entry={s.b.entry} round={round} className="btn btn-ghost btn-sm">
-            Vote {s.b.entry.pet_name}
+            <span className="btn-clip">Vote {s.b.entry.pet_name}</span>
           </VoteButton>
         </div>
       )}

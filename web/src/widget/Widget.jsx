@@ -1,7 +1,7 @@
-// The article widget: a compact card for any WPR story or sidebar that turns
-// the pageview into a way into the contest. Reads only what its card shows,
-// refreshes once a minute, and links out to the contest page.
-import { SPONSORS, WPR_BADGE } from '../config.js'
+// The article widget: a compact card for any of the newsroom's stories or
+// sidebars that turns the pageview into a way into the contest. Reads only
+// what its card shows, refreshes once a minute, and links out to the contest page.
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { withUtm } from '../components/Sponsor.jsx'
 import { track } from '../lib/analytics.js'
 import {
@@ -10,13 +10,14 @@ import {
   fetchEntriesByAge,
   fetchEntriesByIds,
   fetchEntry,
+  fetchLastChance,
   fetchMatchups,
   fetchRounds,
   fetchStats,
   fetchTotals,
 } from '../lib/api.js'
 import { activeWindow, windowTitle } from '../lib/bonus.js'
-import { apTime, fmtInt, fmtMoney } from '../lib/format.js'
+import { apCount, apDate, apTime, fmtInt, fmtMoney } from '../lib/format.js'
 import { useLive } from '../lib/live.js'
 import { contestPhase, pickActiveContest } from '../lib/phase.js'
 import { entryPhotoUrl } from '../lib/photos.js'
@@ -65,9 +66,9 @@ function Enter({ contest, stats, to, now }) {
   const left = timeLeft(contest.submissions_close_at, now)
   return (
     <>
-      <p className="w-headline">Is your pet the cutest in Marathon County?</p>
+      <p className="w-headline">Is your pet the cutest in {NEWSROOM.region}?</p>
       <p className="w-sub">
-        Entering is free. {stats?.entries ? `${fmtInt(stats.entries)} pets are in so far.` : 'Be one of the first.'}
+        Entering is free. {stats?.entries ? `${apCount(stats.entries, 'pet')} ${stats.entries === 1 ? 'is' : 'are'} in so far.` : 'Be one of the first.'}
         {left ? ` Entries close in ${left.replace(' left', '')}.` : ''}
       </p>
       {recent.data?.length > 0 && (
@@ -79,6 +80,20 @@ function Enter({ contest, stats, to, now }) {
       )}
       <Cta href={linkTo(to, 'enter')} view="enter">
         Enter your pet
+      </Cta>
+    </>
+  )
+}
+
+// Before entries open (the announcement's two weeks): when, and how to get
+// ready, never an Enter button that leads to a closed form.
+function EntriesSoon({ contest, to }) {
+  return (
+    <>
+      <p className="w-headline">Is your pet the cutest in {NEWSROOM.region}?</p>
+      <p className="w-sub">Entries open {apDate(contest.submissions_open_at)}. It&rsquo;s free, with one phone photo, so get your best one ready.</p>
+      <Cta href={linkTo(to, 'enter')} view="enter">
+        How to enter
       </Cta>
     </>
   )
@@ -112,12 +127,25 @@ function MatchupSkeleton() {
 
 function Leaderboard({ contest, round, to }) {
   const totals = useLive(`w:totals:${round.id}`, () => fetchTotals(round.id), REFRESH)
-  const ids = totals.data ? leaderIds(totals.data) : null
+  // Last Chance (0032): the board is the pets racing for the last seed.
+  const overtime = Boolean(round.mainClosesAt)
+  const field = useLive(overtime ? `w:lc:${round.id}` : null, () => fetchLastChance(round.id), 0)
+  const poolIds = overtime && field.data ? field.data.filter((f) => f.pool).map((f) => f.entry_id) : null
+  const ids = overtime ? poolIds : totals.data ? leaderIds(totals.data) : null
   // A stable key: the store keeps refreshing with the latest ids rather than
   // a new store being made every time the order changes.
   const leaders = useLive(ids && `w:leaders:${round.id}`, () => fetchEntriesByIds(ids), REFRESH)
-  const earliest = useLive(`w:earliest:${contest.id}`, () => fetchEntriesByAge(contest.id, 5), 0)
-  const rows = totals.data && leaders.data && earliest.data ? topOpenRound(totals.data, [...leaders.data, ...earliest.data]) : null
+  const earliest = useLive(overtime ? null : `w:earliest:${contest.id}`, () => fetchEntriesByAge(contest.id, 5), 0)
+  let rows = null
+  if (overtime) {
+    if (totals.data && leaders.data && field.data) {
+      const start = new Map(field.data.map((f) => [f.entry_id, f.place]))
+      rows = leaders.data
+        .map((e) => ({ entry: e, votes: totals.data.get(e.id)?.votes || 0 }))
+        .sort((a, b) => b.votes - a.votes || (start.get(a.entry.id) || 999) - (start.get(b.entry.id) || 999))
+        .map((r, i) => ({ ...r, rank: i + 1 }))
+    }
+  } else if (totals.data && leaders.data && earliest.data) rows = topOpenRound(totals.data, [...leaders.data, ...earliest.data])
   if (!rows) return <LeaderboardSkeleton />
   return (
     <>
@@ -136,8 +164,8 @@ function Leaderboard({ contest, round, to }) {
           </li>
         ))}
       </ol>
-      <Cta href={linkTo(to, 'gallery')} view="leaderboard">
-        See every pet and vote
+      <Cta href={linkTo(to, overtime ? '' : 'gallery')} view="leaderboard">
+        {overtime ? 'Vote in Last Chance' : 'See every pet and vote'}
       </Cta>
     </>
   )
@@ -229,6 +257,12 @@ function Champion({ rounds, to }) {
 function PetCard({ pet, round, contest, voting, to }) {
   const totals = useLive(round && `w:totals:${round.id}`, () => fetchTotals(round.id), REFRESH)
   const votes = totals.data?.get(pet.id)?.votes || 0
+  // Last Chance (0032): only its pool can be voted for.
+  const overtime = Boolean(round?.mainClosesAt)
+  const field = useLive(overtime ? `w:lc:${round.id}` : null, () => fetchLastChance(round.id), 0)
+  const mine = overtime ? (field.data || []).find((f) => f.entry_id === pet.id) : null
+  const canVote = voting && round?.seq === 1 && (!overtime || Boolean(mine?.pool))
+  const note = overtime && !mine?.pool ? (mine && mine.place < contest.bracket_size ? `Finished No. ${mine.place} and is in the bracket` : 'Voting has closed for this pet') : null
   const plain = (
     <>
       <div className="w-champ">
@@ -238,13 +272,13 @@ function PetCard({ pet, round, contest, voting, to }) {
           <p className="w-sub">{pet.town}</p>
           {voting && round?.seq === 1 && (
             <p className="w-votes-line">
-              {fmtInt(votes)} {votes === 1 ? 'vote' : 'votes'} in the Open Round
+              {note || `${fmtInt(votes)} ${votes === 1 ? 'vote' : 'votes'} in the ${overtime ? 'Open Round, racing in Last Chance' : 'Open Round'}`}
             </p>
           )}
         </div>
       </div>
       <Cta href={linkTo(to, `pet/${pet.id}`)} view="pet">
-        {voting && round?.seq === 1 ? `Vote for ${pet.pet_name}` : `See ${pet.pet_name}’s page`}
+        {canVote ? `Vote for ${pet.pet_name}` : `See ${pet.pet_name}’s page`}
       </Cta>
     </>
   )
@@ -275,7 +309,7 @@ export default function Widget({ params }) {
   if (!d.ready) return <main className="w-card" aria-busy="true" aria-label="Loading the contest" />
 
   let body = null
-  if (view === 'enter') body = <Enter contest={d.contest} stats={d.stats} to={params.to} now={now} />
+  if (view === 'enter') body = phase === 'coming' ? <EntriesSoon contest={d.contest} to={params.to} /> : <Enter contest={d.contest} stats={d.stats} to={params.to} now={now} />
   else if (view === 'leaderboard') body = <Leaderboard contest={d.contest} round={round} to={params.to} />
   else if (view === 'matchup') body = <Matchup round={round} bracketSize={d.contest.bracket_size} to={params.to} />
   else if (view === 'champion') body = <Champion rounds={d.rounds} to={params.to} />
@@ -297,12 +331,12 @@ export default function Widget({ params }) {
     // heading for screen reader users who land in it.
     <main className="w-card">
       <header className="w-head">
-        <img src={WPR_BADGE} alt="" width="28" height="28" />
+        {NEWSROOM.badge && <img src={NEWSROOM.badge} alt="" width="28" height="28" />}
         <h1 className="w-kicker">
           {d.contest.name}
           {round && (phase === 'voting' || phase === 'counting') && (
             <span className="w-phase">
-              {roundLabel(round.seq, d.contest.bracket_size)}
+              {round.mainClosesAt ? 'Last Chance' : roundLabel(round.seq, d.contest.bracket_size)}
               {left ? ` · ${left}` : ' · voting closed'}
             </span>
           )}
@@ -333,7 +367,7 @@ export default function Widget({ params }) {
             )}
           </span>
         )}
-        <span className="w-by">A Wausau Pilot &amp; Review contest</span>
+        <span className="w-by">A contest from {NEWSROOM.name}</span>
       </footer>
     </main>
   )

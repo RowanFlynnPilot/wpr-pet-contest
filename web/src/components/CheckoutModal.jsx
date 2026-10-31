@@ -1,22 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import { NEWSLETTER_URL, RULES, SUPPORT_URL } from '../config.js'
-import { createCheckout, fetchActivity, fetchTotals } from '../lib/api.js'
-import { APP_BASE, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
-import { apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
-import { bestValue, defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
+import { NEWSLETTER_URL, NEWSROOM, RULES, SUPPORT_URL } from '../config.js'
+import { tokenColor, tokenFont } from '../lib/theme.js'
+import { createCheckout, fetchActivity, fetchTotals, mockPay } from '../lib/api.js'
+import { APP_BASE, MOCK_CHECKOUT, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
+import { andList, apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
+import { defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
 import { roundLabel } from '../lib/rounds.js'
 import { boostLive, useLive } from '../lib/live.js'
-import { totalsKey, useActivity } from '../lib/data.js'
+import { totalsKey, useActivity, useBracket, useContestTotals, useEntries } from '../lib/data.js'
+import { packImpact } from '../lib/impact.js'
+import { clubLabel, milestone } from '../lib/milestones.js'
+import { viaFor } from '../lib/referral.js'
+import { CHEERS, cheerLabel, cheerQuote, cleanCheerName } from '../lib/cheers.js'
 import { multiplierWord, windowTitle } from '../lib/bonus.js'
 import { track } from '../lib/analytics.js'
 import { useNow } from '../lib/hooks.js'
 import { useContest } from './ContestContext.jsx'
 import Confetti from './Confetti.jsx'
+import { buzz } from '../lib/haptics.js'
 import { Check } from './Icons.jsx'
 import { Digits } from './Scoreboard.jsx'
+import { ShelterMark } from './ShelterLogo.jsx'
 import Modal from './Modal.jsx'
 import PetPhoto from './PetPhoto.jsx'
 import ShareTools from './ShareTools.jsx'
@@ -42,27 +49,38 @@ const CLOSING_SOON_MS = 5 * 60 * 1000
 const SLOW_CREDIT_MS = 3 * 60 * 1000
 const activityKey = (r) => `${r.entry_id}|${r.votes}|${r.confirmed_at}`
 
-const APPEARANCE = {
+// The card form in the theme's colors and face, read when the form opens.
+const appearance = () => ({
   theme: 'stripe',
   variables: {
-    colorPrimary: '#2b655d',
-    colorText: '#1a1a1a',
-    colorDanger: '#9b2226',
-    fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    colorPrimary: tokenColor('--brand-ink', '#2b655d'),
+    colorText: tokenColor('--ink', '#1a1a1a'),
+    colorDanger: tokenColor('--danger', '#9b2226'),
+    fontFamily: tokenFont('--sans', '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
     fontSizeBase: '16px',
     borderRadius: '8px',
   },
-}
-const FONTS = [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap' }]
+})
+const FONTS = [{ cssSrc: NEWSROOM.fonts || 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&display=swap' }]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const NO_ROUNDS = []
 
-export default function CheckoutModal({ entry, round, onClose }) {
+// `initialPack`: a pack to start on (the checkout reminder's link names the
+// one the reader chose before).
+export default function CheckoutModal({ entry, round, onClose, initialPack = null }) {
   const c = useContest()
   const packs = useMemo(() => orderPacksForDisplay(c.packs), [c.packs])
-  const [picked, setSlug] = useState(null)
-  const slug = picked ?? defaultPack(c.packs)?.slug ?? null
+  const [picked, setSlug] = useState(initialPack)
+  const slug = (picked && c.packs.some((p) => p.slug === picked) ? picked : null) ?? defaultPack(c.packs)?.slug ?? null
   const [email, setEmail] = useState('')
   const [optIn, setOptIn] = useState(false)
+  const [playsAgain, setPlaysAgain] = useState(false)
+  // A cheer (lib/cheers.js) and the first name to show with it, both
+  // optional; and the one reminder if this checkout doesn't finish.
+  const [cheer, setCheer] = useState(null)
+  const [cheerName, setCheerName] = useState('')
+  const [cheerNameError, setCheerNameError] = useState(null)
+  const [remind, setRemind] = useState(false)
   const [step, setStep] = useState('pack')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -74,13 +92,30 @@ export default function CheckoutModal({ entry, round, onClose }) {
   const totals = useLive(totalsKey(round.id), () => fetchTotals(round.id), 20000)
   const currentVotes = totals.data?.get(entry.id)?.votes || 0
   const activity = useActivity(receipt ? round.id : null)
+  // The other rounds' votes, for the milestone line on the thank-you screen
+  // (this round's come from the live total above). Loaded once the pack is paid.
+  const otherRounds = useMemo(() => (receipt ? c.rounds.filter((r) => r.id !== round.id) : []), [receipt, c.rounds, round.id])
+  const others = useContestTotals(otherRounds)
   const [stripe, setStripe] = useState({ status: 'idle', value: null })
 
   const pack = packs.find((p) => p.slug === slug) || null
-  const best = bestValue(packs)
+  // What the chosen pack would do on the standings right now (lib/impact.js).
+  const { entries, byId } = useEntries(c.contest?.id)
+  const { matchups } = useBracket(round.kind === 'bracket' ? c.rounds : NO_ROUNDS, { openRoundId: round.id })
+  // Stripe, or the mock API's stand-in for it on a demo build.
+  const canPay = Boolean(STRIPE_PUBLISHABLE_KEY) || MOCK_CHECKOUT
   const multiplier = c.bonus?.multiplier || 1
   const split = c.contest?.beneficiary_split_pct
+  const who = andList(c.shelters.map((s) => s.name).filter(Boolean)) || 'the partner shelters'
   const label = roundLabel(round.seq, c.bracketSize)
+  const packVotes = pack ? votesWithBonus(pack, multiplier) : 0
+  const impact = useMemo(
+    () =>
+      totals.data && pack
+        ? packImpact({ entry, votes: packVotes, round, totals: totals.data, entries, matchups, byId, lastChance: c.lastChance, bracketSize: c.bracketSize })
+        : null,
+    [totals.data, pack, packVotes, entry, round, entries, matchups, byId, c.lastChance, c.bracketSize],
+  )
   // The deadline is when payment must complete. Past it, nobody is offered a
   // Pay button: the server would refund the votes anyway.
   const now = useNow(1000)
@@ -108,6 +143,13 @@ export default function CheckoutModal({ entry, round, onClose }) {
       return
     }
     setEmailError(null)
+    const name = cheer ? cleanCheerName(cheerName) : ''
+    if (name === null) {
+      setCheerNameError('Use your first name: letters only, up to 20.')
+      document.getElementById('checkout-cheer-name')?.focus()
+      return
+    }
+    setCheerNameError(null)
     if (!pack || busy) return
     const body = {
       pack_slug: pack.slug,
@@ -115,6 +157,11 @@ export default function CheckoutModal({ entry, round, onClose }) {
       entry_id: entry.id,
       buyer_email: email.trim(),
       newsletter_opt_in: optIn,
+      plays_again_opt_in: playsAgain,
+      // Arrived through the owner's link this week (lib/referral.js).
+      ...(viaFor(entry.id) ? { ref: 'owner' } : {}),
+      ...(cheer ? { cheer, ...(name ? { cheer_name: name } : {}) } : {}),
+      ...(remind ? { reminder_opt_in: true } : {}),
     }
     setBusy(true)
     // This pet's recent purchases before this one, so the success screen can
@@ -151,6 +198,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
   function paid(paidIntent, paidAt) {
     setReceipt({ ...paidIntent, paidAt })
     setStep('done')
+    buzz()
     boostLive(totalsKey(round.id))
     boostLive(`activity:${round.id}`)
     track(
@@ -215,10 +263,10 @@ export default function CheckoutModal({ entry, round, onClose }) {
             <p className="notice warn" style={{ marginBottom: 14 }}>
               <span>
                 <strong>
-                  ×{c.bonus.multiplier} {windowTitle(c.bonus)} is on!
+                  ×{c.bonus.multiplier} {windowTitle(c.bonus)}
+                  {c.bonus.sponsor_name && <span className="notice-by"> · {c.bonus.sponsor_name}</span>}
                 </strong>
-                Every pack counts {multiplierWord(c.bonus.multiplier).toLowerCase()} if you start checkout before it ends.
-                {c.bonus.sponsor_name && <> Presented by {c.bonus.sponsor_name}.</>}
+                Every pack counts {multiplierWord(c.bonus.multiplier).toLowerCase()} if you continue before it ends.
               </span>
             </p>
           )}
@@ -245,8 +293,12 @@ export default function CheckoutModal({ entry, round, onClose }) {
                       <span className="dot" aria-hidden="true" />
                       <span>
                         <span className="pack-votes">
-                          {multiplier > 1 && <s>{fmtInt(p.votes)}</s>}
-                          {fmtInt(votesWithBonus(p, multiplier))} votes
+                          <span className="pack-count">{fmtInt(votesWithBonus(p, multiplier))} votes</span>
+                          {multiplier > 1 && (
+                            <span className="pack-was">
+                              ×{multiplier} from {fmtInt(p.votes)}
+                            </span>
+                          )}
                         </span>
                         <span className="pack-meta">
                           <span>{p.label}</span>
@@ -256,24 +308,33 @@ export default function CheckoutModal({ entry, round, onClose }) {
                       </span>
                       <span className="pack-price">{fmtMoney(p.cents)}</span>
                     </label>
-                    {p.featured ? (
-                      <span className="pack-tag">Most popular</span>
-                    ) : best && best.slug === p.slug && packs.length > 2 ? (
-                      <span className="pack-tag value">Best value</span>
-                    ) : null}
+                    {/* One tag only, the featured pack's. No "Best value" on the
+                        biggest pack: the per-vote price says it without a push. */}
+                    {p.featured && <span className="pack-tag">Most popular</span>}
                   </div>
                 )
               })}
             </fieldset>
           )}
+          {/* The buyer's real question, answered on the live standings. */}
+          <p className="pack-impact" aria-live="polite" hidden={!impact}>
+            {impact && (
+              <>
+                Right now, {fmtInt(packVotes)} votes would {impact.replace(/No\. (\d)/g, 'No.\u00a0$1')}.
+              </>
+            )}
+          </p>
 
           <div className="field">
             <label htmlFor="checkout-email">Email for your receipt</label>
             <input
               id="checkout-email"
+              name="email"
               type="email"
               autoComplete="email"
               inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               aria-invalid={emailError ? 'true' : undefined}
@@ -286,10 +347,62 @@ export default function CheckoutModal({ entry, round, onClose }) {
               </span>
             )}
           </div>
-          <label className="check" style={{ marginBottom: 14 }}>
-            <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
-            <span>Send me Wausau Pilot &amp; Review&rsquo;s free daily newsletter.</span>
-          </label>
+          <details className="cheer-box" open={Boolean(cheer)}>
+            <summary>Add a cheer for {entry.pet_name} (optional)</summary>
+            <fieldset className="cheer-pick">
+              <legend className="sr-only">Pick a cheer</legend>
+              <div className="chips">
+                {CHEERS.map((ch) => (
+                  <label key={ch.code} className={`chip${cheer === ch.code ? ' is-on' : ''}`}>
+                    <input type="radio" className="sr-only" name="cheer" value={ch.code} checked={cheer === ch.code} onChange={() => setCheer(ch.code)} />
+                    {cheerLabel(ch.code, entry.pet_name)}
+                  </label>
+                ))}
+                {cheer && (
+                  <button type="button" className="link-btn small" onClick={() => setCheer(null)}>
+                    No cheer
+                  </button>
+                )}
+              </div>
+            </fieldset>
+            {cheer && (
+              <div className="field" style={{ marginTop: 10, marginBottom: 0 }}>
+                <label htmlFor="checkout-cheer-name">Your first name (optional)</label>
+                <input
+                  id="checkout-cheer-name"
+                  type="text"
+                  autoComplete="given-name"
+                  maxLength={20}
+                  value={cheerName}
+                  onChange={(e) => setCheerName(e.target.value)}
+                  aria-invalid={cheerNameError ? 'true' : undefined}
+                  aria-describedby="checkout-cheer-hint"
+                />
+                <span className={cheerNameError ? 'error-text' : 'hint'} id="checkout-cheer-hint">
+                  {cheerNameError || 'Shown with your cheer. Leave it empty to cheer anonymously.'}
+                </span>
+              </div>
+            )}
+            <p className="small muted" style={{ margin: '8px 0 0' }}>
+              Cheers show in the live feed and on {entry.pet_name}&rsquo;s page once your payment goes through.
+            </p>
+          </details>
+          {/* One group, so a reader can skip all three at once. All unchecked. */}
+          <fieldset className="checkout-opts">
+            <legend className="label">Optional emails</legend>
+            <label className="check">
+              <input type="checkbox" checked={playsAgain} onChange={(e) => setPlaysAgain(e.target.checked)} />
+              <span>Email me when {entry.pet_name} plays again (this contest only, one email a round).</span>
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={remind} onChange={(e) => setRemind(e.target.checked)} />
+              <span>If this checkout doesn&rsquo;t finish, email me once before voting closes.</span>
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
+              <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
+            </label>
+          </fieldset>
 
           {error && (
             <div className="notice error" role="alert" style={{ marginBottom: 12 }}>
@@ -297,7 +410,7 @@ export default function CheckoutModal({ entry, round, onClose }) {
             </div>
           )}
 
-          {!STRIPE_PUBLISHABLE_KEY ? (
+          {!canPay ? (
             <div className="notice warn">
               <span>
                 <strong>Checkout isn&rsquo;t switched on yet.</strong>
@@ -305,15 +418,19 @@ export default function CheckoutModal({ entry, round, onClose }) {
               </span>
             </div>
           ) : (
-            <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={!pack || busy}>
-              {busy ? 'One moment…' : pack ? `Continue · ${fmtMoney(pack.cents)}` : 'Choose a pack'}
-            </button>
+            // Pinned to the bottom of the sheet on phones, where the packs,
+            // the cheer and the boxes push it below the first screen.
+            <div className="checkout-cta">
+              <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={!pack || busy}>
+                {busy ? 'One moment…' : pack ? `Continue to payment · ${fmtMoney(pack.cents)}` : 'Choose a pack'}
+              </button>
+            </div>
           )}
-          <Legal split={split} label={label} />
+          <Legal split={split} who={who} label={label} />
         </form>
       )}
 
-      {step === 'pay' && intent && STRIPE_PUBLISHABLE_KEY && (!closed || paying) && (
+      {step === 'pay' && intent && canPay && (!closed || paying) && (
         <>
           <div className="summary-line">
             <span>
@@ -327,7 +444,9 @@ export default function CheckoutModal({ entry, round, onClose }) {
             </span>
             <b>{fmtMoney(intent.cents)}</b>
           </div>
-          {stripe.status === 'error' ? (
+          {intent.mock && MOCK_CHECKOUT ? (
+            <MockPay intent={intent} onPaid={paid} />
+          ) : stripe.status === 'error' ? (
             <div className="notice error" role="alert">
               <span>
                 <strong>The payment form couldn&rsquo;t load.</strong>
@@ -338,8 +457,8 @@ export default function CheckoutModal({ entry, round, onClose }) {
               </span>
             </div>
           ) : stripe.status === 'ready' ? (
-            <Elements stripe={stripe.value} options={{ clientSecret: intent.client_secret, appearance: APPEARANCE, fonts: FONTS }}>
-              <PayForm intent={intent} entry={entry} email={email.trim()} onPaid={paid} onBusy={setPaying} split={split} label={label} />
+            <Elements stripe={stripe.value} options={{ clientSecret: intent.client_secret, appearance: appearance(), fonts: FONTS }}>
+              <PayForm intent={intent} entry={entry} email={email.trim()} onPaid={paid} onBusy={setPaying} split={split} who={who} label={label} />
             </Elements>
           ) : (
             <div className="stripe-slot skeleton" style={{ height: 220 }} role="status" aria-label="Loading the payment form" />
@@ -360,10 +479,13 @@ export default function CheckoutModal({ entry, round, onClose }) {
           label={label}
           closesAt={closesAt}
           currentVotes={currentVotes}
+          contestVotes={(others.get(entry.id) || 0) + currentVotes}
           contestName={c.contest?.name}
           split={c.contest?.beneficiary_split_pct}
-          shelterName={c.shelters.length === 1 ? c.shelters[0].name : null}
+          shelter={c.shelters.length === 1 ? c.shelters[0] : null}
           canBuyAgain={!closed}
+          cheer={cheer ? cheerQuote(cheer, entry.pet_name) : null}
+          cheerFrom={cheer ? cleanCheerName(cheerName) || null : null}
           onAgain={() => {
             request.current = null
             setIntent(null)
@@ -377,17 +499,56 @@ export default function CheckoutModal({ entry, round, onClose }) {
   )
 }
 
-function Legal({ split, label }) {
+// Shown before payment, on both steps, so no buyer can say they missed it:
+// the split as the rules state it, and what happens if a pet leaves.
+function Legal({ split, who, label }) {
+  const share = split === 50 ? 'Half' : split != null ? `${split}%` : 'A share'
   return (
     <p className="legal">
-      <strong>Vote pack purchases are not tax-deductible.</strong>{' '}
-      {split != null ? `${split}% of proceeds go to the partner shelters.` : 'A share of proceeds goes to the partner shelters.'}{' '}
-      Votes count in the {label} only; totals reset every round. <a href="#/rules">Rules</a>
+      <strong>Vote pack purchases are not tax-deductible.</strong> {share} of vote pack sales, after refunds, goes to {who}; card fees are{' '}
+      {NEWSROOM.shortName}&rsquo;s. Votes count in the {label} only; totals reset every round.{' '}
+      <strong>If an owner withdraws their pet, vote packs already bought for it are not refunded.</strong> If a pet is disqualified, they
+      are. <a href="#/rules">Rules</a>
     </p>
   )
 }
 
-function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
+// The mock API's stand-in for the card form: one button, no charge. Only
+// reachable on a build with MOCK_CHECKOUT set, against an API that says so.
+function MockPay({ intent, onPaid }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  async function pay() {
+    setBusy(true)
+    setError(null)
+    try {
+      await mockPay(intent.id)
+      onPaid(intent, Date.now())
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="mock-pay">
+      <div className="notice warn" style={{ marginBottom: 12 }}>
+        <span>
+          <strong>Demo checkout.</strong> No card and no charge: this button stands in for the payment form.
+        </span>
+      </div>
+      {error && (
+        <div className="notice error" role="alert" style={{ marginBottom: 12 }}>
+          <span>{error}</span>
+        </div>
+      )}
+      <button type="button" className="btn btn-primary btn-lg btn-block" onClick={pay} disabled={busy}>
+        {busy ? 'One moment…' : `Pay ${fmtMoney(intent.cents)} (pretend)`}
+      </button>
+    </div>
+  )
+}
+
+function PayForm({ intent, entry, email, onPaid, onBusy, split, who, label }) {
   const stripe = useStripe()
   const elements = useElements()
   const [ready, setReady] = useState(false)
@@ -429,7 +590,14 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
         <PaymentElement
           onReady={() => setReady(true)}
           onLoadError={() => setError('The payment form could not load. Check your connection, then close this window and try again.')}
-          options={{ layout: 'tabs', wallets: { applePay: 'auto', googlePay: 'auto' }, paymentMethodOrder: ['apple_pay', 'google_pay', 'card'] }}
+          // The email already typed, so Link (Stripe's saved-details
+          // wallet) recognizes a returning buyer and offers one-click pay.
+          options={{
+            layout: 'tabs',
+            wallets: { applePay: 'auto', googlePay: 'auto' },
+            paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
+            defaultValues: { billingDetails: { email } },
+          }}
         />
       </div>
       {error && (
@@ -440,7 +608,7 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
       <button type="submit" className="btn btn-primary btn-lg btn-block" style={{ marginTop: 14 }} disabled={!stripe || !ready || busy}>
         {busy ? 'Processing…' : `Pay ${fmtMoney(intent.cents)}`}
       </button>
-      <Legal split={split} label={label} />
+      <Legal split={split} who={who} label={label} />
     </form>
   )
 }
@@ -448,7 +616,27 @@ function PayForm({ intent, entry, email, onPaid, onBusy, split, label }) {
 // The peak of the whole contest for a reader: their pet, its count lighting
 // up as the votes land, and what the pack did for the shelters. A late
 // payment gets the plain truth instead of a celebration.
-function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestName, split, shelterName, canBuyAgain, onAgain, onClose }) {
+// After a paid pack lands: a club this pack unlocked, or how far to the next.
+function ClubNudge({ name, total, bought }) {
+  const now = milestone(total)
+  const before = milestone(total - bought)
+  if (now.earned && now.earned !== before.earned) {
+    return (
+      <p className="done-club joined">
+        <span aria-hidden="true">🏅</span> Your pack put {name} in the <strong>{clubLabel(now.earned)}</strong>.
+      </p>
+    )
+  }
+  if (!now.next) return null
+  return (
+    <p className="done-club">
+      <span aria-hidden="true">🏅</span> {fmtInt(now.toNext)} more {now.toNext === 1 ? 'vote' : 'votes'} and {name} joins the{' '}
+      <strong>{clubLabel(now.next)}</strong>.
+    </p>
+  )
+}
+
+function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestVotes, contestName, split, shelter, canBuyAgain, onAgain, onClose, cheer = null, cheerFrom = null }) {
   const votes = fmtInt(intent.votes)
   const late = outcome === 'late'
   const toShelters = split != null ? Math.round((intent.cents * split) / 100) : null
@@ -466,7 +654,7 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
           <h2 className="done-title">{late ? 'Payment received' : `${votes} votes for ${entry.pet_name}`}</h2>
           {!late && (
             <div className="done-board">
-              <Digits value={currentVotes} label={`${entry.pet_name} has ${fmtInt(currentVotes)} votes this round`} />
+              <Digits value={currentVotes} label={`${entry.pet_name} has ${fmtInt(currentVotes)} ${currentVotes === 1 ? 'vote' : 'votes'} this round`} />
               <span className="done-board-label">{outcome === 'credited' ? 'votes this round, yours included' : 'votes this round so far'}</span>
             </div>
           )}
@@ -474,7 +662,22 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
       </div>
       {!late && toShelters > 0 && (
         <p className="done-impact">
-          Your pack sends <strong>{fmtMoney(toShelters)}</strong> to {shelterName || 'local animal shelters'}.
+          Your pack sends <strong>{fmtMoney(toShelters)}</strong> to{' '}
+          {shelter ? (
+            <span className="shelter-lockup">
+              <ShelterMark shelter={shelter} size={40} />
+              {shelter.url ? (
+                <a href={shelter.url} target="_blank" rel="noopener noreferrer">
+                  {shelter.name}
+                </a>
+              ) : (
+                shelter.name
+              )}
+            </span>
+          ) : (
+            'local animal shelters'
+          )}
+          .
         </p>
       )}
       <div className="done-status">
@@ -503,6 +706,13 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
             </>
           )}
         </p>
+        {!late && cheer && (
+          <p className="done-cheer">
+            <span className="done-cheer-text">{cheer}</span>
+            {cheerFrom ? ` from ${cheerFrom}` : ''} {outcome === 'credited' ? 'is' : 'goes'} up on {entry.pet_name}&rsquo;s page.
+          </p>
+        )}
+        {outcome === 'credited' && <ClubNudge name={entry.pet_name} total={contestVotes} bought={intent.votes} />}
       </div>
 
       {!late && <ShareTools entry={entry} contestName={contestName} title={`Now get ${entry.pet_name} more votes`} compact />}
@@ -519,9 +729,9 @@ function Done({ entry, intent, outcome, label, closesAt, currentVotes, contestNa
       </div>
 
       <p className="done-support">
-        Your vote pack isn&rsquo;t a donation. WPR is a nonprofit newsroom:{' '}
+        Your vote pack isn&rsquo;t a donation. {NEWSROOM.nonprofit ? `${NEWSROOM.shortName} is a nonprofit newsroom:` : `Support ${NEWSROOM.shortName}:`}{' '}
         <a href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" onClick={() => track('Donate Click', { from: 'post-purchase' })}>
-          make a tax-deductible gift
+          {NEWSROOM.nonprofit ? 'make a tax-deductible gift' : 'subscribe'}
         </a>{' '}
         or{' '}
         <a href={NEWSLETTER_URL} target="_blank" rel="noopener noreferrer">

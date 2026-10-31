@@ -97,7 +97,7 @@ describe('wrapping helpers', () => {
     expect(wrapBalanced('Sir Reginald Fluffington III', widthAt(10))).toEqual(['Sir Reginald', 'Fluffington III'])
   })
   it('greedy wrap breaks an oversized word only when allowed', () => {
-    expect(wrapGreedy('Supercalifragilistic', widthAt(10), 50)).toEqual(['Supercalif', 'ragilistic'])
+    expect(wrapGreedy('Supercalifragilistic', widthAt(10), 50)).toEqual(['Superca-', 'lifrag-', 'ilistic'])
     expect(wrapGreedy('Supercalifragilistic', widthAt(10), 50, { breakWords: false })).toEqual(['Supercalifragilistic'])
     for (const l of wrapGreedy('Supercalifragilistic', widthAt(10), 50)) expect(measure(l, 10)).toBeLessThanOrEqual(50)
   })
@@ -215,7 +215,8 @@ describe('ownerCopy by phase', () => {
 
 describe('shelterLine', () => {
   it('states the split', () => {
-    expect(shelterLine(30)).toBe('30% of every vote pack helps local animal shelters')
+    expect(shelterLine(30)).toBe('30% of every vote pack goes to local animal shelters')
+    expect(shelterLine(50, ['Moments Foster Care'])).toBe('Half of every vote pack goes to Moments Foster Care')
     expect(shelterLine(null)).toBe('Every vote pack helps local animal shelters')
   })
 })
@@ -250,7 +251,7 @@ describe('leaderboard and bubble', () => {
     tied.set('e17', { votes: 350 })
     const b = bubbleRows(rankOpenRound(entries, tied), 16)
     expect(b.rows.find((r) => r.rank === 16).note).toBe('Tied with #17, in on the tiebreak')
-    expect(b.rows.find((r) => r.rank === 17).note).toBe('1 vote from the bracket')
+    expect(b.rows.find((r) => r.rank === 17).note).toBe('one vote from the bracket')
   })
 
   it('has no bubble when everyone qualifies', () => {
@@ -288,7 +289,7 @@ describe('matchups', () => {
 
   it('names a walkover instead of selling it as a race', () => {
     const [card] = matchupCards([m('m0', 'r2', 0, 'e1', 'gone')], r2, t, byId)
-    expect(matchupLine(card)).toBe('Pet 1 advances: its opponent was disqualified')
+    expect(matchupLine(card)).toBe('Pet 1 advances: its opponent is out of the contest')
   })
 
   it('reports a decided matchup as a final score', () => {

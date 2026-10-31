@@ -9,6 +9,8 @@ import { APP_BASE, PUBLIC_URL, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
 import { useNow } from '../lib/hooks.js'
 import { admin, q, SessionError } from './adminClient.js'
 import { ErrorNote, TypedConfirm, useAsync, useDesk } from './shared.jsx'
+import { FreeVoteSetting } from './FreeVotes.jsx'
+import LastChanceSetting from './LastChance.jsx'
 
 const BRACKETS = [8, 16, 32]
 const ROUND_HOURS = [24, 48, 72]
@@ -79,7 +81,7 @@ export function NewContestForm({ from, onCreated, onCancel }) {
   const [d, setD] = useState({
     year,
     name: from?.name?.replace(/\d{4}/, String(year)) || `Cutest Pet in Marathon County ${year}`,
-    split: from?.beneficiary_split_pct ?? 30,
+    split: from?.beneficiary_split_pct ?? 50,
     open: '',
     close: '',
     bracket: from?.bracket_size || 16,
@@ -222,6 +224,64 @@ function DraftSettings({ contest, onSaved }) {
           {busy ? 'Saving…' : 'Save details'}
         </button>
       </div>
+    </form>
+  )
+}
+
+// An optional goal for the shelters' share, shown as a meter under the money
+// counter. Honest only if it never moves backward: once the contest is public
+// the database lets it be raised, never lowered or removed.
+function ShelterGoalSetting({ contest, draft, onSaved }) {
+  const { say, onSessionLost } = useDesk()
+  const current = contest.shelter_goal_cents ?? null
+  const [dollars, setDollars] = useState(current ? String(current / 100) : '')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  if (!('shelter_goal_cents' in contest)) return null
+  const done = contest.status === 'complete'
+
+  async function save(e) {
+    e.preventDefault()
+    setBusy(true)
+    setError(null)
+    try {
+      const cents = dollars.trim() ? Math.round(Number(dollars.replace(/[$,\s]/g, '')) * 100) : null
+      if (cents !== null && !(cents > 0)) throw new Error('Enter a dollar amount, or leave it empty for no goal.')
+      await q(admin.rpc('set_shelter_goal', { p_contest_id: contest.id, p_goal_cents: cents }))
+      say(cents ? `Shelter goal set to $${(cents / 100).toLocaleString('en-US')}.` : 'Shelter goal removed.')
+      onSaved()
+    } catch (err) {
+      if (err instanceof SessionError) onSessionLost(err.message)
+      else setError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form className="card plain" onSubmit={save}>
+      <h3 style={{ marginTop: 0 }}>Shelter goal</h3>
+      <p className="small">
+        Optional. A meter under the money counter shows progress toward it: &ldquo;30% of our $5,000 goal.&rdquo; Pick a goal you expect to
+        reach.
+      </p>
+      <p className="small muted">
+        {draft
+          ? 'Change it freely while the contest is a draft.'
+          : 'Readers can see it, so it can only be raised from here. Announce a raise when you make one.'}
+      </p>
+      {!done && (
+        <div className="tool-row">
+          <label className="sr-only" htmlFor="goal-dollars">
+            Goal in dollars
+          </label>
+          <input id="goal-dollars" type="text" inputMode="decimal" placeholder="5000" value={dollars} onChange={(e) => setDollars(e.target.value)} />
+          <button type="submit" className="btn btn-primary btn-sm" disabled={busy}>
+            {busy ? 'Saving…' : 'Save goal'}
+          </button>
+        </div>
+      )}
+      <ErrorNote error={error} />
     </form>
   )
 }
@@ -411,6 +471,10 @@ export default function Setup() {
       <ErrorNote error={error || data.error} />
       {d && (contest.status === 'draft' || contest.status === 'submissions_open') && <Readiness contest={contest} {...d} />}
       {draft ? <DraftSettings key={cid} contest={contest} onSaved={reloadContest} /> : <LockedSettings contest={contest} />}
+      <FreeVoteSetting contest={contest} draft={draft} onSaved={reloadContest} />
+      {/* No sprint switch: a sprint awards a sponsor's prize, and WPR's contest awards none (docs/SPRINTS.md). */}
+      <LastChanceSetting contest={contest} draft={draft} onSaved={reloadContest} />
+      <ShelterGoalSetting contest={contest} draft={draft} onSaved={reloadContest} />
       {d && <Shelters contest={contest} shelters={d.shelters} onChange={data.reload} />}
 
       {startNext ? (

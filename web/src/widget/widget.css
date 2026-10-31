@@ -55,7 +55,7 @@ a { color: inherit; }
 @media (hover: hover) and (pointer: fine) { .w-board a:hover .w-name { text-decoration: underline; } }
 .w-rank { font: 700 13px/1 var(--mono); color: var(--muted); text-align: right; }
 .w-name { min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.w-town { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.w-town { display: block; overflow: hidden; text-overflow: ellipsis; font-weight: 400; font-size: 12px; color: var(--muted); }
 .w-votes { font: 700 15px/1 var(--mono); color: var(--teal-ink); }
 
 .w-matchup { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-bottom: 8px; }

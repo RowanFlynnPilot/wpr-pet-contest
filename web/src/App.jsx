@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { DEMO, SPONSOR_INQUIRY } from './config.js'
-import { BACKEND_CONFIGURED, EMBEDDED } from './lib/env.js'
+import { DEMO, NEWSROOM, SPONSOR_INQUIRY } from './config.js'
+import { BACKEND_CONFIGURED, EMBEDDED, MOCK_CHECKOUT } from './lib/env.js'
 import { useRoute } from './lib/router.js'
 import { ContestProvider, useContest } from './components/ContestContext.jsx'
 import { CheckoutProvider } from './components/Checkout.jsx'
+import { FreeVoteProvider, ReminderNotice } from './components/FreeVote.jsx'
 import Masthead from './components/Masthead.jsx'
 import Banner from './components/Banner.jsx'
 import Nav from './components/Nav.jsx'
@@ -11,20 +12,39 @@ import BonusBar from './components/BonusBar.jsx'
 import Footer from './components/Footer.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import Home from './pages/Home.jsx'
-import Enter from './pages/Enter.jsx'
-import Gallery from './pages/Gallery.jsx'
 import Pet from './pages/Pet.jsx'
-import Bracket from './pages/Bracket.jsx'
-import Rules from './pages/Rules.jsx'
-import Shelters from './pages/Shelters.jsx'
-import Results from './pages/Results.jsx'
-import Sponsors from './pages/Sponsors.jsx'
 import NotFound from './pages/NotFound.jsx'
 
-// Readers never download the admin desk.
+// The first paint carries Home and Pet, where readers arrive (the front door
+// and every shared link); the other pages come down when first opened, which
+// is a fifth of the page code on a phone's first load. Readers never download
+// the admin desk.
+const Enter = lazy(() => import('./pages/Enter.jsx'))
+const Gallery = lazy(() => import('./pages/Gallery.jsx'))
+const Bracket = lazy(() => import('./pages/Bracket.jsx'))
+const Rules = lazy(() => import('./pages/Rules.jsx'))
+const Shelters = lazy(() => import('./pages/Shelters.jsx'))
+const Results = lazy(() => import('./pages/Results.jsx'))
+const Sponsors = lazy(() => import('./pages/Sponsors.jsx'))
+const Unsubscribe = lazy(() => import('./pages/Unsubscribe.jsx'))
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
+// break-ui's data switch, on the mock dev server only; never in a build, and
+// off for the screenshot deck (VITE_DATA_TOGGLE=off).
+const DevDataToggle =
+  import.meta.env.DEV && MOCK_CHECKOUT && import.meta.env.VITE_DATA_TOGGLE !== 'off' ? lazy(() => import('./components/DevDataToggle.jsx')) : null
 
-const PAGES = { home: Home, enter: Enter, gallery: Gallery, pet: Pet, bracket: Bracket, rules: Rules, shelters: Shelters, results: Results, sponsors: Sponsors }
+const PAGES = {
+  home: Home,
+  enter: Enter,
+  gallery: Gallery,
+  pet: Pet,
+  bracket: Bracket,
+  rules: Rules,
+  shelters: Shelters,
+  results: Results,
+  sponsors: Sponsors,
+  unsubscribe: Unsubscribe,
+}
 
 // Stripe returns here only for payment methods that leave the page (most
 // never do: cards and wallets confirm in place).
@@ -85,6 +105,7 @@ function Shell({ route }) {
       ) : (
         <>
           <BonusBar />
+          <ReminderNotice />
           {payment && (
             <div className="wrap" style={{ marginTop: 14 }} role="status">
               <div className={`notice${payment.status === 'failed' ? ' error' : ''}`}>
@@ -116,11 +137,18 @@ function Shell({ route }) {
               // One page failing keeps the masthead and nav, and moving to
               // another page clears it.
               <ErrorBoundary key={`${route.name}:${route.id || ''}`}>
-                <Page route={route} />
+                <Suspense fallback={<div className="wrap section" aria-busy="true" />}>
+                  <Page route={route} />
+                </Suspense>
               </ErrorBoundary>
             )}
           </main>
           <Footer />
+          {DevDataToggle && (
+            <Suspense fallback={null}>
+              <DevDataToggle />
+            </Suspense>
+          )}
         </>
       )}
     </div>
@@ -138,7 +166,7 @@ function NotConfigured() {
           <h1 style={{ fontSize: 28 }}>The pet contest is almost here.</h1>
           <p style={{ marginTop: 10 }}>
             This page isn&rsquo;t connected to the contest yet. Check back soon, or visit{' '}
-            <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a>.
+            <a href={NEWSROOM.url}>{NEWSROOM.name}</a>.
           </p>
           <p className="small muted">Developers: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (see web/.env.example).</p>
         </div>
@@ -169,7 +197,10 @@ export default function App() {
     }
     return (
       <Suspense fallback={<p className="wrap section">Opening the contest desk…</p>}>
-        <AdminApp />
+        {/* The desk stays light: its own stylesheet was drawn for paper. */}
+        <div className="admin-mode" data-mode="light">
+          <AdminApp />
+        </div>
       </Suspense>
     )
   }
@@ -178,7 +209,9 @@ export default function App() {
   return (
     <ContestProvider>
       <CheckoutProvider>
-        <Shell route={route} />
+        <FreeVoteProvider>
+          <Shell route={route} />
+        </FreeVoteProvider>
       </CheckoutProvider>
     </ContestProvider>
   )

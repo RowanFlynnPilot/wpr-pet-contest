@@ -27,32 +27,32 @@ colors:
   board-text: "#e3efec"
 typography:
   display-xl:
-    fontFamily: "Fraunces, 'Fraunces Display Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Display Fallback', Arial, sans-serif"
     fontSize: "clamp(46px, 13vw, 88px)"
     fontWeight: 650
     lineHeight: 0.9
     letterSpacing: "-0.03em"
-    fontVariation: "'opsz' 144"
+    fontVariation: "'opsz' 96"
   display:
-    fontFamily: "Fraunces, 'Fraunces Display Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Display Fallback', Arial, sans-serif"
     fontSize: "clamp(34px, 9vw, 64px)"
     fontWeight: 650
     lineHeight: 0.98
     letterSpacing: "-0.025em"
-    fontVariation: "'opsz' 144"
+    fontVariation: "'opsz' 96"
   headline:
-    fontFamily: "Fraunces, 'Fraunces Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif"
     fontSize: "clamp(24px, 4.2vw, 34px)"
     fontWeight: 600
     lineHeight: 1.1
     letterSpacing: "-0.01em"
   title:
-    fontFamily: "Fraunces, 'Fraunces Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif"
     fontSize: "19px"
     fontWeight: 650
     lineHeight: 1.1
   caption:
-    fontFamily: "Fraunces, 'Fraunces Fallback', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif"
     fontSize: "20px"
     fontWeight: 400
     lineHeight: 1.4
@@ -213,7 +213,7 @@ Sun yellow is held back for the moments that count: a lit lamp, the leader's tug
 **Key Characteristics:**
 - Cream newsroom ground with one deep-teal arena panel per screen.
 - JetBrains Mono digits in dark fixed cells over ghost 8s; tabular figures everywhere a number is counted.
-- Fraunces at optical size 144 for pet names and big lines, set over the photo behind a teal scrim.
+- Schibsted Grotesk, heavy, for pet names and big lines, set over the photo behind a teal scrim.
 - The road: teal dots, solid where the pet has traveled and dashed ahead, ending in a drawn crown.
 - Pill-shaped controls with soft, teal-tinted drop shadows.
 - Drawn SVG marks for arrows, checks, crosses and the crown; never text glyphs.
@@ -253,11 +253,13 @@ The palette is a newsroom's warm paper and ink, one teal family carrying the bra
 
 **The One Sun Field Rule.** The champion panel is the only panel filled with sun. Everywhere else sun is a ring, a bar, a lamp, a pill or a crown.
 
-**The White-Label Line.** The teal family, the sun family, cream and the three font faces belong to this brand; another newsroom would swap them. Ink, ink-2, muted, paper, rule, rule-strong and red are role-like and carry over unchanged. Slate and the masthead belong to WPR's identity, not the contest's. The board shades are derived from teal-deep and would have to move with it.
+**The White-Label Line.** The tokens are named by role in `styles/tokens.css`: `brand` (with `-ink`, `-deep`, `-tint`, `-wash`), `accent` (with `-ink`, `-tint`), `danger` (with `-tint`), the paper family and the three faces. The names this document uses (teal, sun, red) are aliases of those roles, kept so the stylesheet reads as it always has. The board shades (`--board-cell`, `--board-row`, `--board-row-lead`, `--board-ring`, `--board-bulb`, `--board-label`, `--board-text`, `--board-dim`, `--board-quiet`) and the warm derivatives (`--accent-rule`, `--accent-wash`, `--accent-soft`, `--accent-light`, `--danger-rule`, `--danger-bright`, `--danger-deep`, `--danger-deeper`) are mixed from the roles with `color-mix()`, so a newsroom that sets its brand gets a matching arena for free. The stylesheet carries no brand literal; the canvas share images, confetti and the Stripe form read the resolved tokens through `lib/theme.js`.
+
+A newsroom is a theme block on `:root[data-theme='…']` plus an entry in `src/newsrooms.js` (name, region, towns, clock, lockup, faces). The sales demo carries a second one, "The Example Gazette": navy and gold on a cooler paper, Newsreader over Source Sans 3. Danger keeps its own hue in every theme, so a red-leaning brand never reads as an error. Slate and the masthead rule belong to the newsroom's identity, not the contest's.
 
 ## Typography
 
-**Display Font:** Fraunces (with size-adjusted Georgia fallbacks, `Fraunces Fallback` and `Fraunces Display Fallback`, so lines do not rewrap when the web font arrives)
+**Display Font:** Schibsted Grotesk (with size-adjusted Arial fallbacks, `Schibsted Fallback`, `Schibsted Display Fallback` and `Schibsted Figure Fallback`, so lines do not rewrap when the web font arrives). Chosen Oct. 26, 2026, replacing Bricolage Grotesque (Oct. 24), whose display f's read as a gimmick; both over the fleet's Fraunces, which carries eighteen WPR tools, so this one looks like its own product. Schibsted was drawn for a news publisher: plain, sturdy f's and figures at headline weights. It has no italic, so emphasis is weight and color; the dek and the owner's caption are upright at 400.
 **Body Font:** Public Sans (with the system UI stack)
 **Label/Mono Font:** JetBrains Mono, for vote counts, seeds, prices, ranks and clocks
 
@@ -268,7 +270,7 @@ The palette is a newsroom's warm paper and ink, one teal family carrying the bra
 - **Display** (650, clamp(34px, 9vw, 64px), line height 0.98, -0.025em, opsz 144, display fallback face): Home's title, balanced over two to three lines on a phone, with its key word in teal-ink italic.
 - **Headline** (600, clamp(24px, 4.2vw, 34px), line height 1.1): section headings.
 - **Title** (600 to 650, 17 to 21px): team names on the board, leader-row names, the contest bar's title (19px), card names and pet-card names (26px on the gallery's featured card).
-- **Caption / Dek** (Fraunces italic, 17 to 20px, line height 1.4 to 1.45, 62ch max): the owner's caption in teal curly quotes, and deks under headings.
+- **Caption / Dek** (the display face, upright, 400, 17 to 20px, line height 1.45, 62ch max): the owner's caption in teal curly quotes, and deks under headings.
 - **Body** (400, 16px, line height 1.55): everything else. Small print runs 12.5 to 13.5px in muted.
 - **Section count** (Public Sans 700, 14px, muted, 6px below the heading): a count or status under a heading.
 - **Label** (800, 11.5 to 12px, 0.12 to 0.14em, uppercase): the scoreboard's round name, its lamp and unit labels, bracket column heads, the champion's story line (13px, 0.06em), the road stops (sentence case, 0.03em), and table headers.
@@ -277,7 +279,7 @@ The palette is a newsroom's warm paper and ink, one teal family carrying the bra
 ### Named Rules
 **The Counted-In-Mono Rule.** Any number a reader might compare (votes, seeds, ranks, prices per vote, clocks) sets in JetBrains Mono with tabular figures. Dollar headline amounts set in Fraunces at opsz 144.
 
-**The Big-Line Optical Size Rule.** Fraunces lines larger than about 30px use `'opsz' 144` with the display fallback face; smaller Fraunces stays at the default optical size with the regular fallback.
+**The Big-Line Optical Size Rule.** Display lines larger than about 30px use `'opsz' 96` with the display fallback face; smaller display text stays at the automatic optical size with the regular fallback.
 
 **The Under-Never-Over Rule.** A count or status sits under its heading, never above it as a kicker. Headings carry no kicker at all. A section count goes beneath the heading, and only when it says something the heading doesn't. The scoreboard's round name is the board's header row, not a kicker over a heading.
 
@@ -332,10 +334,13 @@ Confident pills with a soft drop beneath.
 
 ### Cards / Containers
 - **Corner Style:** 10px.
-- **Background:** paper on cream.
+- **Background:** paper on cream. A sun card (`.card.sun`, good news: the entry confirmation, the thank-you after the final, the adoptable pet) is a warm surface, #fffaf0 inside a #ecd9a6 hairline.
 - **Shadow Strategy:** resting shadow; pet cards lift 2px with the lift shadow on hover.
-- **Border:** 1px rule.
+- **Border:** 1px rule, on every side. No card, counter, award, modal or sponsor placement carries a colored top bar: emphasis comes from what is inside (the amount in Display XL, the sun-ink award label, the modal's own head), never from a rail on the container.
 - **Internal Padding:** 18px; pet-card bodies 10 to 12px.
+
+### Browser Surfaces
+The parts the browser draws follow the palette: text selection is sun-tint on ink (white at 30% on the board and the bars), the caret and native checkboxes and radios are teal-ink (`caret-color`, `accent-color`), thin scrollbars are rule-strong on nothing, links underline 1px at 0.18em offset, headings balance (`text-wrap: balance`) and paragraphs never leave a word alone (`text-wrap: pretty`). Nothing is set under 11px.
 
 ### Inputs / Fields
 - **Style:** paper, 1px rule-strong, 8px radius, 46px minimum, 16px text (no iOS zoom). The admin's compact table and window fields run 14px, rising to 16px on coarse pointers.
@@ -371,7 +376,9 @@ The upset lamp is on the board whenever the two seeds differ, and lights the mom
 One row of stops from the open round to the crown, each with a short label and a mono result or date. Done stops are teal discs with a drawn check. The live stop is teal-deep with a sun ring and a sun-tint halo. Next has a teal ring, ahead a rule-strong ring, a knockout a red disc with a drawn cross, and a stop never reached a dashed ring.
 
 ### Pet Hero
-The photo with the pet's name in Display XL and seed, town and species in bold 14px warm white, over a teal scrim that rises from the bottom 70%. The back link is a translucent teal-deep pill with a drawn arrow.
+The photo with the pet's name in Display XL and seed, town and species in bold 14px warm white, over a scrim that rises from the bottom 70%. The scrim, the ground behind the photo and the back link take the pet's own color: `lib/photoTint.js` reads a small copy of the photo, keeps its hue, holds saturation between 24 and 52 percent and pins lightness at 20 percent, so white type reads at about 9:1 on any pet. Until the photo loads, or where the bucket sends no CORS headers, the arena teal stands in (`--tint`, `--tint-0/55/90`, `--tint-glow` on `.pet-hero`, each with the teal fallback). It is the one place the pets, the only asset that changes every year, drive the color.
+
+**The Pet's Color Rule.** The tint belongs to the hero on the pet's own page. It never reaches the board, the buttons or the cards, so a pet's color can never be mistaken for a state.
 
 ### Photo-First Gallery
 The grid leads with photos. While the Open Round is live and the grid is unfiltered and sorted by votes, the leader's card is featured: it spans two cells, its photo goes 16:10, and its name sets at 26px. The sponsor never comes first; it rides as a full-width break after the first full row of photos, whatever the column count. Search runs full width; on phones the town and sort selects share the row beneath it.
@@ -420,3 +427,334 @@ A slate-ruled paper masthead carries WPR's badge and wordmark, then the teal-dee
 - **Don't** let a count reflow or slide when it changes.
 - **Don't** fill any panel but the champion's with sun.
 - **Don't** truncate a name on the bracket poster or inside a Vote button; let it wrap.
+
+## Three moments (Oct. 25, 2026)
+
+- **The photo, whole.** The pet page's hero is a button; a tap opens the
+  photo at full size on the color of the photo itself (`PhotoLightbox`,
+  the modal with a `lightbox` class). Escape, the close button, a tap beside
+  the photo or a pull down on a phone closes it; pinch still zooms. The
+  hero keeps its crop; the lightbox is where the whole picture lives.
+- **The link as friends see it.** Above the share buttons, `LinkPreview`
+  draws the unfurl a reader's friends get: the share page's picture (the
+  matchup card during a bracket round, when the deploy drew one; the photo
+  otherwise), the site, the title and the description, in the words
+  `build-share-pages.mjs` writes. It never invents a card that does not
+  exist: a missing card falls back to the photo.
+- **"Biscuit is entered!"** The entry form's success screen shows the photo
+  they just sent in a frame, a line they can post today (there is no page
+  to link until an editor approves the entry, so it points at the front
+  door), a native share and a copy button, and a calendar note for the day
+  voting opens. The demo takes an entry so the screen can be seen; a pending
+  entry is private either way.
+
+## Dark mode and the bracket that draws itself (Oct. 25, 2026)
+
+- **Dark mode follows the OS.** The paper family has a light and a dark cut
+  (`--paper-light` / `--paper-dark` and so on in `tokens.css`); the mode
+  picks. Brand-colored text uses `--brand-text` (the ink in light, the brand
+  lifted toward white on dark paper), and the tints are mixed into the dark
+  paper; fills and buttons keep `--brand-ink`. `<html data-mode="light|dark">`
+  overrides the OS: the WordPress embed and the article widget are always
+  light, because they sit inside a light page; the admin desk stays light;
+  the demo's bar switches. The share images read the light tokens through a
+  light probe, so a poster is the brand's look whatever the screen. The
+  badge and wordmark are transparent PNGs now; dark mode inverts the
+  wordmark. The audit runs five pages in the dark as well.
+- **The bracket draws itself.** Each column's links draw in left to right
+  (`clip-path`), the names slide in behind them, a won side lights up, the
+  crown lands last; `--col` and `--row` on the markup set the stagger. A
+  round resolving while the page is open mounts the next column's names,
+  and they arrive the same way. On a phone, one round at a time, the column
+  delay is zero. Reduced motion turns it all off.
+
+## The section bar (Oct. 25, 2026)
+
+The sections share the nav evenly, each with an emoji (🏠 Home, 📸 Enter,
+🐶 Pets, 🏆 Bracket, 👑 Results, ❤️ Shelters, 📋 Rules; `aria-hidden`, so
+the word is the name). On a phone it is a tab bar, emoji over the word; from
+720px one row with the call to action at the end. The current section is
+washed and underlined across its share. The paw was tried for Pets and set
+aside: it disappears on dark paper.
+
+## Meet a pet, and the nameplate in the dark (Oct. 25, 2026)
+
+- **"Meet a pet."** One of the newsroom's adoptable pets, at random, as the
+  way into its adoption page (`AdoptButton`; WPR's is the Central Wisconsin
+  pet finder). The pets come from `adoptables.json`, which the deploy builds
+  from the adoption tool's feed (`scripts/adoptables.mjs`: name, breed, age
+  and a 120px square from Adopt-a-Pet's CDN, shelter notes like "*Barn
+  Cat*" stripped; 275 of 286 pets have real photos). The page fetches it
+  only when the button nears the screen; without it, the featured pet;
+  without that, a plain invitation. A warm card: the photo in a white ring
+  that straightens on hover, a heart on its shoulder, a teal arrow. On Home
+  under the partner shelter and on the Shelters page. A newsroom without an
+  adoption page (`adoptUrl: null`) gets no button.
+- **The nameplate in dark mode** is the brand's ink (`--masthead-bg`), a
+  step lighter than the contest bar, with the wordmark in white: the paper's
+  name never sits on near-black. Light mode keeps newsprint.
+
+## Clubs, climbers, profiles and the finish (Oct. 25, 2026)
+
+- **Milestone clubs** (`lib/milestones.js`): a badge at 50, 100, 250, 500,
+  1,000, 2,500, 5,000 and 10,000 votes over the whole contest, every round
+  summed (totals reset for the race, not for the clubs). Digital only: no
+  prize rides on them. The pet page shows every club joined as a sun stamp,
+  the next one ghosted, and a bar with the votes still to go; a gallery card
+  carries its highest club as a chip.
+- **Climbing** (`climbers` in `lib/rank.js`, the `entry_round_momentum`
+  view): a pet that rose three places or more since yesterday gets a ▲n on
+  the Open Round board, its gallery card and its pet page. Today's standings
+  against yesterday's (today's totals minus the last day's votes), both with
+  the open round's tiebreak. Nothing until the round has run a day, and
+  nothing in the bracket, where every matchup is head to head.
+- **Get to know** (0026): three optional prompts on the entry form (also
+  answers to, favorite thing, best trick or quirk), moderated with the
+  caption and shown on the pet page under it. Moderators can correct or
+  clear an answer instead of rejecting the entry.
+- **The finish.** The three faces are self-hosted (`src/fonts`, Latin
+  subsets, OFL) and the two the first screen needs are preloaded: no
+  third-party request before the first paint. A lazy photo fades in over a
+  blurred tiny copy of itself where the host can serve one (pre-rendered
+  widths or the render endpoint); never an eager photo, which is usually the
+  largest paint. A short haptic tick when votes land, on phones that have
+  one, and not for readers who ask for less motion.
+
+## The pass after the deck review (Oct. 25, 2026)
+
+- **Who the pet is, first.** On the pet page the caption and the "Get to
+  know" answers (`PetAbout`) sit right under the photo, as chips that read as
+  phrases ("aka Biscuit Boy", "Loves the squeaky hedgehog", an opening
+  article lowercased); then the road, the scoreboard and the vote. The entry
+  form shows the same block live as the owner types ("On Biscuit's page").
+- **The thank-you screen** names the club a pack unlocked ("Your pack put
+  Moose in the 250 Club", on sun) or the votes to the next one.
+- **Phones:** the link preview is the compact kind (thumbnail beside the
+  words), the milestone row shows only the latest club and the next, and
+  Home's three steps become one line once voting is on (`HowItWorks
+  compact`), the reset rule kept.
+- **Rising today** sorts the gallery by the last day's votes in the Open
+  Round. **The clubs** on Results tally each club and name the pets in the top
+  one.
+- **Share images carry the club** as a sun pill with a drawn medal (on the
+  photo in the story and the flyer, under the town on the square). Clubs only
+  grow, so a printed flyer never goes stale.
+- The wordmark and badge are transparent PNGs, so anything that flattens
+  them must flatten onto white (`og-card.py`'s `on_white`), and the canvas
+  wordmark mask multiplies by the pixel's alpha.
+
+## The owner's kit (Oct. 25, 2026)
+
+- **Ready-made posts.** The owner panel writes a Facebook post, an Instagram
+  caption and a text message for where the pet stands right now (before
+  voting, the Open Round, a matchup, unseeded, out, champion), on chips with
+  one Copy button (`lib/ownerPosts.js`). The hook first, one call to action,
+  the link where it is clickable and "Link in bio" with the local hashtags on
+  Instagram. Never "donation", never invented urgency; a matchup says the
+  count starts at zero.
+- **"Your links have brought 3 vote packs."** The owner's own links carry
+  `?via=o`, the share pages keep it on the way through, and the panel shows
+  the count from `entry_referrals`. Attribution only: nothing about the pack
+  changes, and nothing is won.
+- **Fair play.** The rules and money pages open with the promises the code
+  keeps, each a check and one sentence: one field with real ranks (no small
+  groups where every pet leads its own), totals that reset, half to the
+  shelters after refunds with card fees on the newsroom, a purchase never a
+  donation, one price list, results that stand, staff who stay out.
+- **Sprints.** A sun card on Home (the surface kept for good news): coming
+  up with a countdown, running with the top three and their counts, being
+  counted, then the winner's photo for half a day. A one-line notice on the
+  pet pages while one runs. Every card says sprint votes count toward the
+  round like any other.
+- **The keepsake.** Once a pet's run is over (at the finish, or out of the
+  bracket), the image maker offers a certificate: 11 x 8.5 landscape, cream
+  inside a thick-over-thin frame, the photo with its club on the left, and
+  on the right "Certificate of Cuteness" (of Champion Cuteness for the
+  winner), what the pet did, its votes over the whole contest, what voters
+  raised at the finish, and the newsroom's name on a signature line. At the
+  finish it is the image maker's first choice.
+- **The finale.** A live reveal staff schedule (time and stream link): a
+  deep-teal card on Home and Results, the scoreboard's own countdown cells,
+  a sun "Where to watch" and a calendar file; "Live now" with a pulsing dot
+  for two hours; then a quiet replay line for two weeks. It never hides the
+  result: the final count is public as voting closes, and the crown drops
+  when staff run the last Close on the stream.
+- **Last Chance.** When it is on and the Open Round's clock runs out, Home
+  becomes "Last Chance for the bracket": the scoreboard lists the five pets
+  racing, best first, with a lead line; the standings draw the line above
+  them ("Top 15 are in · Last Chance below") and tag each pool pet. A pool
+  pet's page shows its place in the race and the votes to the lead; a pet
+  already in reads "Finished No. 7 and is in the bracket" with no vote
+  button. The demo bar has a Last Chance phase.
+
+## Cheers, Link and the one reminder (Oct. 25, 2026)
+
+- **Cheers.** At checkout, a closed "Add a cheer for Biscuit (optional)"
+  opens on six phrases as chips ("Go Biscuit!", "Paws up for Biscuit! 🐾",
+  "Cutest in Marathon County!", "We love you, Biscuit!", "Biscuit for
+  champion! 👑", "For the shelters ❤️") and an optional first name. Paid
+  cheers read as speech: in the display face, in teal-washed bubbles with
+  one squared corner, under "Cheers for Biscuit" on the pet page, and after
+  the pack in the live feed. The thank-you screen says where it went.
+- **Link.** The payment form receives the email already typed, so a buyer
+  who has saved details with Link anywhere pays in one click.
+- **The reminder.** One quiet checkbox under "plays again": "If this
+  checkout doesn't finish, email me once before voting closes." The email
+  leads with "you haven't been charged", and its button reopens checkout on
+  the same pack.
+
+## The polish pass after the cheers (Oct. 25, 2026)
+
+- **Checkout's Continue stays in reach** on phones: pinned to the bottom of
+  the sheet over a fade, with the phone's safe area under it.
+- **Home's Coming up card.** A sprint on its way and the finale before its
+  last day share one quiet card (a clock row, a calendar row with "Where to
+  watch" and "Add to calendar"); a big card only for a sprint that is
+  running or just won, and the finale on its last day or live.
+- **Results:** "Live now" sits above "And the cutest pet in Marathon County
+  is…", so the sentence runs straight into its answer.
+- **Cheers keep their emoji outside the quotes** (“Paws up for Biscuit!”
+  🐾), so the wide glyph opens no gap; the thank-you screen says the votes
+  are in before it mentions the cheer. Small numbers are spelled out (AP).
+- **Social desk:** a sprint announcement (the day, then the hours large), a
+  live sprint with its top three, a sprint winner, a Last Chance board, and
+  a finale card with the two finalists face to face. Square hero cards put
+  the photo beside the words when above them it would be a sliver.
+- **Owner images, the widget and the newsletter block know Last Chance**;
+  the newsletter block also carries a sprint on its way and the finale.
+- **The photo morph.** A tap on a pet card grows its photo into the pet
+  page's hero while the page crossfades (a same-document view transition;
+  all four engines since Firefox 144). Only the photo is named, the router
+  renders and scrolls inside the transition so the hero lands where it will
+  stay, a transition that cannot start within 300 ms is skipped rather than
+  left to freeze the page, and readers who ask for less motion get none.
+- The cheer picker opens and closes smoothly where the browser can animate
+  to its natural height; list items wrap "pretty" like paragraphs; the
+  production build opens its connection to the data and photo host while
+  the scripts download.
+
+## Worst-case data, checkout and consistency (Oct. 25, 2026)
+
+- **Worst-case pets.** The mock carries a second data set
+  (`src/demo/contest.js`, `DATASETS`): a 40-character name, a 34-letter
+  single word, quotes and an ampersand, emoji, a non-Latin name, a 60-character
+  town, a 280-character caption, the longest profile answers, a missing photo,
+  a pet on one vote and one on none, and a long sponsor and prize. On the
+  mock dev server a strip at the bottom switches demo / worst case / one pet /
+  no pets / 1,000 pets (`/__data?set=`); it never ships in a build.
+- **What broke, and what changed.** The pet page's name now sizes to itself
+  (shorter face past 18 and 30 characters; the longest word sets a ceiling
+  so a one-word name fits whole down to 28px), and the hero grows rather
+  than let a name run off its top. Board and widget towns end in an ellipsis
+  on one line; small phones narrow the rank and photo so names wrap between
+  words. A sprint winner's long name no longer pushes the page sideways;
+  matchup vote buttons stay on one line; the road labels fit at 320px; link
+  previews wrap long words. Share images cut an oversized word into even,
+  hyphenated pieces ("Supercalifragilis- / ticexpialidocious").
+- **Profile answers read as sentences.** The phone capitalizes the first
+  letter of every field, so after "Loves" an -ing word drops its capital too
+  ("Loves stealing socks"), a chip that starts its own sentence gets one,
+  and the favorite field no longer auto-capitalizes.
+- **Checkout answers "is this enough?"** Under the packs, on the live
+  standings: "Right now, 50 votes would move Juniper up to No. 6." In a
+  matchup it is the margin over the opponent; in Last Chance, the race for
+  the last seed (`lib/impact.js`, the boards' own tiebreaks). The three
+  optional emails sit under one label, the bonus note is two lines, and the
+  button says where it goes: "Continue to payment · $20".
+- **Forms.** The free-vote buttons no longer disable themselves until the
+  email or code looks complete; a missing one is said under the field.
+  Email fields skip spellcheck and capitals.
+- **One kicker, one radius.** The sprint, finale and Coming up kickers use
+  the house kicker (11.5px, 0.16em); inline panels and rows use the card
+  radius; the finale's live dot is the ticker's red and pulse.
+- **Commas on the scoreboards.** The arena digits take a thousands comma
+  between lit cells ("39,500"), as every other number on the site does: a
+  narrow glyph in the gap, drawn over the cells, never on a clock or beside
+  an unlit cell.
+- **Packs smallest first** at checkout, like the rules page's price list, so
+  the sheet opens on a few votes at a time rather than on the $250 pack.
+  The featured pack ("Most popular") is still the one preselected; staff
+  choose it in the Packs tab.
+
+## The first days, and one voice (Oct. 25, 2026)
+
+- **The first days of entries.** Home's counter says "1 pet entered so far"
+  for the first approved pet; the newest-entries row picks up after the
+  three polaroids, so the first pets are never shown twice; an empty
+  gallery shows "No pets yet." without search, filters or a sponsor pitch.
+- **No upsell tag.** Checkout keeps one tag, the featured pack's "Most
+  popular"; the per-vote price and the saving still speak for big packs.
+- **Staff cards** stop shrinking a long name at a size a phone can read,
+  then break it or end it in an ellipsis.
+- **AP numbers everywhere a sentence counts something:** one through nine
+  in words ("needs four votes", "seven votes apart") on the site, the share
+  captions, the newsletter block and the emails. Numerals stay on the
+  scoreboards, tables and short labels beside clocks, as AP allows in
+  tables; a deadline in running text spells its day out.
+- **The root address previews like the demo** on Facebook and in texts: the
+  forwarding page carries the demo's own title and preview tags.
+
+## The desk, the kit, the mail and the embed (Oct. 25, 2026)
+
+- **The staff desk on a phone.** The mock answers a pretend staff sign-in
+  (`web/scripts/mock-staff.mjs`), so every desk tab is screenshotted and
+  audited at phone width in CI. Approve and Reject stay under the thumb as a
+  moderation card scrolls; keyboard hints hide on touch; the email log
+  stacks into short labeled rows; editing grids scroll inside their box;
+  staff times read "Oct. 25, 1:54 p.m. CDT".
+- **Emails** open with a hidden preview line (the news itself), then the seal
+  on a white disc and the newsroom's name over the thick-and-thin rule, with
+  a dark version for the mail apps that ask. Code emails carry no images.
+- **The finale names the presenting sponsor** ("The finale · presented by"),
+  as part of that placement.
+- **The embed** forwards a hash change on the same page into the frame.
+- **A 30-second walkthrough** (`docs/video/`): a cover, four real screens in
+  a phone (enter, the Open Round, checkout, a matchup) and an end card, in
+  two cuts, WPR's teaser and the pitch to other newsrooms.
+
+## Launch cards, the poster and the film (Oct. 25, 2026)
+
+- **Launch cards** on the Social desk, from the draft until the field is
+  set: the announcement, a countdown that says "Tomorrow" and "Today" on the
+  newsroom's clock, how it works in three cards, entries open, the field so
+  far and the field set, and a last call inside 48 hours.
+- **A Story size** (1080 x 1920) for every card. Tables, matchups and the
+  hero grow into it and center, rather than leaving a band of empty cream.
+- **The poster** is a letter-size flyer (1275 x 1650) on white paper, with a
+  QR code to the contest page. It keeps its size whatever the size chips
+  say, and appears only once `PUBLIC_URL` gives the code a real address.
+- **The walkthrough in 16:9 and square**, from the same source: the words on
+  the left, the phone on the right at 0.76 or 0.74. The newsroom cut plays
+  on `/for-newsrooms/` under "What it looks like": no autoplay, a poster
+  frame, nothing loaded until play.
+
+## The two weeks before entries (Oct. 25, 2026)
+
+- **`open_submissions` runs on announcement day.** A draft is invisible to the
+  public, so the Oct. 31 links would have landed on an empty site. Published
+  early, the contest counts down until `submissions_open_at` and the
+  database refuses entries until then.
+- **One thing to do:** "Add Nov. 14 to my calendar," an .ics with its
+  reminder at the opening, on Home and Enter. No address is collected.
+- **Enter before it opens** says when entries open and close, what to have
+  ready (a photo you took, the pet's name and town, your name and email,
+  neither published), who can't enter, and the photo tips.
+- **No page claims more than is true:** the widget says the date and "How to
+  enter" rather than "Enter your pet"; Pets, Bracket and Results say when
+  entries open; the Sponsors page shows what is true from day one ("Free,"
+  "16") until the live counts are worth quoting.
+- The phase is `coming` in the mock, the demo bar ("Before entries"), the
+  audit and the screenshot deck.
+
+## Questions readers ask (Oct. 25, 2026)
+
+- **The rules page opens with answers.** Under Fair play, eleven questions
+  as disclosure rows (a plus that turns to a minus, the whole row the
+  target): donation or not, where the money goes, why totals reset, when an
+  entry appears, more than one pet, did my vote count, ties, removed pets,
+  who can enter, privacy. Each answer is built from the same contest row as
+  the rules and ends with its section number in muted type, shifted when the
+  free daily vote adds a section.
+- **The newsletter block names the shelter** and the split ("half of every
+  vote pack goes to Moments Foster Care"), and falls back to "local animal
+  shelters" until Setup has one.

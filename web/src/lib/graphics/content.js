@@ -3,18 +3,22 @@
 //   * vote counts are always this round's: totals reset every round
 //   * the public sees the pet, never the owner: entries here carry only the
 //     public columns (pet_name, town, photo_path, seed)
-import { apDate, apDateTime, plural } from '../format.js'
+import { NEWSROOM } from '../../config.js'
+import { TIME_ZONE, andList, apDate, apDateTime, plural } from '../format.js'
 import { matchupStanding, votesToPass } from '../rank.js'
 import { bracketSeedOrder, finalSeq, roundLabel, roundShortLabel } from '../rounds.js'
+import { clubLabel } from '../milestones.js'
 
 const done = (r) => r && (r.status === 'resolved' || r.status === 'closed')
 const bySeq = (a, b) => a.seq - b.seq
 const future = (v, now) => v && new Date(v).getTime() > now
 
-// "30% of every vote pack helps local animal shelters"
-export function shelterLine(pct) {
+// "Half of every vote pack goes to Moments Foster Care": the split, and the
+// shelters by name once Setup has them.
+export function shelterLine(pct, names = []) {
   const n = Number(pct)
-  return n > 0 ? `${n}% of every vote pack helps local animal shelters` : 'Every vote pack helps local animal shelters'
+  const who = andList(names.filter(Boolean)) || 'local animal shelters'
+  return n === 50 ? `Half of every vote pack goes to ${who}` : n > 0 ? `${n}% of every vote pack goes to ${who}` : `Every vote pack helps ${who}`
 }
 
 // The badge on a vote count: "Open Round", "Sweet 16", "Elite 8".
@@ -33,10 +37,12 @@ const closes = (at) => glue(`Voting closes ${apDateTime(at)}`)
 //   tone: vote | cheer (advanced) | thanks (out) | champion
 //   urlLead: the words before the contest's address ("Vote at", or
 //   "Follow along at" once this pet can no longer be voted for)
-export function ownerCopy({ name, phase, round, nextRound, state, seed, bracketSize = 16, year, contestName, opensAt, now = Date.now() }) {
+// lastChance: during Last Chance (lib/lastChance.js), { inPool, place } for
+// this pet; the round then carries Last Chance's close.
+export function ownerCopy({ name, phase, round, nextRound, state, seed, bracketSize = 16, year, contestName, opensAt, now = Date.now(), lastChance = null }) {
   const pet = String(name || 'this pet').trim()
   const label = round ? roundLabel(round.seq, bracketSize) : null
-  const base = { kicker: contestName || 'Cutest Pet in Marathon County', showVotes: false, votesLabel: null, closesAt: null, urlLead: 'Vote at' }
+  const base = { kicker: contestName || `Cutest Pet in ${NEWSROOM.region}`, showVotes: false, votesLabel: null, closesAt: null, urlLead: 'Vote at' }
   const thanks = (urlLead = 'Follow along at') => {
     if (state?.status === 'out' && state.label) {
       return { ...base, urlLead, tone: 'thanks', headline: `What a run, ${pet}!`, detail: `Made it to the ${state.label}` }
@@ -49,6 +55,29 @@ export function ownerCopy({ name, phase, round, nextRound, state, seed, bracketS
       return { ...base, urlLead: 'Results at', tone: 'champion', headline: `${year ? `${year} ` : ''}Champion`, detail: 'Thank you to everyone who voted!' }
     }
     return thanks('Results at')
+  }
+
+  // Last Chance: racing for the last seed, already in, or finished.
+  if (lastChance && round?.mainClosesAt && (phase === 'voting' || phase === 'counting')) {
+    if (lastChance.inPool) {
+      if (phase === 'counting') {
+        return { ...base, urlLead: 'Results at', tone: 'vote', headline: `Thanks for voting for ${pet}!`, detail: 'Last Chance has closed. Results are being finalized.' }
+      }
+      return {
+        ...base,
+        kicker: 'Last Chance',
+        tone: 'vote',
+        headline: `Last Chance for ${pet}`,
+        detail: closes(round.closes_at),
+        closesAt: round.closes_at,
+        showVotes: true,
+        votesLabel: 'Open Round',
+      }
+    }
+    if (lastChance.place != null && lastChance.place < bracketSize) {
+      return { ...base, urlLead: 'Follow along at', tone: 'cheer', headline: `${pet} made the bracket!`, detail: `Finished No. ${lastChance.place} in the Open Round.` }
+    }
+    return thanks()
   }
 
   if (phase === 'voting' || phase === 'counting') {
@@ -132,12 +161,12 @@ export function matchupCards(matchups, round, totals, byId) {
 // One line under a matchup: who leads and by how much ("X votes behind" is
 // the most shareable fact in the contest).
 export function matchupLine(st, { status = 'open' } = {}) {
-  // A side with an id but no public entry was disqualified (see MatchupCard).
+  // A side with an id but no public entry was disqualified or withdrawn (see MatchupCard).
   const name = (side) => side.entry?.pet_name || (side.id ? 'Removed' : 'TBD')
   const lead = st.leader === 'a' ? st.a : st.b
   const trail = st.leader === 'a' ? st.b : st.a
   if (!st.winner && st.a.id && st.b.id && Boolean(st.a.entry) !== Boolean(st.b.entry)) {
-    return `${name(st.a.entry ? st.a : st.b)} advances: its opponent was disqualified`
+    return `${name(st.a.entry ? st.a : st.b)} advances: its opponent is out of the contest`
   }
   if (st.winner) {
     const w = st.winner === st.a.id ? st.a : st.b
@@ -259,4 +288,68 @@ export function sampleScenario(entries, { bracketSize = 16, now = Date.now() } =
     champion: { entry: champ, seed: 1, votes: 1204, opponent: runnerUp, opponentSeed: runnerUp.seed, opponentVotes: 1150 },
     shelterCents: 425000,
   }
+}
+
+// ---------------------------------------------------------------- keepsake
+
+// The keepsake certificate every entrant can make once their pet's run is
+// over (or at the finish): what the pet did, its votes over the whole
+// contest, its club, and, at the finish, what voters raised. Only true
+// things, and never "donation".
+//   state: entryStates() row (champion | out | unseeded), or null when the
+//          pet ran only in the Open Round of a contest with no bracket yet
+//   total: the pet's votes over every round (useContestTotals)
+//   raised: dollars raised for the shelters, as text, only at the finish
+export function keepsakeCopy({ name, year, contestName, state, total = 0, club = null, raised = null, shelters = [], entries = 0, endedAt = null }) {
+  const pet = String(name || 'This pet').trim()
+  const contest = contestName || `Cutest Pet in ${NEWSROOM.region}`
+  let feat
+  if (state?.status === 'champion') feat = `is the ${year ? `${year} ` : ''}champion of ${contest}`
+  else if (state?.status === 'out' && state.label) feat = `made the ${state.label} of ${contest}${year ? ` ${year}` : ''}`
+  else feat = `ran in ${contest}${year ? ` ${year}` : ''}${entries > 1 ? `, one of ${plural(entries, 'pet')}` : ''}`
+  const bits = [feat]
+  if (total > 0) bits.push(`with ${plural(total, 'vote')} in all`)
+  // A no-break space keeps "500 Club" on one line.
+  const clubPart = club ? ` A member of the ${clubLabel(club).replace(/ (Club)$/, '\u00a0$1')}.` : ''
+  const achievement = `${bits.join(', ')}.${clubPart}`
+  const names = shelters.filter(Boolean)
+  const who = names.length === 1 ? names[0] : 'local animal shelters'
+  const raisedLine = raised ? `Together, voters raised ${raised} for ${who}.` : 'Every vote pack helped local animal shelters.'
+  return {
+    kicker: glue(`${contest}${year ? ` · ${year}` : ''}`),
+    title: state?.status === 'champion' ? 'Certificate of Champion Cuteness' : 'Certificate of Cuteness',
+    lead: 'This certifies that',
+    name: pet,
+    achievement: glue(achievement),
+    raised: glue(raisedLine),
+    date: endedAt ? glue(apDate(endedAt, { weekday: false, year: true })) : null,
+  }
+}
+
+// ---------------------------------------------------------------- the launch
+
+// Which launch cards the Social desk offers (D-14 to the Open Round): 'soon'
+// before entries open (a draft with its dates, or submissions staged),
+// 'open' while they are, 'closed' after, until voting starts. null otherwise.
+export function launchStage(contest, phase) {
+  if (!contest) return null
+  if (contest.status === 'draft' || phase === 'coming') return contest.submissions_open_at ? 'soon' : null
+  if (phase === 'submissions') return 'open'
+  if (phase === 'submissions_closed') return 'closed'
+  return null
+}
+
+// Calendar days from `now` to `at` on the newsroom's clock: 0 is today, 1
+// tomorrow, whatever the hour.
+const dayKey = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t))
+export function daysUntil(at, now = Date.now()) {
+  return Math.round((Date.parse(dayKey(at)) - Date.parse(dayKey(now))) / 86400000)
+}
+
+// The countdown's words: "6 days" until entries open, then "tomorrow", "today".
+export function countdownWords(at, now = Date.now()) {
+  const d = daysUntil(at, now)
+  if (d <= 0) return { big: 'Today', line: 'Entries open today', days: 0 }
+  if (d === 1) return { big: 'Tomorrow', line: 'Entries open tomorrow', days: 1 }
+  return { big: String(d), line: 'days until entries open', days: d }
 }

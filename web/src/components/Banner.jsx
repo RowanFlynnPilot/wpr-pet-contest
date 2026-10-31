@@ -1,4 +1,4 @@
-import { SPONSORS } from '../config.js'
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { apDate } from '../lib/format.js'
 import { roundLabel } from '../lib/rounds.js'
 import { useContest } from './ContestContext.jsx'
@@ -36,7 +36,7 @@ export default function Banner() {
     <div className="banner compact">
       <div className="wrap banner-row">
         <div className="banner-title">
-          <a href="#/">{c.contest?.name || 'Cutest Pet in Marathon County'}</a>
+          <a href="#/">{c.contest?.name || `Cutest Pet in ${NEWSROOM.region}`}</a>
         </div>
         {now && <span className="banner-status">{now}</span>}
         {SPONSORS.presenting && <span className="banner-status banner-credit">Presented by {SPONSORS.presenting.name}</span>}

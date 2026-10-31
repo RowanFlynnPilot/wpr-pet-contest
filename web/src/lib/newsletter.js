@@ -1,6 +1,6 @@
-// The newsletter block: a contest section for WPR's daily newsletters, built
-// from the live contest and pasted into a Noptin draft as one Custom HTML
-// block.
+// The newsletter block: a contest section for the newsroom's daily
+// newsletters, built from the live contest and pasted into a Noptin draft as
+// one Custom HTML block.
 //
 // Email HTML: tables and inline styles only. It wears the newsletter's look
 // (Oswald, Merriweather, Source Sans 3, the site teal), not the contest's,
@@ -11,9 +11,11 @@
 // Thursday at 8 p.m."), never "5 hours left", and stamps its standings.
 // Everything a reader submitted (pet names, towns) is escaped.
 
+import { NEWSROOM } from '../config.js'
 import { windowTitle } from './bonus.js'
-import { apDate, apDateTime, apTime, fmtInt, fmtMoney, period, plural } from './format.js'
+import { andList, apCount, apDate, apDateTime, apTime, fmtInt, fmtMoney, period, plural } from './format.js'
 import { roundLabel } from './rounds.js'
+import { sprintTitle, sprintWhen } from './sprints.js'
 
 // wpr-newsletter's MAX_CHUNK. Noptin sanitizes each Custom HTML block on its
 // own and silently blanks one somewhere past 13 KB.
@@ -55,7 +57,7 @@ export function contestLink(base, route, campaign) {
 
 function sponsorLink(url) {
   if (url.includes('utm_source=')) return url
-  return `${url}${url.includes('?') ? '&' : '?'}utm_source=wausaupilotandreview&utm_medium=email&utm_campaign=pet-contest`
+  return `${url}${url.includes('?') ? '&' : '?'}utm_source=${NEWSROOM.utmSource}&utm_medium=email&utm_campaign=pet-contest`
 }
 
 const COUNTS = { 2: 'double', 3: 'triple' }
@@ -79,6 +81,28 @@ export function bonusLine(windows = [], now = Date.now()) {
     counts: COUNTS[w.multiplier] || `${w.multiplier} times over`,
     sponsor: w.sponsor_name || null,
   }
+}
+
+// A sprint (0030) on now or starting within a day and a half of building.
+export function sprintLine(sprints = [], now = Date.now()) {
+  const s = sprints
+    .filter((x) => !x.cancelled_at && ms(x.ends_at) > now && ms(x.starts_at) - now < 36 * HOUR)
+    .sort((a, b) => ms(a.starts_at) - ms(b.starts_at))[0]
+  if (!s) return null
+  const live = ms(s.starts_at) <= now
+  return {
+    title: sprintTitle(s),
+    span: live ? `on now until ${apTime(s.ends_at)}` : sprintWhen(s),
+    prize: s.prize,
+    sponsor: s.sponsor_name,
+  }
+}
+
+// The finale (0031) within four days of building, before it airs.
+export function finaleLine(contest, now = Date.now()) {
+  const at = contest?.finale_at ? ms(contest.finale_at) : NaN
+  if (!Number.isFinite(at) || at <= now || at - now > 4 * 24 * HOUR) return null
+  return { when: apDateTime(contest.finale_at) }
 }
 
 // A square crop without object-fit, which Gmail ignores: the image is sized
@@ -207,27 +231,32 @@ function championPhoto(entry, ctx) {
 }
 
 const future = (v, now) => v && ms(v) > now
+// The shelters by name once Setup has them; the general phrase until then.
+const shelterNames = (shelters) => andList((shelters || []).map((s) => s.name).filter(Boolean)) || 'local animal shelters'
+// "half of every vote pack goes to Moments Foster Care", from the split.
+const shareClause = (contest, shelters) => {
+  const pct = Number(contest?.beneficiary_split_pct) || 0
+  return `${pct === 50 ? 'half' : pct ? `${pct}%` : 'a share'} of every vote pack goes to ${shelterNames(shelters)}`
+}
 const ENDS = ' Totals reset every round, so every pet started this one at zero.'
 
 // Each phase: kicker, headline, body (HTML), visual (HTML), button, and
 // whether it shows vote counts (and so needs a timestamp).
 const PHASES = {
-  coming: ({ contest }) => ({
+  coming: ({ contest, shelters }) => ({
     kicker: 'Entries open soon',
-    headline: 'Is your pet the cutest in Marathon County?',
-    body: esc(
-      `Entries open ${period(apDateTime(contest.submissions_open_at))} Entering is free, and every vote pack sold helps local animal shelters.`,
-    ),
+    headline: `Is your pet the cutest in ${NEWSROOM.region}?`,
+    body: esc(`Entries open ${period(apDateTime(contest.submissions_open_at))} Entering is free, and ${shareClause(contest, shelters)}.`),
     cta: ['See the rules', 'rules'],
   }),
 
-  submissions: ({ contest, stats, recent }, ctx) => {
+  submissions: ({ contest, stats, recent, shelters }, ctx) => {
     const n = stats?.entries || 0
     return {
       kicker: 'Entries open',
-      headline: 'Is your pet the cutest in Marathon County?',
+      headline: `Is your pet the cutest in ${NEWSROOM.region}?`,
       body: esc(
-        `Entering is free, and every vote pack sold helps local animal shelters. ` +
+        `Entering is free, and ${shareClause(contest, shelters)}. ` +
           `${n ? `${plural(n, 'pet is', 'pets are')} in so far. ` : ''}` +
           `Entries close ${period(apDateTime(contest.submissions_close_at))}`,
       ),
@@ -263,7 +292,7 @@ const PHASES = {
     }
   },
 
-  complete: ({ contest, champion, stats }, ctx) => {
+  complete: ({ contest, champion, stats, shelters }, ctx) => {
     const c = champion
     if (!c?.winner) return null
     const score = c.runnerUp
@@ -273,7 +302,7 @@ const PHASES = {
       : ''
     const raised =
       stats?.shelter_cents > 0
-        ? ` Readers raised ${fmtMoney(stats.shelter_cents, { whole: true })} for local animal shelters. Thank you.`
+        ? ` Readers raised ${fmtMoney(stats.shelter_cents, { whole: true })} for ${shelterNames(shelters)}. Thank you.`
         : ''
     return {
       kicker: `The ${contest.year} champion`,
@@ -286,8 +315,25 @@ const PHASES = {
   },
 }
 
-function openRound({ contest, round, leaders = [] }, ctx, counting) {
+function openRound({ contest, round, leaders = [], lastChance = null }, ctx, counting) {
   const next = roundLabel(2, contest.bracket_size)
+  // Last Chance (0032): the pets racing for the last seed.
+  if (round.mainClosesAt && lastChance) {
+    const pool = lastChance.rows
+    const lead = pool[0]
+    return {
+      kicker: 'Last Chance',
+      headline: counting ? 'Last Chance has closed' : lead?.votes > 0 ? `${lead.entry.pet_name} leads Last Chance` : 'One spot left in the bracket',
+      body: esc(
+        counting
+          ? `The final count is underway, and the ${next} is announced shortly. These standings are unofficial.`
+          : `The top ${contest.bracket_size - 1} are in. ${apCount(pool.length, 'pet')} just below the line race for the last spot until ${period(apDateTime(round.closes_at))} Open Round votes carry over, and the most votes takes seed ${contest.bracket_size}.`,
+      ),
+      visual: pool.length ? leaderboard(pool, ctx) : '',
+      cta: counting ? ['See the standings', ''] : ['Vote in Last Chance', ''],
+      counts: pool.length > 0,
+    }
+  }
   const lead = leaders[0]
   let headline = 'Voting is open'
   if (counting) headline = 'Voting has closed in the Open Round'
@@ -344,10 +390,15 @@ export function buildNewsletterBlock(model, { base, campaign = '', sponsor = nul
   if (!part) return null
 
   const bonus = model.phase === 'voting' ? bonusLine(model.windows, now) : null
+  const live = ['voting', 'counting', 'intermission'].includes(model.phase)
+  const sprint = live ? sprintLine(model.sprints, now) : null
+  const finale = live ? finaleLine(model.contest, now) : null
+  const note = (html) =>
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr><td bgcolor="${TEAL_TINT}" style="background:${TEAL_TINT};border-radius:6px;padding:10px 14px;font-family:${SANS};font-size:15px;line-height:1.45;color:${INK};">${html}</td></tr></table>`
   const fine = []
   if (part.counts) fine.push(`Standings as of ${apTime(now)} ${apDate(now)}`)
   if (!part.raisedInBody && model.stats?.shelter_cents > 0) {
-    fine.push(`${fmtMoney(model.stats.shelter_cents, { whole: true })} raised for local animal shelters so far`)
+    fine.push(`${fmtMoney(model.stats.shelter_cents, { whole: true })} raised for ${shelterNames(model.shelters)} so far`)
   }
   if (sponsor?.name) {
     const name = esc(sponsor.name)
@@ -367,6 +418,10 @@ export function buildNewsletterBlock(model, { base, campaign = '', sponsor = nul
         ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr><td bgcolor="${SUN}" style="background:${SUN};border-radius:6px;padding:10px 14px;font-family:${SANS};font-size:15px;line-height:1.45;color:${INK};">` +
           `<b>${esc(bonus.title)}</b> ${esc(bonus.span)}: every vote pack bought then counts ${esc(bonus.counts)}.${bonus.sponsor ? ` Presented by ${esc(bonus.sponsor)}.` : ''}</td></tr></table>`
         : '') +
+      (sprint
+        ? note(`<b>${esc(sprint.title)}</b> ${esc(sprint.span)}: the most votes wins ${esc(sprint.prize)}, from ${esc(sprint.sponsor)}. Sprint votes count toward the round like any other.`)
+        : '') +
+      (finale ? note(`<b>The finale:</b> the champion is revealed live ${esc(finale.when)}.`) : '') +
       (part.visual || '') +
       button(part.cta[0], ctx.link(part.cta[1])) +
       (fine.length

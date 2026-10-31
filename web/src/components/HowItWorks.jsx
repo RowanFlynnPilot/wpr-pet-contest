@@ -4,12 +4,29 @@ import { roundLabel } from '../lib/rounds.js'
 import { useContest } from './ContestContext.jsx'
 import { Refresh } from './Icons.jsx'
 
-export default function HowItWorks() {
+// `compact` once voting is on: the readers who need the three steps have
+// read them, and the rest came to vote. One line, the reset rule kept, and
+// the rules a tap away.
+export default function HowItWorks({ compact = false }) {
   const { contest, bracketSize, packs } = useContest()
   const from = packs.length ? Math.min(...packs.map((p) => p.cents)) : null
   const low = cheapestPerVote(packs)
   const hours = contest?.bracket_round_hours || 48
   const close = contest?.submissions_close_at
+  if (compact) {
+    return (
+      <section className="section how-compact" aria-label="How it works">
+        <p>
+          <Refresh size={18} />
+          <span>
+            <strong>How it works:</strong> {from != null ? `vote packs from ${fmtMoney(from)}` : 'vote packs'}, the top {bracketSize} make the
+            bracket, and <strong>every round starts at zero</strong>.{' '}
+            <a href="#/rules">The rules</a>
+          </span>
+        </p>
+      </section>
+    )
+  }
   return (
     <section className="section" aria-labelledby="how-title">
       <div className="section-head">
@@ -30,8 +47,9 @@ export default function HowItWorks() {
           <h3>The Open Round</h3>
           <p>
             Every pet competes at once.{' '}
-            {from != null ? `Vote packs start at ${fmtMoney(from)}, as low as ${low} a vote in bulk.` : 'Buy vote packs for your favorites.'} The
-            top {bracketSize} make the bracket, seeded by their votes.
+            {from != null ? `Vote packs start at ${fmtMoney(from)}, as low as ${low} a vote in bulk.` : 'Buy vote packs for your favorites.'}
+            {contest?.free_vote_enabled && ' Everyone also gets one free vote a day.'} The top {bracketSize} make the bracket, seeded by their
+            votes.
           </p>
         </li>
         <li className="step">

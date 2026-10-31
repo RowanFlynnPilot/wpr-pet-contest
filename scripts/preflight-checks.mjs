@@ -12,16 +12,20 @@
 // carries a fix that names the docs/LAUNCH.md section to work from, because a
 // red line nobody knows how to clear gets ignored.
 
-export const FUNCTIONS = ["submit-entry", "create-checkout", "stripe-webhook", "moderate", "notify", "health", "disqualify"];
+export const FUNCTIONS = ["submit-entry", "create-checkout", "stripe-webhook", "moderate", "notify", "health", "disqualify", "free-vote", "links"];
+// Functions that answer 503 on purpose until their feature is switched on.
+export const OPTIONAL_FUNCTIONS = { "free-vote": "the free daily vote is off (no FREE_VOTE_HASH_KEY)" };
 // Staff functions refuse a request with no session before touching anything.
 export const STAFF_FUNCTIONS = ["moderate", "notify", "health", "disqualify"];
 // Anonymous write paths: an empty body fails validation (or the rate limit).
-export const PUBLIC_FUNCTIONS = ["submit-entry", "create-checkout"];
+export const PUBLIC_FUNCTIONS = ["submit-entry", "create-checkout", "free-vote", "links"];
 
 export const REQUIRED_SECRETS = ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "ALLOWED_ORIGIN"];
 export const RECOMMENDED_SECRETS = ["PUBLIC_URL", "SHARE_BASE_URL", "CRON_SECRET"];
 export const DEPLOY_SECRETS = ["SUPABASE_ACCESS_TOKEN", "SUPABASE_DB_PASSWORD", "SUPABASE_PROJECT_ID"];
-export const WEBHOOK_EVENTS = ["payment_intent.succeeded", "charge.refunded", "charge.dispute.created"];
+export const WEBHOOK_EVENTS = ["payment_intent.succeeded", "charge.refunded", "charge.dispute.created", "charge.dispute.closed"];
+// What the free daily vote needs once a contest turns it on (docs/FREE-DAILY-VOTE.md).
+export const FREE_VOTE_SECRETS = ["FREE_VOTE_HASH_KEY", "TURNSTILE_SECRET_KEY", "RESEND_API_KEY"];
 
 const SB = "Supabase";
 const GH = "GitHub";
@@ -197,10 +201,36 @@ function stringField(block, key) {
 
 const PLACEHOLDER = /\b(?:TODO|TBD|FIXME|XXX+|PLACEHOLDER|lorem ipsum)\b|\bexample\.(?:com|org|net)\b|<[a-z][a-z _-]*>|\[[A-Z][A-Z _-]+\]/gi;
 
-// web/src/config.js, read as text. Importing it would pull in import.meta.env
-// and window, which only exist under Vite.
-export function parseConfig(text) {
+// web/src/newsrooms.js, read as text: the default newsroom's entry, so a
+// RULES field written as NEWSROOM.contact resolves to the real address.
+export function parseNewsroom(text) {
   const src = String(text ?? "");
+  const key = src.match(/export\s+const\s+DEFAULT_NEWSROOM\s*=\s*['"]([\w-]+)['"]/)?.[1];
+  if (!key) return null;
+  const at = src.search(new RegExp(`\\n\\s*${key}\\s*:\\s*\\{`));
+  if (at < 0) return null;
+  const start = src.indexOf("{", at);
+  let depth = 0;
+  for (let i = start; i < src.length; i++) {
+    if (src[i] === "{") depth++;
+    else if (src[i] === "}" && --depth === 0) return { key, block: src.slice(start, i + 1) };
+  }
+  return null;
+}
+
+// web/src/config.js, read as text. Importing it would pull in import.meta.env
+// and window, which only exist under Vite. A field may be a literal, a
+// NEWSROOM.<key> reference, or a template with ${NEWSROOM.<key>} inside.
+export function parseConfig(text, newsroomText) {
+  const src = String(text ?? "");
+  const paper = parseNewsroom(newsroomText);
+  const fromPaper = (key) => (paper ? stringField(paper.block, key) : null);
+  const resolve = (block, key) => {
+    const literal = stringField(block, key);
+    if (literal != null) return literal.replace(/\$\{NEWSROOM\.(\w+)\}/g, (whole, k) => fromPaper(k) ?? whole);
+    const ref = block?.match(new RegExp(`\\b${key}\\s*:\\s*NEWSROOM\\.(\\w+)`));
+    return ref ? fromPaper(ref[1]) : null;
+  };
   const rules = objectLiteral(src, "RULES");
   const approved = rules?.match(/\brulesApproved\s*:\s*(true|false)\b/);
 
@@ -226,11 +256,11 @@ export function parseConfig(text) {
   return {
     found: Boolean(rules),
     rulesApproved: approved ? approved[1] === "true" : null,
-    contact: stringField(rules, "contact"),
-    eligibility: stringField(rules, "eligibility"),
+    contact: resolve(rules, "contact"),
+    eligibility: resolve(rules, "eligibility"),
     placeholderNote: /placeholder/i.test(note),
     markers,
-    analyticsDomain: stringField(objectLiteral(src, "ANALYTICS"), "domain"),
+    analyticsDomain: resolve(objectLiteral(src, "ANALYTICS"), "domain"),
     presenting,
   };
 }
@@ -306,7 +336,7 @@ export function checkFunctionsDeployed(f) {
   const jwt = FUNCTIONS.filter((s) => bySlug.get(s)?.verifyJwt === true);
 
   if (missing.length === FUNCTIONS.length) {
-    return fail(id, SB, `No edge functions deployed (0 of ${FUNCTIONS.length}${paused(f) ? `; ${PAUSED_NOTE}` : ""})`, `Merge to main with the deploy secrets set; the deploy job ships all seven ${see(3)}`);
+    return fail(id, SB, `No edge functions deployed (0 of ${FUNCTIONS.length}${paused(f) ? `; ${PAUSED_NOTE}` : ""})`, `Merge to main with the deploy secrets set; the deploy job ships every one ${see(3)}`);
   }
   const problems = [];
   if (missing.length) problems.push(`not deployed: ${list(missing)}`);
@@ -314,7 +344,7 @@ export function checkFunctionsDeployed(f) {
   if (jwt.length) problems.push(`JWT verification on for ${list(jwt)}, so Stripe and anonymous readers get 401`);
   if (problems.length) {
     const fix = jwt.length && !missing.length
-      ? `Redeploy from the repo: config.toml turns verify_jwt off for all seven ${see(3)}`
+      ? `Redeploy from the repo: config.toml turns verify_jwt off for all of them ${see(3)}`
       : `Merge to main (the deploy job ships every function), or supabase functions deploy <name> ${see(3)}`;
     return fail(id, SB, `Edge functions ${problems.join("; ")}`, fix);
   }
@@ -334,6 +364,10 @@ export function checkFunctionsHttp(f) {
     if (!probe) continue;
     const id = `supabase.http.${slug}`;
     const codes = [probe.options?.status, probe.post?.status].filter((c) => typeof c === "number");
+    if (OPTIONAL_FUNCTIONS[slug] && probe.post?.status === 503 && (probe.options?.status ?? 200) === 200) {
+      out.push(pass(id, SB, `${slug}: switched off, ${OPTIONAL_FUNCTIONS[slug]}`));
+      continue;
+    }
     const crashed = codes.find((c) => c >= 500);
     if (crashed) {
       out.push(fail(id, SB, `${slug} crashes at start (HTTP ${crashed})`, `Usually a missing secret; check the function's logs in the dashboard (Edge Functions → ${slug} → Logs) ${see(2)}`));
@@ -479,6 +513,38 @@ export function checkContestData(f) {
 }
 
 // ------------------------------------------------------------------- GitHub --
+
+// Free voting is a contest setting. When the contest has it on, a missing key
+// means every reader who tries it gets "not available": block the launch.
+export function checkFreeVote(f) {
+  const id = "supabase.free_vote";
+  const d = f.supabase?.data;
+  const g = gate(d, id, SB, "Free daily vote", `Check the project's REST API ${PRE}`);
+  if (g) return g;
+  const contest = pickContest(d.contests);
+  if (!contest?.free_vote_enabled) return pass(id, SB, "Free daily vote is off for this contest");
+  const out = [];
+  const secrets = f.supabase?.secrets;
+  if (!secrets?.names) {
+    out.push(skip(`${id}.secrets`, SB, "Free daily vote secrets: not checked"));
+  } else {
+    const missing = FREE_VOTE_SECRETS.filter((n) => !secrets.names.includes(n));
+    out.push(
+      missing.length
+        ? fail(`${id}.secrets`, SB, `Free daily vote is on, but function secrets are missing: ${list(missing)}`, `supabase secrets set ${missing.map((n) => `${n}=…`).join(" ")} ${see(5)}`)
+        : pass(`${id}.secrets`, SB, `Free daily vote is on, with ${list(FREE_VOTE_SECRETS)} set`),
+    );
+  }
+  const site = f.github?.variables?.keys?.VITE_TURNSTILE_SITE_KEY;
+  if (f.github?.variables?.keys) {
+    out.push(
+      site?.present
+        ? pass(`${id}.turnstile`, GH, "VITE_TURNSTILE_SITE_KEY is set")
+        : fail(`${id}.turnstile`, GH, "Free daily vote is on, but VITE_TURNSTILE_SITE_KEY is not set: no reader could request a code", `Set the Actions variable from the Cloudflare Turnstile widget ${see(3)}`),
+    );
+  }
+  return out;
+}
 
 export function checkPages(f) {
   const id = "github.pages";
@@ -753,6 +819,7 @@ export const CHECKS = [
   [SB, checkMigrations],
   [SB, checkAuth],
   [SB, checkContestData],
+  [SB, checkFreeVote],
   [GH, checkPages],
   [GH, checkVariables],
   [GH, checkGithubSecrets],

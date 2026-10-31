@@ -1,7 +1,19 @@
 # Free daily vote
 
-**Status:** a proposal for the newsroom to decide on. Nothing here is built. No
-code, migration or setting has changed.
+> **Legal position (Oct. 26, 2026, from WPR's editor; confirming with
+> Lawyers for Reporters).** The contest awards no prize, so selling vote
+> packs raises no lottery question (Wis. Stat. 945.01), and a free route
+> would not have cured one anyway. Turning the free vote on is a product
+> decision, not a legal one.
+
+**Status:** built behind a contest switch that is off by default (migration
+0019, the `free-vote` function, the pet-page sheet and the Free votes tab).
+Decided Oct. 23, 2026: build now and switch on after counsel answers section
+9; one free vote a day for any pet; a remembered browser plus optional
+morning reminders; free votes count in every round. Not yet built from this
+doc: the Resend bounce webhook, Turnstile step-up during spikes, and the
+domain-cluster alert. The switch is a separate draft-only function,
+`set_free_vote_enabled`, rather than a new argument to `create_contest`.
 **Date:** October 23, 2026
 **Read with:** `CLAUDE.md` (the invariants), `PRODUCT.md`, `docs/LAUNCH.md`
 
@@ -1028,6 +1040,19 @@ the doc refers to them as Q1 to Q11.
    method be comparable in weight to paid voting for it to matter? Is one free
    vote a day, next to packs of up to 600 votes, enough, not enough, or
    irrelevant?
+   - Read with it: Wisconsin's 2015 guidance sheet "Contests, Sweepstakes and
+     Sales Promotions" (charitable.wi.gov, Content/PDF/ContestsSweepstakesPromotions 4.15.pdf)
+     says that "if a promotion allows participation by means of two different
+     methods, one of which constitutes consideration and the other does not, it
+     is an illegal lottery," assuming prize and chance are also present, and
+     that "the worthiness of the cause ... has no bearing." So in Wisconsin a
+     free path may not do what "no purchase necessary" does elsewhere; the
+     question may turn on prize (Q5) and chance instead.
+   - Also: Valentin v. La Prensa, 103 Misc. 2d 875 (N.Y. Civ. Ct. 1980), held a
+     newspaper's baby contest with purchased coupon votes and a cash prize an
+     illegal lottery, reasoning that unlimited bought votes made the outcome
+     turn on who bought the most, not on the entrants. Another state, and a
+     contest with a cash prize, but close to this one in shape.
 3. **If the free path matters legally,** may WPR pause it mid-contest for
    abuse? Offer it in some rounds only? Change its terms after submissions
    open?

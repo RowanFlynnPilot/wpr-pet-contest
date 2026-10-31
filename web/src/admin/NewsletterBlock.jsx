@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { SPONSORS } from '../config.js'
-import { fetchBonusWindows, fetchEntriesByAge, fetchEntriesByIds, fetchMatchups, fetchRounds, fetchStats, fetchTotals } from '../lib/api.js'
+import { fetchBonusWindows, fetchEntriesByAge, fetchEntriesByIds, fetchLastChance, fetchMatchups, fetchRounds, fetchShelters, fetchSprints, fetchStats, fetchTotals } from '../lib/api.js'
 import { APP_BASE, PUBLIC_URL } from '../lib/env.js'
 import { TIME_ZONE, apTime, fmtInt } from '../lib/format.js'
 import { NOPTIN_LIMIT, buildNewsletterBlock } from '../lib/newsletter.js'
@@ -26,9 +26,9 @@ async function pairsFor(roundId) {
 
 export async function gatherNewsletter(contest, now = Date.now()) {
   const cid = contest.id
-  const [rounds, stats, windows] = await Promise.all([fetchRounds(cid), fetchStats(cid), fetchBonusWindows(cid)])
+  const [rounds, stats, windows, sprints, shelters] = await Promise.all([fetchRounds(cid), fetchStats(cid), fetchBonusWindows(cid), fetchSprints(cid), fetchShelters(cid)])
   const { phase, round, nextRound } = contestPhase(contest, rounds, now)
-  const model = { contest, phase, round, nextRound, stats, windows, now }
+  const model = { contest, phase, round, nextRound, stats, windows, sprints, shelters, now }
   const sizes = new Map()
   const want = (entry, size) =>
     entry &&
@@ -45,6 +45,18 @@ export async function gatherNewsletter(contest, now = Date.now()) {
     const [leaders, earliest] = await Promise.all([fetchEntriesByIds(leaderIds(totals)), fetchEntriesByAge(cid, 5)])
     model.leaders = topOpenRound(totals, [...leaders, ...earliest])
     want(model.leaders[0]?.entry, 96) // only the leader has a photo
+    // Last Chance (0032): the pool, best first, ties to the better start.
+    if (round.mainClosesAt) {
+      const field = await fetchLastChance(round.id)
+      const start = new Map(field.map((f) => [f.entry_id, f.place]))
+      const pool = await fetchEntriesByIds(field.filter((f) => f.pool).map((f) => f.entry_id))
+      const rows = pool
+        .map((e) => ({ entry: e, votes: totals.get(e.id)?.votes || 0 }))
+        .sort((a, b) => b.votes - a.votes || (start.get(a.entry.id) || 999) - (start.get(b.entry.id) || 999))
+        .map((r, i) => ({ ...r, rank: i + 1 }))
+      model.lastChance = { rows }
+      want(rows[0]?.entry, 96)
+    }
   } else if (phase === 'voting' || phase === 'counting') {
     const [totals, { rows, byId }] = await Promise.all([fetchTotals(round.id), pairsFor(round.id)])
     const v = (id) => totals.get(id)?.votes || 0

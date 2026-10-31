@@ -112,7 +112,7 @@ export default function Wrapup() {
         all(() =>
           admin.from('round_results').select('round_id, entry_id, votes, rounds!inner(contest_id)').eq('rounds.contest_id', cid).order('round_id').order('entry_id'),
         ),
-        all(() => admin.from('entries').select(PUBLIC_ENTRY_COLS).eq('contest_id', cid).in('status', ['approved', 'disqualified']).order('created_at').order('id')),
+        all(() => admin.from('entries').select(PUBLIC_ENTRY_COLS).eq('contest_id', cid).in('status', ['approved', 'disqualified', 'withdrawn']).order('created_at').order('id')),
         q(admin.from('side_awards').select('*').eq('contest_id', cid)),
         q(admin.from('vote_packs').select('label, votes, cents').eq('contest_id', cid).order('sort')),
       ])
@@ -124,7 +124,7 @@ export default function Wrapup() {
         `pet-contest-${year}-summary.json`,
         summary({ contest, rounds, matchups, entries, sideAwards, payout: money.data?.payout, shelterPayouts: money.data?.shelters || [], packs }),
       )
-      say('Archive downloaded: open round, bracket and summary.')
+      say('Archive downloaded: Open Round, bracket and summary.')
     } catch (err) {
       fail(err)
     } finally {
@@ -137,7 +137,7 @@ export default function Wrapup() {
     setError(null)
     try {
       const [res] = await q(admin.rpc('erase_personal_data', { p_contest_id: cid }))
-      say(`Erased: ${res.entries} entrant and ${res.votes} buyer records.`)
+      say(`Erased: ${res.entries} entrant, ${res.votes} buyer${res.free_voters != null ? ` and ${res.free_voters} free voter` : ''} records.`)
       setErasing(false)
       await reloadContest()
     } catch (err) {
@@ -181,7 +181,7 @@ export default function Wrapup() {
         ) : (
           <>
             <p className="small">
-              The rules promise that entrant and buyer email addresses are erased a year after the contest ends. Pets, towns, photos, results and
+              The rules promise that entrant, buyer and free voter email addresses are erased a year after the contest ends. Pets, towns, photos, results and
               the money are kept. It cannot be done until the {ERASE_AFTER_DAYS}-day chargeback window has closed
               {eraseFrom ? `, on ${apDate(eraseFrom, { year: true })}` : ''}. <strong>Export the newsletter list first</strong> (Newsletter
               tab): opt-ins are erased too.

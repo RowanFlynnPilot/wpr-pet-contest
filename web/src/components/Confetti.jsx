@@ -1,11 +1,22 @@
 import { useMemo } from 'react'
 import { useReducedMotion } from '../lib/hooks.js'
 
-const DEFAULT = ['#f4b942', '#3a867c', '#ffffff', '#e1edea', '#f7c860']
+import { tokenColor } from '../lib/theme.js'
+
+// The accent, the brand, paper, the brand's tint and a lighter accent: read
+// from the theme once the first burst is asked for.
+const DEFAULT = () => [
+  tokenColor('--accent', '#f4b942'),
+  tokenColor('--brand', '#3a867c'),
+  tokenColor('--paper', '#ffffff'),
+  tokenColor('--brand-tint', '#e1edea'),
+  tokenColor('--accent-light', '#f7c860'),
+]
 
 // A single fall of paper, behind the content, once. Nothing under reduced
 // motion. `colors` lets a sun-colored field use pieces that show against it.
-export default function Confetti({ count = 36, colors = DEFAULT }) {
+export default function Confetti({ count = 36, colors = null }) {
+  colors = colors || DEFAULT()
   const reduced = useReducedMotion()
   const bits = useMemo(
     () =>

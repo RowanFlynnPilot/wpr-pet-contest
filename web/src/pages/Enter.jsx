@@ -1,20 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { NEWSROOM } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import Countdown from '../components/Countdown.jsx'
-import { Camera, Check } from '../components/Icons.jsx'
+import EntriesCalendar from '../components/EntriesCalendar.jsx'
+import { Calendar as CalendarIcon, Camera, Check, LinkIcon, Share } from '../components/Icons.jsx'
 import { submitEntry } from '../lib/api.js'
 import { track } from '../lib/analytics.js'
+import { deadlineIcs, icsHref } from '../lib/calendar.js'
+import { PUBLIC_URL } from '../lib/env.js'
+import { entryShareLine } from '../lib/share.js'
+import PetAbout, { hasAbout } from '../components/PetAbout.jsx'
 import { apDate, apDateTime, period } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { ACCEPTED_TYPES, MAX_BYTES, prepareUpload } from '../lib/image.js'
 import { OTHER_TOWN, TOWNS } from '../lib/towns.js'
-import { EMPTY_ENTRY as EMPTY, LIMITS, validateEntry } from '../lib/entryForm.js'
+import { EMPTY_ENTRY as EMPTY, LIMITS, PROFILE_FIELDS, validateEntry } from '../lib/entryForm.js'
 
 // Exactly this, and never HEIC: when `accept` leaves HEIC out, iOS converts
 // the photo to JPEG as it is picked. That is what makes iPhone entries work.
 const ACCEPT = 'image/jpeg,image/png,image/webp'
 
-const ORDER = ['photo', 'pet_name', 'species', 'town', 'caption', 'owner_name', 'owner_email', 'rights']
+const ORDER = ['photo', 'pet_name', 'species', 'town', 'caption', ...PROFILE_FIELDS, 'owner_name', 'owner_email', 'rights']
 
 function PhotoField({ photo, preparing, onPick, error }) {
   const [drag, setDrag] = useState(false)
@@ -101,14 +107,46 @@ function TextField({ id, label, value, onChange, error, hint, optional, max, ...
   )
 }
 
+function PhotoTips() {
+  return (
+    <div className="card sun">
+      <h2 style={{ fontSize: 21, marginBottom: 8 }}>Photos that win votes</h2>
+      <ul className="tips">
+        <li>Get down to your pet&rsquo;s eye level.</li>
+        <li>Daylight by a window beats a flash.</li>
+        <li>One pet, filling most of the frame.</li>
+        <li>No people&rsquo;s faces, text or filters, please.</li>
+      </ul>
+    </div>
+  )
+}
+
 function Closed({ c }) {
   const { phase, contest } = c
+  // The announcement's two weeks: when, what to have ready, and a reminder.
   if (phase === 'coming') {
     return (
-      <div className="card" style={{ maxWidth: 640 }}>
-        <h1 style={{ fontSize: 32 }}>Entries open {apDate(contest.submissions_open_at)}</h1>
-        <p style={{ marginTop: 10 }}>Get your best photo ready. It&rsquo;s free to enter.</p>
-        <Countdown to={contest.submissions_open_at} label="Entries open in" />
+      <div className="enter-layout">
+        <div className="card">
+          <h1 style={{ fontSize: 32 }}>Entries open {apDate(contest.submissions_open_at)}</h1>
+          <p style={{ marginTop: 10 }}>{period(`It’s free and takes a few minutes on a phone. Entries close ${apDateTime(contest.submissions_close_at)}`)}</p>
+          <Countdown to={contest.submissions_open_at} label="Entries open in" />
+          <div className="hero-actions">
+            <EntriesCalendar contest={contest} where="enter" className="btn btn-primary" />
+          </div>
+          <h2 style={{ fontSize: 21, margin: '24px 0 8px' }}>What you&rsquo;ll need</h2>
+          <ul className="tips">
+            <li>One photo of your pet that you took or have permission to use. Straight from an iPhone or Android is fine.</li>
+            <li>Your pet&rsquo;s name and your town.</li>
+            <li>Your name and email, for the editor. Neither is published.</li>
+          </ul>
+          <p className="small" style={{ margin: '12px 0 0' }}>
+            One pet per entry. {NEWSROOM.name} staff, their immediate families and their households can&rsquo;t enter. <a href="#/rules">Official rules</a>
+          </p>
+        </div>
+        <aside className="enter-aside" aria-label="Tips">
+          <PhotoTips />
+        </aside>
       </div>
     )
   }
@@ -128,24 +166,82 @@ function Closed({ c }) {
   )
 }
 
-function Success({ petName, closeAt, onAnother }) {
+// The moment after entering: the photo they just sent, in a frame, a line
+// they can post today (there is no page to link until an editor approves
+// the entry, so it points at the front door), and a calendar note for the
+// day voting opens.
+function Success({ petName, photo, contest, onAnother }) {
   const ref = useRef(null)
   useEffect(() => {
     ref.current?.focus()
   }, [])
+  const preview = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo])
+  useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview])
+  const opensAt = contest?.submissions_close_at || null
+  const contestName = contest?.name || `Cutest Pet in ${NEWSROOM.region}`
+  const line = entryShareLine({ petName, contestName, opensAt, url: PUBLIC_URL })
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(line)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      track('Entry Line Copied')
+    } catch {
+      // The line is selectable text; nothing else to do.
+    }
+  }
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+  const share = () =>
+    navigator
+      .share({ text: line })
+      .then(() => track('Entry Line Shared'))
+      .catch(() => {})
+  const ics = opensAt
+    ? deadlineIcs({
+        uid: `voting-opens-${contest.id}`,
+        title: `Voting opens: ${contestName}`,
+        closesAt: opensAt,
+        url: PUBLIC_URL,
+        description: `Entries are in. Vote for ${petName} from the first hour; totals reset every round.`,
+      })
+    : null
   return (
-    <div className="card success-burst" tabIndex={-1} ref={ref} role="status">
-      <div className="mark">
-        <Check size={38} />
-      </div>
+    <div className="card success-burst youre-in" tabIndex={-1} ref={ref} role="status">
+      {preview ? (
+        <figure className="youre-in-photo">
+          <img src={preview} alt="" />
+          <figcaption>{petName}</figcaption>
+        </figure>
+      ) : (
+        <div className="mark">
+          <Check size={38} />
+        </div>
+      )}
       <h1 style={{ fontSize: 'clamp(28px, 6vw, 40px)' }}>{petName} is entered!</h1>
       <p>
         An editor looks at every entry before it goes live, usually within a day. Once {petName} is approved you&rsquo;ll find them in the
-        gallery{closeAt ? `, and voting starts after entries close ${apDate(closeAt)}` : ''}.
+        gallery{opensAt ? `, and voting starts after entries close ${apDate(opensAt)}` : ''}.
       </p>
-      <p>
-        <strong>Start rounding up votes now.</strong> Tell friends, family and your neighborhood Facebook group that {petName} is in.
-      </p>
+      <div className="youre-in-line">
+        <div className="share-title">Tell people now</div>
+        <p className="youre-in-text">{line}</p>
+        <div className="share-buttons">
+          {canShare && (
+            <button type="button" className="share-btn primary" onClick={share}>
+              <Share size={16} /> Share
+            </button>
+          )}
+          <button type="button" className="share-btn" onClick={copy}>
+            <LinkIcon size={16} /> {copied ? 'Copied' : 'Copy the line'}
+          </button>
+          {ics && (
+            <a className="share-btn" href={icsHref(ics)} download={`voting-opens-${petName}.ics`} onClick={() => track('Calendar', { pet: petName, kind: 'opens' })}>
+              <CalendarIcon size={16} /> Remind me when voting opens
+            </a>
+          )}
+        </div>
+      </div>
       <div className="hero-actions" style={{ justifyContent: 'center' }}>
         <button type="button" className="btn btn-primary" onClick={onAnother}>
           Enter another pet
@@ -168,7 +264,7 @@ export default function Enter() {
   const [serverError, setServerError] = useState(null)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(null)
-  useDocumentTitle('Enter your pet — Wausau Pilot & Review')
+  useDocumentTitle(`Enter your pet — ${NEWSROOM.name}`)
 
   const set = (key) => (value) => setV((prev) => ({ ...prev, [key]: value }))
 
@@ -186,7 +282,7 @@ export default function Enter() {
     const { photo: ready, thumb: small } = await prepareUpload(file)
     setPreparing(false)
     if (ready.size > MAX_BYTES) {
-      setErrors((e) => ({ ...e, photo: 'That photo is over 10 MB. Please choose a smaller one.' }))
+      setErrors((e) => ({ ...e, photo: 'That photo is larger than 10 MB. Please choose a smaller one.' }))
       return
     }
     setErrors((e) => ({ ...e, photo: undefined }))
@@ -215,6 +311,7 @@ export default function Enter() {
     form.append('owner_email', v.owner_email.trim())
     form.append('town', v.town === OTHER_TOWN ? v.town_other.trim() : v.town)
     if (v.caption.trim()) form.append('caption', v.caption.trim())
+    for (const key of PROFILE_FIELDS) if (v[key].trim()) form.append(key, v[key].trim())
     form.append('rights_accepted', 'true')
     if (v.newsletter) form.append('newsletter_opt_in', 'true')
     form.append('website', v.website)
@@ -246,7 +343,8 @@ export default function Enter() {
       <div className="wrap-narrow section">
         <Success
           petName={done}
-          closeAt={c.contest.submissions_close_at}
+          photo={photo}
+          contest={c.contest}
           onAnother={() => {
             setDone(null)
             setV((prev) => ({ ...EMPTY, owner_name: prev.owner_name, owner_email: prev.owner_email }))
@@ -258,6 +356,13 @@ export default function Enter() {
     )
   }
 
+  const draftAbout = {
+    pet_name: v.pet_name.trim() || 'your pet',
+    caption: v.caption.trim(),
+    profile_nickname: v.profile_nickname.trim(),
+    profile_favorite: v.profile_favorite.trim(),
+    profile_trick: v.profile_trick.trim(),
+  }
   const errorCount = Object.values(errors).filter(Boolean).length
 
   return (
@@ -282,7 +387,7 @@ export default function Enter() {
 
           <PhotoField photo={photo} preparing={preparing} onPick={pick} error={errors.photo} />
 
-          <TextField id="pet_name" label="Pet's name" value={v.pet_name} onChange={set('pet_name')} error={errors.pet_name} max={LIMITS.pet_name} autoComplete="off" />
+          <TextField id="pet_name" label="Pet’s name" value={v.pet_name} onChange={set('pet_name')} error={errors.pet_name} max={LIMITS.pet_name} autoComplete="off" />
 
           <fieldset className="field" id="field-species" style={{ border: 0, padding: 0, margin: '0 0 16px' }} aria-describedby={errors.species ? 'species-error' : undefined}>
             <legend className="label" style={{ marginBottom: 6 }}>
@@ -363,6 +468,25 @@ export default function Enter() {
             {errors.caption && <span className="error-text">{errors.caption}</span>}
           </div>
 
+          <fieldset className="profile-fields">
+            <legend className="label">
+              Get to know your pet <span className="opt">(optional)</span>
+            </legend>
+            <p className="hint">Shown on your pet&rsquo;s page, under the photo. Answer any, all or none.</p>
+            <TextField id="profile_nickname" label="Also answers to" placeholder="Biscuit, Biscuit Boy, Sir Biscuit" value={v.profile_nickname} onChange={set('profile_nickname')} error={errors.profile_nickname} max={LIMITS.profile_nickname} autoComplete="off" />
+            <TextField id="profile_favorite" label="Favorite thing" placeholder="the squeaky hedgehog" value={v.profile_favorite} onChange={set('profile_favorite')} error={errors.profile_favorite} max={LIMITS.profile_favorite} autoComplete="off" autoCapitalize="none" />
+            <TextField id="profile_trick" label="Best trick or quirk" placeholder="Sneezes when excited" value={v.profile_trick} onChange={set('profile_trick')} error={errors.profile_trick} max={LIMITS.profile_trick} autoComplete="off" />
+          </fieldset>
+
+          {/* What readers will see under the photo, as it is typed. */}
+          {hasAbout(draftAbout) && (
+            <div className="about-preview" aria-live="polite">
+              <span className="about-preview-label">On {v.pet_name.trim() ? `${v.pet_name.trim()}’s` : "your pet’s"} page</span>
+              <span className="about-preview-name">{v.pet_name.trim() || 'Your pet'}</span>
+              <PetAbout entry={draftAbout} />
+            </div>
+          )}
+
           <div className="row-2">
             <TextField id="owner_name" label="Your name" hint="Never published." value={v.owner_name} onChange={set('owner_name')} error={errors.owner_name} max={LIMITS.owner_name} autoComplete="name" />
             <TextField
@@ -375,6 +499,9 @@ export default function Enter() {
               type="email"
               inputMode="email"
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              name="email"
             />
           </div>
 
@@ -396,7 +523,7 @@ export default function Enter() {
 
           <label className="check" style={{ marginBottom: 12 }}>
             <input type="checkbox" checked={v.newsletter} onChange={(e) => set('newsletter')(e.target.checked)} />
-            <span>Send me Wausau Pilot &amp; Review&rsquo;s free daily newsletter.</span>
+            <span>Send me {NEWSROOM.name}&rsquo;s free daily newsletter.</span>
           </label>
 
           <div className="field" id="field-rights">
@@ -416,10 +543,11 @@ export default function Enter() {
               <p>By entering, I confirm that:</p>
               <p>1. I took this photo or have the right to share it, and the pet in it lives with me or is in my care.</p>
               <p>
-                2. Wausau Pilot &amp; Review may publish the photo, my pet&rsquo;s name, my town and my caption in print, online and on social
+                2. {NEWSROOM.name} may publish the photo, my pet&rsquo;s name, my town and my caption in print, online and on social
                 media to promote this contest, now and in future contest coverage, without payment to me.
               </p>
               <p>3. I am 18 or older.</p>
+              <p>4. I don&rsquo;t work for {NEWSROOM.name}, and no one in my immediate family or household does.</p>
               <p>My name and email address are never published.</p>
             </div>
             {errors.rights && <span className="error-text">{errors.rights}</span>}
@@ -442,15 +570,7 @@ export default function Enter() {
         </form>
 
         <aside className="enter-aside" aria-label="Tips">
-          <div className="card sun">
-            <h2 style={{ fontSize: 21, marginBottom: 8 }}>Photos that win votes</h2>
-            <ul className="tips">
-              <li>Get down to your pet&rsquo;s eye level.</li>
-              <li>Daylight by a window beats a flash.</li>
-              <li>One pet, filling most of the frame.</li>
-              <li>No people&rsquo;s faces, text or filters, please.</li>
-            </ul>
-          </div>
+          <PhotoTips />
           <div className="card plain">
             <h2 style={{ fontSize: 19, marginBottom: 6 }}>What happens next</h2>
             <p className="small" style={{ margin: 0 }}>

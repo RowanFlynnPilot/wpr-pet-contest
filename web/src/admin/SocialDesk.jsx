@@ -1,32 +1,51 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchEntries, fetchMatchups, fetchRounds, fetchShelters, fetchStats, fetchTotalsByRound } from '../lib/api.js'
+import { fetchEntries, fetchLastChance, fetchMatchups, fetchPacks, fetchRounds, fetchShelters, fetchSprints, fetchSprintStandings, fetchStats, fetchTotalsByRound } from '../lib/api.js'
+import { finaleState } from '../lib/finale.js'
+import { lastChanceState, rankPool } from '../lib/lastChance.js'
+import { finalSeq } from '../lib/rounds.js'
+import { nextSprint, pickSprint } from '../lib/sprints.js'
 import { stamp } from '../lib/datetime.js'
 import { PUBLIC_URL } from '../lib/env.js'
 import { contestPhase } from '../lib/phase.js'
 import { rankOpenRound } from '../lib/rank.js'
 import { roundLabel } from '../lib/rounds.js'
-import { bubbleRows, currentBracketRound, lastDecidedRound, matchupCards, milestoneCents, roundResults, sampleScenario } from '../lib/graphics/content.js'
+import { bubbleRows, currentBracketRound, lastDecidedRound, launchStage, matchupCards, milestoneCents, roundResults, sampleScenario } from '../lib/graphics/content.js'
 import { displayUrl } from '../lib/graphics/layout.js'
-import { STAFF_SIZES, buildCards, cardFile, renderCard } from '../lib/graphics/staff.js'
+import { STAFF_SIZES, buildCards, cardFile, cardSize, renderCard } from '../lib/graphics/staff.js'
+import { captionsFor } from '../lib/graphics/captions.js'
 import { toPng } from '../lib/graphics/draw.js'
 import { downloadBlob, pause } from '../lib/graphics/save.js'
 import { ErrorNote, useAsync, useDesk } from './shared.jsx'
 import '../components/graphics.css'
 
-// Ready-to-post images for the promotion calendar (docs/LAUNCH.md section 8):
-// the daily leaderboard and bubble, a card per matchup, round results, the
-// champion and the shelter total. Public data only, read the way the public
+// Ready-to-post images for the promotion calendar (docs/campaign/calendar.md):
+// the launch (announcement, how it works, the countdown, entries open, entries
+// so far, last call, the field), the daily leaderboard and bubble, a card per
+// matchup, round results, the champion and the shelter total. Public data only, read the way the public
 // site reads it, so nothing here can carry an owner's name or email.
 
 const done = (r) => r?.status === 'resolved' || r?.status === 'closed'
 
 async function load(cid) {
-  const [rounds, entries, stats, shelters] = await Promise.all([fetchRounds(cid), fetchEntries(cid), fetchStats(cid), fetchShelters(cid)])
+  const [rounds, entries, stats, shelters, packs] = await Promise.all([fetchRounds(cid), fetchEntries(cid), fetchStats(cid), fetchShelters(cid), fetchPacks(cid)])
   const bracketIds = rounds.filter((r) => r.kind === 'bracket').map((r) => r.id)
   const started = rounds.filter((r) => r.status !== 'pending').map((r) => r.id)
-  const [matchups, totals] = await Promise.all([fetchMatchups(bracketIds), fetchTotalsByRound(started)])
-  return { rounds, entries, stats, shelters, matchups, totals, at: Date.now() }
+  const r1 = rounds.find((r) => r.seq === 1)
+  const [matchups, totals, sprints, lastChance] = await Promise.all([
+    fetchMatchups(bracketIds),
+    fetchTotalsByRound(started),
+    fetchSprints(cid),
+    r1?.overtime_closes_at ? fetchLastChance(r1.id) : [],
+  ])
+  // A running sprint's top three, for its card.
+  const at = Date.now()
+  const picked = pickSprint(sprints, at)
+  const standings = picked?.state === 'live' ? await fetchSprintStandings(picked.sprint.id, 3) : []
+  return { rounds, entries, stats, shelters, packs, matchups, totals, sprints, lastChance, standings, at }
 }
+
+// The cheapest pack, for "Packs from $5".
+const fromCents = (packs) => (packs?.length ? Math.min(...packs.map((p) => p.cents)) : null)
 
 // What there is to post, from live data.
 function liveScene(contest, d) {
@@ -36,6 +55,11 @@ function liveScene(contest, d) {
   const byId = new Map(d.entries.map((e) => [e.id, e]))
   const s = { contest, bracketSize, phase, now, stats: d.stats, shelters: d.shelters }
   const r1 = d.rounds.find((r) => r.seq === 1)
+  // Before and during entries: the launch cards (D-14 to the Open Round).
+  const stage = launchStage(contest, phase)
+  if (stage) {
+    s.launch = { stage, opensAt: contest.submissions_open_at, closesAt: contest.submissions_close_at, votingAt: r1?.opens_at || null, entries: d.entries, fromCents: fromCents(d.packs), shelters: d.shelters }
+  }
   const bracketStarted = d.rounds.some((r) => r.kind === 'bracket' && r.status !== 'pending')
   if (r1 && (r1.status === 'open' || (done(r1) && !bracketStarted))) {
     s.openRound = r1
@@ -52,6 +76,33 @@ function liveScene(contest, d) {
     // close_round decides the final and completes the contest in one step.
     if (s.results?.final) s.champion = s.results.winners[0] || null
   }
+  // Sprints (0030): the one on now or just won, and the next announced.
+  const picked = pickSprint(d.sprints || [], now)
+  const cards = []
+  if (picked && picked.state !== 'counting') {
+    if (picked.state === 'won') {
+      const w = byId.get(picked.sprint.winner_entry_id)
+      if (w) cards.push({ sprint: picked.sprint, state: 'won', winner: { entry: w, votes: picked.sprint.winner_votes } })
+    } else {
+      const top = (d.standings || []).map((r) => ({ rank: r.place, votes: r.votes, entry: byId.get(r.entry_id) })).filter((r) => r.entry)
+      cards.push({ sprint: picked.sprint, state: picked.state, top })
+    }
+  }
+  const next = nextSprint(d.sprints || [], now)
+  if (next && next.id !== picked?.sprint.id) cards.push({ sprint: next, state: 'soon' })
+  if (cards.length) s.sprints = cards
+  // Last Chance (0032): the pool, best first, while it runs.
+  const lc = lastChanceState(r1, d.lastChance || [], now)
+  if (lc?.active) s.lastChance = { rows: rankPool(lc, d.totals.get(r1.id) || new Map(), byId), closesAt: lc.closesAt }
+  // The finale (0031), before it airs, with the finalists once they are set.
+  const f = finaleState(contest, phase, now)
+  if (f?.state === 'soon') {
+    const final = d.rounds.find((r) => r.seq === finalSeq(bracketSize))
+    const m = final && d.matchups.find((x) => x.round_id === final.id)
+    const a = m && byId.get(m.entry_a_id)
+    const b = m && byId.get(m.entry_b_id)
+    s.finale = { at: f.at, finalists: a && b ? [{ entry: a, seed: a.seed }, { entry: b, seed: b.seed }] : null }
+  }
   return s
 }
 
@@ -66,12 +117,34 @@ function sampleScene(contest, d) {
     now: d.at,
     shelters: d.shelters,
     stats: { shelter_cents: sc.shelterCents },
+    // Every launch card at once, on made-up dates.
+    launch: {
+      stage: 'all',
+      opensAt: new Date(d.at + 6 * 86400e3).toISOString(),
+      closesAt: new Date(d.at + 30 * 3600e3).toISOString(),
+      votingAt: new Date(d.at + 7 * 86400e3).toISOString(),
+      entries: d.entries,
+      fromCents: fromCents(d.packs),
+      shelters: d.shelters,
+    },
     openRound: sc.openRound,
     ranked: sc.ranked,
     bubble: bubbleRows(sc.ranked, sc.bracketSize),
     bracket: { round: sc.bracketRound, label: roundLabel(2, sc.bracketSize), cards: matchupCards(sc.matchups, sc.bracketRound, sc.bracketTotals, sc.byId) },
     results: sc.results,
     champion: sc.champion,
+    // Last Chance and the finale. (No sprints: no prizes.)
+    lastChance: {
+      rows: sc.ranked.slice(sc.bracketSize - 1, sc.bracketSize + 4).map((r, i) => ({ ...r, rank: i + 1 })),
+      closesAt: new Date(d.at + 20 * 3600e3).toISOString(),
+    },
+    finale: {
+      at: new Date(d.at + 2 * 86400e3).toISOString(),
+      finalists: [
+        { entry: sc.champion.entry, seed: sc.champion.seed },
+        { entry: sc.champion.opponent, seed: sc.champion.opponentSeed },
+      ],
+    },
   }
 }
 
@@ -83,7 +156,53 @@ const queue = (job) => {
   return p
 }
 
-function CardPreview({ card, size, sample, onDownload, busy }) {
+const PLATFORMS = [
+  ['facebook', 'Facebook'],
+  ['instagram', 'Instagram'],
+  ['short', 'X and Threads'],
+]
+
+// The post's words, from the same numbers as the image: a hook inside the
+// platform's fold, the facts, one action. Staff edit before posting.
+function CaptionBox({ card, sample }) {
+  const captions = useMemo(() => captionsFor(card, { publicUrl: PUBLIC_URL }), [card])
+  const [platform, setPlatform] = useState('facebook')
+  const [copied, setCopied] = useState(false)
+  const box = useRef(null)
+  if (!captions) return null
+  const text = sample ? `SAMPLE NUMBERS: DO NOT POST\n\n${captions[platform]}` : captions[platform]
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      box.current?.select()
+    }
+  }
+
+  return (
+    <details className="gfx-caption">
+      <summary>Caption</summary>
+      <div className="chips" role="group" aria-label={`Caption for ${card.label}: platform`}>
+        {PLATFORMS.map(([id, name]) => (
+          <button key={id} type="button" className="chip" aria-pressed={platform === id} onClick={() => setPlatform(id)}>
+            {name}
+          </button>
+        ))}
+      </div>
+      <textarea ref={box} readOnly rows={6} value={text} aria-label={`${PLATFORMS.find(([id]) => id === platform)[1]} caption for ${card.label}`} />
+      <button type="button" className="btn btn-quiet btn-sm" onClick={copy}>
+        {copied ? 'Copied' : 'Copy caption'}
+      </button>
+    </details>
+  )
+}
+
+function CardPreview({ card, size: asked, sample, onDownload, busy }) {
+  // The poster keeps its letter size whatever the size chips say.
+  const size = cardSize(card, asked)
   const frame = useRef(null)
   const [drawn, setDrawn] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -112,6 +231,7 @@ function CardPreview({ card, size, sample, onDownload, busy }) {
       <button type="button" className="btn btn-quiet btn-sm" onClick={() => onDownload([card])} disabled={busy}>
         Download
       </button>
+      <CaptionBox card={card} sample={sample} />
     </figure>
   )
 }
@@ -138,7 +258,7 @@ export default function SocialDesk() {
     const s = sample ? sampleScene(contest, data.data) : liveScene(contest, data.data)
     if (!s) return []
     const cents = s.stats?.shelter_cents || 0
-    return buildCards({ ...s, where, milestone: rounded, milestoneCents: milestoneCents(cents) })
+    return buildCards({ ...s, where, publicUrl: PUBLIC_URL, milestone: rounded, milestoneCents: milestoneCents(cents) })
   }, [data.data, contest, sample, rounded, where])
   const all = groups.flatMap((g) => g.cards)
 
@@ -174,7 +294,8 @@ export default function SocialDesk() {
         </div>
       </div>
       <p className="small muted" style={{ margin: 0 }}>
-        Posts for the promotion calendar, drawn from the public numbers. Vote counts are as of{' '}
+        Posts for the promotion calendar, drawn from the public numbers, each with a caption to copy for Facebook, Instagram, or X
+        and Threads. Vote counts are as of{' '}
         {data.data ? stamp(data.data.at) : '…'}; refresh right before you download.
       </p>
       <div className="gfx-toolbar">
@@ -205,8 +326,9 @@ export default function SocialDesk() {
       {!loading && !groups.length && (
         <div className="notice">
           <span>
-            <strong>Nothing to post yet.</strong> Leaderboard cards appear when the Open Round opens, matchup cards once the bracket is built,
-            and the shelter total after the first vote pack sells. Tick &ldquo;sample numbers&rdquo; to preview the layouts now.
+            <strong>Nothing to post yet.</strong> The launch cards appear once the contest has its entry dates (Setup), leaderboard cards when
+            the Open Round opens, matchup cards once the bracket is built, and the shelter total after the first vote pack sells. Tick
+            &ldquo;sample numbers&rdquo; to preview the layouts now.
           </span>
         </div>
       )}

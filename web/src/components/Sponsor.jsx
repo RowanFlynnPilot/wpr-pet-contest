@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSOR_UTM } from '../config.js'
+import { NEWSROOM, SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSOR_UTM } from '../config.js'
 import { track } from '../lib/analytics.js'
 import { Arrow, Check } from './Icons.jsx'
 
@@ -32,14 +32,25 @@ export function useInquiry(slot) {
 export const inquiryHref = (subject) => `mailto:${SPONSOR_INQUIRY}?subject=${encodeURIComponent(subject)}`
 
 // An open slot asks quietly: its button must never look like Vote.
-export function Upsell({ slot, dark = false, pitch, full = false }) {
+export function Upsell({ slot, dark = false, pitch, full = false, line = false }) {
   const { onClick, copied } = useInquiry(slot)
   const info = SPONSOR_SLOTS[slot] || {}
+  // One quiet line, for a page readers come to mid-contest.
+  if (line) {
+    return (
+      <p className="upsell line">
+        <b>Sponsorship available.</b>{' '}
+        <a href={inquiryHref(`Pet contest sponsorship — ${info.name || slot}`)} onClick={onClick}>
+          {copied ? 'Address copied' : 'Book this placement'} <Arrow size={12} />
+        </a>
+      </p>
+    )
+  }
   return (
     <div className={`upsell${dark ? ' dark' : ''}${full ? ' full' : ''}`}>
       <p className="pitch">
         <b>Sponsorship available.</b>
-        {pitch || info.pitch || 'Put your business in front of every pet lover in Marathon County.'}
+        {pitch || info.pitch || `Put your business in front of every pet lover in ${NEWSROOM.region}.`}
       </p>
       <a
         className={`btn btn-sm ${dark ? 'btn-sun' : 'btn-quiet'}`}
@@ -63,9 +74,9 @@ export function Upsell({ slot, dark = false, pitch, full = false }) {
 
 // A sold slot renders the lockup; an open one renders the upsell, unless the
 // placement asks to stay quiet when empty (`quiet`).
-export default function Sponsor({ sponsor, slot, full = false, dark = false, quiet = false, eyebrow = 'Presented by' }) {
+export default function Sponsor({ sponsor, slot, full = false, dark = false, quiet = false, line = false, eyebrow = 'Presented by' }) {
   const [logoFailed, setLogoFailed] = useState(false)
-  if (!sponsor) return quiet ? null : <Upsell slot={slot} dark={dark} full={full} />
+  if (!sponsor) return quiet ? null : <Upsell slot={slot} dark={dark} full={full} line={line} />
 
   const [what, where] = (sponsor.tagline || '').split('—').map((s) => s.trim())
   const Tag = sponsor.url ? 'a' : 'div'

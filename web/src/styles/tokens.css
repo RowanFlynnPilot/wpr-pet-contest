@@ -1,38 +1,135 @@
-/* WPR "Follow the Money" system with this contest's own accent.
-   Teal #3A867C is the typewriter in WPR's badge. It measures 3.9:1 on cream
-   and 4.3:1 under white text, so it is a FILL color (bars, rules, badges,
-   large display type). Text and button fills use --teal-ink (6.0:1 on cream,
-   6.7:1 under white). Same rule as Packers gold vs goldText. */
+@import './fonts.css';
+
+/* The design tokens, by role. A newsroom is a theme: it sets brand, accent,
+   danger, the paper and the faces, and everything else derives from those.
+   WPR's "Follow the Money" system is the default: brand is the teal of the
+   typewriter in WPR's badge, accent is the sun held for the moments that
+   count. Teal #3A867C measures 3.9:1 on cream and 4.3:1 under white text, so
+   it is a FILL color (bars, rules, badges, large display type); text and
+   button fills use --brand-ink (6.0:1 on cream, 6.7:1 under white). Same
+   rule as Packers gold vs goldText.
+
+   The names the stylesheet grew up with (--teal, --sun, --red) stay as
+   aliases of the role tokens. New rules should use the roles. */
 :root {
-  --ink: #1a1a1a;
-  --ink-2: #3a3a3a;
-  --muted: #5f5f5f;
-  --paper: #ffffff;
-  --cream: #f6f2e9;
-  --cream-deep: #ede6d6;
-  --rule: #e3ddd0;
-  --rule-strong: #cfc6b3;
-  --slate: #32373c;
+  /* The paper family comes in a light and a dark cut; the mode picks (the
+     dark blocks below). A theme sets the -light values; the -dark ones suit
+     most brands and may be overridden the same way. */
+  --ink-light: #1a1a1a;
+  --ink-2-light: #3a3a3a;
+  --muted-light: #5f5f5f;
+  --paper-light: #ffffff;
+  --cream-light: #f6f2e9;
+  --cream-deep-light: #ede6d6;
+  --rule-light: #e3ddd0;
+  --rule-strong-light: #cfc6b3;
+  --slate-light: #32373c;
+  --ink-dark: #eef0ec;
+  --ink-2-dark: #d2d8d4;
+  --muted-dark: #9aa5a0;
+  --paper-dark: #1e2423;
+  --cream-dark: #151918;
+  --cream-deep-dark: #262d2b;
+  --rule-dark: #2f3836;
+  --rule-strong-dark: #425049;
+  --slate-dark: #c7cfcc;
+  --ink: var(--ink-light);
+  --ink-2: var(--ink-2-light);
+  --muted: var(--muted-light);
+  --paper: var(--paper-light);
+  --cream: var(--cream-light);
+  --cream-deep: var(--cream-deep-light);
+  --rule: var(--rule-light);
+  --rule-strong: var(--rule-strong-light);
+  --slate: var(--slate-light);
+  /* The wordmark is black type on nothing; dark mode inverts it. */
+  --wordmark-invert: 0;
+  /* The masthead: newsprint in light mode; the dark blocks give it the
+     brand's ink, so the paper's name never sits on near-black. */
+  --masthead-bg: var(--paper);
+  --masthead-ink: var(--ink);
+  --masthead-ink-2: var(--slate);
+  --masthead-muted: var(--muted);
+  --masthead-rule: var(--rule);
+  --masthead-rule-strong: var(--slate);
 
-  --teal: #3a867c;
-  --teal-ink: #2b655d;
-  --teal-deep: #1f4b45;
-  --teal-tint: #e1edea;
-  --teal-wash: #eff5f3;
+  --brand: #3a867c;
+  --brand-ink: #2b655d;
+  --brand-deep: #1f4b45;
+  --brand-tint-light: #e1edea;
+  --brand-wash-light: #eff5f3;
+  --brand-tint: var(--brand-tint-light);
+  --brand-wash: var(--brand-wash-light);
+  /* Brand-colored TEXT on the paper: the ink in light mode, the brand lifted
+     toward white on dark paper. Fills and buttons keep --brand-ink. */
+  --brand-text: var(--brand-ink);
 
-  /* Bonus windows and trophies. Fill only; text uses --sun-ink. */
-  --sun: #f4b942;
-  --sun-ink: #7a5500;
-  --sun-tint: #fcefd0;
+  /* Bonus windows and trophies. Fill only; text uses --accent-text. */
+  --accent: #f4b942;
+  --accent-ink: #7a5500;
+  --accent-tint-light: #fcefd0;
+  --accent-tint: var(--accent-tint-light);
+  --accent-text: var(--accent-ink);
+  /* Text that sits ON the accent fill (the match bar, lamps, ribbons): the
+     light ink in both modes, since the fill does not change. */
+  --on-accent: var(--ink-light);
 
-  --red: #9b2226;
-  --red-tint: #f8e6e4;
+  /* Loss and error only, never excitement. */
+  --danger: #9b2226;
+  --danger-tint-light: #f8e6e4;
+  --danger-tint: var(--danger-tint-light);
+  --danger-text: var(--danger);
 
-  --display: 'Fraunces', 'Fraunces Fallback', Georgia, 'Times New Roman', serif;
-  /* For text set at 'opsz' 144. */
-  --display-xl: 'Fraunces', 'Fraunces Display Fallback', Georgia, 'Times New Roman', serif;
-  --sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --teal: var(--brand);
+  --teal-ink: var(--brand-ink);
+  --teal-deep: var(--brand-deep);
+  --teal-tint: var(--brand-tint);
+  --teal-wash: var(--brand-wash);
+  --sun: var(--accent);
+  --sun-ink: var(--accent-ink);
+  --sun-tint: var(--accent-tint);
+  --red: var(--danger);
+  --red-tint: var(--danger-tint);
+
+  /* The arena's own shades on the brand's deep: digit wells, rows, the
+     unlit lamp, labels and notes on the board. Derived, so a theme that
+     changes the brand gets a matching board. */
+  --board-cell: color-mix(in oklab, var(--brand-deep) 58%, black);
+  --board-row: color-mix(in oklab, var(--brand-deep) 82%, black);
+  --board-row-lead: color-mix(in oklab, var(--brand-deep) 88%, white);
+  --board-ring: color-mix(in oklab, var(--brand-deep) 76%, white);
+  --board-bulb: color-mix(in oklab, var(--brand-deep) 62%, white);
+  --board-label: color-mix(in oklab, var(--brand) 26%, white);
+  --board-text: color-mix(in oklab, var(--brand) 12%, white);
+  --board-dim: color-mix(in oklab, var(--brand) 32%, white);
+  --board-quiet: color-mix(in oklab, var(--brand) 20%, #c8c8c8);
+  --board-cell-55: color-mix(in oklab, var(--board-cell) 55%, transparent);
+  --board-cell-90: color-mix(in oklab, var(--board-cell) 90%, transparent);
+
+  /* Warm derivatives of the accent and the danger. */
+  /* Mixed with the paper, not white, so they follow the mode. */
+  --accent-rule: color-mix(in oklab, var(--accent) 45%, var(--paper));
+  --accent-wash: color-mix(in oklab, var(--accent) 8%, var(--paper));
+  --accent-soft: color-mix(in oklab, var(--accent) 70%, white);
+  --accent-light: color-mix(in oklab, var(--accent) 85%, white);
+  --danger-rule: color-mix(in oklab, var(--danger) 30%, var(--paper));
+  --danger-bright: color-mix(in oklab, var(--danger) 75%, #ff6a3d);
+  --danger-deep: color-mix(in oklab, var(--danger) 80%, black);
+  --danger-deeper: color-mix(in oklab, var(--danger) 60%, black);
+
+  /* Schibsted Grotesk (chosen Oct. 26, 2026, over Bricolage Grotesque, whose
+     display f's read as a gimmick): made for a news publisher, plain and
+     sturdy at headline weights, and not the face of any other WPR tool
+     (Fraunces carries eighteen of them). No italic; emphasis is weight and
+     color. It has no optical-size axis, so the 'opsz' settings left in the
+     styles do nothing. */
+  --display: 'Schibsted Grotesk', 'Schibsted Fallback', Arial, sans-serif;
+  /* For the big lines, set heavy. */
+  --display-xl: 'Schibsted Grotesk', 'Schibsted Display Fallback', Arial, sans-serif;
+  /* For a figure (the money counter). */
+  --display-figure: 'Schibsted Grotesk', 'Schibsted Figure Fallback', Arial, sans-serif;
+  --sans: 'Public Sans', 'Public Sans Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', 'JetBrains Mono Fallback', 'JetBrains Mono Fallback Menlo', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
   --radius: 10px;
   --radius-sm: 6px;
@@ -47,15 +144,140 @@
   :root { --gutter: 24px; }
 }
 
-/* Georgia scaled to Fraunces' width, so a headline keeps its line breaks
-   when the web font arrives instead of rewrapping and shoving the page down
-   (on a phone over slow 4G the Home headline went from three lines to two).
-   Measured in Edge against Fraunces at the settings each style is used with.
-   Where Georgia is not installed (Android) these faces simply do not load. */
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia'); font-weight: 400 500; size-adjust: 95%; }
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 93%; }
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia Italic'), local('Georgia-Italic'); font-style: italic; font-weight: 400 500; size-adjust: 97.5%; }
-@font-face { font-family: 'Fraunces Fallback'; src: local('Georgia Bold Italic'), local('Georgia-BoldItalic'); font-style: italic; font-weight: 600 800; size-adjust: 86%; }
-/* At optical size 144, the big display lines, Fraunces is far narrower. */
-@font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 600 800; size-adjust: 78.5%; }
-@font-face { font-family: 'Fraunces Display Fallback'; src: local('Georgia Bold Italic'), local('Georgia-BoldItalic'); font-style: italic; font-weight: 600 800; size-adjust: 73%; }
+/* Dark mode: the paper family's dark cut, the brand lifted for text, the
+   tints mixed into dark paper. It follows the OS (prefers-color-scheme)
+   unless <html data-mode> says light or dark: the WordPress embed and the
+   article widget say light, since they sit inside a light page; the demo's
+   bar switches. The board shades derive from the brand's deep and are dark
+   in both modes already. The two dark blocks are the same list, so an
+   explicit choice wins over the OS either way. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode='light']) {
+    color-scheme: dark;
+    --ink: var(--ink-dark);
+    --ink-2: var(--ink-2-dark);
+    --muted: var(--muted-dark);
+    --paper: var(--paper-dark);
+    --cream: var(--cream-dark);
+    --cream-deep: var(--cream-deep-dark);
+    --rule: var(--rule-dark);
+    --rule-strong: var(--rule-strong-dark);
+    --slate: var(--slate-dark);
+    --brand-text: color-mix(in oklab, var(--brand) 58%, white);
+    --brand-tint: color-mix(in oklab, var(--brand) 24%, var(--paper-dark));
+    --brand-wash: color-mix(in oklab, var(--brand) 13%, var(--paper-dark));
+    --accent-text: var(--accent);
+    --accent-tint: color-mix(in oklab, var(--accent) 20%, var(--paper-dark));
+    --danger-text: color-mix(in oklab, var(--danger) 55%, white);
+    --danger-tint: color-mix(in oklab, var(--danger) 22%, var(--paper-dark));
+    --wordmark-invert: 1;
+    --masthead-bg: var(--brand-ink);
+    --masthead-ink: #fff;
+    --masthead-ink-2: rgba(255, 255, 255, 0.86);
+    --masthead-muted: rgba(255, 255, 255, 0.78);
+    --masthead-rule: rgba(255, 255, 255, 0.24);
+    --masthead-rule-strong: var(--brand-deep);
+  }
+}
+:root[data-mode='dark'] {
+  color-scheme: dark;
+  --ink: var(--ink-dark);
+  --ink-2: var(--ink-2-dark);
+  --muted: var(--muted-dark);
+  --paper: var(--paper-dark);
+  --cream: var(--cream-dark);
+  --cream-deep: var(--cream-deep-dark);
+  --rule: var(--rule-dark);
+  --rule-strong: var(--rule-strong-dark);
+  --slate: var(--slate-dark);
+  --brand-text: color-mix(in oklab, var(--brand) 58%, white);
+  --brand-tint: color-mix(in oklab, var(--brand) 24%, var(--paper-dark));
+  --brand-wash: color-mix(in oklab, var(--brand) 13%, var(--paper-dark));
+  --accent-text: var(--accent);
+  --accent-tint: color-mix(in oklab, var(--accent) 20%, var(--paper-dark));
+  --danger-text: color-mix(in oklab, var(--danger) 55%, white);
+  --danger-tint: color-mix(in oklab, var(--danger) 22%, var(--paper-dark));
+  --wordmark-invert: 1;
+  --masthead-bg: var(--brand-ink);
+  --masthead-ink: #fff;
+  --masthead-ink-2: rgba(255, 255, 255, 0.86);
+  --masthead-muted: rgba(255, 255, 255, 0.78);
+  --masthead-rule: rgba(255, 255, 255, 0.24);
+  --masthead-rule-strong: var(--brand-deep);
+}
+/* A subtree that stays light whatever the mode: the admin desk, and the
+   probe the share images read their colors from (lib/theme.js). */
+[data-mode='light'] {
+  color-scheme: light;
+  --ink: var(--ink-light);
+  --ink-2: var(--ink-2-light);
+  --muted: var(--muted-light);
+  --paper: var(--paper-light);
+  --cream: var(--cream-light);
+  --cream-deep: var(--cream-deep-light);
+  --rule: var(--rule-light);
+  --rule-strong: var(--rule-strong-light);
+  --slate: var(--slate-light);
+  --brand-text: var(--brand-ink);
+  --brand-tint: var(--brand-tint-light);
+  --brand-wash: var(--brand-wash-light);
+  --accent-text: var(--accent-ink);
+  --accent-tint: var(--accent-tint-light);
+  --danger-text: var(--danger);
+  --danger-tint: var(--danger-tint-light);
+  --wordmark-invert: 0;
+  --masthead-bg: var(--paper);
+  --masthead-ink: var(--ink);
+  --masthead-ink-2: var(--slate);
+  --masthead-muted: var(--muted);
+  --masthead-rule: var(--rule);
+  --masthead-rule-strong: var(--slate);
+}
+
+/* A second newsroom, for the sales demo (src/newsrooms.js: "The Example
+   Gazette"): navy and gold on a cooler paper, Newsreader over Source Sans.
+   Danger stays its own hue, so a red-leaning brand never reads as an error.
+   A theme sets the -light cut of the paper family; the dark cut is shared. */
+:root[data-theme='gazette'] {
+  --brand: #1d3557;
+  --brand-ink: #16304f;
+  --brand-deep: #10233d;
+  --brand-tint-light: #dfe6f0;
+  --brand-wash-light: #eef2f7;
+  --accent: #e0a81d;
+  --accent-ink: #6b4f00;
+  --accent-tint-light: #fbefcc;
+  --cream-light: #f7f4ee;
+  --cream-deep-light: #ebe6dc;
+  --rule-light: #e1dcd2;
+  --rule-strong-light: #cbc3b4;
+  --slate-light: #1f2a3a;
+  --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --display-xl: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --shadow: 0 1px 2px rgba(29, 53, 87, 0.06), 0 4px 14px rgba(29, 53, 87, 0.07);
+  --shadow-lift: 0 2px 4px rgba(29, 53, 87, 0.08), 0 12px 28px rgba(29, 53, 87, 0.14);
+}
+
+/* Arial scaled to Schibsted Grotesk's width, so a headline keeps its line
+   breaks when the web font arrives instead of rewrapping and shoving the
+   page down. Measured in Edge (Oct. 26, 2026): Schibsted is 5% wider than
+   Arial at 400, 2% at 600 to 700, 4% at 800, the big lines, and its
+   figures 7% at 800. Arial is on Windows, macOS and iOS;
+   Android takes Roboto, which runs within 1% of Arial. A line that sits on
+   a wrap boundary can still flip, so check the home headline at 1350px
+   after changing these. */
+@font-face { font-family: 'Schibsted Fallback'; src: local('Arial'), local('ArialMT'), local('Roboto'); font-weight: 200 500; size-adjust: 104.9%; }
+@font-face { font-family: 'Schibsted Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 900; size-adjust: 102%; }
+@font-face { font-family: 'Schibsted Display Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 900; size-adjust: 103.8%; }
+@font-face { font-family: 'Schibsted Figure Fallback'; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 900; size-adjust: 107.3%; }
+/* Public Sans is 4-5% wider than Segoe UI, Arial and Roboto at text weights
+   and within 1% at bold (measured in Edge); without the adjustment the match
+   bar wrapped to a second line when the font arrived on a phone. Arial is on
+   iOS too, so an iPhone takes it ahead of San Francisco. */
+@font-face { font-family: 'Public Sans Fallback'; src: local('Segoe UI'), local('SegoeUI'), local('Arial'), local('ArialMT'), local('Roboto'); font-weight: 400 500; size-adjust: 104.5%; }
+@font-face { font-family: 'Public Sans Fallback'; src: local('Segoe UI Bold'), local('SegoeUI-Bold'), local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'); font-weight: 600 800; size-adjust: 100.5%; }
+/* JetBrains Mono advances 0.6em; Consolas 0.55, Menlo and Courier New 0.6.
+   One family per platform face, since a rule's size-adjust is one value. */
+@font-face { font-family: 'JetBrains Mono Fallback'; src: local('Consolas'); font-weight: 100 900; size-adjust: 109.1%; }
+@font-face { font-family: 'JetBrains Mono Fallback Menlo'; src: local('Menlo'), local('Menlo-Regular'), local('Courier New'), local('CourierNewPSMT'); font-weight: 100 900; size-adjust: 99.7%; }

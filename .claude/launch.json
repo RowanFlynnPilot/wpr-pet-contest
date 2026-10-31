@@ -17,6 +17,23 @@
       "port": 5173
     },
     {
+      "name": "web-mock",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "web",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5178",
+        "--strictPort",
+        "--mode",
+        "mock"
+      ],
+      "port": 5178
+    },
+    {
       "name": "sponsor-kit",
       "runtimeExecutable": "python",
       "runtimeArgs": [
@@ -29,6 +46,62 @@
         "docs/sponsor-kit"
       ],
       "port": 5199
+    },
+    {
+      "name": "preview-deck",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5198",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "docs/preview"
+      ],
+      "port": 5198
+    },
+    {
+      "name": "demo",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5197",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "web/dist-demo"
+      ],
+      "port": 5197
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5196",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "web/dist"
+      ],
+      "port": 5196
+    },
+    {
+      "name": "newsroom-kit",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5195",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "docs/newsroom-kit"
+      ],
+      "port": 5195
     }
   ]
 }

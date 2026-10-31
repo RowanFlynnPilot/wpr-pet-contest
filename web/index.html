@@ -3,13 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
     <title>Cutest Pet in Marathon County — Wausau Pilot &amp; Review</title>
     <meta name="description" content="Enter your pet free, then vote with vote packs. A share of every pack goes to local animal shelters. A Wausau Pilot & Review reader contest." />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1e2423" />
     <link rel="icon" type="image/png" href="./wpr-typewriter-badge.png" />
     <!-- iOS ignores SVG touch icons and falls back to a page screenshot. -->
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+    <!-- Added to a phone's home screen, it opens as itself, with its own name and icon. -->
+    <link rel="manifest" href="./site.webmanifest" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Wausau Pilot &amp; Review" />
@@ -23,12 +26,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="%SITE_URL%og-card.png" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=JetBrains+Mono:wght@500;700&family=Public+Sans:ital,wght@0,400..800;1,400&display=swap"
-      rel="stylesheet"
-    />
+    <!-- The faces are served with the app (src/fonts, src/styles/fonts.css): the two the first
+         screen needs are preloaded, and the size-adjusted fallbacks hold the layout until they land. -->
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/schibsted-grotesk-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/public-sans-latin.woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>
