@@ -1,0 +1,26 @@
+name: email sweep
+
+# Runs the notification sweep on a schedule so no email depends on someone
+# remembering to press a button. The sweep is idempotent; running it often is
+# free. The admin panel also runs it after each moderation and round close.
+#
+# Off until email is: set the repo variable EMAIL_SWEEP=true and the secrets
+# NOTIFY_URL (https://<project>.supabase.co/functions/v1/notify) and
+# CRON_SECRET (the same value set on the edge functions).
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sweep:
+    if: vars.EMAIL_SWEEP == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl --fail-with-body -sS -X POST "$NOTIFY_URL" \
+            -H "x-cron-secret: $CRON_SECRET" -H "content-type: application/json" -d '{}'
+        env:
+          NOTIFY_URL: ${{ secrets.NOTIFY_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

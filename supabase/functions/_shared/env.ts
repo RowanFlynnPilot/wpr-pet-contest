@@ -12,3 +12,8 @@ export function requireEnv(name: string): string {
   }
   return value;
 }
+
+// For features that are allowed to be off (email). Empty string counts as unset.
+export function optionalEnv(name: string): string | undefined {
+  return Deno.env.get(name) || undefined;
+}

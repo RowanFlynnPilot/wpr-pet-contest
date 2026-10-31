@@ -21,7 +21,7 @@ enabled = true
 port = 54323
 
 # Catches outbound mail locally so receipt testing never emails a real person.
-[inbucket]
+[local_smtp]
 enabled = true
 port = 54324
 
@@ -34,13 +34,20 @@ file_size_limit = "10MiB"
 
 [auth]
 enabled = true
+# Local only. Production auth settings (site URL, redirect URLs, providers) live
+# in the dashboard; CI never runs `supabase config push`, and nobody should,
+# because this file would point production login redirects at localhost.
 site_url = "http://localhost:5173"
 jwt_expiry = 3600
 # Admins are added by invite. Nobody signs themselves up for a moderation queue.
 enable_signup = false
 
+# Must stay true. Despite the name, the CLI maps this to "email provider
+# enabled": false turns off email sign-IN as well, and the admin panel's
+# password login fails with "Email logins are disabled". Self-signup is already
+# refused by [auth] enable_signup = false above.
 [auth.email]
-enable_signup = false
+enable_signup = true
 
 [edge_runtime]
 enabled = true
@@ -58,4 +65,33 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.stripe-webhook]
+verify_jwt = false
+
+# The two staff functions take the moderator's session token, but check it in
+# code (requireAdmin: is_admin() evaluated by Postgres as that user) rather than
+# at the gateway, which only understands the legacy JWT secret. notify also
+# accepts a scheduled caller holding CRON_SECRET, which is not a JWT at all.
+[functions.moderate]
+verify_jwt = false
+
+[functions.notify]
+verify_jwt = false
+
+# Same arrangement as notify: a staff session, or the scheduled caller's
+# CRON_SECRET.
+[functions.health]
+verify_jwt = false
+
+[functions.disqualify]
+verify_jwt = false
+
+# Anonymous readers, like create-checkout. It proves the voter's address on its
+# own terms (an emailed code, link or remembered browser), and mail clients
+# POST to its one-click unsubscribe without any token at all.
+[functions.free-vote]
+verify_jwt = false
+
+# Anonymous readers acting on a link from an email: an owner's goal, an
+# opt-out. Each proves itself with the token in the link.
+[functions.links]
 verify_jwt = false

@@ -12,22 +12,114 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test:
+  database:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned: a new CLI can change platform defaults underneath the tests
+          # (table grants did exactly that). Bump deliberately, then run the
+          # suite locally.
+          version: 2.111.0
 
-      # Boots the full local stack, applies every migration in order, then runs
-      # the pgTAP suite. A broken migration fails here, not in production the
-      # morning the contest opens.
-      - run: supabase start
+      # Boots the local stack, applies every migration in order, then runs the
+      # pgTAP suite. A broken migration fails here, not in production the
+      # morning the contest opens. Services the tests never touch are skipped.
+      - run: supabase start -x studio,logflare,vector,realtime,imgproxy,postgres-meta,supavisor,mailpit
       - run: supabase test db
 
+  functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check supabase/functions/*/index.ts
+      - run: deno test --allow-env --allow-read supabase/functions/_shared
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      # The launch preflight's verdicts. Plain Node, nothing to install; the
+      # preflight itself only runs by hand, against production.
+      - run: node --test scripts/preflight.test.mjs
+        working-directory: .
+      # No env: proves the build succeeds (and skips share pages) without secrets.
+      - run: npm run build
+      # Accessibility (axe, WCAG 2.2 AA) and phone-width layout for every public
+      # page and the article widget, in every contest phase. Runs against the
+      # mock API, so it needs no database.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run audit
+
+  # The whole system running together: a real browser against the real edge
+  # functions and database. Stripe is the one thing simulated, with properly
+  # signed webhook events and placeholder keys.
+  end-to-end:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: supabase start -x studio,logflare,vector,realtime,imgproxy,postgres-meta,supavisor,mailpit
+      - name: Serve the edge functions
+        run: nohup supabase functions serve --env-file supabase/tests/integration/functions.env > /tmp/functions.log 2>&1 &
+      - name: Wait for the edge functions
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:54321/functions/v1/notify -d '{}')
+            [ "$code" = "401" ] && exit 0
+            sleep 3
+          done
+          cat /tmp/functions.log
+          exit 1
+
+      - run: npm ci
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Browser tests
+        run: npm run e2e
+        working-directory: web
+
+      # The browser tests moderated the queue and opened round 1; the API
+      # suite starts from the seed again.
+      - run: supabase db reset
+      - name: Edge function integration tests
+        run: node --test --test-reporter=spec supabase/tests/integration/functions.test.mjs
+
+      - if: failure()
+        run: cat /tmp/functions.log
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: web/test-results
+          retention-days: 7
+
   deploy:
-    needs: test
+    needs: [database, functions, web, end-to-end]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
@@ -38,14 +130,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.111.0
 
       - run: supabase link --project-ref "$PROJECT_ID"
       - run: supabase db push
-      - run: supabase functions deploy submit-entry
-      - run: supabase functions deploy create-checkout
-      - run: supabase functions deploy stripe-webhook
+      # Every function, explicitly. A new function that is not listed here is
+      # a function that silently never ships.
+      - run: |
+          for fn in submit-entry create-checkout stripe-webhook moderate notify health disqualify free-vote links; do
+            supabase functions deploy "$fn"
+          done
 
-# The GitHub Pages job for the React front end gets added here once that app
-# exists. Deliberately not stubbed: a workflow step that references a missing
-# build directory fails every run and trains you to ignore red checks.
+# The front end deploys from pages.yml, which also rebuilds the per-pet share
+# pages on a schedule.

@@ -1,0 +1,41 @@
+name: contest health
+
+# Every ten minutes while a contest is live: the `health` function checks for
+# stalled payments, stuck refunds, public rejected photos, a backed-up
+# moderation queue and rounds left unopened or unfinalized, and tells staff
+# (STAFF_ALERT_EMAILS or ALERT_WEBHOOK_URL on the edge functions). Each problem
+# is reported when it starts, every two hours while it lasts, and when it ends.
+#
+# This job fails when the function cannot be reached (the backend itself is
+# down) or when there was news and no channel to deliver it, so GitHub's own
+# failure email is the alert of last resort.
+#
+# Off until a contest is running: set the repo variable HEALTH_CHECKS=true, and
+# the secrets HEALTH_URL (https://<project>.supabase.co/functions/v1/health) and
+# CRON_SECRET (the same value set on the edge functions). On a private repo
+# this schedule uses about 4,300 Actions minutes a month; turn it off between
+# contests.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    if: vars.HEALTH_CHECKS == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the health checks
+        env:
+          HEALTH_URL: ${{ secrets.HEALTH_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          body=$(curl --fail-with-body -sS --max-time 60 -X POST "$HEALTH_URL" \
+            -H "x-cron-secret: $CRON_SECRET" -H "content-type: application/json" -d '{}')
+          echo "$body" | jq .
+          if [ "$(echo "$body" | jq -r '.delivered')" != "true" ]; then
+            echo "::error::Contest problems found and no alert channel delivered them. Set STAFF_ALERT_EMAILS or ALERT_WEBHOOK_URL."
+            echo "$body" | jq -r '.problems[] | "::warning::\(.detail)"'
+            exit 1
+          fi

@@ -1,0 +1,121 @@
+import { NEWSROOM, SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSORS } from '../config.js'
+import { useContest } from '../components/ContestContext.jsx'
+import { inquiryHref, useInquiry } from '../components/Sponsor.jsx'
+import { apDateTime, fmtInt, packShareLine } from '../lib/format.js'
+import { useDocumentTitle, useNow } from '../lib/hooks.js'
+import { windowTitle } from '../lib/bonus.js'
+import { Arrow } from '../components/Icons.jsx'
+
+function Cta({ slot, subject, label, big }) {
+  const { onClick, copied } = useInquiry(slot)
+  return (
+    <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+      <a className={`btn btn-primary${big ? ' btn-lg' : ' btn-sm'}`} href={inquiryHref(subject)} onClick={onClick}>
+        {label}
+      </a>
+      {copied && <span className="small" style={{ fontWeight: 700, color: 'var(--teal-ink)' }}>✓ Address copied</span>}
+    </span>
+  )
+}
+
+// The hosted media kit. Inventory is read live from config.js, so a slot
+// marked sold there reads "Sold" here without anyone editing a deck.
+export default function Sponsors() {
+  const c = useContest()
+  useDocumentTitle(`Sponsor the pet contest — ${NEWSROOM.name}`)
+  const bonusSold = c.windows.filter((w) => w.sponsor_name)
+  const now = useNow(60000)
+  const upcoming = c.windows.filter((w) => new Date(w.ends_at).getTime() > now)
+  // Live counts once they're worth quoting; before that (and before entries
+  // open), what is true from day one, never a 0.
+  const why = [
+    c.stats?.entries >= 20
+      ? [fmtInt(c.stats.entries), 'local pets entered, each with a family sharing their page']
+      : ['Free', 'to enter, so every family with a pet can join in'],
+    c.stats?.votes >= 500
+      ? [fmtInt(c.stats.votes), 'votes cast so far, every one a return visit']
+      : [String(c.bracketSize || 16), 'pets in a head-to-head bracket, with a matchup to share every two days'],
+    ['2½ weeks', 'from the first entry to the champion'],
+    ['0', 'cookies. No consent banner between readers and your brand'],
+  ]
+
+  return (
+    <div className="wrap section" style={{ paddingTop: 24 }}>
+      <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>Put your name on {NEWSROOM.region}&rsquo;s cutest contest</h1>
+      <p className="section-count">Sponsorships · {c.contest?.year}</p>
+      <p className="dek">
+        {c.contest?.name || 'The pet contest'} is {NEWSROOM.name}&rsquo;s biggest reader event of the year, and{' '}
+        {packShareLine(c.contest?.beneficiary_split_pct, c.shelters).replace(/^Half/, 'half').replace(/\.$/, '')}. Sponsors are seen
+        by pet lovers across {NEWSROOM.region}, in a story they want to share.
+      </p>
+      <div className="hero-actions">
+        <Cta slot="media-kit-top" subject="Pet contest sponsorship" label="Start the conversation" big />
+        <a className="btn btn-ghost btn-lg" href="?demo#/" target="_blank" rel="noopener">
+          Preview your brand on the page
+        </a>
+      </div>
+
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', margin: '30px 0' }}>
+        {why.map(([n, t]) => (
+          <div className="card sun" key={t}>
+            <div className="raised-amount" style={{ fontSize: 34 }}>
+              {n}
+            </div>
+            <p className="small muted" style={{ margin: '6px 0 0' }}>
+              {t}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <h2 style={{ fontSize: 26, marginBottom: 8 }}>The placements</h2>
+      <ul className="inventory card plain">
+        {Object.entries(SPONSOR_SLOTS).map(([key, slot]) => {
+          const sold = Boolean(SPONSORS[key]) && !SPONSORS[key].demo
+          return (
+            <li key={key}>
+              <div className="inv-main">
+                <span className="inv-name">{slot.name}</span>
+                <span className={`status-pill${sold ? ' sold' : ''}`}>{sold ? 'Sold' : 'Open'}</span>
+                <div className="inv-desc">{slot.pitch}</div>
+              </div>
+              <a className="small" style={{ fontWeight: 700 }} href={`?demo${slot.demo}`} target="_blank" rel="noopener">
+                See it live <Arrow size={14} />
+              </a>
+              {!sold && <Cta slot={`media-kit-${key}`} subject={`Pet contest sponsorship — ${slot.name}`} label="Inquire" />}
+            </li>
+          )
+        })}
+        <li>
+          <div className="inv-main">
+            <span className="inv-name">Bonus vote windows</span>
+            <span className="status-pill">{bonusSold.length ? `${bonusSold.length} booked` : 'Open'}</span>
+            <div className="inv-desc">
+              &ldquo;Double Vote Hour, presented by you.&rdquo; A site-wide banner, a badge in every checkout, and a spike in purchases while
+              your window is live. Sold per window.
+              {upcoming.length > 0 && (
+                <> Scheduled: {upcoming.map((w) => `${windowTitle(w)} ${apDateTime(w.starts_at)}${w.sponsor_name ? ` (${w.sponsor_name})` : ''}`).join('; ')}</>
+              )}
+            </div>
+          </div>
+          <Cta slot="media-kit-bonus" subject="Pet contest sponsorship — bonus vote window" label="Inquire" />
+        </li>
+      </ul>
+
+      <div className="card plain" style={{ marginTop: 24, background: 'var(--cream)' }}>
+        <h2 style={{ fontSize: 19 }}>Clicks you can check</h2>
+        <p className="small" style={{ margin: '6px 0 0' }}>
+          Clicks on each placement are counted without cookies, and your link carries your campaign tags so the traffic shows up in your
+          analytics too.
+        </p>
+      </div>
+
+      <div className="center" style={{ margin: '36px 0 0' }}>
+        <Cta slot="media-kit-bottom" subject="Pet contest sponsorship" label="Book a placement" big />
+        <p className="small muted" style={{ marginTop: 10 }}>
+          {SPONSOR_INQUIRY} · {NEWSROOM.phone} · {NEWSROOM.name}
+        </p>
+      </div>
+    </div>
+  )
+}

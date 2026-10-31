@@ -34,10 +34,11 @@ select '22222222-2222-2222-2222-222222222222', 'Pet ' || g, 'dog', 'Owner ' || g
        now(), now(), now() + (g || ' seconds')::interval
 from generate_series(1, 20) g;
 
+-- Already past its deadline and the settle period, so close_round will run.
 insert into rounds (id, contest_id, seq, kind, status, opens_at, closes_at)
 values ('33333333-3333-3333-3333-333333333333',
         '22222222-2222-2222-2222-222222222222', 1, 'open', 'open',
-        now() - interval '2 days', now() + interval '1 day');
+        now() - interval '8 days', now() - interval '1 hour');
 
 -- Pets 1..18 vote in descending order. Pets 19 and 20 get nothing.
 -- Joined on generate_series rather than parsed out of pet_name: seed.sql has
@@ -72,7 +73,7 @@ select throws_ok('select bracket_seed_order(1)', null,
 
 -- ------------------------------------------------------------ round 1 close --
 select lives_ok(
-  $$ select close_round('33333333-3333-3333-3333-333333333333', 16) $$,
+  $$ select close_round('33333333-3333-3333-3333-333333333333') $$,
   'closing the open round seeds a bracket');
 
 select is(
@@ -113,7 +114,7 @@ select is(
 
 -- ------------------------------------------------------------ guard rails --
 select throws_ok(
-  $$ select close_round('33333333-3333-3333-3333-333333333333', 16) $$,
+  $$ select close_round('33333333-3333-3333-3333-333333333333') $$,
   null,
   'a resolved round cannot be closed twice');
 
@@ -123,7 +124,8 @@ select throws_ok(
   'confirming an unknown payment intent fails loudly');
 
 -- Idempotency: Stripe retries the same webhook, votes must not double.
-select confirm_vote('pi_r1_1');
+select is(confirm_vote('pi_r1_1'), 'duplicate',
+  'a webhook retry is reported as a duplicate');
 select is(
   (select quantity from votes where stripe_payment_intent_id = 'pi_r1_1'),
   97,
@@ -146,8 +148,8 @@ begin
     exit when not found;
 
     update rounds set status = 'open',
-                      opens_at = now() - interval '1 hour',
-                      closes_at = now() + interval '1 day'
+                      opens_at = now() - interval '3 days',
+                      closes_at = now() - interval '1 hour'
     where id = r.id;
 
     for m in select * from matchups where round_id = r.id loop
@@ -160,7 +162,7 @@ begin
               'pi_a_' || n, 'succeeded');
     end loop;
 
-    perform close_round(r.id, 16);
+    perform close_round(r.id);
   end loop;
 end $$;
 
@@ -214,9 +216,20 @@ select throws_ok(
 update rounds set status = 'pending'
 where id = '00000000-0000-0000-0000-00000000d001';
 
+select throws_ok(
+  $$ select open_round('00000000-0000-0000-0000-00000000d001') $$,
+  null,
+  'round 1 will not open while entries are still awaiting moderation');
+
+select lives_ok(
+  $$ select moderate_entry(id, pet_name <> 'Pending 3', 'Duplicate entry')
+     from entries
+     where contest_id = '00000000-0000-0000-0000-0000000000c1' and status = 'pending' $$,
+  'the moderation queue can be worked');
+
 select lives_ok(
   $$ select open_round('00000000-0000-0000-0000-00000000d001') $$,
-  'round 1 can be opened');
+  'round 1 can be opened once the queue is empty');
 
 select is(
   (select status::text from contests
@@ -230,29 +243,7 @@ select throws_ok(
   'an already-open round cannot be opened again');
 
 
--- ---------------------------------------------------------- access control --
--- The buyer email list lives in `votes`. These three assertions are what stand
--- between a future policy edit and publishing it. Probed as the anon role, the
--- same role an unauthenticated visitor gets.
-create temp table rls_probe (label text, n int);
-grant all on rls_probe to anon;
-
-set local role anon;
-insert into rls_probe values
-  ('votes',           (select count(*) from votes)),
-  ('pending_entries', (select count(*) from entries where status = 'pending')),
-  ('leaderboard',     (select count(*) from entry_round_totals));
-reset role;
-
-select is((select n from rls_probe where label = 'votes'), 0,
-  'anon cannot read votes, which is where buyer emails live');
-
-select is((select n from rls_probe where label = 'pending_entries'), 0,
-  'anon cannot read unmoderated entries');
-
-select cmp_ok((select n from rls_probe where label = 'leaderboard'), '>', 0,
-  'anon CAN read the leaderboard: the public totals view still works');
-
+-- Access control lives in access_test.sql.
 
 select * from finish();
 rollback;

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Cutest Pet in Marathon County — Wausau Pilot &amp; Review</title>
+    <meta name="description" content="Enter your pet free, then vote with vote packs. A share of every pack goes to local animal shelters. A Wausau Pilot & Review reader contest." />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1e2423" />
+    <link rel="icon" type="image/png" href="./wpr-typewriter-badge.png" />
+    <!-- iOS ignores SVG touch icons and falls back to a page screenshot. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+    <!-- Added to a phone's home screen, it opens as itself, with its own name and icon. -->
+    <link rel="manifest" href="./site.webmanifest" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wausau Pilot &amp; Review" />
+    <meta property="og:url" content="%SITE_URL%" />
+    <meta property="og:title" content="Cutest Pet in Marathon County — Wausau Pilot &amp; Review" />
+    <meta property="og:description" content="Enter your pet free. Vote packs benefit local animal shelters." />
+    <meta property="og:image" content="%SITE_URL%og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Cutest Pet in Marathon County, a Wausau Pilot &amp; Review contest" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="%SITE_URL%og-card.png" />
+
+    <!-- The faces are served with the app (src/fonts, src/styles/fonts.css): the two the first
+         screen needs are preloaded, and the size-adjusted fallbacks hold the layout until they land. -->
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/schibsted-grotesk-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="./src/fonts/public-sans-latin.woff2" crossorigin />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p style="margin: 48px auto; max-width: 480px; font-family: Georgia, serif; text-align: center">
+        The pet contest needs JavaScript to show the pets and take votes. Please enable it, or visit
+        <a href="https://wausaupilotandreview.com/">Wausau Pilot &amp; Review</a>.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
