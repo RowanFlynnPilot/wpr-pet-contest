@@ -1,9 +1,10 @@
-import { SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSORS } from '../config.js'
+import { NEWSROOM, SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import { inquiryHref, useInquiry } from '../components/Sponsor.jsx'
-import { apDateTime, fmtInt } from '../lib/format.js'
+import { apDateTime, fmtInt, packShareLine } from '../lib/format.js'
 import { useDocumentTitle, useNow } from '../lib/hooks.js'
 import { windowTitle } from '../lib/bonus.js'
+import { Arrow } from '../components/Icons.jsx'
 
 function Cta({ slot, subject, label, big }) {
   const { onClick, copied } = useInquiry(slot)
@@ -21,25 +22,31 @@ function Cta({ slot, subject, label, big }) {
 // marked sold there reads "Sold" here without anyone editing a deck.
 export default function Sponsors() {
   const c = useContest()
-  useDocumentTitle('Sponsor the pet contest — Wausau Pilot & Review')
+  useDocumentTitle(`Sponsor the pet contest — ${NEWSROOM.name}`)
   const bonusSold = c.windows.filter((w) => w.sponsor_name)
   const now = useNow(60000)
   const upcoming = c.windows.filter((w) => new Date(w.ends_at).getTime() > now)
+  // Live counts once they're worth quoting; before that (and before entries
+  // open), what is true from day one, never a 0.
   const why = [
-    [c.stats ? fmtInt(c.stats.entries) : '—', 'local pets entered, each with a family sharing their page'],
-    [c.stats ? fmtInt(c.stats.votes) : '—', 'votes cast so far, every one a return visit'],
-    ['2½ weeks', 'of daily traffic, peaking in the bracket'],
+    c.stats?.entries >= 20
+      ? [fmtInt(c.stats.entries), 'local pets entered, each with a family sharing their page']
+      : ['Free', 'to enter, so every family with a pet can join in'],
+    c.stats?.votes >= 500
+      ? [fmtInt(c.stats.votes), 'votes cast so far, every one a return visit']
+      : [String(c.bracketSize || 16), 'pets in a head-to-head bracket, with a matchup to share every two days'],
+    ['2½ weeks', 'from the first entry to the champion'],
     ['0', 'cookies. No consent banner between readers and your brand'],
   ]
 
   return (
     <div className="wrap section" style={{ paddingTop: 24 }}>
-      <p className="kicker">Sponsorships · {c.contest?.year}</p>
-      <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>Put your name on the county&rsquo;s cutest contest</h1>
+      <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>Put your name on {NEWSROOM.region}&rsquo;s cutest contest</h1>
+      <p className="section-count">Sponsorships · {c.contest?.year}</p>
       <p className="dek">
-        {c.contest?.name || 'The pet contest'} is Wausau Pilot &amp; Review&rsquo;s biggest reader event of the year, and{' '}
-        {c.contest ? `${c.contest.beneficiary_split_pct}%` : 'a share'} of every vote pack goes to local animal shelters. Sponsors are seen
-        by every pet lover in Marathon County, in a story they want to share.
+        {c.contest?.name || 'The pet contest'} is {NEWSROOM.name}&rsquo;s biggest reader event of the year, and{' '}
+        {packShareLine(c.contest?.beneficiary_split_pct, c.shelters).replace(/^Half/, 'half').replace(/\.$/, '')}. Sponsors are seen
+        by pet lovers across {NEWSROOM.region}, in a story they want to share.
       </p>
       <div className="hero-actions">
         <Cta slot="media-kit-top" subject="Pet contest sponsorship" label="Start the conversation" big />
@@ -73,7 +80,7 @@ export default function Sponsors() {
                 <div className="inv-desc">{slot.pitch}</div>
               </div>
               <a className="small" style={{ fontWeight: 700 }} href={`?demo${slot.demo}`} target="_blank" rel="noopener">
-                See it live →
+                See it live <Arrow size={14} />
               </a>
               {!sold && <Cta slot={`media-kit-${key}`} subject={`Pet contest sponsorship — ${slot.name}`} label="Inquire" />}
             </li>
@@ -96,17 +103,17 @@ export default function Sponsors() {
       </ul>
 
       <div className="card plain" style={{ marginTop: 24, background: 'var(--cream)' }}>
-        <h2 style={{ fontSize: 19 }}>Provable, not promised</h2>
+        <h2 style={{ fontSize: 19 }}>Clicks you can check</h2>
         <p className="small" style={{ margin: '6px 0 0' }}>
-          Each placement reports its own impressions and click-throughs, measured without cookies, and your link carries your campaign tags so
-          the traffic shows up in your analytics too.
+          Clicks on each placement are counted without cookies, and your link carries your campaign tags so the traffic shows up in your
+          analytics too.
         </p>
       </div>
 
       <div className="center" style={{ margin: '36px 0 0' }}>
         <Cta slot="media-kit-bottom" subject="Pet contest sponsorship" label="Book a placement" big />
         <p className="small muted" style={{ marginTop: 10 }}>
-          {SPONSOR_INQUIRY} · 715-301-5539 · Wausau Pilot &amp; Review
+          {SPONSOR_INQUIRY} · {NEWSROOM.phone} · {NEWSROOM.name}
         </p>
       </div>
     </div>

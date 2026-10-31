@@ -1,0 +1,420 @@
+// Screenshots of every public page in every phase, for showing the newsroom
+// how the contest looks today: docs/preview/current-look.html, one file that
+// carries its own images, plus the PNGs beside it.
+//
+//   npm --prefix web run snapshots
+//   VOTE_SCALE=100 npm --prefix web run snapshots   # five-figure counts
+//
+// Runs the mock API and a dev server itself (no Supabase, no Docker) and
+// drives the installed Edge; PW_CHANNEL=chromium uses Playwright's own.
+// Everything on the pages is placeholder data: drawn pets, made-up towns and
+// totals, the real partner shelter.
+
+import { spawn } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { chromium } from 'playwright'
+import { render, renderBuyerNote, renderCheckoutReminder, renderFreeVoteCode, renderFreeVoteReminder } from '../../supabase/functions/_shared/templates.ts'
+
+/* global document, window -- inside page.evaluate, which runs in the browser */
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const OUT = resolve(ROOT, '..', 'docs', 'preview')
+const MOCK_PORT = 18795
+const PORT = 5179
+const MOCK = `http://127.0.0.1:${MOCK_PORT}`
+const SITE = `http://127.0.0.1:${PORT}`
+const OWNER_TOKEN = '11111111-1111-1111-1111-111111111111'
+const DESKTOP = { width: 1280, height: 900 }
+const PHONE = { width: 390, height: 844 }
+
+// What each phase is, in a sentence or two, for the person reading the file.
+const PHASES = [
+  ['coming', 'The two weeks before entries open', 'From the announcement on Oct. 31 until entries open: a countdown, a button that puts the opening in the reader’s calendar, and what an entrant will need. Entries are refused until the opening time.'],
+  ['submissions', 'Week 1: entries open', 'Owners enter one photo, a name and a town. Nothing is public until staff approve it. The money counter sits at zero and the site explains how the contest works.'],
+  ['open', 'Week 2: the Open Round', 'Every approved pet is on the board. Readers buy vote packs (or cast the free daily vote, if that is switched on); the top 16 make the bracket. A sponsored Double Vote Hour is running in these shots.'],
+  ['lastchance', 'If switched on: Last Chance', 'Off unless WPR turns it on before entries open. When the Open Round’s clock runs out, the top 15 are in and places 16 to 20 get about 24 more hours, with their Open Round votes carried over. The most votes at the end takes seed 16.'],
+  ['bracket', 'Weeks 3 and 4: the bracket', 'Sweet 16, Elite Eight, Final Four, Championship: two days a round, head to head, and every total starts over. A sponsor match hour is running in these shots, and the finale is two days out.'],
+  ['complete', 'After the final', 'The champion, the full results, the side awards and the final total for the shelters. The site stays up as the record of the year.'],
+]
+
+// Each shot: a route (or a special), a title, and what to look for.
+const SHOTS = {
+  coming: [
+    ['', 'Home', 'The countdown to entries, the shelter named, and “Add Nov. 14 to my calendar.”'],
+    ['enter', 'Enter, before it opens', 'When entries open and close, the calendar button, what to have ready, and the photo tips.'],
+    ['widget', 'The article widget', 'What sits in the announcement story: the date and “How to enter,” never an Enter button that leads to a closed form.'],
+  ],
+  submissions: [
+    ['', 'Home', 'The masthead, the countdown to voting, the shelter goal meter and the entry call. The strip at the top says where the contest is.'],
+    ['enter', 'Enter a pet', 'Phone-first: the photo picker opens the camera roll, the release is one paragraph, and WPR staff households are told they cannot enter.'],
+    ['rules', 'Rules', 'The published rules, including the split, the reset every round, withdrawals, the free daily vote (only if it is on) and the privacy promise.'],
+    ['shelters', 'Shelters', 'Moments Foster Care, called out with a Follow on Facebook button, and where the money goes.'],
+  ],
+  open: [
+    ['', 'Home', 'The live top 16 with the cut line, the money counter, the bonus bar for the Double Vote Hour, and recent activity.'],
+    ['gallery', 'All pets', 'Every pet, with a heart to save favorites on this phone, a share button on each card, and filters by species and town.'],
+    ['pet', 'A pet page', 'The Open Round scoreboard: this pet’s votes, its rank, how far it is from the cut, the vote button, the free daily vote, and “Remind me before voting closes.”'],
+    ['checkout', 'Checkout', 'Vote packs, never a donation. Under the packs, what the chosen one would do for the pet on the standings right now. The receipt email, an optional cheer with a first name (opened here), the “tell me when this pet plays again” box, the one-time reminder box if the checkout doesn’t finish, and the newsletter box, grouped as optional emails. All unchecked.'],
+    ['thanks', 'The thank-you screen', 'After the card goes through: the pet’s new total with this pack in it, what the pack sent to Moments Foster Care, the buyer’s cheer going up on the pet’s page, and share buttons. Not sold to sponsors. (The demo build’s pretend payment stands in for the card form here.)'],
+    ['bracket', 'The bracket, projected', 'If voting ended now: who would be seeded where. It fills in for real when the Open Round closes.'],
+    ['widget', 'The article widget', 'The compact version that sits inside a WordPress article: the leaders and a vote button.'],
+  ],
+  bracket: [
+    ['', 'Home', 'The countdown to the live finale, the round’s matchups, the closest race, the money counter with the sponsor match included, and the match hour bar.'],
+    ['bracket', 'The bracket', 'All four rounds, winners carried forward, the live round lit.'],
+    ['pet', 'A pet page in a matchup', 'Head to head with the opponent, the tug bar, the road through the bracket, the owner’s vote goal, and sharing that previews both pets.'],
+    ['owner', 'The owner’s panel', 'What the link in the approval email opens: set or change the goal, ready-made posts for Facebook, Instagram and a text, and how many vote packs the owner’s own links have brought.'],
+    ['shelters', 'Shelters', 'The same page during voting, with the running total.'],
+  ],
+  lastchance: [
+    ['', 'Home during Last Chance', 'The five pets racing for the last seed, best first, on the scoreboard; below, the standings with the line drawn above them.'],
+    ['poolpet', 'A pet in Last Chance', 'Its place in the race, the votes to the lead, and the vote button. A pet already in reads “Finished No. 7 and is in the bracket,” with no button.'],
+  ],
+  complete: [
+    ['', 'Home after the final', '“Live now” for the finale, the champion, the final total, and thanks.'],
+    ['keepsake', 'The keepsake', 'Once a pet’s run is over, the image maker opens on a certificate to print or post: the photo and club, what the pet did, its votes over the whole contest and what voters raised.'],
+    ['results', 'Results', 'The champion’s reveal, the money raised for the shelters, the side awards (best dog, best cat, best other pet), the milestone clubs and the final bracket.'],
+    ['sponsors', 'Sponsors', 'Where sponsors are credited, and the open slots.'],
+  ],
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+async function waitFor(url, label) {
+  for (let i = 0; i < 120; i++) {
+    try {
+      const res = await fetch(url)
+      if (res.ok) return
+    } catch {
+      // not up yet
+    }
+    await sleep(500)
+  }
+  throw new Error(`${label} did not come up at ${url}`)
+}
+
+function start(args, env, label) {
+  const child = spawn(process.execPath, args, { cwd: ROOT, env: { ...process.env, ...env }, stdio: 'ignore', windowsHide: true })
+  child.on('exit', (code) => {
+    if (code && !stopping) console.warn(`[snapshots] ${label} exited with ${code}`)
+  })
+  return child
+}
+
+let stopping = false
+function stop(child) {
+  if (!child || child.exitCode !== null) return
+  if (process.platform === 'win32') spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true })
+  else child.kill()
+}
+
+async function settle(page) {
+  await page.waitForLoadState('networkidle')
+  await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), null, { timeout: 15000 }).catch(() => {})
+  await page.evaluate(() => document.fonts.ready)
+  await sleep(400)
+}
+
+// A whole page, but no more than MAX_HEIGHT of it: the rules run long, and
+// the file carries every image inside it.
+const MAX_HEIGHT = 3200
+async function shoot(page, file, { fullPage = true } = {}) {
+  if (fullPage) {
+    // #main stretches to the viewport (min-height: 100vh), which would push
+    // the footer below any viewport sized to the page. Not in a capture.
+    await page.addStyleTag({ content: '#main { min-height: 0 !important }' })
+    const height = await page.evaluate(() => document.documentElement.scrollHeight)
+    const { width } = page.viewportSize()
+    await page.setViewportSize({ width, height: Math.min(MAX_HEIGHT, Math.max(height, 600)) })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await sleep(250)
+  }
+  await page.screenshot({ path: file, type: 'jpeg', quality: 66 })
+}
+
+async function capture(browser, phase, route, petId, stamp) {
+  const files = {}
+  for (const [kind, viewport, mobile] of [['desktop', DESKTOP, false], ['phone', PHONE, true]]) {
+    const context = await browser.newContext({ viewport, deviceScaleFactor: mobile ? 1.5 : 1, isMobile: mobile, hasTouch: mobile, reducedMotion: 'reduce' })
+    const page = await context.newPage()
+    let url = `${SITE}/#/${route}`
+    if (route === 'pet' || route === 'poolpet' || route === 'keepsake' || route === 'checkout' || route === 'thanks') url = `${SITE}/#/pet/${petId}`
+    if (route === 'owner') url = `${SITE}/#/pet/${petId}?owner=${OWNER_TOKEN}`
+    if (route === 'widget') url = `${SITE}/widget.html`
+    await page.goto(url)
+    await settle(page)
+    let fullPage = true
+    if (route === 'checkout' || route === 'thanks') {
+      await page.getByRole('button', { name: /^Vote for/ }).first().click()
+      await page.getByRole('dialog').waitFor()
+      // The cheer picker, opened, with one picked and a first name.
+      const dialog = page.getByRole('dialog')
+      await dialog.locator('.cheer-box summary').click()
+      await dialog.locator('.cheer-pick .chip').nth(1).click()
+      await dialog.getByLabel(/first name/i).fill('Jo')
+      await sleep(400)
+      fullPage = false
+    }
+    if (route === 'thanks') {
+      // The demo build's pretend payment (VITE_MOCK_CHECKOUT), through to
+      // the webhook-credited state.
+      const dialog = page.getByRole('dialog')
+      await dialog.getByLabel(/email for your receipt/i).fill('jo@example.com')
+      await dialog.getByLabel(/plays again/i).check()
+      await dialog.getByRole('button', { name: /^Continue/ }).click()
+      await dialog.getByRole('button', { name: /pretend/ }).click()
+      await dialog.getByText(/votes are in/).waitFor({ timeout: 30000 })
+      await sleep(600)
+    }
+    if (route === 'owner') {
+      await page.locator('.owner-tools').scrollIntoViewIfNeeded()
+      await sleep(200)
+    }
+    if (route === 'keepsake') {
+      // The image maker, opened on the certificate (its first choice at the finish).
+      await page.getByRole('button', { name: /Make a share image/ }).first().click()
+      await page.locator('.gfx-canvas').waitFor({ timeout: 30000 })
+      await sleep(1200)
+      await page.locator('.gfx-panel').scrollIntoViewIfNeeded()
+      fullPage = false
+    }
+    const name = `${stamp}-${phase}-${route || 'home'}-${kind}.jpg`
+    await shoot(page, join(OUT, name), { fullPage })
+    files[kind] = name
+    await context.close()
+  }
+  return files
+}
+
+// The emails, rendered from the real templates with one family's sample
+// data, each with when it goes out. Saved as HTML beside the deck too.
+// storageUrl: the mock API serves the sample photos while the deck runs.
+const LINKS = { publicUrl: 'https://wausaupilotandreview.com/pets/', shareBase: 'https://rowanflynnpilot.github.io/wpr-pet-contest/', storageUrl: MOCK }
+const ENTRY = '7a000000-0000-0000-0000-00000000000a'
+const MATCHUP = 'f3a0d1a2-5a8b-4d2c-9d6e-0b7c1f2e3a44'
+const OWNER = { token: '11111111-1111-1111-1111-111111111111' }
+const CLOSES_OPEN = '2026-11-28T02:00:00Z' // Friday, Nov. 27 at 8 p.m. Central
+const CLOSES_S16 = '2026-11-30T02:00:00Z'
+const row = (over) => ({
+  kind: 'entry_approved',
+  entry_id: ENTRY,
+  round_id: null,
+  to_email: 'jo@example.com',
+  owner_name: 'Jo',
+  pet_name: 'Biscuit',
+  contest_name: 'Cutest Pet in Marathon County',
+  round_name: null,
+  opponent_name: null,
+  closes_at: null,
+  rejection_reason: null,
+  raised_cents: 123_400,
+  owner_token: OWNER.token,
+  photo_path: 'mock/1.jpg',
+  ...over,
+})
+const EMAILS = [
+  ['entry-received', 'Entry received', 'Right after the form is sent, before anyone has looked at it.', () => render(row({ kind: 'entry_received' }), LINKS)],
+  ['approved', 'Approved', 'When staff approve the entry: the pet’s photo, the share link, and a button to the owner’s own page.', () => render(row({}), LINKS)],
+  ['not-approved', 'Not approved', 'When staff decline one, with the reason they gave.', () => render(row({ kind: 'entry_rejected', rejection_reason: 'The photo shows a person’s face. The contest is for pets only; send one of Biscuit alone and we’ll approve it.' }), LINKS)],
+  ['tips-before', 'Tips: before voting opens', 'The day after approval, while the Open Round is still a week away.', () => render(row({ kind: 'nurture_ready', round_name: 'Open Round', opens_at: '2026-11-21T14:00:00Z' }), LINKS)],
+  ['tips-open', 'Tips: voting is open', 'In the first two days of the Open Round.', () => render(row({ kind: 'nurture_open', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 40, rank: 7, field_size: 212, goal_votes: 300 }), LINKS)],
+  ['tips-halfway', 'Tips: halfway', 'Day three of the Open Round, with the standings and the cut.', () => render(row({ kind: 'nurture_halfway', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 88, rank: 14, field_size: 212, cut_margin: 12, goal_votes: 300 }), LINKS)],
+  ['last-chance', 'Last Chance', 'Only if Last Chance is on: to each owner whose pet is racing for the last seed, as it starts. Sent whatever the tips opt-out says, since it is about the entry itself.', () => render(row({ kind: 'last_chance', round_name: 'Last Chance', closes_at: '2026-11-29T02:00:00Z', my_votes: 131, rank: 17, field_size: 5, cut_margin: 18 }), LINKS)],
+  ['tips-last-day', 'Tips: last day', 'The morning of the Open Round’s deadline. This pet is six votes out of the bracket.', () => render(row({ kind: 'nurture_last_day', round_name: 'Open Round', closes_at: CLOSES_OPEN, my_votes: 131, rank: 17, field_size: 212, cut_margin: -6, goal_votes: 300 }), LINKS)],
+  ['club', 'Joined a club', 'When a pet passes 100, 500, 1,000 or 5,000 votes over the whole contest; only the highest club reached, and none for owners who stopped the tips.', () => render(row({ kind: 'club_500', my_votes: 512 }), LINKS)],
+  ['advanced', 'Made the Sweet 16', 'When a bracket round opens with the pet in it. The share button is the matchup page: both pets in the preview.', () => render(row({ kind: 'advanced', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, matchup_id: MATCHUP }), LINKS)],
+  ['tips-matchup', 'Tips: matchup day', 'The morning a bracket round closes, with both counts.', () => render(row({ kind: 'nurture_matchup_last_day', round_name: 'Sweet 16', opponent_name: 'Luna', closes_at: CLOSES_S16, my_votes: 111, opponent_votes: 118, matchup_id: MATCHUP }), LINKS)],
+  ['eliminated', 'Thank you for entering', 'After a lost matchup.', () => render(row({ kind: 'eliminated', round_name: 'Sweet 16', opponent_name: 'Luna' }), LINKS)],
+  ['champion', 'Champion', 'To the winner, the night of the final.', () => render(row({ kind: 'champion', round_name: 'Championship', opponent_name: 'Gus', raised_cents: 1_234_500 }), LINKS)],
+  ['tips-thanks', 'Thanks', 'Thirty-six hours after the final, to every owner but the champion’s.', () => render(row({ kind: 'nurture_thanks', champion_name: 'Gus', raised_cents: 1_234_500 }), LINKS)],
+  ['buyer-round', 'Buyer: your pet plays again', 'To a buyer who checked the box at checkout, when a round opens. One per round.', () =>
+    renderBuyerNote(
+      { email: 'fan@example.com', contest_name: 'Cutest Pet in Marathon County', round_name: 'Elite Eight', closes_at: '2026-12-02T02:00:00Z', is_final: false, playing: [{ entry_id: ENTRY, pet: 'Biscuit', opponent: 'Luna' }], ended: [{ pet: 'Mochi', opponent: 'Gus', round: 'Sweet 16' }], champion: [], raised_cents: 456_700 },
+      LINKS,
+      `${LINKS.publicUrl}#/unsubscribe?bn=token`,
+    )],
+  ['buyer-final', 'Buyer: the final', 'To the same buyers after the Championship.', () =>
+    renderBuyerNote(
+      { email: 'fan@example.com', contest_name: 'Cutest Pet in Marathon County', round_name: 'Championship', closes_at: '2026-12-06T02:00:00Z', is_final: true, playing: [], ended: [], champion: [{ entry_id: ENTRY, pet: 'Biscuit', opponent: 'Gus' }], raised_cents: 1_234_500 },
+      LINKS,
+      `${LINKS.publicUrl}#/unsubscribe?bn=token`,
+    )],
+  ['free-vote-code', 'Free vote: the code', 'Only if the free daily vote is switched on: the emailed code.', () =>
+    renderFreeVoteCode({ code: '482913', petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', link: `${LINKS.publicUrl}#/pet/${ENTRY}?fv=l.token`, minutes: 15 })],
+  ['checkout-reminder', 'The checkout reminder', 'Only to a buyer who ticked the box at checkout, an hour after that checkout stalled, once per round, and never close to the deadline.', () =>
+    renderCheckoutReminder({ petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', roundName: 'Open Round', closesAt: CLOSES_OPEN, votes: 75, cents: 5000, link: `${LINKS.publicUrl}#/pet/${ENTRY}?vote=superfan` })],
+  ['free-vote-reminder', 'Free vote: the morning reminder', 'Only if the free daily vote is on, and only to readers who asked.', () =>
+    renderFreeVoteReminder({ petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', roundName: 'Open Round', closesAt: CLOSES_OPEN, link: `${LINKS.publicUrl}#/pet/${ENTRY}?fv=r.token`, unsubscribe: `${LINKS.publicUrl}#/unsubscribe?fv=u.token` })],
+]
+
+async function captureEmails(browser, stamp) {
+  await mkdir(join(OUT, 'emails'), { recursive: true })
+  const context = await browser.newContext({ viewport: { width: 680, height: 800 } })
+  const page = await context.newPage()
+  const shots = []
+  for (const [slug, title, note, make] of EMAILS) {
+    console.log(`[snapshots] email: ${title}`)
+    const msg = make()
+    await writeFile(join(OUT, 'emails', `${slug}.html`), msg.html)
+    await page.setContent(msg.html)
+    await page.evaluate(() => document.fonts.ready)
+    const height = await page.evaluate(() => document.documentElement.scrollHeight)
+    await page.setViewportSize({ width: 680, height: Math.min(MAX_HEIGHT, Math.max(height, 400)) })
+    await sleep(150)
+    const file = `${stamp}-email-${slug}.jpg`
+    await page.screenshot({ path: join(OUT, file), type: 'jpeg', quality: 70 })
+    shots.push({ title, note: `${note} Subject: “${msg.subject}”`, file })
+  }
+  await context.close()
+  return shots
+}
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+
+async function dataUri(file) {
+  const buf = await readFile(join(OUT, file))
+  const type = file.endsWith('.png') ? 'image/png' : 'image/jpeg'
+  return `data:${type};base64,${buf.toString('base64')}`
+}
+
+async function html(sections, extras, date) {
+  const toc = sections.map(([id, title]) => `<li><a href="#${id}">${esc(title)}</a></li>`).join('')
+  let body = ''
+  for (const [id, title, intro, shots] of sections) {
+    body += `<section id="${id}"><h2>${esc(title)}</h2><p class="intro">${esc(intro)}</p>`
+    for (const s of shots) {
+      if (s.file) {
+        body += `<figure class="shot card"><figcaption><strong>${esc(s.title)}</strong> ${esc(s.note)}</figcaption><img src="${await dataUri(s.file)}" alt="${esc(s.title)}" loading="lazy"></figure>`
+        continue
+      }
+      body += `<figure class="shot"><figcaption><strong>${esc(s.title)}</strong> ${esc(s.note)}</figcaption><div class="pair"><img class="desktop" src="${await dataUri(s.files.desktop)}" alt="${esc(s.title)}, desktop" loading="lazy"><img class="phone" src="${await dataUri(s.files.phone)}" alt="${esc(s.title)}, phone" loading="lazy"></div></figure>`
+    }
+    body += '</section>'
+  }
+  if (extras.length) {
+    body += '<section id="cards"><h2>What a share looks like</h2><p class="intro">Facebook and X show these when someone shares a link. The pet card is the default; during the bracket a share from a pet’s page shows the matchup instead.</p>'
+    for (const e of extras) body += `<figure class="shot card"><figcaption><strong>${esc(e.title)}</strong> ${esc(e.note)}</figcaption><img src="${await dataUri(e.file)}" alt="${esc(e.title)}" loading="lazy"></figure>`
+    body += '</section>'
+  }
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutest Pet in Marathon County: how it looks today</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;700&family=Public+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root { --teal: #3a867c; --teal-deep: #1f4b45; --cream: #f6f2e9; --ink: #1a1a1a; --muted: #5b5b5b; --rule: #e3ddd0; --sun: #f4b942; }
+body { margin: 0; background: var(--cream); color: var(--ink); font: 16px/1.55 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+header { background: var(--teal-deep); color: #fff; padding: 36px 20px 30px; border-top: 8px solid var(--sun); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+h1 { font: 800 clamp(30px, 5vw, 48px)/1.05 'Schibsted Grotesk', Arial, sans-serif; margin: 0 0 10px; }
+header p { margin: 6px 0 0; color: #cfe3de; max-width: 760px; }
+.kicker { font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sun); margin-bottom: 10px; }
+nav ol { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0; margin: 18px 0 0; list-style: none; }
+nav a { color: #fff; font-weight: 600; text-decoration: none; border-bottom: 2px solid rgba(255,255,255,0.35); }
+h2 { font: 800 30px/1.1 'Schibsted Grotesk', Arial, sans-serif; color: var(--teal-deep); margin: 44px 0 6px; }
+.intro { color: var(--muted); max-width: 760px; margin: 0 0 18px; }
+.shot { margin: 0 0 28px; background: #fff; border: 1px solid var(--rule); border-radius: 14px; padding: 16px; box-shadow: 0 10px 24px -20px rgba(31,75,69,0.6); }
+.shot figcaption { margin: 0 0 12px; max-width: 900px; }
+.shot figcaption strong { font: 700 19px/1.2 'Schibsted Grotesk', Arial, sans-serif; color: var(--teal-deep); display: block; margin-bottom: 2px; }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.pair img { width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 8px; background: #fff; }
+.card img { max-width: 720px; width: 100%; border-radius: 10px; border: 1px solid var(--rule); }
+footer { margin: 50px 0 40px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--rule); padding-top: 16px; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } .pair .phone { max-width: 320px; } }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div class="kicker">Wausau Pilot &amp; Review · Reader contest</div>
+<h1>Cutest Pet in Marathon County: how it looks today</h1>
+<p>Captured ${esc(date)} from the current build, on a laptop and on a phone, in each phase of the contest. The pets, towns and totals are placeholders; the partner shelter, the vote packs, the copy and the rules are real. Not shown: the staff panel (moderation, rounds, emails, payouts) and the emails themselves.</p>
+<p>This is year one of a contest WPR plans to run every year. The engine is built for that: next year&rsquo;s contest starts as a copy of this year&rsquo;s packs and shelters, each year&rsquo;s results stay up as the record, and the same share pages, emails and sponsor placements come back with new pets.</p>
+<nav><ol>${toc}${extras.length ? '<li><a href="#cards">Share cards</a></li>' : ''}</ol></nav>
+</div></header>
+<main class="wrap">${body}</main>
+<footer class="wrap">Generated by <code>npm --prefix web run snapshots</code> against the mock API. Wausau Pilot &amp; Review · 715-301-5539</footer>
+</body>
+</html>
+`
+}
+
+async function main() {
+  await mkdir(OUT, { recursive: true })
+  const stamp = new Date().toISOString().slice(0, 10)
+  const mock = start([join(ROOT, 'scripts', 'mock-api.mjs')], { PORT: String(MOCK_PORT), PHASE: 'submissions' }, 'mock API')
+  const vite = start(
+    [join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'],
+    { VITE_SUPABASE_URL: MOCK, VITE_SUPABASE_ANON_KEY: 'mock-anon-key', VITE_STRIPE_PUBLISHABLE_KEY: '', VITE_PUBLIC_URL: '', VITE_IMAGE_TRANSFORMS: 'false', VITE_TURNSTILE_SITE_KEY: '', VITE_MOCK_CHECKOUT: 'true', VITE_DATA_TOGGLE: 'off' },
+    'dev server',
+  )
+  const cleanup = () => {
+    stopping = true
+    stop(vite)
+    stop(mock)
+  }
+  process.on('SIGINT', () => {
+    cleanup()
+    process.exit(130)
+  })
+  try {
+    await waitFor(`${MOCK}/rest/v1/contests`, 'the mock API')
+    await waitFor(SITE, 'the dev server')
+    const browser = await chromium.launch({ channel: process.env.PW_CHANNEL || 'msedge' })
+    const sections = []
+    for (const [phase, title, intro] of PHASES) {
+      await fetch(`${MOCK}/__phase?set=${phase}`)
+      const rows = await (await fetch(`${MOCK}/rest/v1/entries?select=id&status=eq.approved&order=created_at&limit=1`)).json()
+      const petId = rows[0]?.id
+      // Last Chance: a pet in the race, from the snapshot.
+      const pool = phase === 'lastchance' ? await (await fetch(`${MOCK}/rest/v1/last_chance_field?select=entry_id&pool=eq.true&order=place&limit=1`)).json() : []
+      const shots = []
+      for (const [route, shotTitle, note] of SHOTS[phase]) {
+        console.log(`[snapshots] ${phase}: ${shotTitle}`)
+        const id = route === 'poolpet' ? pool[0]?.entry_id || petId : petId
+        shots.push({ title: shotTitle, note, files: await capture(browser, phase, route, id, stamp) })
+      }
+      sections.push([phase, title, intro, shots])
+    }
+    sections.push([
+      'emails',
+      'The emails',
+      'Every email the contest sends, rendered from the real templates with one family’s sample numbers. Entrants and buyers see more of these than of the pages. Each carries the legal line and, where it can, a share link; the tips and buyer notes carry a stop link.',
+      await captureEmails(browser, stamp),
+    ])
+    await browser.close()
+
+    const extras = []
+    const og = join(ROOT, 'public', 'og-card.png')
+    if (existsSync(og)) {
+      await writeFile(join(OUT, `${stamp}-og-card.png`), await readFile(og))
+      extras.push({ title: 'The contest card', note: 'The preview for the contest link itself.', file: `${stamp}-og-card.png` })
+    }
+    const cardsDir = join(ROOT, 'dist', 'm')
+    if (existsSync(cardsDir)) {
+      const dirs = (await readdir(cardsDir, { withFileTypes: true })).filter((d) => d.isDirectory())
+      const first = dirs.map((d) => join(cardsDir, d.name, 'card.png')).find((f) => existsSync(f))
+      if (first) {
+        await writeFile(join(OUT, `${stamp}-matchup-card.png`), await readFile(first))
+        extras.push({ title: 'A matchup card', note: 'Drawn at deploy time for every live matchup: both pets, seeds, the round and the deadline. These two are placeholders; real pets get their photos.', file: `${stamp}-matchup-card.png` })
+      }
+    }
+
+    const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Chicago' })
+    const file = join(OUT, 'current-look.html')
+    await writeFile(file, await html(sections, extras, date))
+    console.log(`[snapshots] wrote ${file}`)
+  } finally {
+    cleanup()
+  }
+}
+
+main().catch((err) => {
+  console.error(err)
+  process.exitCode = 1
+})

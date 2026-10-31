@@ -60,6 +60,11 @@ jobs:
         working-directory: .
       # No env: proves the build succeeds (and skips share pages) without secrets.
       - run: npm run build
+      # Accessibility (axe, WCAG 2.2 AA) and phone-width layout for every public
+      # page and the article widget, in every contest phase. Runs against the
+      # mock API, so it needs no database.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run audit
 
   # The whole system running together: a real browser against the real edge
   # functions and database. Stripe is the one thing simulated, with properly
@@ -132,7 +137,7 @@ jobs:
       # Every function, explicitly. A new function that is not listed here is
       # a function that silently never ships.
       - run: |
-          for fn in submit-entry create-checkout stripe-webhook moderate notify health disqualify; do
+          for fn in submit-entry create-checkout stripe-webhook moderate notify health disqualify free-vote links; do
             supabase functions deploy "$fn"
           done
 

@@ -16,7 +16,7 @@ export function openRoundRows(entries, results) {
       town: entry.town,
       votes: v,
       seed: entry.seed ?? '',
-      status: entry.status === 'disqualified' ? 'disqualified' : '',
+      status: ['disqualified', 'withdrawn'].includes(entry.status) ? entry.status : '',
     }))
 }
 
@@ -63,6 +63,7 @@ export function summary({ contest, rounds, matchups, entries, sideAwards, payout
     entries: {
       approved: entries.filter((e) => e.status === 'approved').length,
       disqualified: entries.filter((e) => e.status === 'disqualified').length,
+      withdrawn: entries.filter((e) => e.status === 'withdrawn').length,
     },
     rounds: [...rounds]
       .sort((a, b) => a.seq - b.seq)

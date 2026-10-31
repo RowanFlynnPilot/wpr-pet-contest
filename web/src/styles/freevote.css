@@ -1,0 +1,39 @@
+/* The free daily vote: the quiet button under Vote, the sheet, and the
+   reminder notice. Paid stays the primary action everywhere, so nothing here
+   is louder than a Vote button. */
+
+.fv-button { margin-top: 8px; font-weight: 700; }
+
+.fv-lede { margin: 0 0 14px; font-size: 16px; line-height: 1.5; }
+.fv-wait { margin: 8px 0; color: var(--muted); }
+.fv-switch { margin-top: 8px; }
+.fv-check { margin-bottom: 12px; }
+.fv-fine { margin: 12px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+
+/* Six digits, read at a glance and typed with the number pad. */
+.fv-code {
+  font-family: var(--mono); font-size: 26px; font-weight: 700; letter-spacing: 0.3em;
+  text-align: center; font-variant-numeric: tabular-nums;
+}
+
+/* Bots fill every field they find; people never see this one. Off-screen
+   rather than display:none, which some bots skip. */
+.fv-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Turnstile sizes itself; this keeps its space from jumping the button. */
+.fv-turnstile { margin: 4px 0 12px; }
+.fv-turnstile:empty { margin: 0; }
+
+.fv-offer {
+  margin: 16px 0; padding: 14px; border: 1px solid var(--rule); border-radius: var(--radius);
+  background: var(--cream);
+}
+.fv-offer p { margin: 0 0 10px; font-size: 15px; line-height: 1.5; }
+
+.fv-done .done-title { font-size: 22px; }
+.fv-spent .fv-lede { margin-bottom: 4px; }
+
+/* A reminder whose pet is out lands here, under the nav. */
+.fv-notice { background: var(--sun-tint); border-bottom: 1px solid #f1d58f; }
+.fv-notice-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+.fv-notice p { margin: 0; font-size: 15px; font-weight: 600; }

@@ -15,7 +15,8 @@ const t = (v) => (v ? new Date(v).getTime() : NaN)
 //   coming              accepting entries soon (window not yet open)
 //   submissions         accepting entries
 //   submissions_closed  window passed, voting not yet opened by staff
-//   voting              a round is open and its clock is running
+//   voting              a round is open and its clock is running (or, in the
+//                       Open Round, Last Chance's: overtime is then true)
 //   counting            the clock ran out; staff have not closed the round yet
 //   intermission        between rounds (last one resolved, next not opened)
 //   complete            champion crowned
@@ -39,6 +40,16 @@ export function contestPhase(contest, rounds = [], now = Date.now()) {
 
   if (contest.status === 'voting') {
     if (open) {
+      // Last Chance (lib/lastChance.js): the Open Round's clock is out but its
+      // overtime runs, so voting goes on (for the pool) until Last Chance ends.
+      // The round carries Last Chance's close as its own; mainClosesAt keeps
+      // the Open Round's.
+      const overtime = t(open.overtime_closes_at)
+      if (open.seq === 1 && Number.isFinite(overtime) && now >= t(open.closes_at)) {
+        const round = { ...open, closes_at: open.overtime_closes_at, mainClosesAt: open.closes_at }
+        if (now >= overtime) return { phase: 'counting', round, nextRound: pending, overtime: true }
+        return { phase: 'voting', round, nextRound: pending, overtime: true }
+      }
       if (now >= t(open.closes_at)) return { phase: 'counting', round: open, nextRound: pending }
       return { phase: 'voting', round: open, nextRound: pending }
     }

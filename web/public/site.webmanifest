@@ -1,0 +1,11 @@
+{
+  "name": "Cutest Pet in Marathon County",
+  "short_name": "Pet Contest",
+  "description": "Wausau Pilot & Review's reader pet contest. Vote packs help local animal shelters.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f2e9",
+  "theme_color": "#ffffff",
+  "icons": [{ "src": "./apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }]
+}

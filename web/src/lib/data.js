@@ -4,6 +4,7 @@ import {
   fetchActivity,
   fetchEntries,
   fetchMatchups,
+  fetchMomentum,
   fetchSideAwards,
   fetchTotals,
   fetchTotalsByRound,
@@ -25,7 +26,15 @@ export const totalsKey = (roundId) => `totals:${roundId}`
 
 export function useRoundTotals(roundId, { live = true } = {}) {
   const res = useLive(roundId ? totalsKey(roundId) : null, () => fetchTotals(roundId), live ? 20000 : 0)
-  return { totals: res.data || EMPTY_MAP, loading: res.data === undefined && !res.error, error: res.error, updatedAt: res.updatedAt }
+  // `known` is false until one load has succeeded: a failed first load is
+  // not zero votes, and nothing should rank a pet on it.
+  return {
+    totals: res.data || EMPTY_MAP,
+    known: res.data !== undefined,
+    loading: res.data === undefined && !res.error,
+    error: res.error,
+    updatedAt: res.updatedAt,
+  }
 }
 
 // All bracket matchups for a contest, plus totals for the rounds they are in.
@@ -58,6 +67,28 @@ export function useBracket(rounds, { openRoundId } = {}) {
 export function useActivity(roundId) {
   const res = useLive(roundId ? `activity:${roundId}` : null, () => fetchActivity(roundId), 20000)
   return res.data || EMPTY
+}
+
+// Each pet's votes over the whole contest, every round that has opened
+// summed, for the milestone clubs. Map<entry_id, total>.
+export function useContestTotals(rounds) {
+  const ids = (rounds || []).filter((r) => r.status !== 'pending').map((r) => r.id)
+  const key = ids.length ? `contest-totals:${ids.join(',')}` : null
+  const res = useLive(key, () => fetchTotalsByRound(ids), 60000)
+  return useMemo(() => {
+    const out = new Map()
+    for (const byEntry of res.data?.values() || []) for (const [id, t] of byEntry) out.set(id, (out.get(id) || 0) + (t.votes || 0))
+    return out
+  }, [res.data])
+}
+
+// The last 24 hours of votes in an open Open Round, for the climbing marks.
+// Nothing until the round has run a day: before that, "since yesterday" is
+// only the order the pets were entered in. `now` is the contest clock (useContest).
+export function useMomentum(round, now) {
+  const ready = round?.kind === 'open' && round.status === 'open' && round.opens_at && now - new Date(round.opens_at).getTime() >= 24 * 3600e3
+  const res = useLive(ready ? `momentum:${round.id}` : null, () => fetchMomentum(round.id), 300000)
+  return res.data || EMPTY_MAP
 }
 
 export function useSideAwards(contestId, enabled) {

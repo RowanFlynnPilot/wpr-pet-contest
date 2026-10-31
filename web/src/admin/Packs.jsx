@@ -4,6 +4,7 @@ import { fmtMoney } from '../lib/format.js'
 import { formatPerVote } from '../lib/packs.js'
 import { admin, q, view } from './adminClient.js'
 import { ErrorNote, useAsync, useDesk } from './shared.jsx'
+import { SprintsPanel } from './Sprints.jsx'
 
 const toCents = (dollars) => Math.round(Number(String(dollars).replace(/[$,]/g, '')) * 100)
 const toDollars = (cents) => (cents / 100).toFixed(2)
@@ -116,6 +117,61 @@ function AddPack({ cid, onSaved, onError }) {
 }
 
 const blankWindow = { starts: '', ends: '', multiplier: 2, label: 'Double Votes', sponsor_name: '', sponsor_url: '' }
+const blankMatch = { starts: '', ends: '', sponsor_name: '', sponsor_url: '', ratio: '1', cap: '' }
+
+// A sponsor match: new money for the shelters, counted beside the share of
+// sales. The sponsor settles up with WPR after the contest.
+function MatchForm({ initial, onSubmit, onDelete, submitLabel }) {
+  const [d, setD] = useState(initial)
+  return (
+    <form
+      className="window-form"
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSubmit(d, () => setD(blankMatch))
+      }}
+    >
+      <label>
+        <span className="label">Starts</span>
+        <input type="datetime-local" value={d.starts} onChange={(e) => setD({ ...d, starts: e.target.value })} required />
+      </label>
+      <label>
+        <span className="label">Ends</span>
+        <input type="datetime-local" value={d.ends} onChange={(e) => setD({ ...d, ends: e.target.value })} required />
+      </label>
+      <label>
+        <span className="label">Sponsor</span>
+        <input type="text" value={d.sponsor_name} onChange={(e) => setD({ ...d, sponsor_name: e.target.value })} required />
+      </label>
+      <label>
+        <span className="label">Sponsor link</span>
+        <input type="text" inputMode="url" value={d.sponsor_url} onChange={(e) => setD({ ...d, sponsor_url: e.target.value })} placeholder="https://" />
+      </label>
+      <label>
+        <span className="label">Matches</span>
+        <select value={d.ratio} onChange={(e) => setD({ ...d, ratio: e.target.value })}>
+          <option value="0.5">50 cents per dollar</option>
+          <option value="1">Dollar for dollar</option>
+          <option value="2">Two for one</option>
+        </select>
+      </label>
+      <label>
+        <span className="label">Cap $</span>
+        <input type="text" inputMode="decimal" value={d.cap} onChange={(e) => setD({ ...d, cap: e.target.value })} placeholder="500" required />
+      </label>
+      <div className="tool-row" style={{ alignSelf: 'end' }}>
+        <button type="submit" className="btn btn-primary btn-sm">
+          {submitLabel}
+        </button>
+        {onDelete && (
+          <button type="button" className="link-btn small" onClick={onDelete}>
+            Delete
+          </button>
+        )}
+      </div>
+    </form>
+  )
+}
 
 function WindowForm({ initial, onSubmit, onDelete, submitLabel }) {
   const [d, setD] = useState(initial)
@@ -177,7 +233,42 @@ export default function Packs() {
   const packs = useAsync(() => q(admin.from('vote_packs').select('*').eq('contest_id', cid).order('sort')), [cid])
   const sales = useAsync(async () => (await view(admin.from('pack_revenue').select('*').eq('contest_id', cid))).rows, [cid])
   const windows = useAsync(() => q(admin.from('bonus_windows').select('*').eq('contest_id', cid).order('starts_at')), [cid])
+  const matches = useAsync(async () => (await view(admin.from('sponsor_matches').select('*').eq('contest_id', cid).order('starts_at'))).rows, [cid])
   const [error, setError] = useState(null)
+
+  const matchRow = (d) => ({
+    starts_at: fromLocalInput(d.starts),
+    ends_at: fromLocalInput(d.ends),
+    sponsor_name: d.sponsor_name.trim(),
+    sponsor_url: d.sponsor_url.trim() || null,
+    ratio: Number(d.ratio),
+    cap_cents: Math.round(Number(String(d.cap).replace(/[$,\s]/g, '')) * 100),
+  })
+
+  async function saveMatch(id, d, reset) {
+    setError(null)
+    try {
+      const row = matchRow(d)
+      if (!(row.cap_cents > 0)) throw new Error('Enter the cap in dollars.')
+      if (id) await q(admin.from('sponsor_matches').update(row).eq('id', id))
+      else await q(admin.from('sponsor_matches').insert({ contest_id: cid, ...row }))
+      say('Sponsor match saved.')
+      if (!id) reset()
+      matches.reload()
+    } catch (e) {
+      setError(/sponsor_matches_no_overlap/.test(e.message) ? new Error('That match overlaps another one. Match windows cannot overlap.') : e)
+    }
+  }
+
+  async function deleteMatch(m) {
+    if (!window.confirm(`Delete ${m.sponsor_name}'s match (${stamp(m.starts_at)})?`)) return
+    try {
+      await q(admin.from('sponsor_matches').delete().eq('id', m.id))
+      matches.reload()
+    } catch (e) {
+      setError(e)
+    }
+  }
   const soldBy = new Map((sales.data || []).map((r) => [r.pack_slug, r]))
 
   const windowRow = (d) => ({
@@ -220,16 +311,19 @@ export default function Packs() {
 
   return (
     <div className="stack">
+      <div className="panel-head">
+        <h2>Packs &amp; bonuses</h2>
+      </div>
       <ErrorNote error={error || packs.error || windows.error} />
       <section className="card plain">
         <h3>Vote packs</h3>
         <p className="small">
           Checkout charges exactly what this table says; the browser never sends a price. <strong>Featured</strong> shows as &ldquo;Most
           popular.&rdquo; Retire a pack by unchecking <strong>Active</strong>; packs that have sold can&rsquo;t be deleted. The public picker lists
-          the biggest pack first.
+          the smallest pack first.
         </p>
-        <div className="table-wrap">
-          <table className="data">
+        <div className="table-wrap" tabIndex={0} role="region" aria-label="Vote packs">
+          <table className="data wide">
             <thead>
               <tr>
                 <th scope="col">Slug</th>
@@ -296,6 +390,47 @@ export default function Packs() {
           </div>
         </div>
       </section>
+
+      <section className="card plain">
+        <h3>Sponsor matches</h3>
+        <p className="small">
+          A business matches vote pack sales for the shelters during a window, up to a cap: &ldquo;Example Pet Supply matches every vote
+          pack from 6 to 7 p.m., up to $500.&rdquo; The match counts sales whose checkout <em>begins</em> in the window, after refunds. It is
+          new money for the shelters, listed on the payout statement for the sponsor to settle, and it never changes a vote count. Windows
+          cannot overlap. Times are your local time.
+        </p>
+        <div className="stack">
+          {(matches.data || []).map((m) => (
+            <div key={`${m.id}-${m.starts_at}-${m.ends_at}-${m.cap_cents}-${m.ratio}`} className="window-item">
+              <div className="small muted">
+                {stamp(m.starts_at)} → {stamp(m.ends_at)}
+                {new Date(m.starts_at) <= new Date() && new Date() < new Date(m.ends_at) && <strong className="good"> · LIVE NOW</strong>}
+              </div>
+              <MatchForm
+                submitLabel="Save"
+                initial={{
+                  starts: toLocalInput(m.starts_at),
+                  ends: toLocalInput(m.ends_at),
+                  sponsor_name: m.sponsor_name,
+                  sponsor_url: m.sponsor_url || '',
+                  ratio: String(Number(m.ratio)),
+                  cap: String(m.cap_cents / 100),
+                }}
+                onSubmit={(d) => saveMatch(m.id, d)}
+                onDelete={() => deleteMatch(m)}
+              />
+            </div>
+          ))}
+          <div className="window-item new">
+            <div className="small" style={{ fontWeight: 700 }}>
+              Add a match
+            </div>
+            <MatchForm submitLabel="Add match" initial={blankMatch} onSubmit={(d, reset) => saveMatch(null, d, reset)} />
+          </div>
+        </div>
+      </section>
+
+      <SprintsPanel contest={contest} />
     </div>
   )
 }

@@ -1,7 +1,17 @@
-// Numbers, money and dates. Dates are AP style in Central time, because the
-// contest runs on Wausau's clock no matter where a share link is opened.
+// Numbers, money and dates. Dates are AP style in the newsroom's time zone,
+// because the contest runs on the newsroom's clock no matter where a share
+// link is opened. Imported by Node scripts too: nothing here touches the DOM.
+import { NEWSROOM } from '../config.js'
 
-export const TIME_ZONE = 'America/Chicago'
+export const TIME_ZONE = NEWSROOM.timeZone
+
+// The zone's everyday name for copy beside a clock time: "Central time",
+// "Mountain time". Same words in winter and summer.
+export function timeZoneName(timeZone = TIME_ZONE) {
+  const part = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'long' }).formatToParts(new Date()).find((p) => p.type === 'timeZoneName')
+  return `${(part?.value || 'local').replace(/ (Standard|Daylight) Time$/, '').replace(/ Time$/, '')} time`
+}
+export const TIME_ZONE_NAME = timeZoneName()
 
 const intFmt = new Intl.NumberFormat('en-US')
 export const fmtInt = (n) => intFmt.format(Math.round(n || 0))
@@ -16,7 +26,14 @@ export function fmtMoney(cents, { whole = false, exact = false } = {}) {
   return `$${dollars.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 }
 
-export const plural = (n, one, many = `${one}s`) => `${fmtInt(n)} ${n === 1 ? one : many}`
+// Counts in a sentence, AP style: one through nine in words ("three votes"),
+// numerals from 10. apNumber and apCount below are the same rule.
+export const plural = (n, one, many = `${one}s`) => `${apNumber(n)} ${n === 1 ? one : many}`
+
+// AP style: spell out one through nine, figures from 10. "five pets", "12 pets".
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+export const apNumber = (n) => (Number.isInteger(n) && n >= 0 && n < 10 ? WORDS[n] : fmtInt(n))
+export const apCount = (n, one, many = `${one}s`) => `${apNumber(n)} ${n === 1 ? one : many}`
 
 export function countdownParts(msLeft) {
   const s = Math.max(0, Math.floor(msLeft / 1000))
@@ -102,5 +119,31 @@ export function apTime(date) {
 
 export const apDateTime = (date, opts) => `${apDate(date, opts)} at ${apTime(date)}`
 
+const AP_DAYS = { Sunday: 'Sun.', Monday: 'Mon.', Tuesday: 'Tue.', Wednesday: 'Wed.', Thursday: 'Thu.', Friday: 'Fri.', Saturday: 'Sat.' }
+
+// A deadline short enough to sit beside a clock: "Sat. at 8 p.m." within the
+// coming week, "Oct. 30 at 8 p.m." beyond it. In a sentence, `long` spells the
+// day out ("Saturday at 8 p.m."), as AP does outside tables.
+export function apWhen(date, now, { long = false } = {}) {
+  const p = centralParts(date)
+  const ahead = new Date(date).getTime() - now
+  const day = ahead >= 0 && ahead < 6 * 86400000 ? (long ? p.weekday : AP_DAYS[p.weekday]) : `${AP_MONTHS[p.month - 1]} ${p.day}`
+  return `${day} at ${apTime(date)}`
+}
+
 // End a sentence without doubling the period after "p.m."
 export const period = (s) => (s.endsWith('.') ? s : `${s}.`)
+
+// "A", "A and B", "A, B and C" (AP: no serial comma).
+export const andList = (items) => (items.length <= 1 ? items[0] || '' : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
+
+// Who the money goes to: the contest's shelters by name, or the general
+// phrase until Setup has them.
+export const shelterWho = (shelters) => andList((shelters || []).map((s) => s?.name).filter(Boolean)) || 'local animal shelters'
+
+// "Half of every vote pack goes to Moments Foster Care.", from the split.
+export function packShareLine(split, shelters) {
+  const pct = Number(split)
+  const part = pct === 50 ? 'Half' : pct ? `${pct}%` : 'A share'
+  return `${part} of every vote pack goes to ${shelterWho(shelters)}.`
+}

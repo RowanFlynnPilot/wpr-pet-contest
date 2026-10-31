@@ -22,18 +22,29 @@ function largest(low, high, fits) {
   return low
 }
 
-// A word too long for one line, cut into pieces that each fit.
+// A word too long for one line, cut into pieces that each fit, every piece
+// but the last ending in a hyphen. Pieces come out even ("Supercalifragi-
+// listicexpialidocious", not "...docio-" over "us"): as few as fit greedily,
+// then the cut points spread out, if the even pieces still fit.
 export function breakWord(word, width, maxWidth) {
-  const out = []
+  const chars = Array.from(word)
+  const greedy = []
   let cur = ''
-  for (const ch of Array.from(word)) {
-    if (cur && width(cur + ch) > maxWidth) {
-      out.push(cur)
+  for (const ch of chars) {
+    if (cur && width(cur + ch + '-') > maxWidth) {
+      greedy.push(cur + '-')
       cur = ch
     } else cur += ch
   }
-  if (cur) out.push(cur)
-  return out
+  if (cur) greedy.push(cur)
+  const n = greedy.length
+  if (n < 2) return greedy
+  const even = []
+  for (let i = 0; i < n; i++) {
+    const piece = chars.slice(Math.round((i * chars.length) / n), Math.round(((i + 1) * chars.length) / n)).join('')
+    even.push(i < n - 1 ? piece + '-' : piece)
+  }
+  return even.every((p) => width(p) <= maxWidth) ? even : greedy
 }
 
 // Greedy wrap. `width(text)` is measured at a fixed size. Words wider than

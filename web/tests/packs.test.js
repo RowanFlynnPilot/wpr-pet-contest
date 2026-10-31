@@ -36,8 +36,8 @@ describe('per-vote math', () => {
 })
 
 describe('display order and default', () => {
-  it('lists the biggest pack first', () => {
-    expect(orderPacksForDisplay(PACKS).map((p) => p.slug)).toEqual(['legend', 'champion', 'superfan', 'fan', 'starter'])
+  it('lists the smallest pack first', () => {
+    expect(orderPacksForDisplay(PACKS).map((p) => p.slug)).toEqual(['starter', 'fan', 'superfan', 'champion', 'legend'])
   })
   it('does not mutate the input', () => {
     const copy = [...PACKS]

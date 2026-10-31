@@ -1,15 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { SPONSORS } from '../config.js'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import PetCard from '../components/PetCard.jsx'
 import Sponsor from '../components/Sponsor.jsx'
-import { Search } from '../components/Icons.jsx'
-import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
+import { Heart, Search } from '../components/Icons.jsx'
+import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { entryStates } from '../lib/bracketState.js'
-import { fmtInt } from '../lib/format.js'
-import { useDocumentTitle } from '../lib/hooks.js'
-import { rankOpenRound } from '../lib/rank.js'
+import { useFavorites } from '../lib/favorites.js'
+import { apDate, fmtInt } from '../lib/format.js'
+import { useDocumentTitle, useMediaQuery } from '../lib/hooks.js'
+import { climbers, rankOpenRound } from '../lib/rank.js'
+import { milestone } from '../lib/milestones.js'
 import { roundLabel } from '../lib/rounds.js'
+import { canVoteNow } from '../lib/lastChance.js'
 
 const PAGE = 48
 const fold = (s) =>
@@ -51,13 +54,22 @@ export default function Gallery() {
   const current = useRoundTotals(bracketOpenId)
 
   const ranked = useMemo(() => rankOpenRound(entries, r1.totals), [entries, r1.totals])
+  // Climbing marks while the Open Round runs; milestone clubs all contest.
+  const recent = useMomentum(openLive ? round1 : null, c.now)
+  const climb = useMemo(() => (openLive ? climbers(entries, r1.totals, recent) : new Map()), [openLive, entries, r1.totals, recent])
+  const contestTotals = useContestTotals(c.rounds)
   const rankOf = useMemo(() => new Map(ranked.map((r) => [r.entry.id, r.rank])), [ranked])
   const states = useMemo(() => (inBracket ? entryStates(entries, c.rounds, matchups, c.bracketSize) : null), [inBracket, entries, c.rounds, matchups, c.bracketSize])
+  // Pets with something to vote on: both sides of a current matchup are in
+  // the field. A side that is not was disqualified, and the other walks over.
   const inCurrent = useMemo(() => {
+    const listed = new Set(entries.map((e) => e.id))
     const ids = new Set()
-    for (const m of matchups) if (m.round_id === bracketOpenId) ids.add(m.entry_a_id).add(m.entry_b_id)
+    for (const m of matchups) {
+      if (m.round_id === bracketOpenId && listed.has(m.entry_a_id) && listed.has(m.entry_b_id)) ids.add(m.entry_a_id).add(m.entry_b_id)
+    }
     return ids
-  }, [matchups, bracketOpenId])
+  }, [matchups, bracketOpenId, entries])
 
   const [q, setQ] = useState('')
   const [species, setSpecies] = useState('all')
@@ -67,7 +79,19 @@ export default function Gallery() {
   const defaultSort = inBracket ? 'seed' : openLive || c.phase === 'complete' ? 'votes' : 'newest'
   const [sort, setSort] = useState(null)
   const sortBy = sort || defaultSort
-  useDocumentTitle('The pets — Wausau Pilot & Review')
+  // Favorites, kept on this device. While the filter is on, a pet un-hearted
+  // here stays in view until the filter is toggled, so the card (and focus)
+  // does not vanish from under the reader's finger.
+  const favIds = useFavorites(c.contest?.id)
+  const [favOnly, setFavOnly] = useState(false)
+  const [favKept, setFavKept] = useState(null)
+  const favSet = useMemo(() => new Set(favIds), [favIds])
+  const favCount = useMemo(() => entries.filter((e) => favSet.has(e.id)).length, [entries, favSet])
+  function toggleFavOnly() {
+    setFavKept(favOnly ? null : favSet)
+    setFavOnly(!favOnly)
+  }
+  useDocumentTitle(`The pets — ${NEWSROOM.name}`)
 
   const towns = useMemo(() => [...new Set(entries.map((e) => e.town))].sort((a, b) => a.localeCompare(b)), [entries])
   const speciesCount = useMemo(() => {
@@ -82,6 +106,7 @@ export default function Gallery() {
       (e) =>
         (species === 'all' || e.species === species) &&
         (!town || e.town === town) &&
+        (!favOnly || favSet.has(e.id) || favKept?.has(e.id)) &&
         (!needle || fold(e.pet_name).includes(needle) || fold(e.town).includes(needle)),
     )
     if (states && status !== 'all') {
@@ -96,12 +121,23 @@ export default function Gallery() {
       newest: (a, b) => new Date(b.created_at) - new Date(a.created_at),
       az: (a, b) => a.pet_name.localeCompare(b.pet_name),
       seed: (a, b) => (a.seed ?? 1e9) - (b.seed ?? 1e9) || byVotes(a, b),
+      // The last day's votes (entry_round_momentum), most first.
+      rising: (a, b) => (recent.get(b.id) || 0) - (recent.get(a.id) || 0) || byVotes(a, b),
     }
     return [...out].sort(sorters[sortBy] || byVotes)
-  }, [entries, q, species, town, status, states, sortBy, rankOf])
+  }, [entries, q, species, town, favOnly, favSet, favKept, status, states, sortBy, rankOf, recent])
 
-  const resetKey = `${q}|${species}|${town}|${status}|${sortBy}`
+  const resetKey = `${q}|${species}|${town}|${favOnly}|${status}|${sortBy}`
+  // The Open Round leader leads the grid, unfiltered and sorted by votes.
+  const featureLeader = openLive && sortBy === 'votes' && !q && species === 'all' && !town && !favOnly
   const { shown, more, sentinel } = useIncremental(list.length, resetKey)
+  // Photos first: the sponsor sits after the first full row, whatever the
+  // column count (the featured card takes two cells).
+  const four = useMediaQuery('(min-width: 980px)')
+  const three = useMediaQuery('(min-width: 640px)')
+  const cols = four ? 4 : three ? 3 : 2
+  const sponsorAfter = (featureLeader ? cols - 1 : cols) - 1
+  const sponsor = <Sponsor sponsor={SPONSORS.gallery} slot="gallery" full />
   const cut = c.bracketSize
   const currentLabel = c.round ? roundLabel(c.round.seq, c.bracketSize) : null
 
@@ -110,7 +146,8 @@ export default function Gallery() {
       return {
         votes: r1.totals.get(e.id)?.votes || 0,
         rank: rankOf.get(e.id),
-        voteRound: c.phase === 'voting' ? c.round : null,
+        // During Last Chance only its pool can be voted for.
+        voteRound: c.phase === 'voting' && canVoteNow(c.lastChance, e.id) ? c.round : null,
       }
     }
     if (states) {
@@ -147,11 +184,17 @@ export default function Gallery() {
     <div className="wrap section" style={{ paddingTop: 24 }}>
       <div className="section-head">
         <div>
-          <p className="kicker">
-            {fmtInt(entries.length)} {entries.length === 1 ? 'pet' : 'pets'}
-            {openLive && ' · counts update live'}
-          </p>
           <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>{heading}</h1>
+          <p className="section-count">
+            {c.phase === 'coming' ? (
+              `Entries open ${apDate(c.contest.submissions_open_at)}`
+            ) : (
+              <>
+                {fmtInt(entries.length)} {entries.length === 1 ? 'pet' : 'pets'}
+                {openLive && ' · counts update live'}
+              </>
+            )}
+          </p>
           {openLive && (
             <p className="dek">
               The top {cut} when the {currentLabel} closes make the bracket. Totals reset every round.
@@ -165,68 +208,73 @@ export default function Gallery() {
         </div>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <Sponsor sponsor={SPONSORS.gallery} slot="gallery" full />
-      </div>
-
-      <div className="gallery-tools" role="search">
-        <div className="search">
-          <label className="sr-only" htmlFor="gallery-q">
-            Search pets by name or town
-          </label>
-          <Search />
-          <input id="gallery-q" type="search" placeholder="Search by name or town" value={q} onChange={(e) => setQ(e.target.value)} />
+      {(loading || entries.length > 0) && (
+        <>
+        <div className="gallery-tools" role="search">
+          <div className="search">
+            <label className="sr-only" htmlFor="gallery-q">
+              Search pets by name or town
+            </label>
+            <Search />
+            <input id="gallery-q" type="search" placeholder="Search by name or town" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
+          <div className="tool-row">
+            <label className="sr-only" htmlFor="gallery-town">
+              Town
+            </label>
+            <select id="gallery-town" value={town} onChange={(e) => setTown(e.target.value)}>
+              <option value="">All towns</option>
+              {towns.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <label className="sr-only" htmlFor="gallery-sort">
+              Sort
+            </label>
+            <select id="gallery-sort" value={sortBy} onChange={(e) => setSort(e.target.value)}>
+              {inBracket && <option value="seed">By seed</option>}
+              {(openLive || inBracket || c.phase === 'complete') && <option value="votes">{inBracket ? 'Open Round finish' : 'Most votes'}</option>}
+              {openLive && recent.size > 0 && <option value="rising">Rising today</option>}
+              <option value="newest">Newest</option>
+              <option value="az">A–Z</option>
+            </select>
+          </div>
         </div>
-        <div className="tool-row">
-          <label className="sr-only" htmlFor="gallery-town">
-            Town
-          </label>
-          <select id="gallery-town" value={town} onChange={(e) => setTown(e.target.value)}>
-            <option value="">All towns</option>
-            {towns.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <label className="sr-only" htmlFor="gallery-sort">
-            Sort
-          </label>
-          <select id="gallery-sort" value={sortBy} onChange={(e) => setSort(e.target.value)}>
-            {inBracket && <option value="seed">By seed</option>}
-            {(openLive || inBracket || c.phase === 'complete') && <option value="votes">{inBracket ? 'Open Round finish' : 'Most votes'}</option>}
-            <option value="newest">Newest</option>
-            <option value="az">A–Z</option>
-          </select>
-        </div>
-      </div>
 
-      <div className="chips" style={{ marginBottom: 12 }} role="group" aria-label="Filter by species">
-        {[
-          ['all', 'All'],
-          ['dog', 'Dogs'],
-          ['cat', 'Cats'],
-          ['other', 'Others'],
-        ].map(([key, text]) => (
-          <button key={key} type="button" className="chip" aria-pressed={species === key} onClick={() => setSpecies(key)}>
-            {text} <span className="count">{speciesCount[key] || 0}</span>
+        <div className="chips" style={{ marginBottom: 12 }} role="group" aria-label="Filter pets">
+          {[
+            ['all', 'All'],
+            ['dog', 'Dogs'],
+            ['cat', 'Cats'],
+            ['other', 'Others'],
+          ].map(([key, text]) => (
+            <button key={key} type="button" className="chip" aria-pressed={species === key} onClick={() => setSpecies(key)}>
+              {text} <span className="count">{speciesCount[key] || 0}</span>
+            </button>
+          ))}
+          {states && (
+            <>
+              <span aria-hidden="true" style={{ width: 8 }} />
+              {[
+                ['alive', 'Still in'],
+                ['out', 'Out'],
+                ['all', 'Everyone'],
+              ].map(([key, text]) => (
+                <button key={key} type="button" className="chip" aria-pressed={status === key} onClick={() => setStatus(key)}>
+                  {text}
+                </button>
+              ))}
+            </>
+          )}
+          <span aria-hidden="true" style={{ width: 8 }} />
+          <button type="button" className="chip" aria-pressed={favOnly} onClick={toggleFavOnly}>
+            <Heart size={15} filled={favOnly} /> Favorites <span className="count">{favCount}</span>
           </button>
-        ))}
-        {states && (
-          <>
-            <span aria-hidden="true" style={{ width: 8 }} />
-            {[
-              ['alive', 'Still in'],
-              ['out', 'Out'],
-              ['all', 'Everyone'],
-            ].map(([key, text]) => (
-              <button key={key} type="button" className="chip" aria-pressed={status === key} onClick={() => setStatus(key)}>
-                {text}
-              </button>
-            ))}
-          </>
-        )}
-      </div>
+        </div>
+        </>
+      )}
 
       {openLive && (
         <p className="legend">
@@ -251,9 +299,18 @@ export default function Gallery() {
             <div key={i} className="skeleton" style={{ aspectRatio: '4 / 6' }} />
           ))}
         </div>
+      ) : favOnly && list.length === 0 && favCount === 0 ? (
+        <div className="empty">
+          <h2>No favorites yet.</h2>
+          <p>Tap the heart on any pet to keep it here. Saved on this device only.</p>
+          <button type="button" className="btn btn-quiet" style={{ marginTop: 6 }} onClick={toggleFavOnly}>
+            See every pet
+          </button>
+          <div style={{ marginTop: 16 }}>{sponsor}</div>
+        </div>
       ) : list.length === 0 ? (
         <div className="empty">
-          <h3>{entries.length ? 'No pets match that search.' : 'No pets yet.'}</h3>
+          <h2>{!entries.length ? 'No pets yet.' : favOnly ? 'None of your favorites match that search.' : 'No pets match that search.'}</h2>
           <p>
             {entries.length ? (
               'Try a different name or town.'
@@ -261,16 +318,32 @@ export default function Gallery() {
               <>
                 Be the first! <a href="#/enter">Enter your pet</a>.
               </>
+            ) : c.phase === 'coming' ? (
+              <a href="#/enter">See what you&rsquo;ll need to enter</a>
             ) : (
               'Check back soon.'
             )}
           </p>
+          {entries.length > 0 && <div style={{ marginTop: 16 }}>{sponsor}</div>}
         </div>
       ) : (
         <>
           <div className="grid">
             {list.slice(0, shown).map((e, i) => (
-              <PetCard key={e.id} entry={e} cut={cut} eager={i < 4} adoptable={Boolean(e.shelter_id)} level={2} {...cardProps(e)} />
+              <Fragment key={e.id}>
+                <PetCard
+                  entry={e}
+                  cut={cut}
+                  eager={i < 4}
+                  adoptable={Boolean(e.shelter_id)}
+                  level={2}
+                  featured={i === 0 && featureLeader}
+                  climb={climb.get(e.id)}
+                  club={milestone(contestTotals.get(e.id)).earned}
+                  {...cardProps(e)}
+                />
+                {(i === sponsorAfter || (i === list.length - 1 && i < sponsorAfter)) && <div className="grid-break">{sponsor}</div>}
+              </Fragment>
             ))}
           </div>
           {shown < list.length && (

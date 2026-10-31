@@ -7,7 +7,7 @@
 import { requireAdmin } from "../_shared/db.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { serve } from "../_shared/http.ts";
-import { sweep } from "../_shared/notify.ts";
+import { sweep, sweepBuyerNotes, sweepCheckoutReminders, sweepReminders } from "../_shared/notify.ts";
 import { safeEqual } from "../_shared/validate.ts";
 
 const CRON_SECRET = optionalEnv("CRON_SECRET");
@@ -17,5 +17,13 @@ serve(async (req) => {
   const isCron = Boolean(CRON_SECRET && presented && safeEqual(presented, CRON_SECRET));
   if (!isCron) await requireAdmin(req);
 
-  return await sweep(50);
+  const entrants = await sweep(50);
+  // Free-vote reminders ride the same schedule; the database decides when
+  // each is due.
+  const reminders = await sweepReminders(50);
+  const buyers = await sweepBuyerNotes(50);
+  // The one checkout reminder, an hour after an opted-in checkout stalls;
+  // the 15-minute schedule is what makes it timely.
+  const checkouts = await sweepCheckoutReminders(50);
+  return { ...entrants, reminders, buyers, checkouts };
 });

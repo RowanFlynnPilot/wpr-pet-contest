@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { SPONSORS } from '../config.js'
+import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import MatchupCard from '../components/MatchupCard.jsx'
 import Sponsor from '../components/Sponsor.jsx'
@@ -11,6 +11,8 @@ import { useDocumentTitle, useMediaQuery } from '../lib/hooks.js'
 import { rankOpenRound } from '../lib/rank.js'
 import { bracketSkeleton, projectedPairings, roundLabel } from '../lib/rounds.js'
 import { Champion } from './Results.jsx'
+import { CrownMark } from '../components/Scoreboard.jsx'
+import PetPhoto from '../components/PetPhoto.jsx'
 
 function when(col, phase) {
   const r = col.round
@@ -29,35 +31,68 @@ export function BracketBoard({ c, byId, projected = null }) {
   const [pick, setPick] = useState(null)
   const selected = pick ?? defaultSeq
 
-  const renderCol = (col) => (
-    <div className="bracket-col" key={col.seq} role={wide ? undefined : 'tabpanel'} id={`round-panel-${col.seq}`} aria-labelledby={wide ? undefined : `round-tab-${col.seq}`}>
+  // Slots two at a time, so a poster can join each pair toward the next round.
+  const pairs = (slots) => slots.reduce((out, m, i) => (i % 2 ? out[out.length - 1].push([m, i]) : out.push([[m, i]]), out), [])
+  // The wrapper is display: contents; it only carries --row for the stagger.
+  const renderSlot = (col, m, slot) => (
+    <div className="bracket-slot" style={{ '--row': slot }} key={m?.id || slot}>
+      {projected && col.seq === 2 ? (
+        <MatchupCard projected={projected[slot]} byId={byId} />
+      ) : (
+        <MatchupCard matchup={m} totals={m ? totalsByRound.get(m.round_id) : null} byId={byId} round={col.round} live={Boolean(m) && col.round?.id === openId} />
+      )}
+    </div>
+  )
+  const finalCol = cols[cols.length - 1]
+  const finalMatch = finalCol?.slots[0]
+  const champion = finalMatch?.winner_entry_id ? byId.get(finalMatch.winner_entry_id) : null
+
+  const renderCol = (col, i = 0) => (
+    <div className="bracket-col" key={col.seq} style={{ '--col': wide ? i : 0 }} role={wide ? undefined : 'tabpanel'} id={`round-panel-${col.seq}`} aria-labelledby={wide ? undefined : `round-tab-${col.seq}`}>
       <div className="bracket-col-head">
         <span>{col.label}</span>
         <span className="when">{projected && col.seq === 2 ? 'If voting ended now' : when(col, c.phase)}</span>
       </div>
       <div className="bracket-col-body">
-        {col.slots.map((m, slot) =>
-          projected && col.seq === 2 ? (
-            <MatchupCard key={slot} projected={projected[slot]} byId={byId} />
-          ) : (
-            <MatchupCard
-              key={m?.id || slot}
-              matchup={m}
-              totals={m ? totalsByRound.get(m.round_id) : null}
-              byId={byId}
-              round={col.round}
-              live={Boolean(m) && col.round?.id === openId}
-            />
-          ),
-        )}
+        {wide
+          ? pairs(col.slots).map((pair, p) => (
+              <div className={`bracket-pair${pair.length === 1 ? ' solo' : ''}`} key={p}>
+                {pair.map(([m, slot]) => renderSlot(col, m, slot))}
+              </div>
+            ))
+          : col.slots.map((m, slot) => renderSlot(col, m, slot))}
       </div>
     </div>
   )
 
   if (wide) {
     return (
-      <div className="bracket desktop" style={{ '--cols': cols.length }}>
+      // The round of 16 carries the most names, the crown the fewest.
+      <div
+        className="bracket desktop poster"
+        style={{ gridTemplateColumns: `minmax(0, 1.3fr) repeat(${cols.length - 1}, minmax(0, 1fr)) minmax(0, 0.8fr)` }}
+      >
         {cols.map(renderCol)}
+        <div className="bracket-col bracket-crown" style={{ '--col': cols.length }}>
+          <div className="bracket-col-head">
+            <span>The crown</span>
+          </div>
+          <div className="bracket-col-body">
+            <div className={`crown-slot${champion ? ' won' : ''}`}>
+              <CrownMark size={44} />
+              {champion ? (
+                <a href={`#/pet/${champion.id}`} className="crown-pet">
+                  <span className="sb-face">
+                    <PetPhoto entry={champion} width={160} square alt="" />
+                  </span>
+                  <span className="crown-name">{champion.pet_name}</span>
+                </a>
+              ) : (
+                <span className="crown-wait">Winner takes the crown</span>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -98,14 +133,14 @@ export default function Bracket() {
     const pairs = projectedPairings(ranked, c.bracketSize)
     return pairs.length ? pairs : null
   }, [projecting, entries, r1.totals, c.bracketSize])
-  useDocumentTitle('The bracket — Wausau Pilot & Review')
+  useDocumentTitle(`The bracket — ${NEWSROOM.name}`)
 
   const liveBracketRound = c.phase === 'voting' && c.round?.kind === 'bracket' ? c.round : null
   const label = c.round ? roundLabel(c.round.seq, c.bracketSize) : null
 
   let dek
-  if (c.phase === 'complete') dek = 'The final bracket.'
-  else if (projecting) dek = `${period(`The bracket is set when the Open Round closes ${apDateTime(round1.closes_at)}`)} Here's how it would look if voting ended now.`
+  if (c.phase === 'complete') dek = null
+  else if (projecting) dek = `${period(`The bracket is set when the Open Round closes ${apDateTime(round1.closes_at)}`)} Here’s how it would look if voting ended now.`
   else if (liveBracketRound) dek = `The ${label} is live. Totals started at zero; the pet with more votes at the buzzer moves on. Ties go to the better seed.`
   else if (hasBracket) dek = 'Every head-to-head so far. Totals reset at the start of every round.'
   else dek = `The top ${c.bracketSize} pets from the Open Round make the bracket.`
@@ -114,9 +149,8 @@ export default function Bracket() {
     <div className="wrap section" style={{ paddingTop: 24 }}>
       <div className="section-head">
         <div>
-          <p className="kicker">{c.contest?.year} bracket</p>
           <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)' }}>{c.phase === 'complete' ? 'Champion crowned' : projecting ? 'The projected bracket' : 'The bracket'}</h1>
-          <p className="dek">{dek}</p>
+          {dek && <p className="dek">{dek}</p>}
         </div>
         {liveBracketRound && <Countdown to={liveBracketRound.closes_at} label={`${label} closes in`} />}
       </div>
@@ -128,7 +162,7 @@ export default function Bracket() {
       )}
 
       <div style={{ marginBottom: 16 }}>
-        <Sponsor sponsor={SPONSORS.bracket} slot="bracket" full />
+        <Sponsor sponsor={SPONSORS.bracket} slot="bracket" full line />
       </div>
 
       {liveBracketRound && (
@@ -139,9 +173,11 @@ export default function Bracket() {
 
       {!hasBracket && !projected ? (
         <div className="empty card plain">
-          <h3>No bracket yet</h3>
+          <h2>No bracket yet</h2>
           <p>
-            {c.phase === 'submissions' || c.phase === 'coming'
+            {c.phase === 'coming'
+              ? period(`Entries open ${apDate(c.contest.submissions_open_at)}. The top ${c.bracketSize} from the Open Round make the bracket`)
+              : c.phase === 'submissions'
               ? 'Entries are still coming in. The bracket is built from the Open Round results.'
               : 'The bracket appears once the Open Round has enough votes to project it.'}
           </p>

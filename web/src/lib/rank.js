@@ -12,6 +12,25 @@ export function rankOpenRound(entries, totals) {
     .map((row, i) => ({ ...row, rank: i + 1 }))
 }
 
+// Pets that rose `min` places or more over the last day: today's standings
+// against yesterday's (today's totals minus each pet's last-24-hour votes),
+// both ranked with the open round's tiebreak. Map<entry_id, places up>.
+export function climbers(entries, totals, recent, { min = 3 } = {}) {
+  if (!recent?.size) return new Map()
+  const now = rankOpenRound(entries, totals)
+  const before = rankOpenRound(
+    entries,
+    new Map(entries.map((e) => [e.id, { votes: Math.max(0, (totals.get(e.id)?.votes || 0) - (recent.get(e.id) || 0)) }])),
+  )
+  const then = new Map(before.map((r) => [r.entry.id, r.rank]))
+  const out = new Map()
+  for (const r of now) {
+    const up = then.get(r.entry.id) - r.rank
+    if (up >= min) out.set(r.entry.id, up)
+  }
+  return out
+}
+
 // Votes `me` needs to move ahead of `target` in the open round.
 export function votesToPass(me, target) {
   const earlier = ts(me.entry) < ts(target.entry)
@@ -46,4 +65,12 @@ export function matchupStanding(matchup, totals, entriesById) {
   const trail = aLeads ? b : a
   const toTake = lead.votes - trail.votes + (seedOf(trail) < seedOf(lead) ? 0 : 1)
   return { a, b, leader, tied: a.votes === b.votes, toTake: Math.max(0, toTake), winner: matchup.winner_entry_id || null }
+}
+
+// The worse seed is ahead on votes. A tie goes to the better seed, so it is
+// never an upset.
+export function isUpset(st) {
+  const lead = st.leader === 'a' ? st.a : st.b
+  const trail = st.leader === 'a' ? st.b : st.a
+  return !st.tied && lead.seed != null && trail.seed != null && lead.seed > trail.seed
 }

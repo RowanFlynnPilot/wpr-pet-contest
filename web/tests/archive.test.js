@@ -58,7 +58,7 @@ describe('summary', () => {
     const text = JSON.stringify(s)
     expect(text).not.toMatch(/secret|owner|email/i)
     expect(s.side_awards).toEqual([{ award: 'Best Dog', pet: 'Ace', votes: 50 }])
-    expect(s.entries).toEqual({ approved: 2, disqualified: 1 })
+    expect(s.entries).toEqual({ approved: 2, disqualified: 1, withdrawn: 0 })
     expect(s.money.shelter_pool_cents).toBe(1350)
   })
 })

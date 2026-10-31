@@ -9,9 +9,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  CHECKS, checkAuth, checkCi, checkConfig, checkContestData, checkFunctionsDeployed, checkFunctionsHttp, checkGithubSecrets, checkMigrations,
+  CHECKS, checkAuth, checkCi, checkConfig, checkContestData, checkFreeVote, checkFunctionsDeployed, checkFunctionsHttp, checkGithubSecrets, checkMigrations,
   checkPages, checkPagesSite, checkProject, checkSecrets, checkStripe, checkVariables, checkWordPress, describeKey, embedScript, FUNCTIONS,
-  parseConfig, parseIframes, parseMigrationList, pickContest, pointsAt, RECOMMENDED_SECRETS, redact, REQUIRED_SECRETS, runChecks, summarize,
+  FREE_VOTE_SECRETS, parseConfig, parseIframes, parseMigrationList, pickContest, pointsAt, RECOMMENDED_SECRETS, redact, REQUIRED_SECRETS,
+  runChecks, summarize,
   WEBHOOK_EVENTS,
 } from "./preflight-checks.mjs";
 
@@ -270,11 +271,15 @@ export const ANALYTICS = {
 });
 
 test("parseConfig understands the real web/src/config.js", () => {
-  const c = parseConfig(readFileSync(new URL("../web/src/config.js", import.meta.url), "utf8"));
+  const c = parseConfig(
+    readFileSync(new URL("../web/src/config.js", import.meta.url), "utf8"),
+    readFileSync(new URL("../web/src/newsrooms.js", import.meta.url), "utf8"),
+  );
   assert.equal(c.found, true);
   assert.equal(typeof c.rulesApproved, "boolean");
   assert.match(c.contact, /@/);
   assert.ok(c.eligibility.length > 20);
+  assert.doesNotMatch(c.eligibility, /\$\{/, "the newsroom's name and state are filled in");
   assert.equal(typeof c.analyticsDomain, "string");
 });
 
@@ -315,11 +320,11 @@ test("secrets: required, recommended and alert channels", () => {
   assert.equal(status(run(checkSecrets, (f) => (f.supabase.secrets = { skip: "not checked" })), "supabase.secrets"), "skip");
 });
 
-test("functions deployed: all seven, active, JWT verification off", () => {
+test("functions deployed: every one, active, JWT verification off", () => {
   assert.equal(status(run(checkFunctionsDeployed), "supabase.functions"), "pass");
   const none = byId(run(checkFunctionsDeployed, (f) => (f.supabase.functions.list = [])), "supabase.functions");
   assert.equal(none.status, "fail");
-  assert.match(none.message, /0 of 7/);
+  assert.match(none.message, new RegExp(`0 of ${FUNCTIONS.length}`));
   const some = byId(run(checkFunctionsDeployed, (f) => (f.supabase.functions.list = f.supabase.functions.list.filter((x) => x.slug !== "disqualify"))), "supabase.functions");
   assert.match(some.message, /not deployed: disqualify/);
   const jwtOn = byId(run(checkFunctionsDeployed, (f) => (f.supabase.functions.list[2].verifyJwt = true)), "supabase.functions");
@@ -589,4 +594,28 @@ test("config.js: rules approved, placeholders gone, analytics, presenting sponso
 
   assert.equal(status(run(checkConfig, (f) => (f.web.config = { error: "file not found" })), "web.config"), "fail");
   assert.equal(status(run(checkConfig, (f) => (f.web.config = { found: false })), "web.config"), "fail");
+});
+
+test("a function that answers 503 because its feature is off is not a crash", () => {
+  const off = run(checkFunctionsHttp, (f) => (f.supabase.http.probes["free-vote"].post = { status: 503 }));
+  assert.equal(status(off, "supabase.http.free-vote"), "pass");
+  assert.match(byId(off, "supabase.http.free-vote").message, /switched off/);
+  const crashed = run(checkFunctionsHttp, (f) => (f.supabase.http.probes["links"].post = { status: 503 }));
+  assert.equal(status(crashed, "supabase.http.links"), "fail");
+});
+
+test("free daily vote: off passes; on needs its secrets and the Turnstile site key", () => {
+  assert.equal(status(run(checkFreeVote), "supabase.free_vote"), "pass");
+  const on = (f) => (f.supabase.data.contests[1].free_vote_enabled = true);
+  const missing = run(checkFreeVote, on);
+  assert.equal(status(missing, "supabase.free_vote.secrets"), "fail");
+  assert.match(byId(missing, "supabase.free_vote.secrets").message, /FREE_VOTE_HASH_KEY, TURNSTILE_SECRET_KEY, RESEND_API_KEY/);
+  assert.equal(status(missing, "supabase.free_vote.turnstile"), "fail");
+  const ready = run(checkFreeVote, (f) => {
+    on(f);
+    f.supabase.secrets.names.push(...FREE_VOTE_SECRETS);
+    f.github.variables.keys.VITE_TURNSTILE_SITE_KEY = { present: true };
+  });
+  assert.ok(ready.every((r) => r.status === "pass"));
+  assert.equal(status(run(checkFreeVote, (f) => (f.supabase.data = { skip: "x" })), "supabase.free_vote"), "skip");
 });

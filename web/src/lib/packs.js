@@ -26,10 +26,10 @@ export function bestValue(packs) {
   return packs.reduce((best, p) => (perVoteCents(p) < perVoteCents(best) ? p : best))
 }
 
-// Largest first. A reader who sees 600 votes before 5 reads the middle packs
-// as the reasonable choice.
+// Smallest first, like the rules page's price list: the sheet opens on a few
+// votes at a time, not on the biggest pack (WPR's call, Oct. 25, 2026).
 export function orderPacksForDisplay(packs) {
-  return [...packs].sort((a, b) => b.cents - a.cents || (a.sort ?? 0) - (b.sort ?? 0))
+  return [...packs].sort((a, b) => a.cents - b.cents || (a.sort ?? 0) - (b.sort ?? 0))
 }
 
 export function defaultPack(packs) {
