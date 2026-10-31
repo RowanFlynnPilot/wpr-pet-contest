@@ -13,23 +13,25 @@
 // With neither, the response says so and the scheduled workflow fails, which
 // makes GitHub email the repository owner. Crude, but nothing goes unheard.
 
-import Stripe from "npm:stripe@17";
 import { type Change, formatAlert, type IntentLike, type Problem, uncreditedPayments } from "../_shared/alerts.ts";
 import { requireAdmin, service } from "../_shared/db.ts";
 import { emailEnabled, sendEmail } from "../_shared/email.ts";
-import { optionalEnv, requireEnv } from "../_shared/env.ts";
+import { optionalEnv } from "../_shared/env.ts";
 import { serve } from "../_shared/http.ts";
+import { cancelStaleIntents, stripeClient } from "../_shared/stripe.ts";
 import { safeEqual } from "../_shared/validate.ts";
 
-const stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
-  httpClient: Stripe.createFetchHttpClient(),
-});
+// Restricted key: PaymentIntents write (list, and cancel unpaid checkouts), Charges read.
+const stripe = stripeClient("STRIPE_KEY_HEALTH");
 const CRON_SECRET = optionalEnv("CRON_SECRET");
 const STAFF = (optionalEnv("STAFF_ALERT_EMAILS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 const WEBHOOK = optionalEnv("ALERT_WEBHOOK_URL");
 const DESK_URL = (optionalEnv("SHARE_BASE_URL") ?? "https://rowanflynnpilot.github.io/wpr-pet-contest/") + "#/admin/health";
 
 const LOOKBACK_SECONDS = 3 * 3600;
+// The deadline rush can bring hundreds of checkouts inside the window: page
+// through them, up to a ceiling that keeps one run bounded.
+const MAX_INTENTS = 2000;
 
 serve(async (req) => {
   const presented = req.headers.get("x-cron-secret");
@@ -48,6 +50,16 @@ serve(async (req) => {
   let notified = 0;
   let delivered = false;
 
+  // Housekeeping, on the schedule only: close checkouts that can never count
+  // (past the deadline, or for a disqualified pet), so nobody pays into a
+  // refund and WPR keeps no card fee for it.
+  let canceled = 0;
+  if (scheduled) {
+    const { data: stale, error: staleError } = await service.rpc("stale_pending_intents", { p_limit: 50 });
+    if (staleError) console.error("stale checkouts not read", staleError);
+    else canceled = (await cancelStaleIntents(stripe, service, ((stale ?? []) as { payment_intent: string }[]).map((r) => r.payment_intent))).canceled;
+  }
+
   if (scheduled) {
     const { data, error: recordError } = await service.rpc("record_health", { p_problems: problems });
     if (recordError) throw recordError;
@@ -62,6 +74,7 @@ serve(async (req) => {
     problems,
     channels,
     notified,
+    checkouts_canceled: canceled,
     // True when there was nothing new to say, or it was said.
     delivered: notified === 0 || delivered,
   };
@@ -72,17 +85,18 @@ async function stripeCheck(): Promise<Problem[]> {
   const now = Math.floor(Date.now() / 1000);
   let intents: IntentLike[];
   try {
-    const list = await stripe.paymentIntents.list({
-      created: { gte: now - LOOKBACK_SECONDS },
-      limit: 100,
-      expand: ["data.latest_charge"],
-    });
-    intents = list.data.map((pi) => ({
-      id: pi.id,
-      status: pi.status,
-      metadata: pi.metadata,
-      paidAt: typeof pi.latest_charge === "object" && pi.latest_charge ? pi.latest_charge.created : null,
-    }));
+    intents = [];
+    for await (
+      const pi of stripe.paymentIntents.list({ created: { gte: now - LOOKBACK_SECONDS }, limit: 100, expand: ["data.latest_charge"] })
+    ) {
+      intents.push({
+        id: pi.id,
+        status: pi.status,
+        metadata: pi.metadata,
+        paidAt: typeof pi.latest_charge === "object" && pi.latest_charge ? pi.latest_charge.created : null,
+      });
+      if (intents.length >= MAX_INTENTS) break;
+    }
   } catch (err) {
     console.error("stripe check failed", err);
     return [{

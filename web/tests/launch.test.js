@@ -1,0 +1,101 @@
+import { describe, expect, it } from 'vitest'
+import { countdownWords, daysUntil, launchStage } from '../src/lib/graphics/content.js'
+import { captionsFor } from '../src/lib/graphics/captions.js'
+import { buildCards, cardSize } from '../src/lib/graphics/staff.js'
+import { entriesOpenIcs } from '../src/lib/calendar.js'
+import { andList } from '../src/lib/format.js'
+
+const contest = { status: 'draft', submissions_open_at: '2026-11-14T14:00:00Z', submissions_close_at: '2026-11-21T02:00:00Z' }
+
+describe('launchStage', () => {
+  it('offers the launch from a draft with dates, through entries, to the field', () => {
+    expect(launchStage(contest, 'none')).toBe('soon')
+    expect(launchStage({ ...contest, submissions_open_at: null }, 'none')).toBeNull()
+    expect(launchStage({ ...contest, status: 'submissions_open' }, 'coming')).toBe('soon')
+    expect(launchStage({ ...contest, status: 'submissions_open' }, 'submissions')).toBe('open')
+    expect(launchStage({ ...contest, status: 'submissions_open' }, 'submissions_closed')).toBe('closed')
+    expect(launchStage({ ...contest, status: 'voting' }, 'voting')).toBeNull()
+    expect(launchStage(null, 'none')).toBeNull()
+  })
+})
+
+describe('the countdown', () => {
+  // 8 a.m. Central, Saturday, Nov. 14.
+  const opens = '2026-11-14T14:00:00Z'
+  it('counts calendar days on the newsroom clock', () => {
+    expect(daysUntil(opens, Date.parse('2026-10-31T15:00:00Z'))).toBe(14)
+    // 10 p.m. Friday Central is still the day before.
+    expect(daysUntil(opens, Date.parse('2026-11-14T04:00:00Z'))).toBe(1)
+    // 7 a.m. Saturday Central is the same day.
+    expect(daysUntil(opens, Date.parse('2026-11-14T13:00:00Z'))).toBe(0)
+  })
+  it('says days, then tomorrow, then today', () => {
+    expect(countdownWords(opens, Date.parse('2026-11-08T15:00:00Z'))).toEqual({ big: '6', line: 'days until entries open', days: 6 })
+    expect(countdownWords(opens, Date.parse('2026-11-13T15:00:00Z')).line).toBe('Entries open tomorrow')
+    expect(countdownWords(opens, Date.parse('2026-11-14T13:00:00Z')).line).toBe('Entries open today')
+  })
+})
+
+describe('launch captions', () => {
+  const o = { contestName: 'Cutest Pet in Marathon County', splitPct: 50, bracketSize: 16, year: 2026 }
+  const card = (meta) => ({ meta })
+  const url = 'https://example.org/pets/'
+  it('announces with the date and the share, never a donation', () => {
+    const c = captionsFor(card({ kind: 'announce', o, opensAt: contest.submissions_open_at, who: 'Moments Foster Care' }), { publicUrl: url })
+    expect(c.hook).toBe('Is your pet the cutest in Marathon County? Entries for Cutest Pet in Marathon County open Saturday, Nov. 14.')
+    expect(c.facebook).toContain('and half of every vote pack goes to Moments Foster Care.')
+    expect(c.facebook).toContain('Vote packs are not donations.')
+    expect(c.facebook).toContain(`${url}#/rules`)
+  })
+  it('counts down, then says tomorrow', () => {
+    const six = captionsFor(card({ kind: 'countdown', o, opensAt: contest.submissions_open_at, cd: { days: 6 } }), { publicUrl: url })
+    expect(six.hook).toBe('Entries for Cutest Pet in Marathon County open in six days.')
+    const one = captionsFor(card({ kind: 'countdown', o, opensAt: contest.submissions_open_at, cd: { days: 1 } }), { publicUrl: url })
+    expect(one.hook).toMatch(/^Entries open tomorrow for Cutest Pet in Marathon County: Saturday, Nov\. 14 at 8 a\.m\.$/)
+  })
+  it('sends entrants to the form, and counts the field in words', () => {
+    const open = captionsFor(card({ kind: 'entriesOpen', o, closesAt: contest.submissions_close_at }), { publicUrl: url })
+    expect(open.facebook).toContain(`${url}#/enter`)
+    const so = captionsFor(card({ kind: 'entriesSoFar', o, count: 1, closesAt: contest.submissions_close_at }), { publicUrl: url })
+    expect(so.hook).toBe('So far, one pet is in.')
+    const field = captionsFor(card({ kind: 'fieldSet', o, count: 212, votingAt: '2026-11-21T14:00:00Z' }), { publicUrl: url })
+    expect(field.hook).toBe('The field is set: 212 pets.')
+    expect(field.facebook).toContain('The Open Round opens Saturday, Nov. 21 at 8 a.m.')
+  })
+})
+
+describe('the poster', () => {
+  const s = (launch, publicUrl) => ({ contest: { beneficiary_split_pct: 50, year: 2026, name: 'Cutest Pet in Marathon County' }, bracketSize: 16, now: Date.parse('2026-10-31T15:00:00Z'), where: 'example.org/pets', publicUrl, launch })
+  const launch = (stage) => ({ stage, opensAt: '2026-11-14T14:00:00Z', closesAt: '2026-11-21T02:00:00Z', shelters: [{ name: 'Moments Foster Care' }] })
+  const poster = (groups) => groups.flatMap((g) => g.cards).find((c) => c.file === 'poster-letter')
+  it('prints at letter size whatever size is asked, before and during entries', () => {
+    const soon = poster(buildCards(s(launch('soon'), 'https://example.org/pets/')))
+    expect(soon.key).toBe('launch-poster-soon')
+    expect(cardSize(soon, { id: 'square', width: 1080, height: 1080 })).toMatchObject({ width: 1275, height: 1650 })
+    expect(poster(buildCards(s(launch('open'), 'https://example.org/pets/'))).key).toBe('launch-poster-open')
+  })
+  it('needs the full address for its code, and leaves with the field set', () => {
+    expect(poster(buildCards(s(launch('soon'), null)))).toBeUndefined()
+    expect(poster(buildCards(s(launch('closed'), 'https://example.org/pets/')))).toBeUndefined()
+  })
+})
+
+describe('before entries open', () => {
+  const c = { id: 'c1', name: 'Cutest Pet in Marathon County', submissions_open_at: '2026-11-14T14:00:00Z', submissions_close_at: '2026-11-21T02:00:00Z' }
+  const ics = entriesOpenIcs({ contest: c, url: 'https://example.org/pets/', now: Date.parse('2026-10-31T15:00:00Z') })
+  const unfolded = ics.replace(/\r\n /g, '')
+  it('puts the opening in the calendar, with the reminder at the open', () => {
+    expect(ics).toMatch(/DTSTART:20261114T140000Z/)
+    expect(ics).toMatch(/DTEND:20261114T143000Z/)
+    expect(ics).toMatch(/TRIGGER:PT0M/)
+    expect(unfolded).toMatch(/SUMMARY:Entries open: Cutest Pet in Marathon County/)
+    expect(unfolded).toMatch(/until Friday\\, Nov\. 20 at 8 p\.m\. https:\/\/example\.org\/pets\//)
+    for (const line of ics.split('\r\n')) expect(line.length).toBeLessThanOrEqual(75)
+  })
+  it('names the shelters the AP way', () => {
+    expect(andList([])).toBe('')
+    expect(andList(['Moments Foster Care'])).toBe('Moments Foster Care')
+    expect(andList(['A', 'B'])).toBe('A and B')
+    expect(andList(['A', 'B', 'C'])).toBe('A, B and C')
+  })
+})

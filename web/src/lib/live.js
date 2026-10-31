@@ -76,6 +76,13 @@ export function useLive(key, fetcher, interval = 20000) {
 
 // Poll one store every few seconds for a while: after a purchase, so the
 // buyer sees the webhook credit their votes without reloading.
+// Refetch every store whose key starts with `prefix` now, without waiting for
+// its interval: when a round changes status, the seeds and matchups it wrote
+// should not take five minutes to reach an open page.
+export function refreshLive(prefix) {
+  for (const s of stores.values()) if (s.key.startsWith(prefix) && s.state.updatedAt) refresh(s)
+}
+
 export function boostLive(key, durationMs = 120000) {
   const s = stores.get(key)
   if (!s) return

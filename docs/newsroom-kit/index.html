@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cutest Pet, for your newsroom</title>
+<meta name="description" content="A reader pet contest that raises money for a local newsroom and its partner shelters, built and run by Wausau Pilot & Review and ready for another town.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Wausau Pilot &amp; Review">
+<meta property="og:url" content="https://rowanflynnpilot.github.io/wpr-pet-contest/for-newsrooms/">
+<meta property="og:title" content="The cutest pet in your county, and the money it raises">
+<meta property="og:description" content="A reader pet contest that pays the local shelters and runs on a phone, built and run by Wausau Pilot &amp; Review. Ready for another town.">
+<meta property="og:image" content="https://rowanflynnpilot.github.io/wpr-pet-contest/for-newsrooms/img/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="../wpr-typewriter-badge.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Public+Sans:ital,wght@0,400..800;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* WPR's Follow the Money system: warm paper, Fraunces over Public Sans, the typewriter teal. */
+  :root {
+    --ink: #1a1a1a; --ink-2: #3a3a3a; --muted: #5f5f5f; --paper: #fff; --wash: #f7f5f0; --rule: #e3ddd0; --rule-strong: #cfc6b3;
+    --slate: #32373c; --teal: #3a867c; --teal-ink: #2b655d; --teal-deep: #1f4b45; --teal-tint: #e1edea; --sun: #f4b942; --sun-ink: #7a5500; --sun-tint: #fcefd0;
+    --serif: 'Fraunces', Georgia, 'Times New Roman', serif; --sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+    --pad-l: max(18px, env(safe-area-inset-left, 0px)); --pad-r: max(18px, env(safe-area-inset-right, 0px));
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--wash); color: var(--ink); font: 17px/1.55 var(--sans); }
+  a { color: var(--teal-ink); text-underline-offset: 0.18em; }
+  img { max-width: 100%; height: auto; display: block; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 650; line-height: 1.05; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  p { margin: 0 0 1em; text-wrap: pretty; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-left: var(--pad-l); padding-right: var(--pad-r); }
+  ::selection { background: var(--sun-tint); }
+
+  .masthead { background: var(--paper); border-top: 4px solid var(--slate); border-bottom: 1px solid var(--slate); text-align: center; padding-block: 14px 10px; }
+  .masthead a { display: inline-flex; align-items: center; gap: 14px; text-decoration: none; }
+  /* Scale with the screen: at full size the flag is 410px, wider than a phone. */
+  .masthead img.badge { width: clamp(40px, 12vw, 52px); height: auto; }
+  .masthead img.word { height: clamp(30px, 9vw, 44px); width: auto; }
+  .masthead .tag { margin-top: 8px; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); }
+
+  .hero { padding-block: 44px 36px; display: grid; gap: 28px; align-items: center; }
+  .hero h1 { font-size: clamp(40px, 7vw, 76px); font-variation-settings: 'opsz' 144; line-height: 0.95; }
+  .hero h1 em { font-style: italic; color: var(--teal-ink); font-weight: 500; }
+  .hero .dek { font-family: var(--serif); font-style: italic; font-size: clamp(19px, 2.4vw, 23px); line-height: 1.4; color: var(--ink-2); max-width: 36ch; margin: 16px 0 22px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; border-radius: 999px; font-weight: 800; text-decoration: none; font-size: 16px; border: 2px solid transparent; }
+  .btn-primary { background: var(--teal-ink); color: #fff; box-shadow: 0 6px 14px -7px rgba(31, 75, 69, 0.7); }
+  .btn-ghost { color: var(--teal-ink); border-color: var(--teal-ink); }
+  .phone { justify-self: center; width: 100%; max-width: 380px; }
+  .phone .frame { position: relative; border-radius: 34px; background: #111; padding: 12px; box-shadow: 0 30px 60px -30px rgba(31, 43, 40, 0.6); }
+  .phone iframe { display: block; width: 100%; height: 720px; border: 0; border-radius: 24px; background: #f6f2e9; }
+  .phone .note { text-align: center; font-size: 13px; color: var(--muted); margin-top: 10px; }
+  @media (min-width: 880px) { .hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 48px; padding-block: 56px 48px; } }
+
+  .band { background: var(--teal-deep); color: #fff; }
+  .band .wrap { padding-block: 40px; }
+  .band h2 { color: #fff; }
+  .facts { display: grid; gap: 14px; margin-top: 22px; }
+  @media (min-width: 720px) { .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .fact b { display: block; font-family: var(--serif); font-size: 40px; line-height: 1; color: var(--sun); font-variation-settings: 'opsz' 144; margin-bottom: 6px; }
+  .fact span { color: #cfe3de; font-size: 15px; }
+
+  section.sec { padding-block: 44px 8px; }
+  .sec h2 { font-size: clamp(30px, 4.2vw, 42px); margin-bottom: 8px; }
+  .sec .lede { color: var(--muted); max-width: 62ch; margin-bottom: 22px; }
+  .grid { display: grid; gap: 16px; }
+  @media (min-width: 720px) { .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .item h3 { font-size: 21px; margin-bottom: 6px; }
+  .item p { color: var(--ink-2); margin: 0; font-size: 15.5px; }
+  .item { padding: 18px 0 14px; border-top: 1px solid var(--rule-strong); }
+  figure { margin: 0; }
+  figure img { border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); box-shadow: 0 1px 2px rgba(31, 43, 40, 0.06), 0 4px 14px rgba(31, 43, 40, 0.06); }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .film { margin-bottom: 22px; }
+  .film video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 10px; background: var(--teal-deep); box-shadow: 0 1px 2px rgba(31, 43, 40, 0.06), 0 4px 14px rgba(31, 43, 40, 0.06); }
+  .shots { display: grid; gap: 18px; align-items: start; }
+  .shots > figure { min-width: 0; }
+  .shots img { width: 100%; height: auto; }
+  @media (min-width: 720px) { .shots { grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.7fr); } }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15.5px; }
+  th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
+  td.n { font-family: var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  /* On a phone the costs wrap rather than push the page sideways. */
+  @media (max-width: 560px) { td.n { white-space: normal; } }
+  .ladder { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+  .ladder li { list-style: none; font-family: var(--mono); font-size: 14px; background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 999px; padding: 6px 12px; }
+  .ladder { padding: 0; }
+  .fine { font-size: 13.5px; color: var(--muted); }
+  .quiet { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; }
+  .two-tone { display: grid; gap: 16px; }
+  @media (min-width: 720px) { .two-tone { grid-template-columns: 1fr 1fr; } }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid rgba(0,0,0,.08); }
+  footer { margin-top: 48px; background: var(--paper); border-top: 1px solid var(--rule); }
+  footer .wrap { padding-block: 22px 36px; font-size: 13.5px; color: var(--muted); }
+  footer b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="masthead">
+  <a href="https://wausaupilotandreview.com/" target="_blank" rel="noopener noreferrer">
+    <img class="badge" src="../wpr-typewriter-badge.png" alt="" width="52" height="52">
+    <img class="word" src="../wpr-wordmark.png" alt="Wausau Pilot &amp; Review" width="422" height="54">
+  </a>
+  <div class="tag">Where Locals Look First For News</div>
+</div>
+
+<main>
+  <section class="wrap hero">
+    <div>
+      <h1>The <em>cutest</em> pet in your county, and the money it raises</h1>
+      <p class="dek">A reader contest that runs for two and a half weeks, pays the local shelters, brings new readers and sponsors to a newsroom, and runs on a phone from a share link. Built by Wausau Pilot &amp; Review. Ready for another town.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="../demo/" target="_blank" rel="noopener">Open the live demo</a>
+        <a class="btn btn-ghost" href="mailto:rowan.flynn@wausaupilotandreview.com?subject=Cutest%20Pet%20contest%20for%20our%20newsroom">Talk to us</a>
+      </div>
+      <p class="fine" style="margin-top: 14px">The demo runs on placeholder pets and a pretend checkout. The bar at its foot switches the phase, and the newsroom: the same engine in another paper's colors and name.</p>
+    </div>
+    <div class="phone">
+      <div class="frame"><iframe src="../demo/?phase=bracket" title="The contest, live demo" loading="lazy"></iframe></div>
+      <p class="note">Tap through it. It is the real site.</p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <div class="facts">
+        <div class="fact"><b>Free</b><span>Owners enter one photo from a phone. Staff approve every entry before it shows.</span></div>
+        <div class="fact"><b>$5 to $250</b><span>Readers buy vote packs. The site never calls them donations, because they are not.</span></div>
+        <div class="fact"><b>16</b><span>One open round for the whole field, then a bracket: Sweet 16, Elite Eight, Final Four, Championship. Totals reset every round.</span></div>
+        <div class="fact"><b>50%</b><span>Of sales after refunds goes to the partner shelters, by a published split. Card fees are the newsroom's. The rest is the newsroom's.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="what">
+    <h2>What a newsroom gets</h2>
+    <p class="lede">Everything below exists and runs today. Nothing here is a mock-up.</p>
+    <div class="grid two">
+      <div class="item"><h3>The public site</h3><p>Phone-first. Every pet has a page that opens from a share link with the photo, the live count, the deadline and the Vote button in the first screen. A gallery, a bracket, results, rules, a shelters page. Embeds in a WordPress page, plus a compact widget for stories and a block for the newsletter.</p></div>
+      <div class="item"><h3>The money, done honestly</h3><p>Stripe checkout with Apple Pay and Google Pay. Votes are credited only when Stripe confirms the payment. Late payments and payments for a removed pet are refunded, never credited. A resolved round's totals never move. The payout statement computes each shelter's share to the cent.</p></div>
+      <div class="item"><h3>The staff desk</h3><p>Moderation with reasons and an audit trail, rounds opened and closed by a person, a health tab that tells staff before readers do, the email sweep, a Social desk that makes share graphics with captions, the newsletter block, the payout statement, the archive.</p></div>
+      <div class="item"><h3>The emails</h3><p>Sixteen of them: entry received, approved, not approved, six tips to owners across the contest, advancement, elimination, the champion, notes to buyers who asked when their pet plays again, and the free vote's code and reminder. Every one carries a stop link.</p></div>
+      <div class="item"><h3>Sharing that sells votes</h3><p>Each pet's share link previews its photo on Facebook; during the bracket, both pets and the deadline. Owners make story, square and flyer images with a QR code from their pet's page. Buyers get share buttons on the thank-you screen.</p></div>
+      <div class="item"><h3>Sponsors and drama</h3><p>Presenting, gallery and bracket placements with a sponsor kit. Sponsored Double Vote Hours and match hours. An upset lamp that lights when the worse seed leads. A staged champion reveal. An owner's vote goal on the page.</p></div>
+      <div class="item"><h3>The campaign kit</h3><p>A day-by-day calendar tied to each phase, an owner toolkit, email sequences, a caption bank with short video scripts, and a moderation playbook.</p></div>
+      <div class="item"><h3>Guardrails</h3><p>Published rules, data erased a year after the contest, photos stripped of location data, the public never sees an owner, a free daily vote that stays off until counsel says yes. An accessibility audit at phone size on every page.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="look">
+    <h2>What it looks like</h2>
+    <p class="lede">Placeholder pets, the real design. Each pet's page takes the color of its own photo.</p>
+    <figure class="film">
+      <video controls muted playsinline preload="none" poster="img/walkthrough-poster.jpg" width="1280" height="720" aria-describedby="film-cap">
+        <source src="img/walkthrough.mp4" type="video/mp4">
+      </video>
+      <figcaption id="film-cap">The contest in 30 seconds: entering, the Open Round, checkout and the shelter's share, the bracket. Real screens with sample pets, numbers and dates. No sound.</figcaption>
+    </figure>
+    <div class="shots">
+      <figure><img src="img/home-desktop.jpg" alt="The home page on a laptop during the bracket: the live scoreboard and the money counter" width="1280" height="800"><figcaption>Home during the bracket: the closest race on the board, the money counter with the sponsor's match, every matchup below.</figcaption></figure>
+      <figure><img src="img/pet-phone.jpg" alt="A pet's page on a phone: the photo, the matchup scoreboard and the Vote button" width="390" height="1100"><figcaption>A pet's page on a phone, where a share link lands.</figcaption></figure>
+    </div>
+    <div class="shots" style="margin-top: 18px">
+      <figure><img src="img/gazette-home.jpg" alt="The same home page in another newsroom's colors and name" width="1280" height="800"><figcaption>The same page as "The Example Gazette": one config entry and one theme block.</figcaption></figure>
+      <figure><img src="img/thanks-phone.jpg" alt="The thank-you screen after a purchase on a phone" width="390" height="800"><figcaption>After a purchase: the pet's new total, what the pack sent to the shelter, one share.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="yours">
+    <h2>In your name</h2>
+    <p class="lede">The newsroom is a setting, not a rebuild. One entry names you, your region, your towns, your clock, your lockup; one theme block sets your colors and faces. Everything else follows, down to the share images and the card form.</p>
+    <div class="two-tone">
+      <div class="quiet">
+        <h3 style="font-size: 20px; margin-bottom: 8px">Wausau Pilot &amp; Review</h3>
+        <p class="fine" style="margin: 0 0 8px"><span class="swatch" style="background:#3a867c"></span>Typewriter teal &nbsp; <span class="swatch" style="background:#f4b942"></span>Sun &nbsp; <span class="swatch" style="background:#f6f2e9"></span>Cream</p>
+        <p class="fine" style="margin: 0">Fraunces over Public Sans. Marathon County, Wisconsin. Central time.</p>
+      </div>
+      <div class="quiet">
+        <h3 style="font-size: 20px; margin-bottom: 8px">The Example Gazette</h3>
+        <p class="fine" style="margin: 0 0 8px"><span class="swatch" style="background:#1d3557"></span>Navy &nbsp; <span class="swatch" style="background:#e0a81d"></span>Gold &nbsp; <span class="swatch" style="background:#f7f4ee"></span>Paper</p>
+        <p class="fine" style="margin: 0">Newsreader over Source Sans. The Example Valley, Colorado. Mountain time. (A fictional paper, for the demo.)</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="needs">
+    <h2>What it needs</h2>
+    <p class="lede">Each newsroom runs its own copy, with its own accounts, so the money and the data are only ever yours.</p>
+    <table>
+      <thead><tr><th>Account</th><th>For</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td><b>Stripe</b></td><td>Checkout, receipts, refunds. A separate account for the contest, so vote packs never mix with donations.</td><td class="n">2.9%&nbsp;+&nbsp;30¢ per card payment</td></tr>
+        <tr><td><b>Supabase</b></td><td>The database, photo storage, the edge functions. The free plan works; the Pro plan adds image resizing and never pauses.</td><td class="n">$0 or $25/mo</td></tr>
+        <tr><td><b>Resend</b></td><td>The emails. The free tier is 100 a day; a 300-entry contest needs the next plan for its month.</td><td class="n">$20 for the month</td></tr>
+        <tr><td><b>GitHub</b></td><td>Hosts the site (GitHub Pages) and runs the deploys, tests and the email sweep.</td><td class="n">$0</td></tr>
+        <tr><td><b>Your website</b></td><td>One page that embeds the contest, and the widget in stories.</td><td class="n">$0</td></tr>
+      </tbody>
+    </table>
+    <p class="fine" style="margin-top: 14px">Staff time: a moderator during entries week, then about an hour a day while voting is open. Rounds are closed by a person, on purpose. Two and a half weeks, start to champion; the calendar says do not stretch it.</p>
+    <h3 style="font-size: 20px; margin: 22px 0 6px">The recommended pack ladder</h3>
+    <ul class="ladder"><li>5 votes · $5</li><li>25 · $20</li><li>75 · $50</li><li>200 · $100</li><li>600 · $250</li></ul>
+    <p class="fine" style="margin-top: 10px">Per-vote price falls from $1 to about 42¢, which is what makes the big packs worth it to the buyers who decide close matchups. Yours to change.</p>
+  </section>
+
+  <section class="wrap sec" id="numbers">
+    <h2>Built to be checked</h2>
+    <div class="grid three">
+      <div class="item"><h3>Tested</h3><p>Twelve database test suites, 321 assertions. Forty-three tests on the email templates and the functions. Two hundred and twenty-six on the front end. A browser walk of the whole contest, entry to payout, on every push.</p></div>
+      <div class="item"><h3>Accessible</h3><p>WCAG 2.2 AA, checked by an automated audit of every page in every phase at phone size: 42 of 42, on every push.</p></div>
+      <div class="item"><h3>Dark mode</h3><p>Follows the reader&rsquo;s phone. The embed and the article widget stay light inside your page; the share images stay the brand&rsquo;s look.</p></div>
+      <div class="item"><h3>Fast</h3><p id="lighthouse">Lighthouse on the live demo, Oct. 25, 2026: accessibility, best practices and SEO <span class="n" data-lh>100</span>; performance <span class="n">100</span> on desktop and <span class="n">96</span> on a simulated phone over slow 4G, the median of four runs.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="first">
+    <h2>First run: November 2026</h2>
+    <p class="lede">Wausau Pilot &amp; Review runs it first, Nov. 14 to Dec. 5, 2026, for Moments Foster Care. The numbers from that run, and what we learned, go here. Until then, nothing on this page claims a result.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="mailto:rowan.flynn@wausaupilotandreview.com?subject=Cutest%20Pet%20contest%20for%20our%20newsroom">Talk to us</a>
+      <a class="btn btn-ghost" href="https://github.com/RowanFlynnPilot/wpr-pet-contest" target="_blank" rel="noopener">Read the code</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <b>Wausau Pilot &amp; Review</b> · 715-301-5539 · a nonprofit newsroom serving Marathon County, Wisconsin. The engine is MIT-licensed; running it well is the part we sell.
+  </div>
+</footer>
+</body>
+</html>

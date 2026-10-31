@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+# The demo build's settings hold no secret (web/scripts/build-demo.mjs).
+!web/.env.demo
 
 # Supabase CLI local state
 supabase/.temp/
@@ -19,3 +21,15 @@ blob-report/
 # OS
 .DS_Store
 Thumbs.db
+
+# Impeccable design-session artifacts: screenshots, mockups and decision-page
+# state. The surface briefs and critiques are kept.
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/questions/
+.impeccable/live/
+.impeccable/config.local.json
+
+# Screenshot decks for the newsroom (npm --prefix web run snapshots)
+docs/preview/
+web/dist-demo/

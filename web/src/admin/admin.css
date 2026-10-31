@@ -6,7 +6,7 @@
   background: var(--paper); border-top: 4px solid var(--slate); border-bottom: 1px solid var(--rule);
 }
 .desk-title { display: flex; flex-direction: column; line-height: 1.2; }
-.desk-title strong { font-family: var(--display); font-size: 20px; }
+.desk-title strong, .desk-title .desk-name { margin: 0; font-family: var(--display); font-size: 20px; font-weight: 700; line-height: 1.2; }
 .desk-spacer { flex: 1; }
 .desk-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 0 var(--gutter); background: var(--paper); border-bottom: 1px solid var(--rule); }
 .desk-tabs a { flex: none; padding: 12px 12px 10px; font-weight: 700; font-size: 14.5px; color: var(--ink-2); text-decoration: none; border-bottom: 3px solid transparent; }
@@ -29,17 +29,18 @@ kbd {
 .btn kbd { background: rgba(255, 255, 255, 0.85); }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
-.stat { background: var(--paper); border: 1px solid var(--rule); border-top: 3px solid var(--rule-strong); border-radius: 8px; padding: 10px 14px; }
+.stat { min-width: 0; background: var(--paper); border: 1px solid var(--rule); border-top: 3px solid var(--rule-strong); border-radius: 8px; padding: 10px 14px; }
 .stat.good { border-top-color: var(--teal); }
 .stat.warn { border-top-color: var(--sun); }
 .stat.bad { border-top-color: var(--red); background: var(--red-tint); }
 .stat-label { font-size: 11.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-.stat-value { font-family: var(--mono); font-weight: 700; font-size: 26px; line-height: 1.2; text-transform: capitalize; }
+.stat-value { font-family: var(--mono); font-weight: 700; font-size: clamp(18px, 4.8vw, 26px); line-height: 1.2; text-transform: capitalize; overflow-wrap: break-word; }
 .stat-sub { font-size: 12.5px; color: var(--muted); }
 .good { color: var(--teal-ink); }
 .bad { color: var(--red); }
 
-.table-wrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; }
+.table-wrap { position: relative; overflow-x: auto; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; }
+.table-wrap:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
 .card .table-wrap { border: 0; }
 table.data { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.data th { text-align: left; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
@@ -48,6 +49,11 @@ table.data tr:last-child td { border-bottom: 0; }
 table.data .num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 table.data input[type='text'], table.data input[type='number'] { min-height: 36px; padding: 6px 8px; font-size: 14px; }
 table.data tr.retired td { opacity: 0.6; }
+/* Editing grids keep their columns and scroll sideways in their box on a
+   phone, rather than squeezing a label field to three letters. */
+table.data.wide { min-width: 680px; }
+table.data.wide code { white-space: nowrap; word-break: normal; }
+table.data.wide input[type='text'] { min-width: 130px; }
 code { font-family: var(--mono); font-size: 12.5px; background: var(--cream); padding: 1px 4px; border-radius: 3px; word-break: break-all; }
 
 .mod-card { display: grid; gap: 18px; background: var(--paper); border: 1px solid var(--rule); border-top: 3px solid var(--teal); border-radius: 10px; padding: 14px; }
@@ -72,6 +78,29 @@ code { font-family: var(--mono); font-size: 12.5px; background: var(--cream); pa
 .confirm h3 { font-size: 20px; margin-bottom: 8px; }
 .confirm-body p { font-size: 14.5px; }
 
+/* A log read on a phone: each row a short block, labels beside values,
+   instead of five squeezed columns (Table's "stack"). */
+@media (max-width: 640px) {
+  table.data.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  table.data.stack tr { display: block; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+  table.data.stack tr:last-child { border-bottom: 0; }
+  table.data.stack td { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; padding: 2px 0; border: 0; }
+  table.data.stack td::before { content: attr(data-label); font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+  table.data.stack td.empty { display: none; }
+  table.data.stack code { word-break: normal; overflow-wrap: anywhere; }
+}
+.status-pending { color: var(--muted); }
+
+/* Moderating a queue from a phone: the decision stays in reach under the
+   thumb as the card scrolls, and the keyboard hints step aside. */
+@media (max-width: 859px) {
+  .mod-decide { position: sticky; bottom: 0; z-index: 2; margin: 16px -14px -14px !important; padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--paper); border-top: 1px solid var(--rule); border-radius: 0 0 10px 10px; }
+  .mod-decide .btn { flex: 1 1 0; }
+}
+@media (pointer: coarse) {
+  .kbd-hints, .mod-card kbd { display: none; }
+}
+
 .add-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .add-row input { width: auto; flex: 1 1 110px; min-height: 38px; }
 .window-item { border-top: 1px solid var(--rule); padding-top: 10px; }
@@ -80,3 +109,24 @@ code { font-family: var(--mono); font-size: 12.5px; background: var(--cream); pa
 .window-form label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
 .window-form .label { font-weight: 700; }
 .window-form input, .window-form select { min-height: 38px; font-size: 14px; }
+/* Under 16px, iOS zooms the page into a field and never zooms back. Staff
+   moderate from phones too. */
+@media (pointer: coarse) {
+  table.data input[type='text'], table.data input[type='number'], .window-form input, .window-form select { font-size: 16px; }
+}
+
+/* Payout statement: a real document when printed, nothing else on the page. */
+.statement { width: 100%; max-width: 560px; border-collapse: collapse; margin: 12px 0; }
+.statement th, .statement td { padding: 6px 0; border-bottom: 1px solid var(--rule, #e3ddd0); text-align: left; font-weight: 400; }
+.statement td { text-align: right; }
+.statement tr.total th, .statement tr.total td { font-weight: 700; border-top: 2px solid currentColor; }
+.signatures { display: none; }
+
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; box-shadow: none; padding: 0; }
+  .no-print { display: none !important; }
+  .signatures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 64px; }
+  .signatures span { border-top: 1px solid #000; padding-top: 6px; font-size: 12px; }
+}

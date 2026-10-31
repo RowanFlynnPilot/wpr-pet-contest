@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet Contest Sponsorships — Wausau Pilot &amp; Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=JetBrains+Mono:wght@500;700&family=Public+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* One letter page. Same design system as the pitch page (DESIGN.md). */
+:root {
+  --ink: #1a1a1a; --ink-2: #3a3a3a; --muted: #5f5f5f;
+  --paper: #ffffff; --cream: #f6f2e9; --rule: #e3ddd0; --rule-strong: #cfc6b3; --slate: #32373c;
+  --teal: #3a867c; --teal-ink: #2b655d; --teal-deep: #1f4b45; --teal-wash: #eff5f3;
+  --sun: #f4b942; --sun-ink: #7a5500; --sun-tint: #fcefd0;
+  --board-label: #cfe3de; --board-text: #e3efec;
+  --display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { background: #d9d3c5; }
+body { margin: 0; color: var(--ink); font: 400 13px/1.45 var(--sans); }
+.sheet { width: 8.5in; min-height: 11in; margin: 24px auto; background: var(--paper); padding: 0.36in 0.5in 0.3in; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); }
+h1, h2, h3 { font-family: var(--display); font-weight: 650; margin: 0; }
+.mono { font-family: var(--mono); font-feature-settings: 'tnum'; }
+.ph { background: var(--sun-tint); color: var(--sun-ink); font-weight: 700; padding: 0 3px; border-radius: 3px; white-space: nowrap; }
+.tag-proposed { display: inline-block; vertical-align: 0.15em; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--sun-tint); color: var(--sun-ink); border: 1px solid #ecd48f; font: 800 9px/1.4 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; }
+
+.flag { display: flex; align-items: center; justify-content: space-between; border-top: 4px solid var(--slate); padding-top: 10px; }
+.flag a { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.flag .badge { width: 42px; height: 42px; }
+.flag .wordmark { height: 24px; width: auto; }
+.flag .tagline { font-size: 8.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-2); text-align: right; }
+.rule { border-top: 1px solid var(--rule-strong); margin: 10px 0 0; }
+
+.banner { margin: 10px 0 0; background: var(--teal-deep); color: #fff; border-radius: 12px; padding: 14px 20px; }
+.banner h1 { color: #fff; font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variation-settings: 'opsz' 144; }
+.banner p { margin: 6px 0 0; color: var(--board-text); font-size: 13px; }
+.banner .sub { margin: 6px 0 0; color: var(--board-label); font-weight: 700; font-size: 12px; }
+
+.note { margin: 8px 0 0; background: var(--sun-tint); border-left: 0; border-top: 3px solid var(--sun); border-radius: 8px; padding: 6px 10px; font-size: 11px; }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 1.95in; gap: 18px; margin: 12px 0 0; align-items: start; }
+h2 { font-size: 18px; line-height: 1.15; }
+.h2-sub { margin: 2px 0 6px; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.list { margin: 0; padding: 0; list-style: none; }
+.list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 12px; padding: 4px 0; border-bottom: 1px solid var(--rule); }
+.list li:last-child { border-bottom: 0; }
+.list b { font-weight: 800; font-size: 13px; }
+.list span.d { grid-column: 1; font-size: 11.5px; color: var(--ink-2); line-height: 1.35; }
+.list .p { grid-column: 2; grid-row: 1 / span 2; font-family: var(--mono); font-feature-settings: 'tnum'; font-weight: 700; font-size: 13px; text-align: right; white-space: nowrap; }
+.packs { margin: 8px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pack { border: 1px solid var(--rule); border-top: 3px solid var(--teal); border-radius: 8px; padding: 8px 10px; background: var(--paper); }
+.pack.lead { border-top-color: var(--sun); }
+.pack h3 { font-size: 14px; }
+.pack .pp { font-family: var(--display); font-size: 22px; font-weight: 650; line-height: 1.1; font-variation-settings: 'opsz' 144; margin: 2px 0 2px; }
+.pack p { margin: 0; font-size: 10.5px; color: var(--ink-2); line-height: 1.35; }
+
+figure { margin: 0; }
+figure img { width: 100%; height: auto; display: block; border: 1px solid var(--rule-strong); border-radius: 8px; }
+figcaption { margin: 5px 0 0; font-size: 10px; color: var(--muted); line-height: 1.35; }
+
+.audience { margin: 10px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--teal-deep); border-radius: 10px; overflow: hidden; }
+.audience > div { padding: 7px 12px; border-left: 1px solid rgba(255, 255, 255, 0.12); }
+.audience > div:first-child { border-left: 0; }
+.audience .n { font-family: var(--mono); font-weight: 700; font-size: 20px; color: var(--sun); line-height: 1.1; }
+.audience .l { color: var(--board-text); font-size: 10.5px; font-weight: 600; }
+.source { margin: 4px 0 0; font-size: 9.5px; color: var(--muted); }
+
+.fine { margin: 8px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; font-size: 10.5px; color: var(--ink-2); }
+.fine b { color: var(--ink); }
+
+.contact { margin: 10px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; border-top: 4px solid var(--slate); padding-top: 10px; }
+.contact .ask { font-family: var(--display); font-size: 17px; font-weight: 600; line-height: 1.25; }
+.contact .who { text-align: right; font-size: 12px; line-height: 1.5; }
+.contact .who .name { font-family: var(--display); font-weight: 650; font-size: 16px; }
+.foot { margin: 8px 0 0; font-size: 9px; color: var(--muted); }
+
+@media print {
+  @page { size: letter; margin: 0; }
+  html { background: #fff; }
+  .sheet { margin: 0; box-shadow: none; width: 8.5in; height: 11in; overflow: hidden; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media screen and (max-width: 860px) {
+  .sheet { width: auto; min-height: 0; margin: 0; padding: 18px 16px; box-shadow: none; }
+  .cols, .fine, .contact { grid-template-columns: minmax(0, 1fr); }
+  .packs { grid-template-columns: minmax(0, 1fr); }
+  .audience { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .audience > div:nth-child(3) { border-left: 0; }
+  .contact .who { text-align: left; }
+  .flag { flex-wrap: wrap; gap: 6px; }
+  .flag .tagline { text-align: left; }
+  figure { max-width: 300px; }
+}
+</style>
+</head>
+<body>
+<!--
+  LEAVE-BEHIND SOURCE. Edit, then run `python docs/sponsor-kit/src/build.py`.
+  Print or save as PDF at Letter size, no margins: it is laid out to fill one page.
+  Every [bracketed] value is a placeholder: see docs/sponsor-kit/README.md.
+-->
+<div class="sheet">
+  <div class="flag">
+    <a href="https://wausaupilotandreview.com/">
+      <img class="badge" src="{{asset:wpr-typewriter-badge.png}}" alt="" width="42" height="42">
+      <img class="wordmark" src="{{asset:wpr-wordmark.png}}" alt="Wausau Pilot &amp; Review" height="24">
+    </a>
+    <div class="tagline">Where Locals Look First For News</div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="banner">
+    <h1>Sponsor Cutest Pet in Marathon County</h1>
+    <p class="sub">Nov. 14 to Dec. 5, 2026 · Wausau Pilot &amp; Review&rsquo;s reader pet contest</p>
+    <p>Entering is free. Readers buy vote packs (<span class="mono">$5</span> to <span class="mono">$250</span>) to back their favorites, and 50% of sales, after refunds, goes to Moments Foster Care, a nonprofit. One open round for the whole field, then a 16-pet bracket. Six sponsor placements, one business each.</p>
+  </div>
+
+  <!-- DELETE THIS NOTICE before handing it over, once prices are set. -->
+  <div class="note"><b>PROPOSED, for Chris Weber to set.</b> Prices are suggestions, not commitments. Fill in each highlighted placeholder first.</div>
+
+  <div class="cols">
+    <div>
+      <h2>Five placements <span class="tag-proposed">Proposed prices</span></h2>
+      <p class="h2-sub">One business per placement</p>
+      <ul class="list">
+        <li><b>Presenting sponsor</b><span class="d">&ldquo;Presented by&rdquo; you in the contest bar on every page, your sponsor card on the home page, and the credit in the article widget and the daily-newsletter contest block.</span><span class="p">$1,500</span></li>
+        <li><b>Gallery sponsor</b><span class="d">Your card in the gallery, right after the first row of pet photos.</span><span class="p">$700</span></li>
+        <li><b>Bracket sponsor</b><span class="d">Your sponsor card on the bracket page, from the projected bracket to the Championship.</span><span class="p">$500</span></li>
+        <li><b>Double Vote Hour</b><span class="d">One hour when every vote pack counts twice, &ldquo;presented by&rdquo; you, in a gold bar on every contest page and at checkout. <span class="ph">[number of Double Vote Hours]</span> available.</span><span class="p">$150</span></li>
+        <li><b>Match Hour</b><span class="d">For an hour you match vote pack sales for the shelter, up to your cap, named in a bar on every page and on the shelter tally. Plus the match.</span><span class="p">$150</span></li>
+      </ul>
+      <div class="packs">
+        <div class="pack lead"><h3>Best in Show</h3><div class="pp">$1,600</div><p>Presenting sponsor (with the live finale) + two Double Vote Hours</p></div>
+        <div class="pack"><h3>Blue Ribbon</h3><div class="pp">$1,200</div><p>Gallery + Bracket + one Double Vote Hour</p></div>
+      </div>
+    </div>
+    <figure>
+      <img src="{{img:gallery-mobile}}" alt="Mock-up: the gallery sponsor card reading Your Business Here, right after the first row of pet photos, on a phone.">
+      <figcaption>Mock-up, sample data: the gallery placement on a phone. Every placement is shown in the full pitch.</figcaption>
+    </figure>
+  </div>
+
+  <div class="audience">
+    <div><div class="n">1.4M+</div><div class="l">monthly page views</div></div>
+    <div><div class="n">354K+</div><div class="l">unique monthly visitors</div></div>
+    <div><div class="n">20K+</div><div class="l">email subscribers</div></div>
+    <div><div class="n">36K+</div><div class="l">social likes and follows</div></div>
+  </div>
+  <p class="source">Wausau Pilot &amp; Review 2026&ndash;2027 media kit (updated Oct. 1, 2026). Figures for WPR as a whole, not for the contest, which is new.</p>
+
+  <div class="fine">
+    <div><b>Where the money goes.</b> Vote packs are not donations and are not tax-deductible. Sponsorship fees support WPR&rsquo;s nonprofit newsroom and don&rsquo;t change the shelter&rsquo;s share.</div>
+    <div><b>Independence.</b> A sponsorship buys placement, not news coverage. Results come only from the vote count. WPR may decline any sponsorship.</div>
+  </div>
+
+  <div class="contact">
+    <div class="ask">Reply by <span class="ph">[commitment deadline]</span> to hold your placement.</div>
+    <div class="who"><div class="name">Chris Weber</div>weber.chris@wausaupilotandreview.com<br>Office 715-301-5539</div>
+  </div>
+  <p class="foot">Wausau Pilot &amp; Review · 715-301-5539 · An editorially independent nonprofit newsroom covering Marathon County.</p>
+</div>
+</body>
+</html>

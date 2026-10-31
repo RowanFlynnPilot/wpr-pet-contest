@@ -1,0 +1,29 @@
+name: tally load test
+
+# The live tally cache (0025) under concurrent load: paid packs with their
+# webhooks, refunds, free votes and page polls at once, far above a real
+# closing night. Passes only with no pgbench error (a deadlock included) and
+# a cache that equals the vote tables afterward. It runs on the CI's local
+# stack, so it needs no secrets; supabase/loadtest/README.md says how to
+# point the same scripts at a staging copy.
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/loadtest/**'
+      - '.github/workflows/tally-load.yml'
+  workflow_dispatch:
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - run: supabase start -x studio,logflare,vector,realtime,imgproxy,postgres-meta,supavisor,mailpit
+      - name: pgbench and psql
+        run: command -v pgbench && command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - run: bash supabase/loadtest/run.sh

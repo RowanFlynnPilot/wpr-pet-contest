@@ -1,8 +1,9 @@
+import { packShareLine } from '../lib/format.js'
 import { useEffect, useRef, useState } from 'react'
 import { PUBLIC_URL } from '../lib/env.js'
-import { petPublicUrl, shareText } from '../lib/share.js'
+import { ownerLink, petPublicUrl, shareText } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
-import { ownerCopy } from '../lib/graphics/content.js'
+import { keepsakeCopy, ownerCopy } from '../lib/graphics/content.js'
 import { displayUrl, fileName } from '../lib/graphics/layout.js'
 import { OWNER_FORMATS, renderOwner } from '../lib/graphics/owner.js'
 import { toPng } from '../lib/graphics/draw.js'
@@ -14,9 +15,13 @@ import './graphics.css'
 // card in the browser, in the sizes Instagram, Facebook and a printer want.
 // It opens inline under the share buttons (no overlay), which also keeps it
 // where the reader is inside the WordPress iframe.
-export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, now }) {
-  const [formatId, setFormatId] = useState('story')
-  const format = OWNER_FORMATS.find((f) => f.id === formatId)
+export default function ShareImagePanel({ entry, onClose, ready, contest, phase, round, nextRound, rounds, bracketSize, state, votes, club = null, owner = false, now, total = 0, raised = null, shelterNames = [], entries = 0, endedAt = null, lastChance = null }) {
+  // The keepsake certificate, once the pet's run is over: at the finish, or
+  // when it missed the bracket or lost a matchup.
+  const runOver = phase === 'complete' || ['out', 'unseeded', 'champion'].includes(state?.status)
+  const formats = OWNER_FORMATS.filter((f) => f.id !== 'keepsake' || runOver)
+  const [formatId, setFormatId] = useState(phase === 'complete' ? 'keepsake' : 'story')
+  const format = formats.find((f) => f.id === formatId) || formats[0]
   const heading = useRef(null)
   useEffect(() => {
     heading.current?.focus({ preventScroll: true })
@@ -37,8 +42,9 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     // Round 1 is staged to open when entries close; whichever is next.
     opensAt: [r1?.opens_at, contest?.submissions_close_at].filter((v) => v && new Date(v).getTime() > now).sort((a, b) => new Date(a) - new Date(b))[0] || null,
     now,
+    lastChance,
   })
-  const url = petPublicUrl(PUBLIC_URL, entry.id)
+  const url = owner ? ownerLink(petPublicUrl(PUBLIC_URL, entry.id)) : petPublicUrl(PUBLIC_URL, entry.id)
   const data = {
     entry: { id: entry.id, pet_name: entry.pet_name, town: entry.town, photo_path: entry.photo_path, seed: entry.seed },
     copy,
@@ -46,6 +52,12 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     where: displayUrl(PUBLIC_URL),
     shareUrl: url,
     splitPct: contest?.beneficiary_split_pct,
+    shelterNames,
+    // The highest milestone club, drawn as a badge (lib/graphics/owner.js).
+    club,
+    keepsake: runOver
+      ? keepsakeCopy({ name: entry.pet_name, year: contest?.year, contestName: contest?.name, state, total, club, raised, shelters: shelterNames, entries, endedAt })
+      : null,
   }
   // Redraw only when what the image says changes, not on every clock tick.
   const key = ready ? JSON.stringify([formatId, data]) : null
@@ -73,7 +85,12 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
         if (!alive || !frame.current) return null
         canvas.className = 'gfx-canvas'
         canvas.setAttribute('role', 'img')
-        canvas.setAttribute('aria-label', `Preview: ${d.copy.headline}. ${d.entry.pet_name}${d.entry.town ? `, ${d.entry.town}` : ''}.`)
+        canvas.setAttribute(
+          'aria-label',
+          format.id === 'keepsake' && d.keepsake
+            ? `Preview: ${d.keepsake.title} for ${d.entry.pet_name}, who ${d.keepsake.achievement}`
+            : `Preview: ${d.copy.headline}. ${d.entry.pet_name}${d.entry.town ? `, ${d.entry.town}` : ''}.`,
+        )
         frame.current.replaceChildren(canvas)
         // The full-size PNG, ready before anyone taps Share: browsers open
         // the share sheet only straight from a tap.
@@ -108,7 +125,7 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     if (!current?.file) return
     setError(null)
     try {
-      const shared = await shareFile(current.file, { title: `Vote for ${entry.pet_name}`, text: `${shareText(entry.pet_name, contest?.name)} ${url}` })
+      const shared = await shareFile(current.file, { title: `Vote for ${entry.pet_name}`, text: `${shareText(entry.pet_name, contest?.name, packShareLine(contest?.beneficiary_split_pct, shelterNames.map((name) => ({ name }))))} ${url}` })
       if (shared) track('Share Image', { format: format.id, from: 'pet', method: 'share' })
     } catch {
       setError(new Error('Sharing isn’t available here. Download the image, then post it from your photos.'))
@@ -125,14 +142,18 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
           <h2 id={`share-image-title-${entry.id}`} ref={heading} tabIndex={-1}>
             Make a share image
           </h2>
-          <p className="small muted">Post {entry.pet_name} to your story or feed, or print a flyer.</p>
+          <p className="small muted">
+            {runOver
+              ? `Post ${entry.pet_name} to your story or feed, or keep a certificate of the run.`
+              : `Post ${entry.pet_name} to your story or feed, or print a flyer.`}
+          </p>
         </div>
         <button type="button" className="gfx-close" onClick={onClose} aria-label="Close the image maker">
           <Close />
         </button>
       </div>
       <div className="chips gfx-formats" role="group" aria-label="Image size">
-        {OWNER_FORMATS.map((f) => (
+        {formats.map((f) => (
           <button key={f.id} type="button" className="chip" aria-pressed={f.id === formatId} onClick={() => setFormatId(f.id)}>
             {f.label}
           </button>

@@ -10,15 +10,13 @@
 // The Health tab (and the alert schedule) flags any refund still outstanding
 // after fifteen minutes.
 
-import Stripe from "npm:stripe@17";
 import { requireAdmin, service } from "../_shared/db.ts";
-import { requireEnv } from "../_shared/env.ts";
 import { readJson, serve } from "../_shared/http.ts";
+import { cancelStaleIntents, Stripe, stripeClient } from "../_shared/stripe.ts";
 import { optionalText, uuid } from "../_shared/validate.ts";
 
-const stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
-  httpClient: Stripe.createFetchHttpClient(),
-});
+// Restricted key: Refunds write, PaymentIntents write (to cancel unpaid checkouts).
+const stripe = stripeClient("STRIPE_KEY_DISQUALIFY");
 
 serve(async (req) => {
   const staff = await requireAdmin(req);
@@ -59,10 +57,17 @@ serve(async (req) => {
     }
   }
 
+  // Checkouts for the pet still open can never count now: close them, so no
+  // one pays into a refund.
+  const { data: stale, error: staleError } = await service.rpc("stale_pending_intents", { p_limit: 200, p_entry_id: entryId });
+  if (staleError) throw staleError;
+  const cancels = await cancelStaleIntents(stripe, service, ((stale ?? []) as { payment_intent: string }[]).map((r) => r.payment_intent));
+
   return {
     ok: failed.length === 0,
     photo_deleted: !removeError,
     refunds_requested: refunded,
     refunds_failed: failed,
+    checkouts_canceled: cancels.canceled,
   };
 });

@@ -9,12 +9,13 @@ const FOCUSABLE =
 // Accessible dialog: focus moves in on open and back to the opener on close,
 // Tab cycles inside, Escape closes, the page behind stops scrolling.
 // Embedded in WordPress it takes over the iframe instead of floating over it
-// (see .takeover in app.css for why).
-export default function Modal({ label, onClose, children, head }) {
+// (see .takeover in app.css for why). `locked` holds it open while something
+// must not be abandoned halfway, like a payment being confirmed.
+export default function Modal({ label, onClose, children, head, locked = false, className = '' }) {
   const ref = useRef(null)
   const closeRef = useRef(onClose)
   useEffect(() => {
-    closeRef.current = onClose
+    closeRef.current = locked ? null : onClose
   })
 
   useEffect(() => {
@@ -74,13 +75,13 @@ export default function Modal({ label, onClose, children, head }) {
 
   return (
     <div
-      className="modal-backdrop"
+      className={`modal-backdrop${className ? ` ${className}-backdrop` : ''}`}
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (e.target === e.currentTarget && !locked) onClose()
       }}
     >
-      <div ref={ref} className="modal" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
+      <div ref={ref} className={`modal${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
+        <button type="button" className="modal-close" onClick={onClose} aria-label="Close" disabled={locked}>
           <Close />
         </button>
         {head}

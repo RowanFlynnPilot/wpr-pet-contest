@@ -92,3 +92,32 @@ describe('datetime-local round trip', () => {
     expect(toLocalInput(null)).toBe('')
   })
 })
+
+import { cleanName, slim, thumb } from '../scripts/adoptables.mjs'
+
+describe('adoptables', () => {
+  it('drops the shelter notes from a name', () => {
+    expect(cleanName('Argus *Barn Cat*')).toBe('Argus')
+    expect(cleanName('Rowdy (fka Buddy)')).toBe('Rowdy')
+    expect(cleanName('Jingle Belle *Bonded Pair*')).toBe('Jingle Belle')
+  })
+  it('asks the CDN for a small square', () => {
+    expect(thumb('https://media.adoptapet.com/image/upload/c_auto,g_auto,w_400,ar_4:3,dpr_2/f_auto,q_auto/1314729895')).toBe(
+      'https://media.adoptapet.com/image/upload/c_auto,g_auto,w_120,ar_1:1,dpr_2/f_auto,q_auto/1314729895',
+    )
+  })
+  it('keeps pets with real photos, counts every pet', () => {
+    const out = slim({
+      lastUpdated: '2026-10-24T16:25:21Z',
+      shelters: {
+        marathon: [
+          { name: 'Argus *Barn Cat*', species: 'Cat', breed: 'Domestic Shorthair', age: 'Adult', photo: 'https://media.adoptapet.com/image/upload/a/f/1' },
+          { name: 'Breckie', species: 'Dog', photo: 'https://www.wausaubusinessdirectory.com/images/x' },
+        ],
+        lincoln: { 0: { name: 'Browse Adoptable Dogs', placeholder: true } },
+      },
+    })
+    expect(out.total).toBe(2)
+    expect(out.pets).toEqual([{ name: 'Argus', species: 'Cat', breed: 'Domestic Shorthair', age: 'Adult', photo: 'https://media.adoptapet.com/image/upload/c_auto,g_auto,w_120,ar_1:1,dpr_2/f/1' }])
+  })
+})

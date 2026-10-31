@@ -26,6 +26,8 @@ export async function sendEmail(msg: {
   // Resend drops a repeat of the same key within 24h. Two overlapping sweeps
   // therefore send once even before the notifications row lands.
   idempotencyKey: string;
+  // List-Unsubscribe and friends, for the free-vote reminders.
+  headers?: Record<string, string>;
 }): Promise<SendResult> {
   if (!KEY) return { ok: false, permanent: false, error: "email is not configured" };
 
@@ -45,6 +47,7 @@ export async function sendEmail(msg: {
         subject: msg.subject,
         html: msg.html,
         text: msg.text,
+        ...(msg.headers ? { headers: msg.headers } : {}),
       }),
     });
   } catch (err) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { petPublicUrl, petSharePageUrl, shareLinks, shareText } from '../src/lib/share.js'
+import { entryShareLine, matchupSharePageUrl, petPublicUrl, petSharePageUrl, shareLinks, shareText } from '../src/lib/share.js'
 import { buildPhotoUrl } from '../src/lib/photos.js'
 
 const ID = '45d86334-7320-4238-bfd0-9bae59f0e115'
@@ -14,6 +14,7 @@ describe('share URLs', () => {
   it('builds the per-pet share page under the app base', () => {
     expect(petSharePageUrl('https://rowanflynnpilot.github.io/wpr-pet-contest/', ID)).toBe(`https://rowanflynnpilot.github.io/wpr-pet-contest/p/${ID}/`)
     expect(petSharePageUrl('https://rowanflynnpilot.github.io/wpr-pet-contest', ID)).toBe(`https://rowanflynnpilot.github.io/wpr-pet-contest/p/${ID}/`)
+    expect(matchupSharePageUrl('https://rowanflynnpilot.github.io/wpr-pet-contest/#/x', ID)).toBe(`https://rowanflynnpilot.github.io/wpr-pet-contest/m/${ID}/`)
   })
   it('gives crawlers the share page and people the public link', () => {
     const url = petPublicUrl('https://w.com/pets/', ID)
@@ -51,5 +52,18 @@ describe('photo URLs', () => {
   it('handles empty and absolute paths', () => {
     expect(buildPhotoUrl(base, null)).toBeNull()
     expect(buildPhotoUrl(base, 'https://cdn.example/x.png', { transforms: true, width: 5 })).toBe('https://cdn.example/x.png')
+  })
+})
+
+describe('entryShareLine', () => {
+  it('names the pet, the contest, the opening day and the front door', () => {
+    const line = entryShareLine({ petName: 'Biscuit', contestName: 'Cutest Pet in Marathon County', opensAt: '2026-11-21T14:00:00Z', url: 'https://wausaupilotandreview.com/pets/' })
+    expect(line).toContain('Biscuit is entered in Cutest Pet in Marathon County!')
+    expect(line).toContain('Voting opens')
+    expect(line).toContain('Nov. 21')
+    expect(line.endsWith('https://wausaupilotandreview.com/pets/')).toBe(true)
+  })
+  it('still reads when the opening day is not known', () => {
+    expect(entryShareLine({ petName: 'Biscuit', contestName: 'Cutest Pet', opensAt: null, url: '' })).toBe("Biscuit is entered in Cutest Pet! I'll post the link when voting opens.")
   })
 })

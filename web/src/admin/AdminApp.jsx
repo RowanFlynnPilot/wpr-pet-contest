@@ -7,22 +7,28 @@ import { DeskContext, ErrorNote } from './shared.jsx'
 import Moderation from './Moderation.jsx'
 import Rounds from './Rounds.jsx'
 import Health from './Health.jsx'
+import FreeVotes from './FreeVotes.jsx'
 import Money from './Money.jsx'
 import Packs from './Packs.jsx'
 import Email from './Email.jsx'
 import Newsletter from './Newsletter.jsx'
 import Social from './Social.jsx'
+import Setup, { NewContestForm } from './Setup.jsx'
+import Wrapup from './Wrapup.jsx'
 import './admin.css'
 
 const TABS = [
   ['moderation', 'Moderation', Moderation],
   ['rounds', 'Rounds', Rounds],
   ['health', 'Health', Health],
+  ['free', 'Free votes', FreeVotes],
   ['money', 'Money', Money],
   ['packs', 'Packs & bonuses', Packs],
   ['email', 'Email', Email],
   ['newsletter', 'Newsletter', Newsletter],
   ['social', 'Social', Social],
+  ['setup', 'Setup', Setup],
+  ['wrapup', 'Wrap-up', Wrapup],
 ]
 
 // Staff see drafts too. Prefer the contest that is live, then a draft being
@@ -88,7 +94,7 @@ function SignIn({ notice }) {
 }
 
 function useTab() {
-  const read = () => parseHash(window.location.hash).sub || 'moderation'
+  const read = () => parseHash(window.location.hash).sub || null
   const [tab, setTab] = useState(read)
   useEffect(() => {
     const on = () => setTab(read())
@@ -135,8 +141,13 @@ function Desk({ session, onSessionLost }) {
   }, [])
 
   const contest = contests.find((c) => c.id === contestId) || null
-  const ctx = useMemo(() => ({ contest, reloadContest: loadContests, say, onSessionLost }), [contest, loadContests, say, onSessionLost])
-  const Panel = (TABS.find(([key]) => key === tab) || TABS[0])[2]
+  const ctx = useMemo(
+    () => ({ contest, reloadContest: loadContests, selectContest: setContestId, say, onSessionLost }),
+    [contest, loadContests, say, onSessionLost],
+  )
+  // A draft has nothing to moderate yet; it opens on its setup.
+  const current = tab || (contest?.status === 'draft' ? 'setup' : 'moderation')
+  const Panel = (TABS.find(([key]) => key === current) || TABS[0])[2]
   const stripeUrl = STRIPE_PUBLISHABLE_KEY.startsWith('pk_test') ? `${STRIPE_DASHBOARD}test/payments` : `${STRIPE_DASHBOARD}payments`
 
   if (isAdmin === false) {
@@ -162,7 +173,7 @@ function Desk({ session, onSessionLost }) {
             <span className="kicker" style={{ margin: 0 }}>
               Wausau Pilot &amp; Review
             </span>
-            <strong>Pet contest desk</strong>
+            <h1 className="desk-name">Pet contest desk</h1>
           </div>
           {contests.length > 1 ? (
             <select aria-label="Contest" value={contestId || ''} onChange={(e) => setContestId(e.target.value)} style={{ width: 'auto' }}>
@@ -192,14 +203,25 @@ function Desk({ session, onSessionLost }) {
         </header>
         <nav className="desk-tabs" aria-label="Desk sections">
           {TABS.map(([key, label]) => (
-            <a key={key} href={`#/admin/${key}`} aria-current={tab === key ? 'page' : undefined}>
+            <a key={key} href={`#/admin/${key}`} aria-current={current === key ? 'page' : undefined}>
               {label}
             </a>
           ))}
         </nav>
         <main className="desk-main">
           <ErrorNote error={error} />
-          {isAdmin === null ? <p className="muted">Checking your access…</p> : !contest ? <p className="muted">No contest found.</p> : <Panel key={contest.id} />}
+          {isAdmin === null ? (
+            <p className="muted">Checking your access…</p>
+          ) : !contest ? (
+            <NewContestForm
+              onCreated={async (id) => {
+                await loadContests()
+                setContestId(id)
+              }}
+            />
+          ) : (
+            <Panel key={contest.id} />
+          )}
         </main>
         {toast && (
           <div className="toast" role="status">
