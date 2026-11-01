@@ -740,7 +740,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .vote-block { display: grid; gap: 8px; }
 .vote-block .btn-lg { margin: 0; }
 
-/* Pinned Vote for phones, outside the iframe only (see StickyVote). */
+/* Pinned Vote for phones; not in a frame grown to the page (see StickyVote). */
 .sticky-vote { display: none; }
 @media (max-width: 899px) {
   .sticky-vote {
@@ -749,7 +749,8 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
     box-shadow: 0 -10px 24px -14px rgba(0, 0, 0, 0.35); transform: translateY(110%); transition: transform 280ms var(--ease);
   }
   .sticky-vote.show { transform: none; }
-  body:has(.sticky-vote.show) .footer { padding-bottom: 96px; }
+  html.is-embedded .sticky-vote { display: none; }
+  html:not(.is-embedded) body:has(.sticky-vote.show) .footer { padding-bottom: 96px; }
 }
 
 .share { margin-top: 22px; }

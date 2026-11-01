@@ -220,6 +220,10 @@ test("parseIframes and embedScript read a WordPress page", () => {
   assert.equal(frames[1].src, "https://www.youtube.com/embed/x");
   assert.deepEqual(embedScript(html), { forwardsHash: true, listensForHeight: true });
   assert.deepEqual(embedScript("<p>nothing</p>"), { forwardsHash: false, listensForHeight: false });
+  const site = `<iframe src="${PAGES}" allow="payment"></iframe><script src="${PAGES}embed.js" defer></script>`;
+  assert.deepEqual(embedScript(site, PAGES), { forwardsHash: true, listensForHeight: true });
+  assert.deepEqual(embedScript(site), { forwardsHash: false, listensForHeight: false });
+  assert.deepEqual(embedScript(`<script src="https://rowanflynnpilot.github.io/wpr-buck-board/embed.js"></script>`, PAGES), { forwardsHash: false, listensForHeight: false });
 });
 
 test("pointsAt matches the Pages site and nothing else", () => {

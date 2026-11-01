@@ -416,7 +416,7 @@ async function collectWeb(f) {
   else if (wp.error) w.wordpress = { error: `${wp.error} (${wpUrl})` };
   else {
     const challenged = wp.headers.get("cf-mitigated") === "challenge" || ([403, 429, 503].includes(wp.status) && /captcha|challenge|cloudflare|access denied/i.test(wp.text.slice(0, 4000)));
-    w.wordpress = { url: wpUrl, status: wp.status, challenged, iframes: parseIframes(wp.text), script: embedScript(wp.text) };
+    w.wordpress = { url: wpUrl, status: wp.status, challenged, iframes: parseIframes(wp.text), script: embedScript(wp.text, f.pagesUrl) };
   }
 }
 

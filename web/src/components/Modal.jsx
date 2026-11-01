@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { EMBEDDED } from '../lib/env.js'
-import { postHeight, postNav } from '../lib/embed.js'
+import { hostSized, postHeight, postNav } from '../lib/embed.js'
 import { Close } from './Icons.jsx'
 
 const FOCUSABLE =
@@ -8,8 +7,9 @@ const FOCUSABLE =
 
 // Accessible dialog: focus moves in on open and back to the opener on close,
 // Tab cycles inside, Escape closes, the page behind stops scrolling.
-// Embedded in WordPress it takes over the iframe instead of floating over it
-// (see .takeover in app.css for why). `locked` holds it open while something
+// In a WordPress frame grown to the page it takes over the frame instead of
+// floating over it (see .takeover in app.css for why); in a fixed-height
+// frame it floats, as on its own. `locked` holds it open while something
 // must not be abandoned halfway, like a payment being confirmed.
 export default function Modal({ label, onClose, children, head, locked = false, className = '' }) {
   const ref = useRef(null)
@@ -22,7 +22,8 @@ export default function Modal({ label, onClose, children, head, locked = false, 
     const dialog = ref.current
     const opener = document.activeElement
     const openerY = opener?.getBoundingClientRect?.().top + window.scrollY
-    if (EMBEDDED) {
+    const pageTall = hostSized()
+    if (pageTall) {
       document.body.classList.add('takeover')
       window.scrollTo(0, 0)
       postNav()
@@ -58,7 +59,7 @@ export default function Modal({ label, onClose, children, head, locked = false, 
 
     return () => {
       document.removeEventListener('keydown', onKey)
-      if (EMBEDDED) {
+      if (pageTall) {
         document.body.classList.remove('takeover')
         postHeight()
         // Put the reader back where they were on the page.

@@ -132,8 +132,17 @@ supabase secrets set \
 
 ## 4. WordPress
 
-- [ ] Create the contest page and paste the snippet from `web/EMBED.md`. The
-      iframe needs `allow="payment"` or Apple Pay and Google Pay do not appear.
+- [ ] Create the contest page as `web/EMBED.md` says: one iframe in a Custom
+      HTML block, no script (WPR's firewall refuses a page save with script
+      in it, and Preview hides that), then purge it in LiteSpeed and check
+      the published page. The iframe needs `allow="payment"` or Apple Pay
+      and Google Pay do not appear.
+- [ ] Optional: an administrator adds the one-line site-wide script from
+      `web/EMBED.md`, so share links open the pet on the WordPress page.
+      Until it is on the site, leave `VITE_PUBLIC_URL` unset and set the
+      `PUBLIC_URL` secret to `https://rowanflynnpilot.github.io/wpr-pet-contest/`
+      (unset, emails link to WPR's home page): links then open the contest
+      at its own address.
 - [ ] Rules page: generated in the app at `#/rules`. Have it reviewed, then set
       `rulesApproved: true` in `web/src/config.js` to drop the draft ribbon.
 
@@ -185,8 +194,9 @@ this is done.
       `VITE_TURNSTILE_SITE_KEY`; `supabase secrets set TURNSTILE_SECRET_KEY=...`
 - [ ] `supabase secrets set FREE_VOTE_HASH_KEY=<random, 32+ characters>`. It
       keys the stored codes and connection hashes; never change it mid-contest.
-- [ ] The WordPress snippet from `web/EMBED.md`, including its line that
-      clears `fv=` tokens from the address bar.
+- [ ] The site-wide script from `web/EMBED.md`, which clears `fv=` tokens
+      from the WordPress page's address bar (without it, the emailed links
+      open the contest at its own address, where the app clears them).
 - [ ] Refresh `supabase/functions/_shared/disposable.ts` from the
       disposable-email-domains list.
 

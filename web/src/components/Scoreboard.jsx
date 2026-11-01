@@ -1,5 +1,4 @@
 import { Children, Fragment, useEffect, useState } from 'react'
-import { EMBEDDED } from '../lib/env.js'
 import { countdownParts, describeCountdown } from '../lib/format.js'
 import { useNow } from '../lib/hooks.js'
 
@@ -180,18 +179,18 @@ export function RoadStrip({ road, name }) {
 
 // A pinned Vote bar for phones, shown whenever the page's own Vote button is
 // off screen: below a short Safari viewport on arrival, or scrolled past.
-// Never inside the WordPress iframe, where `fixed` means the bottom of a
-// frame as tall as the page, far below the reader.
+// Hidden in a WordPress frame grown to the page (html.is-embedded), where
+// `fixed` means the bottom of a frame as tall as the page, far below the
+// reader; a fixed-height frame keeps it, at the bottom of the frame.
 export function StickyVote({ targetRef, children }) {
   const [show, setShow] = useState(false)
   useEffect(() => {
     const el = targetRef.current
-    if (EMBEDDED || !el || typeof IntersectionObserver === 'undefined') return undefined
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined
     const io = new IntersectionObserver(([e]) => setShow(!e.isIntersecting))
     io.observe(el)
     return () => io.disconnect()
   }, [targetRef])
-  if (EMBEDDED) return null
   return (
     <div className={`sticky-vote${show ? ' show' : ''}`} inert={!show}>
       {children}

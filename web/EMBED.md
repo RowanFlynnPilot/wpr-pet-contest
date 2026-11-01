@@ -1,65 +1,95 @@
 # Embedding the pet contest in WordPress
 
-Standard WPR iframe pattern: the app posts its height to the parent page so the
-iframe never shows an inner scrollbar, and a small script on the WordPress side
-resizes it, forwards deep links, and scrolls the app back into view when a
-reader navigates.
+The contest lives on one WordPress page, in a single iframe. The page holds
+**only the iframe, no script**: WPR's server firewall refuses to save a page
+with a script in it, and it does so quietly. The editor's Preview shows the
+unsaved draft, so the embed looks live there while the published page never
+received it. That is what happened to the Hunting Brag Board's first snippet
+on Oct. 31, 2026. WPR's other tools on the site are iframe-only for the same
+reason.
 
-## Snippet
+## Setting up the page
 
-Create a full-width page (no sidebar) on wausaupilotandreview.com, add a
-**Custom HTML** block, and paste:
+1. **Pages > Add New.** Title: Cutest Pet in Marathon County. Address (slug):
+   `pet-contest`. Template: full width, no sidebar.
+2. **Add a Custom HTML block**, not a Paragraph or Code block, and paste the
+   line below and nothing else. Copy it from this file or another plain-text
+   source, never from Word or a formatted email: "smart" curly quotes break
+   it.
+
+   ```html
+   <iframe src="https://rowanflynnpilot.github.io/wpr-pet-contest/" title="Cutest Pet in Marathon County, Wausau Pilot &amp; Review" style="width:100%;height:88vh;min-height:640px;border:0;display:block" allow="payment; web-share; clipboard-write" data-no-lazy="1"></iframe>
+   ```
+
+3. **Featured image:** `web/public/og-card.png` (1200 x 630). Facebook and X
+   show it when someone shares the page.
+4. **Publish.** Then purge the page from LiteSpeed's cache: admin bar >
+   LiteSpeed Cache > **Purge this page**.
+5. **Check the published page, not the Preview:** open its address in a
+   private window, or on a phone where you are not signed in to WordPress,
+   and once inside the Facebook app. The contest should fill most of the
+   screen and scroll inside its frame. Until the contest is switched on it
+   shows the demo with sample pets; that is expected.
+6. Send Rowan the address. Rowan points the contest's links and emails at it
+   and runs the launch check, which reads the published page and confirms
+   the iframe is there with `allow="payment"`.
+
+What the line carries:
+
+- `allow="payment"`: Apple Pay and Google Pay. Without it the wallet buttons
+  silently never appear.
+- `allow="web-share; clipboard-write"`: a pet's Share button opens the
+  phone's own share sheet, and Copy link works.
+- `data-no-lazy="1"`: LiteSpeed otherwise swaps every iframe's address for
+  `about:blank` until the reader scrolls, and the contest is the page's main
+  content.
+- `height:88vh; min-height:640px`: most of a screen. The contest scrolls
+  inside the frame and lays itself out for that (its checkout, toasts and
+  pinned Vote bar stay in view).
+
+**If the page shows the contest in Preview but not when published:**
+
+- Purge the page in LiteSpeed (step 4) and reload the private window.
+- Open the page in the editor and switch to the Code editor (the three-dot
+  menu > Code editor). If the `<iframe ...>` line is missing or cut short,
+  the save stripped it: paste it again into a Custom HTML block, from plain
+  text.
+- Make sure nothing else is in that block, above all no `<script>`. One
+  script in the block and the firewall refuses the whole save.
+
+## Optional: the site-wide script
+
+With the iframe alone, the contest works. One line of site-wide code, added
+once by a WordPress administrator, adds two things:
+
+- **Share links open the pet.** A link to `…/pet-contest/#/pet/<id>` opens
+  that pet's page. Without it, such a link opens the contest's home.
+- **No inner scrollbar.** The frame grows to the contest, so the page scrolls
+  as one.
+
+It goes in the site's header or footer code (a header and footer code plugin
+such as WPCode, or wherever the site keeps other third-party scripts), never
+in a page:
 
 ```html
-<iframe
-  id="wpr-pets"
-  src="https://rowanflynnpilot.github.io/wpr-pet-contest/"
-  title="Cutest Pet in Marathon County — Wausau Pilot &amp; Review"
-  style="width: 100%; border: 0; display: block;"
-  height="1400"
-  allow="payment; web-share; clipboard-write"
-></iframe>
-<script>
-  (function () {
-    var ORIGIN = 'https://rowanflynnpilot.github.io';
-    var frame = document.getElementById('wpr-pets');
-
-    // Share links are this page plus the app's route, e.g.
-    // .../pet-contest/#/pet/<id>. Pass the route into the iframe.
-    if (location.hash.indexOf('#/') === 0) {
-      frame.src = frame.src.split('#')[0] + location.hash;
-      // Free-vote email links carry a single-use token (fv=...). Once it is
-      // in the iframe, take it out of this page's address bar and history.
-      if (location.hash.indexOf('fv=') !== -1) {
-        history.replaceState(null, '', location.pathname + location.search + location.hash.replace(/[?&]fv=[^&]*/, ''));
-      }
-    }
-    // A link to another pet on this same page changes only the hash, and the
-    // page doesn't reload: pass it on (a hash-only change moves the app
-    // without reloading it).
-    window.addEventListener('hashchange', function () {
-      if (location.hash.indexOf('#/') === 0) frame.src = frame.src.split('#')[0] + location.hash;
-    });
-
-    window.addEventListener('message', function (event) {
-      if (event.origin !== ORIGIN || !event.data) return;
-      if (event.data.type === 'wpr-pets-height' && event.data.height > 0) {
-        frame.style.height = event.data.height + 'px';
-      }
-      if (event.data.type === 'wpr-pets-nav') {
-        // The reader moved to another view (or opened checkout). If they
-        // were scrolled deep into the old one, bring the app's top back.
-        if (frame.getBoundingClientRect().top < 0) {
-          frame.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
-    });
-  })();
-</script>
+<script src="https://rowanflynnpilot.github.io/wpr-pet-contest/embed.js" defer data-no-optimize="1"></script>
 ```
 
-Accepts only messages from the GitHub Pages origin, and only ever sets a height
-or scrolls. Nothing from the iframe is executed.
+`data-no-optimize="1"` keeps LiteSpeed from bundling it with the site's own
+scripts. If the firewall refuses that save too, ask the host to check its
+ModSecurity log for the save and allow the rule.
+
+The script finds the contest's frames by their address, so the page keeps
+its plain iframe. It accepts messages only from the contest's own origin and
+only ever sets a height or scrolls; nothing from the frame is executed.
+
+**Until it is in, share links point at the contest itself.** Leave the
+`VITE_PUBLIC_URL` variable unset and set the `PUBLIC_URL` function secret to
+`https://rowanflynnpilot.github.io/wpr-pet-contest/` (unset, emails would
+link to WPR's home page): every share link, share page and email then opens
+the contest at its own address, which carries WPR's flag and opens the right
+pet. Once the script is on the site (the launch check says "forwards deep
+links"), set both to the WordPress page.
 
 ## Article widget
 
@@ -80,7 +110,7 @@ so every article embed is a sponsor impression. It refreshes once a minute and
 loads about 84 kB, most of it React.
 
 ```html
-<iframe src="https://rowanflynnpilot.github.io/wpr-pet-contest/widget.html?to=https://wausaupilotandreview.com/cutest-pet/"
+<iframe src="https://rowanflynnpilot.github.io/wpr-pet-contest/widget.html?to=https://wausaupilotandreview.com/pet-contest/"
   style="width:100%;max-width:640px;border:0;display:block;height:510px"
   loading="lazy" title="Cutest Pet in Marathon County, live"></iframe>
 ```
@@ -97,31 +127,25 @@ loads about 84 kB, most of it React.
 Measured at 400px wide: 505px for the leaderboard with a Double Vote banner
 (about 460px without), 371px for a matchup, 340px for one pet, 314px for
 entries, 279px for the champion. The background is transparent, so a fixed
-510px leaves only empty space in the shorter phases. To size it exactly
-instead, give the iframe `id="wpr-pets-widget"` and add the listener below. It uses its own message type, so it never
-resizes the main contest iframe on the same page.
-
-```html
-<script>
-(function () {
-  var frame = document.getElementById('wpr-pets-widget');
-  window.addEventListener('message', function (e) {
-    if (e.origin !== 'https://rowanflynnpilot.github.io' || e.source !== frame.contentWindow) return;
-    if (e.data && e.data.type === 'wpr-pets-widget-height') frame.style.height = e.data.height + 'px';
-  });
-})();
-</script>
-```
+510px leaves only empty space in the shorter phases. With the site-wide
+script (above) on the site, each widget frame is sized to its card; no id or
+page script is needed, and none may go in a post, for the same firewall
+reason.
 
 Clicks are tracked as `Widget Click` events, tagged with the card shown, and
 sponsor taps as `Sponsor Click` with slot `widget`, once analytics is on.
 
 ## Before launch
 
-1. **Set `VITE_PUBLIC_URL`** (repo Actions variable) to this page's permalink,
-   e.g. `https://wausaupilotandreview.com/pet-contest/`, and redeploy. Every
-   share link, share page redirect and email link then lands readers here
-   instead of on the bare GitHub Pages URL.
+1. **`VITE_PUBLIC_URL`** (repo Actions variable) and the `PUBLIC_URL`
+   function secret: this page's address, e.g.
+   `https://wausaupilotandreview.com/pet-contest/`, **once the site-wide
+   script is on the site**, then redeploy. Every share link, share page
+   redirect and email link then lands readers here. Without the script a pet
+   link would open the contest's home, so until then leave `VITE_PUBLIC_URL`
+   unset and set `PUBLIC_URL` to
+   `https://rowanflynnpilot.github.io/wpr-pet-contest/`: links open the
+   contest at its own address.
 2. **`allow="payment"` is required** for Apple Pay and Google Pay inside an
    iframe. Without it the wallet buttons silently never appear.
 3. **Register both domains for Apple Pay** in the contest's Stripe account
@@ -145,24 +169,33 @@ sponsor taps as `Sponsor Click` with slot `widget`, once analytics is on.
   reports less than the iframe's current height, so a frame sized that way could
   grow but never shrink.
 - On every route change it posts `{ type: 'wpr-pets-nav' }`.
-- **Checkout takes over the iframe.** The iframe is as tall as the whole page,
-  so a normal fixed overlay would open centered in a 5,000px frame, far from
-  where the reader is looking, and Stripe's 3-D Secure challenge would do the
-  same. While checkout is open the app hides the page behind it, the frame
-  shrinks to the checkout panel, and a `wpr-pets-nav` message scrolls it into
-  view. Closing checkout restores the page and scrolls back to the pet.
-- The `height="1400"` attribute is only the size before JavaScript runs.
+- **Two frame shapes.** The pasted frame is a fixed window most of a screen
+  tall, and the app lays itself out as it does on its own: checkout floats
+  over the page, toasts and the pinned Vote bar sit at the bottom of the
+  frame. The site-wide script (`public/embed.js`) grows the frame to the app
+  and answers each height with `{ type: 'wpr-pets-host' }`; only then does
+  the app add `html.is-embedded`, the styles for a page-tall frame.
+- **In a page-tall frame, checkout takes over the iframe.** A normal fixed
+  overlay would open centered in a 5,000px frame, far from where the reader
+  is looking, and Stripe's 3-D Secure challenge would do the same. While
+  checkout is open the app hides the page behind it, the frame shrinks to the
+  checkout panel, and a `wpr-pets-nav` message scrolls it into view. Closing
+  checkout restores the page and scrolls back to the pet.
 
 ## Deep links
 
-- `…/pet-contest/#/pet/<id>`: a pet's page (what Share buttons produce)
+- `…/pet-contest/#/pet/<id>`: a pet's page (what Share buttons produce). On
+  the WordPress page these need the site-wide script; at the contest's own
+  address they always work.
 - `#/gallery`, `#/bracket`, `#/enter`, `#/rules`, `#/shelters`, `#/results`
 - `#/sponsors`: the media kit. Send prospects here.
 - Append `?demo` to the iframe `src` (or open
   `https://rowanflynnpilot.github.io/wpr-pet-contest/?demo`) to preview every
   open sponsor slot as "Your Brand Here".
-- `#/admin` is the staff desk on the same deployment. Never link it from the
-  site; it is a bookmark.
+- `#/admin` is the staff desk, at
+  `https://rowanflynnpilot.github.io/wpr-pet-contest/#/admin`. It opens only in
+  its own tab, never inside the WordPress page (a framed desk could be
+  clickjacked). Never link it from the site; it is a bookmark.
 
 ## Facebook and X previews
 
