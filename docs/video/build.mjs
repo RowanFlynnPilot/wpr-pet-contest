@@ -1,6 +1,6 @@
 // Writes the cuts of the walkthrough from walkthrough.src.html, with the
 // capture's rects (shots/shots.json) inlined: walkthrough.html (WPR's teaser,
-// ending on Nov. 14) and walkthrough-newsrooms.html (ending on the demo, for
+// ending on Nov. 7) and walkthrough-newsrooms.html (ending on the demo, for
 // the page for other newsrooms), each in portrait (9:16, no suffix), -wide
 // (16:9) and -square.
 //

@@ -15,6 +15,7 @@ import { useDocumentTitle } from '../lib/hooks.js'
 import { ACCEPTED_TYPES, MAX_BYTES, prepareUpload } from '../lib/image.js'
 import { OTHER_TOWN, TOWNS } from '../lib/towns.js'
 import { EMPTY_ENTRY as EMPTY, LIMITS, PROFILE_FIELDS, validateEntry } from '../lib/entryForm.js'
+import PhotoTips from '../components/PhotoTips.jsx'
 
 // Exactly this, and never HEIC: when `accept` leaves HEIC out, iOS converts
 // the photo to JPEG as it is picked. That is what makes iPhone entries work.
@@ -103,20 +104,6 @@ function TextField({ id, label, value, onChange, error, hint, optional, max, ...
           {error}
         </span>
       )}
-    </div>
-  )
-}
-
-function PhotoTips() {
-  return (
-    <div className="card sun">
-      <h2 style={{ fontSize: 21, marginBottom: 8 }}>Photos that win votes</h2>
-      <ul className="tips">
-        <li>Get down to your pet&rsquo;s eye level.</li>
-        <li>Daylight by a window beats a flash.</li>
-        <li>One pet, filling most of the frame.</li>
-        <li>No people&rsquo;s faces, text or filters, please.</li>
-      </ul>
     </div>
   )
 }

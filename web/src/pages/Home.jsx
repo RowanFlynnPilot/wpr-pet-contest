@@ -18,6 +18,7 @@ import { nextSprint } from '../lib/sprints.js'
 import ComingUp from '../components/ComingUp.jsx'
 import { lastChanceRanked, rankPool } from '../lib/lastChance.js'
 import HowItWorks from '../components/HowItWorks.jsx'
+import PhotoTips from '../components/PhotoTips.jsx'
 import AdoptButton from '../components/AdoptButton.jsx'
 import Leaderboard from '../components/Leaderboard.jsx'
 import ActivityTicker from '../components/ActivityTicker.jsx'
@@ -502,13 +503,25 @@ export default function Home() {
       </div>
     )
   }
+  // Before a contest is announced (a draft is invisible): what it is, and the
+  // one thing to do now, which is find the photo. No dates or split yet,
+  // since both come from the contest.
   if (!c.contest) {
     return (
       <div className="wrap section">
         <div className="card">
-          <h1 style={{ fontSize: 30 }}>A pet contest is on its way.</h1>
-          <p style={{ marginTop: 10 }}>Check back soon for dates, and start picking out your best photo.</p>
+          <p className="kicker">{NEWSROOM.name} · Reader contest</p>
+          <h1 style={{ fontSize: 34 }}>Is your pet the cutest in {NEWSROOM.region}?</h1>
+          <p className="hero-lede">
+            Soon you can prove it. Entering is free. Readers back their favorites with vote packs, the top pets go head to head in a
+            bracket, and one is crowned. Part of every vote pack goes to local animal shelters.
+          </p>
+          <p className="hero-note">Dates are coming soon. Start with the photo.</p>
         </div>
+        <div style={{ marginTop: 16 }}>
+          <PhotoTips title="Get your best photo ready" />
+        </div>
+        <HowItWorks />
       </div>
     )
   }

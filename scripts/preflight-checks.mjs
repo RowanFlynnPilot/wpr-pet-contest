@@ -608,7 +608,10 @@ export function checkVariables(f) {
 
   const pub = v.VITE_PUBLIC_URL;
   const pubId = id("VITE_PUBLIC_URL");
-  if (!pub) out.push(fail(pubId, GH, "VITE_PUBLIC_URL not set: share links and emails would point at the bare Pages site", `Set it to the WordPress contest page, as web/EMBED.md describes ${see(3, 4)}`));
+  // Unset is the plan until the site-wide embed script is on the WordPress
+  // site: without it a pet link on the WordPress page opens the contest's
+  // home, so links open the contest at its own address instead (EMBED.md).
+  if (!pub) out.push(warn(pubId, GH, "VITE_PUBLIC_URL not set: share links open the contest at its own address, not the WordPress page", `Set it to the WordPress page once the site-wide script from web/EMBED.md is on the site ${see(3, 4)}`));
   else if (!/^https:\/\//.test(pub) || !hostOf(pub)) out.push(fail(pubId, GH, `VITE_PUBLIC_URL is not an https URL: ${pub}`, `Set it to the WordPress page's permalink ${see(3)}`));
   else if (hostOf(pub).endsWith("github.io")) out.push(warn(pubId, GH, "VITE_PUBLIC_URL points at GitHub Pages, not the WordPress page", `Set it to the WordPress page's permalink ${see(4)}`));
   else out.push(pass(pubId, GH, `VITE_PUBLIC_URL is ${pub}`));

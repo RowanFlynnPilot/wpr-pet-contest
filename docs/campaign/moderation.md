@@ -325,4 +325,4 @@ share anything about buyers.
 ## After an incident
 
 If WPR said something in public, close the loop in public: what happened and
-what changed. Log it, and bring it to the debrief on D29.
+what changed. Log it, and bring it to the debrief on D36.

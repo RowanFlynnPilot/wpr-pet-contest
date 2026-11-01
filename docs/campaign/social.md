@@ -71,7 +71,7 @@ Screens (the Enter page).
 
 ### Cut line
 
-Post it from D10, and on every day of the last 72 hours. Asset: SD-Bubble.
+Post it from D17, and on every day of the last 72 hours. Asset: SD-Bubble.
 
 Hooks:
 
@@ -199,7 +199,7 @@ Facebook, after the Open Round:
 ### Champion
 
 The night of the final close, post the first paragraph and the link. The full
-version goes out on D23. Asset: SD-Champion.
+version goes out on D30. Asset: SD-Champion.
 
 Hooks:
 
@@ -223,7 +223,7 @@ Facebook:
 
 ### Shelter total
 
-The final figure on D23, from the payout statement or SD-Raised (exact). A
+The final figure on D30, from the payout statement or SD-Raised (exact). A
 milestone while voting is open, from SD-Raised with the milestone box ticked.
 
 Hooks:
@@ -310,17 +310,17 @@ New entries (entries week):
 > [N] pets have entered so far. These came in this morning: [Pet] of [town],
 > [Pet] of [town], [Pet] of [town]. Is yours in? Entries close [day] at [time].
 
-Last 48 hours (D6):
+Last 48 hours (D13):
 
 > Two days left to enter. Entries close [day] at [time], and [N] pets are in so
 > far. It's free, and an editor checks every entry.
 
-Last day to enter (D7):
+Last day to enter (D14):
 
 > Entries close tonight at [time]. If your pet isn't in yet, there's still
 > time.
 
-Open Round opens (D8):
+Open Round opens (D15):
 
 > Voting is open, and [N] pets are in the Open Round.
 >
@@ -354,13 +354,13 @@ Double Vote Hour (labeled):
 > see at checkout is the count you get. The [round] closes at 8 p.m., and vote
 > totals reset every round. [link]
 
-Side awards (D23):
+Side awards (D30):
 
 > Best Dog, Best Cat and Best Other go to the pets with the most Open Round
 > votes in each group: [Pet] of [town], [Pet] of [town] and [Pet] of [town].
 > The titles are theirs for the year.
 
-Thank you (D24):
+Thank you (D31):
 
 > Thank you to everyone who entered a pet ([N] in all), to everyone who voted,
 > to Moments Foster Care, and to our sponsors, [Sponsor names]. [Pet] has the title, and
@@ -387,7 +387,7 @@ Before posting any of the three:
 ### Reel 1: the bracket reveal
 
 Goal: sends, and taps through to the bracket. Length 30 to 35 seconds. Posted
-D15, late morning. Cover: the No. 1 seed's photo with "The Sweet 16 is set"
+D22, late morning. Cover: the No. 1 seed's photo with "The Sweet 16 is set"
 in the center of the frame, where the grid crop keeps it.
 
 | Time | Shot | On-screen text | Spoken | Audio |
@@ -447,7 +447,7 @@ Keep it about seeds and numbers. No jokes at the losing pet's expense.
 ### Reel 3: the champion reveal
 
 Goal: sends and saves; the contest's last big moment. Length 35 to 40 seconds.
-Posted D23 in the morning. Cover: the SD-Champion card.
+Posted D30 in the morning. Cover: the SD-Champion card.
 
 A visit to film the champion at home is optional and needs the owner's
 consent. Film the pet. Hands are fine, and a face only if the owner agrees, but
@@ -531,7 +531,7 @@ No answer means no.
 
 ### Four posts per group, at most
 
-D1, D8, D15 and D23. Each one is news. Post as WPR's Page where the group
+D1, D15, D22 and D30. Each one is news. Post as WPR's Page where the group
 allows Pages. Otherwise follow WPR's social media policy: a staff member who
 says they're with WPR. Write each group's post fresh and space them out.
 Pasting one text into a dozen groups in ten minutes looks like spam to
@@ -543,18 +543,18 @@ D1, entries open:
 > entries until [day] at [time]. It's free: one phone photo, and an editor
 > checks every entry. Voting starts [date], and 50% of vote pack sales goes to Moments Foster Care. [link]
 
-D8, voting opens:
+D15, voting opens:
 
 > Voting is open in the Cutest Pet in Marathon County contest. [N] pets are
 > in, including pets from [town] and [town]. The top 16 make the bracket on
 > [day], and vote totals reset every round. [link]
 
-D15, the bracket:
+D22, the bracket:
 
 > The Sweet 16 is set in the Cutest Pet in Marathon County contest. Every
 > matchup starts at zero, and the round closes [day] at 8 p.m. [link]
 
-D23, the champion:
+D30, the champion:
 
 > [Pet] of [town] is this year's Cutest Pet in Marathon County, and readers
 > raised [shelter total] for Moments Foster Care. Thanks to [group]'s admins

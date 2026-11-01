@@ -441,9 +441,11 @@ test("pages: enabled from Actions, enabled from a branch, off on a private or pu
 
 test("variables: each one, set, missing or wrong", () => {
   const empty = run(checkVariables, (f) => (f.github.variables = { values: {}, keys: {} }));
-  for (const name of ["PAGES_ENABLED", "VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_STRIPE_PUBLISHABLE_KEY", "VITE_PUBLIC_URL"]) {
+  for (const name of ["PAGES_ENABLED", "VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_STRIPE_PUBLISHABLE_KEY"]) {
     assert.equal(status(empty, `github.var.${name}`), "fail", name);
   }
+  // Unset until the site-wide embed script is on WordPress: links open the contest itself.
+  assert.equal(status(empty, "github.var.VITE_PUBLIC_URL"), "warn");
   assert.equal(status(empty, "github.var.VITE_IMAGE_TRANSFORMS"), "warn");
   assert.equal(status(empty, "github.var.HEALTH_CHECKS"), "warn");
   assert.match(byId(empty, "github.var.HEALTH_CHECKS").fix, /Turn on before voting opens/);
