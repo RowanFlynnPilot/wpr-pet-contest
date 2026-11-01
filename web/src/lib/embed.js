@@ -33,10 +33,22 @@ export function postNav() {
   window.parent.postMessage({ type: 'wpr-pets-nav' }, '*')
 }
 
+// Whether the frame is as tall as the app. Only the site-wide host script
+// (public/embed.js) grows it, and it answers each height with wpr-pets-host;
+// until then the frame is the fixed, screen-tall window pasted into the page
+// (WPR's firewall refuses a page with a script in it), where the ordinary
+// fixed overlays, toasts and sticky Vote bar are right. html.is-embedded
+// carries the styles for a page-tall frame.
+export function hostSized() {
+  return document.documentElement.classList.contains('is-embedded')
+}
+
 export function startEmbedReporting({ type } = {}) {
   if (!EMBEDDED) return
   if (type) heightType = type
-  document.documentElement.classList.add('is-embedded')
+  window.addEventListener('message', (e) => {
+    if (e.source === window.parent && e.data?.type === 'wpr-pets-host') document.documentElement.classList.add('is-embedded')
+  })
   const ro = new ResizeObserver(postHeight)
   ro.observe(document.documentElement)
   if (document.body) ro.observe(document.body)

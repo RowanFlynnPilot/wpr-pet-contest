@@ -163,10 +163,12 @@ export function parseIframes(html) {
   return frames;
 }
 
-// The two halves of web/EMBED.md's script, by the strings they cannot do without.
-export function embedScript(html) {
+// What the page's host script does: the site-wide embed.js (web/EMBED.md) does
+// both, and an older inline script is known by the strings it cannot do without.
+export function embedScript(html, pagesUrl) {
   const s = String(html ?? "");
-  return { forwardsHash: /location\.hash/.test(s), listensForHeight: /wpr-pets-height/.test(s) };
+  const site = Boolean(pagesUrl) && s.includes(`${pagesUrl}embed.js`);
+  return { forwardsHash: site || /location\.hash/.test(s), listensForHeight: site || /wpr-pets-height/.test(s) };
 }
 
 // The body of `export const NAME = { ... }`, skipping strings and comments so a
@@ -772,10 +774,10 @@ export function checkWordPress(f) {
   else out.push(pass("web.embed", FE, `Embed iframe points at the Pages site with allow="payment"`));
 
   const s = w.script ?? {};
-  const missing = [!s.forwardsHash && "hash forwarding (share links would open the home page)", !s.listensForHeight && "height listener (the frame stays 1400px tall)"].filter(Boolean);
+  const missing = [!s.forwardsHash && "hash forwarding (share links would open the home page)", !s.listensForHeight && "height listener (the frame scrolls inside a fixed height)"].filter(Boolean);
   out.push(
     missing.length
-      ? warn("web.embed.script", FE, `Embed script seems absent: no ${missing.join(", no ")}`, `Paste the <script> half of web/EMBED.md's snippet too ${see(4)}`)
+      ? warn("web.embed.script", FE, `Site-wide embed script seems absent: no ${missing.join(", no ")}`, `Have an administrator add the one-line site-wide script from web/EMBED.md, or leave VITE_PUBLIC_URL unset so links open the contest itself ${see(4)}`)
       : pass("web.embed.script", FE, "Embed script forwards deep links and resizes the frame"),
   );
   return out;

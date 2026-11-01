@@ -34,6 +34,14 @@
       "port": 5178
     },
     {
+      "name": "mock-api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "web/scripts/mock-api.mjs"
+      ],
+      "port": 18793
+    },
+    {
       "name": "sponsor-kit",
       "runtimeExecutable": "python",
       "runtimeArgs": [
