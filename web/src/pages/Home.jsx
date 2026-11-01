@@ -506,7 +506,7 @@ export default function Home() {
     return (
       <div className="wrap section">
         <div className="card">
-          <h1 style={{ fontSize: 30 }}>The next pet contest is on its way.</h1>
+          <h1 style={{ fontSize: 30 }}>A pet contest is on its way.</h1>
           <p style={{ marginTop: 10 }}>Check back soon for dates, and start picking out your best photo.</p>
         </div>
       </div>
