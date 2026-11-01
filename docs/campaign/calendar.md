@@ -40,8 +40,8 @@ those before D-14. Sprints are not used: no prizes.
 | D1 | Sat., Nov. 7 | Entries open |
 | D14 | Fri., Nov. 20 | Entries close at 8 p.m. |
 | D15 | Sat., Nov. 21 | Open Round opens (gun deer season opens the same day) |
-| D20 | Thu., Nov. 26 | Thanksgiving, inside the Open Round |
-| D21 | Fri., Nov. 27 | Open Round closes at 8 p.m.; Sweet 16 opens that night |
+| D20 | Thu., Nov. 26 (Thanksgiving) | Open Round closes at 8 p.m. At 8:10, Rounds tab > Start Last Chance, closing Fri. 8 p.m.: places 1 to 15 are in, 16 to 20 keep voting |
+| D21 | Fri., Nov. 27 | Last Chance closes at 8 p.m.; after 8:10, close round 1; the Sweet 16 opens that night |
 | D23 | Sun., Nov. 29 | Sweet 16 closes at 8 p.m. |
 | D25 | Tue., Dec. 1 (Giving Tuesday) | Elite Eight closes at 8 p.m. |
 | D27 | Thu., Dec. 3 | Final Four closes at 8 p.m. |
@@ -49,9 +49,12 @@ those before D-14. Sprints are not used: no prizes.
 | D30 | Sun., Dec. 6 | Champion morning |
 | D36 | Sat., Dec. 12 | Wrap-up done |
 
-In Setup: submissions open Nov. 7 and close Nov. 20 at 8 p.m. The Open Round
-is scheduled a week from the close, so it closes Nov. 27 at 8 p.m. without a
-second argument to `open_submissions`.
+In Setup: submissions open Nov. 7 and close Nov. 20 at 8 p.m. Last Chance is
+on (decided Nov. 1), so the Open Round closes a day early to keep the Dec. 5
+champion: in the Open submissions dialog, set "The Open Round closes at" to
+Thu., Nov. 26, 8:00 PM (it is prefilled with Nov. 27). Someone has to be at
+the desk at 8:10 p.m. on Thanksgiving to start Last Chance, and at 8:10 p.m.
+Friday to close the round.
 
 Giving Tuesday lands on the Elite Eight's last day. The newsroom's own
 tax-deductible ask can run that day as long as it stays separate from vote
