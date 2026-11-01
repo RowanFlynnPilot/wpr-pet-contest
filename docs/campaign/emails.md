@@ -62,13 +62,13 @@ on, where you stand, last call, the bracket's last days, thank you.
 | --- | --- | --- | --- | --- |
 | | Approved (exists) | On approval | The entrant | Share [pet]'s page |
 | N1 | Get ready | 24 hours after approval, while voting hasn't opened | Approved entrants | Open [pet]'s page |
-| N2 | Voting is open | When the Open Round opens (D8) | Every approved entrant | Share [pet]'s page |
-| N3 | Halfway | Open Round day 4 (D11), 7 a.m. | Every approved entrant | Share [pet]'s page |
-| N4 | Last day | Open Round's last day (D14), 7 a.m. | Every approved entrant | Share [pet]'s page |
+| N2 | Voting is open | When the Open Round opens (D15) | Every approved entrant | Share [pet]'s page |
+| N3 | Halfway | Open Round day 4 (D18), 7 a.m. | Every approved entrant | Share [pet]'s page |
+| N4 | Last day | Open Round's last day (D21), 7 a.m. | Every approved entrant | Share [pet]'s page |
 | | Advanced or eliminated (exists) | After each close | | |
-| N5 | Matchup's last day | 7 a.m. on D16, D18, D20 and D22 | Entrants whose pet is in that round | Share [pet]'s matchup |
+| N5 | Matchup's last day | 7 a.m. on D23, D25, D27 and D29 | Entrants whose pet is in that round | Share [pet]'s matchup |
 | | Champion (exists) | After the final close | The champion's entrant | |
-| N6 | Thank you | D24, morning | Every approved entrant except the champion's | See the results |
+| N6 | Thank you | D31, morning | Every approved entrant except the champion's | See the results |
 
 ```
 [approved] -> Approved email (exists)
@@ -79,20 +79,20 @@ on, where you stand, last call, the bracket's last days, thank you.
      v                                       |
     N1 (approval + 24h) ---------------------+
                                              v
-                               N2 (Open Round opens, D8)
+                               N2 (Open Round opens, D15)
                                              |
-                               N3 (D11, 7 a.m.)
+                               N3 (D18, 7 a.m.)
                                              |
-                               N4 (D14, 7 a.m.)
+                               N4 (D21, 7 a.m.)
                                              |
                              [close] -> Advanced or Eliminated (exists)
                                  |                   |
-                              advanced            eliminated --> wait --> N6 (D24)
+                              advanced            eliminated --> wait --> N6 (D31)
                                  |
                   N5 (last day of each round, 7 a.m.)
                                  |
                 [close] -> advanced: next round's N5
-                        -> eliminated: wait for N6 (D24)
+                        -> eliminated: wait for N6 (D31)
                         -> champion: Champion email (exists), no N6
 
 [disqualified at any point] -> EXIT, nothing further from this sequence

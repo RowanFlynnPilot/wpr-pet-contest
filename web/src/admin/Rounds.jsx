@@ -58,11 +58,18 @@ export default function Rounds() {
     }
   }
 
+  // The Open Round's closing time is set here, once, so the public schedule
+  // is right from the announcement on. Prefilled a week after entries close.
   const openSubmissions = () =>
     run(async () => {
-      await q(admin.rpc('open_submissions', { p_contest_id: cid }))
+      await q(admin.rpc('open_submissions', { p_contest_id: cid, p_round1_closes_at: closesAt ? fromLocalInput(closesAt) : null }))
       say('Submissions are open.')
     })
+
+  function startSubmissions() {
+    setClosesAt(toLocalInput(new Date(new Date(contest.submissions_close_at).getTime() + 7 * 24 * 3600 * 1000).toISOString()))
+    setAction({ kind: 'submissions' })
+  }
 
   const openRound = (r) =>
     run(async () => {
@@ -157,9 +164,16 @@ export default function Rounds() {
                 Entries open {new Date(contest.submissions_open_at) > new Date() ? stamp(contest.submissions_open_at) : 'immediately'} and close{' '}
                 {stamp(contest.submissions_close_at)}.
               </p>
+              <label className="field">
+                <span className="label">The Open Round closes at (your local time)</span>
+                <input type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+                <span className="hint">
+                  Prefilled a week after entries close. It is published on the rules page{contest.last_chance_enabled ? '; with Last Chance on, leave a day for it before the Sweet 16' : ''}.
+                </span>
+              </label>
             </TypedConfirm>
           ) : (
-            <button type="button" className="btn btn-primary" onClick={() => setAction({ kind: 'submissions' })}>
+            <button type="button" className="btn btn-primary" onClick={startSubmissions}>
               Open submissions…
             </button>
           )}

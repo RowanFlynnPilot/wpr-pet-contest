@@ -20,38 +20,41 @@ those before D-14. Sprints are not used: no prizes.
 | Days | Phase event | What runs it |
 | --- | --- | --- |
 | D-14 | Announcement | `open_submissions` (Rounds tab) that morning; story, newsletter, social |
-| D1 | Entries open for a week | By themselves, at the time set in Setup |
-| D6 to D7 | Last 48 hours of entries. Entries close D7 at [time] | |
-| D8 | Open Round opens, once the moderation queue is empty | `open_round` (round 1) |
-| D12 to D14 | The cut line: last 72 hours of the Open Round | |
-| D14 | Open Round closes at 8 p.m. Results, then the Sweet 16 opens that night | `close_round`, `open_round` |
-| D15 to D16 | Sweet 16, closes D16 at 8 p.m. | |
-| D17 to D18 | Elite Eight, closes D18 at 8 p.m. | |
-| D19 to D20 | Final Four, closes D20 at 8 p.m. | |
-| D21 to D22 | Championship, closes D22 at 8 p.m. The champion that night | `close_round` returns null; the contest is complete |
-| D23 | Champion morning | |
-| D24 to D29 | Thank-you, check presentation, wrap-up | |
+| D1 | Entries open for two weeks | By themselves, at the time set in Setup |
+| D13 to D14 | Last 48 hours of entries. Entries close D14 at [time] | |
+| D15 | Open Round opens, once the moderation queue is empty | `open_round` (round 1) |
+| D19 to D21 | The cut line: last 72 hours of the Open Round | |
+| D21 | Open Round closes at 8 p.m. Results, then the Sweet 16 opens that night | `close_round`, `open_round` |
+| D22 to D23 | Sweet 16, closes D23 at 8 p.m. | |
+| D24 to D25 | Elite Eight, closes D25 at 8 p.m. | |
+| D26 to D27 | Final Four, closes D27 at 8 p.m. | |
+| D28 to D29 | Championship, closes D29 at 8 p.m. The champion that night | `close_round` returns null; the contest is complete |
+| D30 | Champion morning | |
+| D31 to D36 | Thank-you, check presentation, wrap-up | |
 
-### The 2026 dates (decided Oct. 24: entries open Saturday, Nov. 14)
+### The 2026 dates (entries open Saturday, Nov. 7; moved up from Nov. 14 on Nov. 1 for two weeks of entries)
 
 | Day | Date | What happens |
 | --- | --- | --- |
-| D-14 | Sat., Oct. 31 (Halloween) | Announcement. The "before D-14" prep is the week of Oct. 26 |
-| D1 | Sat., Nov. 14 | Entries open |
-| D7 | Fri., Nov. 20 | Entries close at [time] |
-| D8 | Sat., Nov. 21 | Open Round opens (gun deer season opens the same day) |
-| D13 | Thu., Nov. 26 | Thanksgiving, inside the Open Round |
-| D14 | Fri., Nov. 27 | Open Round closes at 8 p.m.; Sweet 16 opens that night |
-| D16 | Sun., Nov. 29 | Sweet 16 closes at 8 p.m. |
-| D18 | Tue., Dec. 1 (Giving Tuesday) | Elite Eight closes at 8 p.m. |
-| D20 | Thu., Dec. 3 | Final Four closes at 8 p.m. |
-| D22 | Sat., Dec. 5 | Championship closes at 8 p.m. The champion that night |
-| D23 | Sun., Dec. 6 | Champion morning |
-| D29 | Sat., Dec. 12 | Wrap-up done |
+| Before D1 | As soon as the contest is set up | Announcement. The two-week tease (D-14 to D-1) was planned for Oct. 31; in 2026 it runs in the days left before Nov. 7, so fold the D-14 to D-1 rows into them |
+| D1 | Sat., Nov. 7 | Entries open |
+| D14 | Fri., Nov. 20 | Entries close at 8 p.m. |
+| D15 | Sat., Nov. 21 | Open Round opens (gun deer season opens the same day) |
+| D20 | Thu., Nov. 26 (Thanksgiving) | Open Round closes at 8 p.m. At 8:10, Rounds tab > Start Last Chance, closing Fri. 8 p.m.: places 1 to 15 are in, 16 to 20 keep voting |
+| D21 | Fri., Nov. 27 | Last Chance closes at 8 p.m.; after 8:10, close round 1; the Sweet 16 opens that night |
+| D23 | Sun., Nov. 29 | Sweet 16 closes at 8 p.m. |
+| D25 | Tue., Dec. 1 (Giving Tuesday) | Elite Eight closes at 8 p.m. |
+| D27 | Thu., Dec. 3 | Final Four closes at 8 p.m. |
+| D29 | Sat., Dec. 5 | Championship closes at 8 p.m. The champion that night |
+| D30 | Sun., Dec. 6 | Champion morning |
+| D36 | Sat., Dec. 12 | Wrap-up done |
 
-In Setup: submissions open Nov. 14 and close Nov. 20 at [time]; pass
-`2026-11-27 20:00 America/Chicago` as `open_submissions`' second argument so
-the Open Round closes at 8 p.m.
+In Setup: submissions open Nov. 7 and close Nov. 20 at 8 p.m. Last Chance is
+on (decided Nov. 1), so the Open Round closes a day early to keep the Dec. 5
+champion: in the Open submissions dialog, set "The Open Round closes at" to
+Thu., Nov. 26, 8:00 PM (it is prefilled with Nov. 27). Someone has to be at
+the desk at 8:10 p.m. on Thanksgiving to start Last Chance, and at 8:10 p.m.
+Friday to close the round.
 
 Giving Tuesday lands on the Elite Eight's last day. The newsroom's own
 tax-deductible ask can run that day as long as it stays separate from vote
@@ -71,7 +74,7 @@ Keeping every close at 8 p.m. takes two small steps:
   hour, give `open_submissions` the 8 p.m. closing time as its second argument.
 - Left alone, a bracket round closes 48 hours after `close_round` ran, which
   lands a few minutes past 8. Pass the closing time when opening it:
-  `open_round('<id>', '<D16 8 p.m.>')`. Posted times then stay on the hour.
+  `open_round('<id>', '<D23 8 p.m.>')`. Posted times then stay on the hour.
 
 Two habits shape every closing night:
 
@@ -113,9 +116,9 @@ sticker.
 A proposal, to settle the sponsor kit's `[newsletter block schedule]` with
 Sales:
 
-- The morning edition carries the block every day from D-14 to D24.
-- The afternoon edition carries it too on D1, D7, D8, D14, D16, D18, D20, D22
-  and D23: phase events and closing days.
+- The morning edition carries the block every day from D-14 to D31.
+- The afternoon edition carries it too on D1, D14, D15, D21, D23, D25, D27, D29
+  and D30: phase events and closing days.
 - Build it when the edition is built. It says what time its numbers are from,
   and a Double Vote Hour starting within 36 hours shows up in it on its own,
   with its sponsor.
@@ -129,10 +132,10 @@ only on D-14 and D-1; the morning block runs every day in between.
 | --- | --- | --- |
 | D-14 | Story template, at the foot of every WPR story | Default, which follows the phase |
 | D-14 | The announcement story | `view=enter`. It falls back to the default until entries open |
-| D8 | The Open Round story | `view=leaderboard` |
-| D15 | The bracket story | `view=matchup` (the round's closest matchup) |
+| D15 | The Open Round story | `view=leaderboard` |
+| D22 | The bracket story | `view=matchup` (the round's closest matchup) |
 | Any day | A story about one pet: a wildcard, a Final Four profile | `pet=<id>` |
-| D23 | The champion story | `pet=<champion id>` |
+| D30 | The champion story | `pet=<champion id>` |
 | D-14, if web staff agree | The home page sidebar | Default |
 
 ## Before D-14
@@ -170,7 +173,7 @@ backdrop for a countdown sticker), with captions to copy.
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| D-14 | Announcement | Admin | Run `open_submissions` before the story posts | Rounds tab | CE | Check Home shows the countdown and the widget says "Entries open Saturday, Nov. 14" |
+| D-14 | Announcement | Admin | Run `open_submissions` before the story posts | Rounds tab | CE | Check Home shows the countdown and the widget says "Entries open Saturday, Nov. 7" |
 | D-14 | | WPR story | Article | Screens (home page); Widget `view=enter` | R | Disclosure line: WPR runs the contest; 50% of vote pack sales after refunds goes to Moments Foster Care |
 | D-14 | | Facebook | Image post | Screens (home page on a phone) | SE | social.md, Announcement |
 | D-14 | | Instagram | Feed post | Screens | SE | Same, link in bio |
@@ -192,7 +195,7 @@ backdrop for a countdown sticker), with captions to copy.
 | D-1 | Day before | Facebook, Instagram, Story | Image post and Story | Screens | SE | social.md, Entries open tomorrow |
 | D-1 | | Newsletter | Block, AM | Block | NL | |
 
-## Entries week: D1 to D7
+## Entries: D1 to D14
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -215,123 +218,124 @@ backdrop for a countdown sticker), with captions to copy.
 | D5 | | Facebook | New entries carousel | Gallery | SE | social.md, New entries |
 | D5 | | Open slot | | | SE | |
 | D5 | | Newsletter | Block, AM | Block | NL | |
-| D6 | Last 48 hours | Facebook, Instagram | Image post with the real close time | Gallery | SE | social.md, Last 48 hours |
-| D6 | | Instagram Story | Countdown sticker to the close | | SE | |
-| D6 | | Newsletter | Block, AM | Block | NL | |
-| D7 | Entries close at [time] | Facebook, Story | Morning post | Gallery | SE | social.md, Last day to enter |
-| D7 | | Newsletter | Block, AM+PM | Block ("Entries closed") | NL | |
-| D7 | | Moderation | Clear every pending entry | Moderation tab | CE | `open_round` refuses while anything is pending, or with fewer than 16 approved |
-| D7 | | Facebook | After the close: "[N] pets. Voting opens [day, time]." | Gallery collage | SE | |
+| D6 to D12 | Entries, second week | All | The first week's rhythm again: the queue cleared twice a day, a new-entries carousel every other day, N1 to new approvals, the newsletter block each morning | Gallery; Moderation tab | CE, SE, NL | The middle of a two-week window goes quiet without it. A mid-window count post ("[N] pets in, one week left") on D8 |
+| D13 | Last 48 hours | Facebook, Instagram | Image post with the real close time | Gallery | SE | social.md, Last 48 hours |
+| D13 | | Instagram Story | Countdown sticker to the close | | SE | |
+| D13 | | Newsletter | Block, AM | Block | NL | |
+| D14 | Entries close at [time] | Facebook, Story | Morning post | Gallery | SE | social.md, Last day to enter |
+| D14 | | Newsletter | Block, AM+PM | Block ("Entries closed") | NL | |
+| D14 | | Moderation | Clear every pending entry | Moderation tab | CE | `open_round` refuses while anything is pending, or with fewer than 16 approved |
+| D14 | | Facebook | After the close: "[N] pets. Voting opens [day, time]." | Gallery collage | SE | |
 
-## Open Round: D8 to D14
+## Open Round: D15 to D21
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| D8 | Open Round opens | Admin | `open_round` (round 1), first thing | Rounds tab | CE | Checkout starts the moment it opens |
-| D8 | | Facebook | Album of the field (up to 10 photos) | Gallery | SE | social.md, Open Round opens |
-| D8 | | Instagram | Carousel, plus a three-frame "how to vote" Story | Gallery; Screens | SE | |
-| D8 | | WPR story | "Voting opens: meet the field" | Widget `view=leaderboard` | R | Disclosure line |
-| D8 | | Email | N2 to every approved entrant | | CE | emails.md, N2 |
-| D8 | | Newsletter | Block, AM+PM | Block (Open Round leaderboard) | NL | |
-| D8 | | Facebook groups | Second WPR post per group | | SE | |
-| D8 | | [IF FREE VOTE ON] | Free votes tab, checked daily from today | | CE | Reminders send each morning on their own |
-| D9 | | Facebook, Instagram | "Top 10 right now, as of [time]" | SD-Leaderboard | SE | social.md, Leaderboard |
-| D9 | | Instagram Story | Quiz sticker: "Do Open Round votes carry into the bracket?" (No) | SD-Leaderboard | SE | |
-| D9 | | Newsletter | Block, AM | Block | NL | |
-| D10 | | Facebook, Instagram | On the bubble | SD-Bubble | SE | social.md, Cut line (early) |
-| D10 | | Newsletter | Block, AM | Block | NL | |
-| D11 | Double Vote Hour [if scheduled] | Facebook, Instagram | Morning notice, labeled | SD-Leaderboard | SE, Sales | social.md, Double Vote Hour |
-| D11 | | Instagram Story | At the start of the hour: countdown sticker to its end, link sticker | | SE | |
-| D11 | | Email | N3 to approved entrants | | CE | emails.md, N3 |
-| D11 | | Newsletter | Block, AM | Block (shows the bonus line itself) | NL | |
-| D12 | Cut line begins | Facebook, Instagram | "On the bubble, as of [time]" | SD-Bubble | SE | social.md, Cut line |
-| D12 | | Facebook | Shelter milestone, if one has been crossed | SD-Raised (milestone) | SE | social.md, Shelter total |
-| D12 | | Newsletter | Block, AM | Block | NL | |
-| D13 | | Facebook, Instagram | Bubble, plus "closes tomorrow at 8 p.m." | SD-Bubble | SE | |
-| D13 | | Instagram Story | Leaderboard and a countdown sticker | SD-Leaderboard | SE | |
-| D13 | | Reel prep | Shoot b-roll for the bracket reveal | | R | social.md, Reel 1. Nothing with numbers yet |
-| D13 | | Newsletter | Block, AM | Block | NL | |
-| D14 | Open Round last day | Facebook, Instagram | Morning: "closes tonight at 8 p.m." | SD-Bubble | SE | social.md, Cut line (last day) |
-| D14 | | Email | N4 | | CE | emails.md, N4 |
-| D14 | | Instagram Story | Bubble updates through the day; countdown sticker | SD-Bubble | SE | |
-| D14 | | Newsletter | Block, AM+PM | Block | NL | |
-| D14 | | Contest page, Stories | Double Vote Hour on the last evening [if sold], presented by [Sponsor] | Stories frame 5 | Sales, SE | social.md, Double Vote Hour |
-| D14 | 8 p.m. close | Admin | After 8:10 p.m.: `close_round`; check `late_confirmations` and `rejected_photos_live` | Rounds and Health tabs | CE | Advancement and elimination emails go out on the sweep |
-| D14 | | Admin | Refresh the Social desk; download "Open Round final standings," "The Sweet 16 is set (16 pets)" and the 16 winner cards | SD-Leaderboard, SD-Field, SD-Winner | CE | Before opening the Sweet 16 |
-| D14 | | Admin | `open_round` (Sweet 16), closing D16 at 8 p.m. | Rounds tab | CE | |
-| D14 | | Facebook, Instagram | Night: "The Sweet 16 is set" | SD-Field, with final standings as a second image | SE | social.md, Round results |
+| D15 | Open Round opens | Admin | `open_round` (round 1), first thing | Rounds tab | CE | Checkout starts the moment it opens |
+| D15 | | Facebook | Album of the field (up to 10 photos) | Gallery | SE | social.md, Open Round opens |
+| D15 | | Instagram | Carousel, plus a three-frame "how to vote" Story | Gallery; Screens | SE | |
+| D15 | | WPR story | "Voting opens: meet the field" | Widget `view=leaderboard` | R | Disclosure line |
+| D15 | | Email | N2 to every approved entrant | | CE | emails.md, N2 |
+| D15 | | Newsletter | Block, AM+PM | Block (Open Round leaderboard) | NL | |
+| D15 | | Facebook groups | Second WPR post per group | | SE | |
+| D15 | | [IF FREE VOTE ON] | Free votes tab, checked daily from today | | CE | Reminders send each morning on their own |
+| D16 | | Facebook, Instagram | "Top 10 right now, as of [time]" | SD-Leaderboard | SE | social.md, Leaderboard |
+| D16 | | Instagram Story | Quiz sticker: "Do Open Round votes carry into the bracket?" (No) | SD-Leaderboard | SE | |
+| D16 | | Newsletter | Block, AM | Block | NL | |
+| D17 | | Facebook, Instagram | On the bubble | SD-Bubble | SE | social.md, Cut line (early) |
+| D17 | | Newsletter | Block, AM | Block | NL | |
+| D18 | Double Vote Hour [if scheduled] | Facebook, Instagram | Morning notice, labeled | SD-Leaderboard | SE, Sales | social.md, Double Vote Hour |
+| D18 | | Instagram Story | At the start of the hour: countdown sticker to its end, link sticker | | SE | |
+| D18 | | Email | N3 to approved entrants | | CE | emails.md, N3 |
+| D18 | | Newsletter | Block, AM | Block (shows the bonus line itself) | NL | |
+| D19 | Cut line begins | Facebook, Instagram | "On the bubble, as of [time]" | SD-Bubble | SE | social.md, Cut line |
+| D19 | | Facebook | Shelter milestone, if one has been crossed | SD-Raised (milestone) | SE | social.md, Shelter total |
+| D19 | | Newsletter | Block, AM | Block | NL | |
+| D20 | | Facebook, Instagram | Bubble, plus "closes tomorrow at 8 p.m." | SD-Bubble | SE | |
+| D20 | | Instagram Story | Leaderboard and a countdown sticker | SD-Leaderboard | SE | |
+| D20 | | Reel prep | Shoot b-roll for the bracket reveal | | R | social.md, Reel 1. Nothing with numbers yet |
+| D20 | | Newsletter | Block, AM | Block | NL | |
+| D21 | Open Round last day | Facebook, Instagram | Morning: "closes tonight at 8 p.m." | SD-Bubble | SE | social.md, Cut line (last day) |
+| D21 | | Email | N4 | | CE | emails.md, N4 |
+| D21 | | Instagram Story | Bubble updates through the day; countdown sticker | SD-Bubble | SE | |
+| D21 | | Newsletter | Block, AM+PM | Block | NL | |
+| D21 | | Contest page, Stories | Double Vote Hour on the last evening [if sold], presented by [Sponsor] | Stories frame 5 | Sales, SE | social.md, Double Vote Hour |
+| D21 | 8 p.m. close | Admin | After 8:10 p.m.: `close_round`; check `late_confirmations` and `rejected_photos_live` | Rounds and Health tabs | CE | Advancement and elimination emails go out on the sweep |
+| D21 | | Admin | Refresh the Social desk; download "Open Round final standings," "The Sweet 16 is set (16 pets)" and the 16 winner cards | SD-Leaderboard, SD-Field, SD-Winner | CE | Before opening the Sweet 16 |
+| D21 | | Admin | `open_round` (Sweet 16), closing D23 at 8 p.m. | Rounds tab | CE | |
+| D21 | | Facebook, Instagram | Night: "The Sweet 16 is set" | SD-Field, with final standings as a second image | SE | social.md, Round results |
 
-## Bracket: D15 to D22
+## Bracket: D22 to D29
 
 Each round follows the same two-day pattern: matchup day, then last day and
 the close.
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| D15 | Sweet 16 day 1: the bracket reveal | Instagram, Facebook, TikTok if WPR has it | Reel | Screens (bracket); SD-Field; Gallery | R | social.md, Reel 1 |
-| D15 | | Facebook | Album of all eight matchups | SD-Matchup x8 (Square) | SE | social.md, Matchup day |
-| D15 | | Instagram | Carousel of eight matchups | SD-Matchup x8 (Portrait) | SE | |
-| D15 | | Instagram and Facebook Stories | Matchup-day sequence | SD-Matchup | SE | social.md, Stories |
-| D15 | | WPR story | "Meet the Sweet 16" | Widget `view=matchup` | R | Disclosure line |
-| D15 | | Newsletter | Block, AM | Block ("The Sweet 16 is on") | NL | |
-| D15 | | Facebook groups | Third WPR post per group: the bracket | | SE | |
-| D15 | | Email | B1 to opted-in buyers [if built] | | CE | emails.md, B1 |
-| D16 | Sweet 16 last day | Facebook, Instagram | Morning album, cards as of [time] | SD-Matchup | SE | social.md, Matchup last day |
-| D16 | | Email | N5 to entrants still in | | CE | emails.md, N5 |
-| D16 | | Stories | Last-day sequence | SD-Matchup | SE | |
-| D16 | | Open slot | Reel 2, upset watch, if a lower seed leads late | SD-Matchup | R | social.md, Reel 2 |
-| D16 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | social.md, Double Vote Hour |
-| D16 | | Newsletter | Block, AM+PM | Block | NL | |
-| D16 | 8 p.m. close | Admin | Close routine as on D14; download "The Elite Eight is set (8 pets)" and eight winner cards; `open_round` (Elite Eight) | SD-Field, SD-Winner | CE | |
-| D16 | | Facebook, Instagram | Night: "The Elite Eight is set," plus an upset post if a lower seed won | SD-Field, SD-Winner | SE | social.md, Round results; Upset |
-| D17 | Elite Eight day 1 | Facebook, Instagram | Four matchups | SD-Matchup x4 | SE | social.md, Matchup day |
-| D17 | | Reel | Reel 2, results version, if the Sweet 16 had an upset | SD-Winner | R | |
-| D17 | | Stories | Matchup-day sequence | SD-Matchup | SE | |
-| D17 | | Email | B1 [if built] | | CE | |
-| D17 | | Newsletter | Block, AM | Block | NL | |
-| D18 | Elite Eight last day | Facebook, Instagram, Stories | Morning album and last-day sequence | SD-Matchup | SE | |
-| D18 | | Email | N5 | | CE | |
-| D18 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | |
-| D18 | | Newsletter | Block, AM+PM | Block | NL | |
-| D18 | 8 p.m. close | Admin, Facebook, Instagram | Close routine; "The Final Four is set (4 pets)" | SD-Field, SD-Winner | CE, SE | |
-| D19 | Final Four day 1 | Facebook, Instagram | Two matchups | SD-Matchup x2 | SE | |
-| D19 | | WPR story | Optional Final Four profiles | Widget `pet=<id>` or `view=matchup` | R | |
-| D19 | | Facebook | Shelter milestone, if crossed | SD-Raised (milestone) | SE | |
-| D19 | | Stories, Email, Newsletter | Matchup-day sequence; B1; block, AM | | SE, CE, NL | |
-| D20 | Final Four last day | Facebook, Instagram, Stories | Morning post and last-day sequence | SD-Matchup | SE | |
-| D20 | | Email | N5 | | CE | |
-| D20 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | |
-| D20 | | Newsletter | Block, AM+PM | Block | NL | |
-| D20 | 8 p.m. close | Admin, Facebook, Instagram | Close routine; "The Championship is set (2 pets)" | SD-Field, SD-Winner | CE, SE | |
-| D21 | Championship day 1 | Facebook, Instagram | "[A] vs. [B] for the title" | SD-Matchup | SE | social.md, Matchup day (Championship) |
-| D21 | | WPR story | Championship preview | Widget `view=matchup` | R | |
-| D21 | | Stories, Email, Newsletter | Matchup-day sequence; B1; block, AM | | SE, CE, NL | |
-| D22 | Championship last day | Facebook, Instagram, Stories | Morning post and last-day sequence | SD-Matchup | SE | |
-| D22 | | Email | N5 | | CE | |
-| D22 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | |
-| D22 | | Newsletter | Block, AM+PM | Block | NL | |
-| D22 | 8 p.m. close | Admin | `close_round` returns null and the contest is complete. Health checks. Download the champion card and the exact shelter total | SD-Champion, SD-Raised | CE | The champion email goes out on the sweep |
-| D22 | | Facebook, Instagram | Night: "[Pet] is the champion" | SD-Champion | SE | social.md, Champion |
+| D22 | Sweet 16 day 1: the bracket reveal | Instagram, Facebook, TikTok if WPR has it | Reel | Screens (bracket); SD-Field; Gallery | R | social.md, Reel 1 |
+| D22 | | Facebook | Album of all eight matchups | SD-Matchup x8 (Square) | SE | social.md, Matchup day |
+| D22 | | Instagram | Carousel of eight matchups | SD-Matchup x8 (Portrait) | SE | |
+| D22 | | Instagram and Facebook Stories | Matchup-day sequence | SD-Matchup | SE | social.md, Stories |
+| D22 | | WPR story | "Meet the Sweet 16" | Widget `view=matchup` | R | Disclosure line |
+| D22 | | Newsletter | Block, AM | Block ("The Sweet 16 is on") | NL | |
+| D22 | | Facebook groups | Third WPR post per group: the bracket | | SE | |
+| D22 | | Email | B1 to opted-in buyers [if built] | | CE | emails.md, B1 |
+| D23 | Sweet 16 last day | Facebook, Instagram | Morning album, cards as of [time] | SD-Matchup | SE | social.md, Matchup last day |
+| D23 | | Email | N5 to entrants still in | | CE | emails.md, N5 |
+| D23 | | Stories | Last-day sequence | SD-Matchup | SE | |
+| D23 | | Open slot | Reel 2, upset watch, if a lower seed leads late | SD-Matchup | R | social.md, Reel 2 |
+| D23 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | social.md, Double Vote Hour |
+| D23 | | Newsletter | Block, AM+PM | Block | NL | |
+| D23 | 8 p.m. close | Admin | Close routine as on D21; download "The Elite Eight is set (8 pets)" and eight winner cards; `open_round` (Elite Eight) | SD-Field, SD-Winner | CE | |
+| D23 | | Facebook, Instagram | Night: "The Elite Eight is set," plus an upset post if a lower seed won | SD-Field, SD-Winner | SE | social.md, Round results; Upset |
+| D24 | Elite Eight day 1 | Facebook, Instagram | Four matchups | SD-Matchup x4 | SE | social.md, Matchup day |
+| D24 | | Reel | Reel 2, results version, if the Sweet 16 had an upset | SD-Winner | R | |
+| D24 | | Stories | Matchup-day sequence | SD-Matchup | SE | |
+| D24 | | Email | B1 [if built] | | CE | |
+| D24 | | Newsletter | Block, AM | Block | NL | |
+| D25 | Elite Eight last day | Facebook, Instagram, Stories | Morning album and last-day sequence | SD-Matchup | SE | |
+| D25 | | Email | N5 | | CE | |
+| D25 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | |
+| D25 | | Newsletter | Block, AM+PM | Block | NL | |
+| D25 | 8 p.m. close | Admin, Facebook, Instagram | Close routine; "The Final Four is set (4 pets)" | SD-Field, SD-Winner | CE, SE | |
+| D26 | Final Four day 1 | Facebook, Instagram | Two matchups | SD-Matchup x2 | SE | |
+| D26 | | WPR story | Optional Final Four profiles | Widget `pet=<id>` or `view=matchup` | R | |
+| D26 | | Facebook | Shelter milestone, if crossed | SD-Raised (milestone) | SE | |
+| D26 | | Stories, Email, Newsletter | Matchup-day sequence; B1; block, AM | | SE, CE, NL | |
+| D27 | Final Four last day | Facebook, Instagram, Stories | Morning post and last-day sequence | SD-Matchup | SE | |
+| D27 | | Email | N5 | | CE | |
+| D27 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | |
+| D27 | | Newsletter | Block, AM+PM | Block | NL | |
+| D27 | 8 p.m. close | Admin, Facebook, Instagram | Close routine; "The Championship is set (2 pets)" | SD-Field, SD-Winner | CE, SE | |
+| D28 | Championship day 1 | Facebook, Instagram | "[A] vs. [B] for the title" | SD-Matchup | SE | social.md, Matchup day (Championship) |
+| D28 | | WPR story | Championship preview | Widget `view=matchup` | R | |
+| D28 | | Stories, Email, Newsletter | Matchup-day sequence; B1; block, AM | | SE, CE, NL | |
+| D29 | Championship last day | Facebook, Instagram, Stories | Morning post and last-day sequence | SD-Matchup | SE | |
+| D29 | | Email | N5 | | CE | |
+| D29 | | Contest page, Stories | Double Vote Hour on the final evening, presented by [Sponsor] | Stories frame 5 | Sales, SE | |
+| D29 | | Newsletter | Block, AM+PM | Block | NL | |
+| D29 | 8 p.m. close | Admin | `close_round` returns null and the contest is complete. Health checks. Download the champion card and the exact shelter total | SD-Champion, SD-Raised | CE | The champion email goes out on the sweep |
+| D29 | | Facebook, Instagram | Night: "[Pet] is the champion" | SD-Champion | SE | social.md, Champion |
 
-## Champion and thank-you: D23 to D29
+## Champion and thank-you: D30 to D36
 
 | Day | Event | Channel | Format | Asset | Owner | Copy and notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| D23 | Champion morning | Instagram, Facebook, TikTok if WPR has it | Reel | SD-Champion; the pet page's road to the crown; SD-Raised | R | social.md, Reel 3 |
-| D23 | | WPR story | Champion story with photos | Widget `pet=<champion id>` | R | Disclosure line. No owner names in campaign copy |
-| D23 | | Facebook, Instagram | Side awards: Best Dog, Best Cat, Best Other | Screens (Results) | SE | social.md, Side awards |
-| D23 | | Facebook, Instagram | Shelter total | SD-Raised (exact) | SE | social.md, Shelter total |
-| D23 | | Newsletter | Block, AM+PM | Block ("Meet the [year] champion") | NL | |
-| D23 | | Facebook groups | Fourth and last WPR post per group | | SE | |
-| D24 | | Email | N6 thank-you to entrants | | CE | emails.md, N6 |
-| D24 | | Facebook | Thank-you to entrants, voters, Moments and sponsors | Gallery collage | SE | social.md, Thank you. Sponsors labeled |
-| D24 | | Newsletter | Block, AM, the last one | Block | NL | |
-| D25 | | Admin | Print the payout statement; download the archive; export the newsletter list | Wrap-up tab | CE | |
-| D25 | | Sales | Sponsor report from `round_revenue` and sponsor clicks | | Sales | |
-| D26 to D29 | Check presentation at [date] | Facebook, Instagram | Photo post | Staff photo with MFC | R, SE | Payout statement in hand |
-| D26 to D29 | | WPR story | Wrap-up: the total and the statement's top lines | | R | Disclosure line |
-| D26 to D29 | | Newsletter list | Thank-you email to newsletter opt-ins | | NL | WPR's own ask goes here, separate from vote packs (`docs/LAUNCH.md`, section 9, After) |
-| D29 | | Debrief | KPIs against targets; next year's changes; switch `HEALTH_CHECKS` off | | CE, EIC | |
+| D30 | Champion morning | Instagram, Facebook, TikTok if WPR has it | Reel | SD-Champion; the pet page's road to the crown; SD-Raised | R | social.md, Reel 3 |
+| D30 | | WPR story | Champion story with photos | Widget `pet=<champion id>` | R | Disclosure line. No owner names in campaign copy |
+| D30 | | Facebook, Instagram | Side awards: Best Dog, Best Cat, Best Other | Screens (Results) | SE | social.md, Side awards |
+| D30 | | Facebook, Instagram | Shelter total | SD-Raised (exact) | SE | social.md, Shelter total |
+| D30 | | Newsletter | Block, AM+PM | Block ("Meet the [year] champion") | NL | |
+| D30 | | Facebook groups | Fourth and last WPR post per group | | SE | |
+| D31 | | Email | N6 thank-you to entrants | | CE | emails.md, N6 |
+| D31 | | Facebook | Thank-you to entrants, voters, Moments and sponsors | Gallery collage | SE | social.md, Thank you. Sponsors labeled |
+| D31 | | Newsletter | Block, AM, the last one | Block | NL | |
+| D32 | | Admin | Print the payout statement; download the archive; export the newsletter list | Wrap-up tab | CE | |
+| D32 | | Sales | Sponsor report from `round_revenue` and sponsor clicks | | Sales | |
+| D33 to D36 | Check presentation at [date] | Facebook, Instagram | Photo post | Staff photo with MFC | R, SE | Payout statement in hand |
+| D33 to D36 | | WPR story | Wrap-up: the total and the statement's top lines | | R | Disclosure line |
+| D33 to D36 | | Newsletter list | Thank-you email to newsletter opt-ins | | NL | WPR's own ask goes here, separate from vote packs (`docs/LAUNCH.md`, section 9, After) |
+| D36 | | Debrief | KPIs against targets; next year's changes; switch `HEALTH_CHECKS` off | | CE, EIC | |
 | D+365 | | Admin | Erase personal data | Wrap-up tab | CE | The rules promise it |
 
 ## [IF FREE VOTE ON]

@@ -734,7 +734,7 @@ aside: it disappears on dark paper.
   public, so the Oct. 31 links would have landed on an empty site. Published
   early, the contest counts down until `submissions_open_at` and the
   database refuses entries until then.
-- **One thing to do:** "Add Nov. 14 to my calendar," an .ics with its
+- **One thing to do:** "Add Nov. 7 to my calendar," an .ics with its
   reminder at the opening, on Home and Enter. No address is collected.
 - **Enter before it opens** says when entries open and close, what to have
   ready (a photo you took, the pet's name and town, your name and email,

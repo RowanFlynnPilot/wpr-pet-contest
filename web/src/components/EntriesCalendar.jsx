@@ -5,7 +5,7 @@ import { entriesOpenIcs, icsHref } from '../lib/calendar.js'
 import { PUBLIC_URL } from '../lib/env.js'
 import { apDate } from '../lib/format.js'
 
-// "Add Nov. 14 to my calendar": the one thing to do before entries open. No
+// "Add Nov. 7 to my calendar": the one thing to do before entries open. No
 // address to hand over, and it works inside the WordPress iframe, where a
 // phone opens its calendar's own "add event" sheet.
 export default function EntriesCalendar({ contest, where, className = 'btn btn-primary btn-lg' }) {
