@@ -43,10 +43,11 @@ export const WPR_LOGO = NEWSROOM.wordmark
 export const SUPPORT_URL = NEWSROOM.supportUrl
 export const NEWSLETTER_URL = NEWSROOM.newsletterUrl
 
-// PLACEHOLDERS until WPR and counsel sign off. The rules page wears a DRAFT
-// ribbon while rulesApproved is false.
+// Approved by Lawyers for Reporters for the 2026 contest (Nov. 5, 2026). A
+// change to the eligibility or contact text goes back to counsel first; the
+// rules page wears a DRAFT ribbon while rulesApproved is false.
 export const RULES = {
-  rulesApproved: false,
+  rulesApproved: true,
   contact: NEWSROOM.contact,
   eligibility: `Entrants must be 18 or older and live in ${NEWSROOM.state}. One entry per pet. Employees of ${NEWSROOM.name} and members of their immediate families or households may not enter. Employees of partner shelters may enter their own pets but are not eligible for side awards.`,
 }
