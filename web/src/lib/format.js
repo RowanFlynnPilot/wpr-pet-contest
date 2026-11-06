@@ -34,6 +34,8 @@ export const plural = (n, one, many = `${one}s`) => `${apNumber(n)} ${n === 1 ? 
 const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 export const apNumber = (n) => (Number.isInteger(n) && n >= 0 && n < 10 ? WORDS[n] : fmtInt(n))
 export const apCount = (n, one, many = `${one}s`) => `${apNumber(n)} ${n === 1 ? one : many}`
+// A bracket round's length as readers say it: "48 hours", "four days".
+export const roundLength = (hours) => (hours >= 72 && hours % 24 === 0 ? apCount(hours / 24, 'day') : `${fmtInt(hours)} hours`)
 
 export function countdownParts(msLeft) {
   const s = Math.max(0, Math.floor(msLeft / 1000))

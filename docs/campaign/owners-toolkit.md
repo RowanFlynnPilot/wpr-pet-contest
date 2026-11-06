@@ -200,7 +200,7 @@ which now says "What a run, [Pet]!"
 
 Facebook:
 > [Pet] is the [year] Cutest Pet in Marathon County! Thank you to everyone who
-> voted, shared and put up with my posts for three weeks. Readers raised
+> voted, shared and put up with my posts for six weeks. Readers raised
 > [shelter total] for Moments Foster Care.
 
 ## Captions you can paste

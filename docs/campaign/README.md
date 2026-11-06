@@ -125,9 +125,10 @@ Planning estimates, not measurements. Replace them with year-one actuals.
 | Pre-launch 1 (D-14 to D-8) | Announcement story and posts, partner pack, Double Vote schedule, group list | 8 to 12 |
 | Pre-launch 2 (D-7 to D-1) | Daily posts, toolkit page, comment guidelines, Social desk rehearsal | 6 to 8 |
 | Entries, two weeks (D1 to D14) | Daily posts, groups, newsletter, plus moderation at about a minute an entry | 18 to 26, plus moderation |
-| Open Round (D15 to D21) | Daily leaderboard and bubble posts, a Double Vote Hour, emails, the close | 10 to 14 |
-| Bracket (D22 to D29) | Four evening closes at about an hour each, matchup posts, two or three Reels, the champion story | 18 to 24 |
-| Wrap-up (D30 to D36) | Champion and thank-you posts, check presentation, wrap-up story, sponsor report, debrief | 8 to 12 |
+| Open Round, two weeks (D15 to D28) | Daily leaderboard and bubble posts, one or two Double Vote Hours, emails, Thanksgiving off, the close | 18 to 24 |
+| Last Chance (D28 to D29) | Starting it at 8:10 p.m., its posts, then the round 1 close and the Sweet 16 opening | 3 to 4 |
+| Bracket, four four-day rounds (D30 to D45) | Four evening closes at about an hour each, matchup and mid-round posts, two or three Reels, the champion story | 26 to 34 |
+| Wrap-up (D46 to D54) | Champion and thank-you posts before Christmas, payout statement, check presentation (or early January), wrap-up story, sponsor report, debrief | 8 to 12 |
 
 Roles used throughout: contest editor (CE), social editor (SE), reporter (R),
 newsletter editor (NL), Sales (Chris Weber), editor-in-chief (EIC), and
