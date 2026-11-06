@@ -71,7 +71,12 @@ Screens (the Enter page).
 
 ### Cut line
 
-Post it from D17, and on every day of the last 72 hours. Asset: SD-Bubble.
+Post it from D17, and on every day of the last 72 hours (D26 to D28). Asset:
+SD-Bubble.
+
+With Last Chance on (2026), two lines matter: No. 15, the last pet in
+outright, and No. 20, the last pet into Last Chance. Swap "16" and "17" below
+for "15" and "16", and add the No. 20 line on the last day.
 
 Hooks:
 
@@ -104,7 +109,7 @@ album on Facebook and a carousel on Instagram.
 
 Hooks:
 
-- Specificity: "Eight matchups, about 48 hours, and every pet starts at zero."
+- Specificity: "Eight matchups, four days, and every pet starts at zero."
 - Question: "[A] or [B]? The Sweet 16 is on."
 - Story: "[A] made the bracket as the No. [x] seed. Today it's [A] vs. [B]."
 
@@ -199,7 +204,7 @@ Facebook, after the Open Round:
 ### Champion
 
 The night of the final close, post the first paragraph and the link. The full
-version goes out on D30. Asset: SD-Champion.
+version goes out on D46. Asset: SD-Champion.
 
 Hooks:
 
@@ -223,7 +228,7 @@ Facebook:
 
 ### Shelter total
 
-The final figure on D30, from the payout statement or SD-Raised (exact). A
+The final figure on D46, from the payout statement or SD-Raised (exact). A
 milestone while voting is open, from SD-Raised with the milestone box ticked.
 
 Hooks:
@@ -264,16 +269,16 @@ Announcement (D-14):
 >
 > Enter your pet free with one phone photo. Readers vote with vote packs, and
 > 50% of vote pack sales goes to Moments Foster Care. After a
-> week-long Open Round, the top 16 go head to head until one takes the title.
+> two-week Open Round, the top 16 go head to head until one takes the title.
 >
 > The rules, the dates and the split are on the contest page: [link]
 
 How it works (D-12, three cards from Screens):
 
 > Three steps to the title. Enter free by [date]. Every pet competes in the
-> Open Round, and the top 16 make the bracket. Then it's head to head, about
-> 48 hours a round, and vote totals reset every round, so every matchup starts
-> at zero.
+> Open Round, and the top 16 make the bracket. Then it's head to head, four
+> days a round, and vote totals reset every round, so every matchup starts at
+> zero.
 
 Meet Moments (D-11, written with Moments):
 
@@ -324,18 +329,27 @@ Open Round opens (D15):
 
 > Voting is open, and [N] pets are in the Open Round.
 >
-> Every pet competes at once until [day] at 8 p.m. The top 16 make the bracket,
-> seeded by their Open Round votes. Then vote totals reset, and every bracket
-> matchup starts at zero.
+> Every pet competes at once for two weeks, until [day] at 8 p.m. The top 15
+> make the bracket, seeded by their Open Round votes, and places 16 to 20 get a
+> 24-hour Last Chance at the last spot. Then vote totals reset, and every
+> bracket matchup starts at zero.
 >
 > Vote packs run from $5 for 5 votes to $250 for 600, and 50% of vote pack
 > sales goes to Moments Foster Care. Find your favorite: [link]
 
+Last Chance (D28 at night, then D29):
+
+> The Open Round is over, and 15 pets are in the bracket. Five more get one
+> last shot: places 16 to 20 have 24 hours, until [day] at 8 p.m., and the one
+> with the most Open Round votes when it ends takes the 16th spot. Only those
+> five can get votes until then. [link]
+
 Leaderboard (Open Round):
 
 > The Open Round's top 10 as of [time] [day]. [Pet] of [town] leads with [n]
-> votes. The top 16 make the bracket when voting closes [day] at 8 p.m., and
-> vote totals reset when the bracket starts. Every pet: [link]
+> votes. The top 15 make the bracket when voting closes [day] at 8 p.m., places
+> 16 to 20 get a Last Chance, and vote totals reset when the bracket starts.
+> Every pet: [link]
 
 Matchup last day:
 
@@ -354,13 +368,13 @@ Double Vote Hour (labeled):
 > see at checkout is the count you get. The [round] closes at 8 p.m., and vote
 > totals reset every round. [link]
 
-Side awards (D30):
+Side awards (D46):
 
 > Best Dog, Best Cat and Best Other go to the pets with the most Open Round
 > votes in each group: [Pet] of [town], [Pet] of [town] and [Pet] of [town].
 > The titles are theirs for the year.
 
-Thank you (D31):
+Thank you (D47):
 
 > Thank you to everyone who entered a pet ([N] in all), to everyone who voted,
 > to Moments Foster Care, and to our sponsors, [Sponsor names]. [Pet] has the title, and
@@ -387,7 +401,7 @@ Before posting any of the three:
 ### Reel 1: the bracket reveal
 
 Goal: sends, and taps through to the bracket. Length 30 to 35 seconds. Posted
-D22, late morning. Cover: the No. 1 seed's photo with "The Sweet 16 is set"
+D30, late morning. Cover: the No. 1 seed's photo with "The Sweet 16 is set"
 in the center of the frame, where the grid crop keeps it.
 
 | Time | Shot | On-screen text | Spoken | Audio |
@@ -397,7 +411,7 @@ in the center of the frame, where the grid crop keeps it.
 | 0:07 to 0:12 | The No. 1 seed's winner card, slow push in | No. 1 seed: [Pet], [town] | "The top seed is [Pet] of [town], with [n] Open Round votes." | |
 | 0:12 to 0:17 | The No. 16 seed's winner card | Last one in: [Pet], by [n] votes | "[Pet] got the last spot by [n] votes." | |
 | 0:17 to 0:24 | Reporter to camera, or text over a pet photo | Every matchup starts at zero | "Those votes are done. Totals reset every round, so all sixteen start at zero." | |
-| 0:24 to 0:30 | Screen recording: tap one matchup, show its Vote button | About 48 hours. More votes moves on. | "Each matchup runs about 48 hours. The pet with more votes moves on, and a tie goes to the better seed." | |
+| 0:24 to 0:30 | Screen recording: tap one matchup, show its Vote button | Four days. More votes moves on. | "Each matchup runs four days. The pet with more votes moves on, and a tie goes to the better seed." | |
 | 0:30 to 0:35 | The bracket zoomed on the empty Championship slot | Who's here on [day]? | "Who ends up here? The bracket's at the link in our bio." | Bed out |
 
 Loop: the empty Championship slot cuts straight back to the opening montage.
@@ -447,7 +461,7 @@ Keep it about seeds and numbers. No jokes at the losing pet's expense.
 ### Reel 3: the champion reveal
 
 Goal: sends and saves; the contest's last big moment. Length 35 to 40 seconds.
-Posted D30 in the morning. Cover: the SD-Champion card.
+Posted D46 in the morning. Cover: the SD-Champion card.
 
 A visit to film the champion at home is optional and needs the owner's
 consent. Film the pet. Hands are fine, and a face only if the owner agrees, but
@@ -531,7 +545,7 @@ No answer means no.
 
 ### Four posts per group, at most
 
-D1, D15, D22 and D30. Each one is news. Post as WPR's Page where the group
+D1, D15, D30 and D46. Each one is news. Post as WPR's Page where the group
 allows Pages. Otherwise follow WPR's social media policy: a staff member who
 says they're with WPR. Write each group's post fresh and space them out.
 Pasting one text into a dozen groups in ten minutes looks like spam to
@@ -549,12 +563,12 @@ D15, voting opens:
 > in, including pets from [town] and [town]. The top 16 make the bracket on
 > [day], and vote totals reset every round. [link]
 
-D22, the bracket:
+D30, the bracket:
 
 > The Sweet 16 is set in the Cutest Pet in Marathon County contest. Every
 > matchup starts at zero, and the round closes [day] at 8 p.m. [link]
 
-D30, the champion:
+D46, the champion:
 
 > [Pet] of [town] is this year's Cutest Pet in Marathon County, and readers
 > raised [shelter total] for Moments Foster Care. Thanks to [group]'s admins

@@ -1,4 +1,4 @@
-import { apDate, fmtMoney } from '../lib/format.js'
+import { apDate, fmtMoney, roundLength } from '../lib/format.js'
 import { cheapestPerVote } from '../lib/packs.js'
 import { roundLabel } from '../lib/rounds.js'
 import { useContest } from './ContestContext.jsx'
@@ -55,7 +55,7 @@ export default function HowItWorks({ compact = false }) {
         <li className="step">
           <h3>Head-to-head bracket</h3>
           <p>
-            The {roundLabel(2, bracketSize)} through the {roundLabel(1 + Math.log2(bracketSize), bracketSize)}, {hours} hours a round.
+            The {roundLabel(2, bracketSize)} through the {roundLabel(1 + Math.log2(bracketSize), bracketSize)}, {roundLength(hours)} a round.
             The pet with more votes moves on until one is crowned.
           </p>
         </li>

@@ -7,7 +7,7 @@
 create extension if not exists pgtap with schema extensions;
 
 begin;
-select plan(31);
+select plan(32);
 
 -- ---------------------------------------------------------------- fixtures --
 insert into auth.users (id) values ('11111111-1111-1111-1111-111111111111');
@@ -176,6 +176,11 @@ select results_eq(
      where q.kind = 'nurture_halfway' and q.round_id = 'e9000000-0000-0000-0000-000000000001' order by q.rank $$,
   $$ values ('Ivy'::text, 50, 1, 3, 40), ('Jax', 30, 2, 3, 20), ('Kit', 10, 3, 3, -21) $$,
   'halfway: rank, field, and the margin above the cut or the votes to pass the last pet in');
+-- A two-week Open Round: on day 4 it is not yet halfway (0034).
+update rounds set closes_at = now() + interval '10 days' where id = 'e9000000-0000-0000-0000-000000000001';
+select is((select count(*)::int from notification_queue(500) q where q.kind = 'nurture_halfway' and q.round_id = 'e9000000-0000-0000-0000-000000000001'), 0,
+  'halfway waits for the midpoint of a longer Open Round');
+update rounds set closes_at = now() + interval '3 days' where id = 'e9000000-0000-0000-0000-000000000001';
 select is((select count(*)::int from notification_queue(500) q where q.kind = 'nurture_open' and q.round_id = 'e9000000-0000-0000-0000-000000000001'), 0,
   'the "voting is open" note is not owed after day two');
 

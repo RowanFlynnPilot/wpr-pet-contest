@@ -13,7 +13,7 @@ import { FreeVoteSetting } from './FreeVotes.jsx'
 import LastChanceSetting from './LastChance.jsx'
 
 const BRACKETS = [8, 16, 32]
-const ROUND_HOURS = [24, 48, 72]
+const ROUND_HOURS = [24, 48, 72, 96, 120]
 
 function SettingsFields({ d, set, withYear }) {
   return (
@@ -55,7 +55,7 @@ function SettingsFields({ d, set, withYear }) {
         <select value={d.hours} onChange={(e) => set({ hours: Number(e.target.value) })}>
           {ROUND_HOURS.map((h) => (
             <option key={h} value={h}>
-              {h} hours
+              {h} hours{h >= 72 ? ` (${h / 24} days)` : ''}
             </option>
           ))}
         </select>

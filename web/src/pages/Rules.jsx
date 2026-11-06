@@ -1,6 +1,6 @@
 import { NEWSROOM, RULES } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
-import { andList, apDate, apDateTime, fmtInt, fmtMoney, period, TIME_ZONE_NAME } from '../lib/format.js'
+import { andList, apDate, apDateTime, fmtInt, fmtMoney, period, roundLength, TIME_ZONE_NAME } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import { formatPerVote } from '../lib/packs.js'
 import { bracketRoundCount, roundLabel } from '../lib/rounds.js'
@@ -155,7 +155,7 @@ export default function Rules() {
                       : `Top ${size} from the Open Round, seeded 1 to ${size}`
                     : 'Winners of the previous round'}
                 </td>
-                <td>{r.round && r.round.status !== 'pending' ? `Closes ${apDateTime(r.round.closes_at, { weekday: false })}` : `About ${hours} hours`}</td>
+                <td>{r.round && r.round.status !== 'pending' ? `Closes ${apDateTime(r.round.closes_at, { weekday: false })}` : `About ${roundLength(hours)}`}</td>
               </tr>
             ))}
           </tbody>
