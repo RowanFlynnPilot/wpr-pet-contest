@@ -71,7 +71,7 @@ Screens (the Enter page).
 
 ### Cut line
 
-Post it from D17, and on every day of the last 72 hours (D26 to D28). Asset:
+Post it from D14, and on every day of the last 72 hours (D23 to D25). Asset:
 SD-Bubble.
 
 With Last Chance on (2026), two lines matter: No. 15, the last pet in
@@ -204,7 +204,7 @@ Facebook, after the Open Round:
 ### Champion
 
 The night of the final close, post the first paragraph and the link. The full
-version goes out on D46. Asset: SD-Champion.
+version goes out on D43. Asset: SD-Champion.
 
 Hooks:
 
@@ -228,7 +228,7 @@ Facebook:
 
 ### Shelter total
 
-The final figure on D46, from the payout statement or SD-Raised (exact). A
+The final figure on D43, from the payout statement or SD-Raised (exact). A
 milestone while voting is open, from SD-Raised with the milestone box ticked.
 
 Hooks:
@@ -315,17 +315,17 @@ New entries (entries week):
 > [N] pets have entered so far. These came in this morning: [Pet] of [town],
 > [Pet] of [town], [Pet] of [town]. Is yours in? Entries close [day] at [time].
 
-Last 48 hours (D13):
+Last 48 hours (D10):
 
 > Two days left to enter. Entries close [day] at [time], and [N] pets are in so
 > far. It's free, and an editor checks every entry.
 
-Last day to enter (D14):
+Last day to enter (D11):
 
 > Entries close tonight at [time]. If your pet isn't in yet, there's still
 > time.
 
-Open Round opens (D15):
+Open Round opens (D12):
 
 > Voting is open, and [N] pets are in the Open Round.
 >
@@ -337,7 +337,7 @@ Open Round opens (D15):
 > Vote packs run from $5 for 5 votes to $250 for 600, and 50% of vote pack
 > sales goes to Moments Foster Care. Find your favorite: [link]
 
-Last Chance (D28 at night, then D29):
+Last Chance (D25 at night, then D26):
 
 > The Open Round is over, and 15 pets are in the bracket. Five more get one
 > last shot: places 16 to 20 have 24 hours, until [day] at 8 p.m., and the one
@@ -368,13 +368,13 @@ Double Vote Hour (labeled):
 > see at checkout is the count you get. The [round] closes at 8 p.m., and vote
 > totals reset every round. [link]
 
-Side awards (D46):
+Side awards (D43):
 
 > Best Dog, Best Cat and Best Other go to the pets with the most Open Round
 > votes in each group: [Pet] of [town], [Pet] of [town] and [Pet] of [town].
 > The titles are theirs for the year.
 
-Thank you (D47):
+Thank you (D44):
 
 > Thank you to everyone who entered a pet ([N] in all), to everyone who voted,
 > to Moments Foster Care, and to our sponsors, [Sponsor names]. [Pet] has the title, and
@@ -401,7 +401,7 @@ Before posting any of the three:
 ### Reel 1: the bracket reveal
 
 Goal: sends, and taps through to the bracket. Length 30 to 35 seconds. Posted
-D30, late morning. Cover: the No. 1 seed's photo with "The Sweet 16 is set"
+D27, late morning. Cover: the No. 1 seed's photo with "The Sweet 16 is set"
 in the center of the frame, where the grid crop keeps it.
 
 | Time | Shot | On-screen text | Spoken | Audio |
@@ -461,7 +461,7 @@ Keep it about seeds and numbers. No jokes at the losing pet's expense.
 ### Reel 3: the champion reveal
 
 Goal: sends and saves; the contest's last big moment. Length 35 to 40 seconds.
-Posted D46 in the morning. Cover: the SD-Champion card.
+Posted D43 in the morning. Cover: the SD-Champion card.
 
 A visit to film the champion at home is optional and needs the owner's
 consent. Film the pet. Hands are fine, and a face only if the owner agrees, but
@@ -545,7 +545,7 @@ No answer means no.
 
 ### Four posts per group, at most
 
-D1, D15, D30 and D46. Each one is news. Post as WPR's Page where the group
+D1, D12, D27 and D43. Each one is news. Post as WPR's Page where the group
 allows Pages. Otherwise follow WPR's social media policy: a staff member who
 says they're with WPR. Write each group's post fresh and space them out.
 Pasting one text into a dozen groups in ten minutes looks like spam to
@@ -557,18 +557,18 @@ D1, entries open:
 > entries until [day] at [time]. It's free: one phone photo, and an editor
 > checks every entry. Voting starts [date], and 50% of vote pack sales goes to Moments Foster Care. [link]
 
-D15, voting opens:
+D12, voting opens:
 
 > Voting is open in the Cutest Pet in Marathon County contest. [N] pets are
 > in, including pets from [town] and [town]. The top 16 make the bracket on
 > [day], and vote totals reset every round. [link]
 
-D30, the bracket:
+D27, the bracket:
 
 > The Sweet 16 is set in the Cutest Pet in Marathon County contest. Every
 > matchup starts at zero, and the round closes [day] at 8 p.m. [link]
 
-D46, the champion:
+D43, the champion:
 
 > [Pet] of [town] is this year's Cutest Pet in Marathon County, and readers
 > raised [shelter total] for Moments Foster Care. Thanks to [group]'s admins

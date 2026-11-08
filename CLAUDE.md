@@ -293,9 +293,10 @@ the buttons call, for when the panel is not an option.
 
 Total elapsed: roughly two and a half weeks. Do not stretch it. Past three
 weeks everyone is exhausted, staff included. (2026 is the exception the
-newsroom chose: two weeks of entries, Nov. 7 to 20 (Nov. 1), then a two-week
-Open Round to Dec. 4, Last Chance, and four-day bracket rounds to a Dec. 21
-champion (Nov. 5): 45 days in all. docs/campaign/calendar.md has the dates.)
+newsroom chose: entries Nov. 10 to 20 (moved from Nov. 7 on Nov. 8), then a
+two-week Open Round to Dec. 4, Last Chance, and four-day bracket rounds to a
+Dec. 21 champion (Nov. 5): 42 days in all. docs/campaign/calendar.md has the
+dates.)
 
 ## Local development
 

@@ -122,13 +122,13 @@ Planning estimates, not measurements. Replace them with year-one actuals.
 
 | Week | Main work | Estimated staff hours |
 | --- | --- | --- |
-| Pre-launch 1 (D-14 to D-8) | Announcement story and posts, partner pack, Double Vote schedule, group list | 8 to 12 |
+| Pre-launch 1 (D-14 to D-8; in 2026 all on Nov. 9) | Announcement story and posts, partner pack, Double Vote schedule, group list | 8 to 12 |
 | Pre-launch 2 (D-7 to D-1) | Daily posts, toolkit page, comment guidelines, Social desk rehearsal | 6 to 8 |
-| Entries, two weeks (D1 to D14) | Daily posts, groups, newsletter, plus moderation at about a minute an entry | 18 to 26, plus moderation |
-| Open Round, two weeks (D15 to D28) | Daily leaderboard and bubble posts, one or two Double Vote Hours, emails, Thanksgiving off, the close | 18 to 24 |
-| Last Chance (D28 to D29) | Starting it at 8:10 p.m., its posts, then the round 1 close and the Sweet 16 opening | 3 to 4 |
-| Bracket, four four-day rounds (D30 to D45) | Four evening closes at about an hour each, matchup and mid-round posts, two or three Reels, the champion story | 26 to 34 |
-| Wrap-up (D46 to D54) | Champion and thank-you posts before Christmas, payout statement, check presentation (or early January), wrap-up story, sponsor report, debrief | 8 to 12 |
+| Entries, 10 and a half days (D1 to D11) | Daily posts, groups, newsletter, plus moderation at about a minute an entry | 14 to 20, plus moderation |
+| Open Round, two weeks (D12 to D25) | Daily leaderboard and bubble posts, one or two Double Vote Hours, emails, Thanksgiving off, the close | 18 to 24 |
+| Last Chance (D25 to D26) | Starting it at 8:10 p.m., its posts, then the round 1 close and the Sweet 16 opening | 3 to 4 |
+| Bracket, four four-day rounds (D27 to D42) | Four evening closes at about an hour each, matchup and mid-round posts, two or three Reels, the champion story | 26 to 34 |
+| Wrap-up (D43 to D51) | Champion and thank-you posts before Christmas, payout statement, check presentation (or early January), wrap-up story, sponsor report, debrief | 8 to 12 |
 
 Roles used throughout: contest editor (CE), social editor (SE), reporter (R),
 newsletter editor (NL), Sales (Chris Weber), editor-in-chief (EIC), and
