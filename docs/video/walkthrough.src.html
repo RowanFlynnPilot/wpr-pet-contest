@@ -70,6 +70,9 @@ html, body { margin: 0; background: var(--deep) }
 .e-p { margin: 0; font: 400 46px/1.4 var(--sans); color: #d9ebe7 }
 .e-url { margin: 30px 0 0; font: 700 50px/1.25 var(--sans); color: #fff; padding-top: 30px; border-top: 3px solid rgba(255, 255, 255, .35) }
 .e-url small { display: block; font: 600 30px/1.4 var(--sans); color: #b9d6d0; margin-top: 10px }
+.e-mfc { margin: 0; display: flex; align-items: center; gap: 26px; font: 700 38px/1.25 var(--sans); color: #fff }
+.e-mfc img { width: 124px; height: 124px; flex: none; border-radius: 22px; border: 4px solid #fff; object-fit: cover; background: #fff }
+.e-mfc small { display: block; font: 400 32px/1.35 var(--sans); color: #d9ebe7; margin-top: 6px }
 .e-mast { left: 80px; bottom: 130px; display: flex; align-items: center; gap: 22px }
 .e-mast img.badge { width: 84px; height: 84px; border-radius: 50%; background: #fff }
 .e-mast img.word { height: 40px; filter: invert(1) }
@@ -122,7 +125,7 @@ html, body { margin: 0; background: var(--deep) }
 [data-format="wide"] .sample { left: 140px; bottom: 56px; width: 860px; text-align: left }
 [data-format="wide"] .e-stack { left: 140px; top: 50%; width: 1500px; transform: translateY(-58%) }
 [data-format="wide"] .e-h { font-size: 150px }
-[data-format="wide"] .e-mast { left: 140px; bottom: 84px }
+[data-format="wide"] .e-mast { left: auto; right: 140px; bottom: 84px }
 
 /* Square (feeds): the same split as 16:9, tighter, the phone at 0.74. */
 [data-format="square"] #stage, [data-format="square"] .scene, [data-format="square"] .paws { width: 1080px; height: 1080px }
@@ -148,6 +151,9 @@ html, body { margin: 0; background: var(--deep) }
 [data-format="square"] .e-p { font-size: 40px }
 [data-format="square"] .e-url { font-size: 44px; margin-top: 18px; padding-top: 24px }
 [data-format="square"] .e-url small { font-size: 28px }
+[data-format="square"] .e-mfc { font-size: 32px; gap: 18px }
+[data-format="square"] .e-mfc img { width: 88px; height: 88px; border-radius: 16px }
+[data-format="square"] .e-mfc small { font-size: 27px }
 [data-format="square"] .e-mast { left: 70px; bottom: 64px }
 [data-format="square"] .e-mast img.badge { width: 72px; height: 72px }
 [data-format="square"] .e-mast img.word { height: 36px }
@@ -222,7 +228,8 @@ html, body { margin: 0; background: var(--deep) }
       <h2 class="e-h fx" id="e-h"><em>Tuesday,</em><br>Nov. 10</h2>
       <span class="e-bar" id="e-bar"></span>
       <p class="e-p fx" id="e-p">Enter free. Vote all the way to the champion, Dec.&nbsp;21.</p>
-      <p class="e-url fx" id="e-url">wausaupilotandreview.com<small>Vote packs are not donations. Half of sales goes to Moments Foster Care.</small></p>
+      <p class="e-mfc fx" id="e-mfc"><img src="../../web/public/moments-foster-care.jpg" alt=""><span>Benefiting Moments Foster Care<small>Half of sales goes to the Hatley nonprofit.</small></span></p>
+      <p class="e-url fx" id="e-url">wausaupilotandreview.com<small>Vote packs are not donations.</small></p>
     </div>
     <div class="abs e-stack only-newsroom">
       <p class="kick fx" id="n-kick">For newsrooms</p>
@@ -502,6 +509,8 @@ function seek(ts) {
     arrive($(pp), p(t, 26.7, 27.3), 30);
     arrive($(u), p(t, 27.2, 27.8), 20);
   }
+  // Moments' line lands between the promise and the address.
+  arrive($('e-mfc'), p(t, 26.95, 27.55), 20);
   arrive($('e-mast'), p(t, 27.7, 28.3), 20);
 }
 
