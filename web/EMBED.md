@@ -57,10 +57,30 @@ What the line carries:
 - Make sure nothing else is in that block, above all no `<script>`. One
   script in the block and the firewall refuses the whole save.
 
-## Optional: the site-wide script
+## The rules page
 
-With the iframe alone, the contest works. One line of site-wide code, added
-once by a WordPress administrator, adds two things:
+A second page, so the rules have their own address on wausaupilotandreview.com
+whether or not the site-wide script below is in. Same steps as the contest
+page: **Pages > Add New**, title "Cutest Pet contest rules", slug
+`pet-contest-rules`, full width, one Custom HTML block with only this line,
+publish, purge in LiteSpeed, check the published page:
+
+```html
+<iframe src="https://rowanflynnpilot.github.io/wpr-pet-contest/#/rules" title="Cutest Pet in Marathon County: official rules" style="width:100%;height:88vh;min-height:640px;border:0;display:block" allow="payment; web-share; clipboard-write" data-no-lazy="1"></iframe>
+```
+
+The route is in the iframe's own address, so it needs no script. Links in
+stories, posts and emails can then say
+`wausaupilotandreview.com/pet-contest-rules/`.
+
+## The site-wide script (needed for links to land on WPR's site)
+
+With the iframe alone, the contest works, but every link the contest sends
+out (a pet's share link, the emails, the share pages) has to open the contest
+at its GitHub address, because a link to `…/pet-contest/#/pet/<id>` can't reach
+the right screen inside the page. One line of site-wide code, added once by a
+WordPress administrator, fixes that, so every link lands on
+wausaupilotandreview.com:
 
 - **Share links open the pet.** A link to `…/pet-contest/#/pet/<id>` opens
   that pet's page. Without it, such a link opens the contest's home.
