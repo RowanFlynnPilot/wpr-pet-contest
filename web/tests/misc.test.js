@@ -93,7 +93,8 @@ describe('datetime-local round trip', () => {
   })
 })
 
-import { cleanName, slim, thumb } from '../scripts/adoptables.mjs'
+import { cleanName, profile, slim, thumb } from '../scripts/adoptables.mjs'
+import { petHref } from '../src/components/AdoptButton.jsx'
 
 describe('adoptables', () => {
   it('drops the shelter notes from a name', () => {
@@ -111,13 +112,47 @@ describe('adoptables', () => {
       lastUpdated: '2026-10-24T16:25:21Z',
       shelters: {
         marathon: [
-          { name: 'Argus *Barn Cat*', species: 'Cat', breed: 'Domestic Shorthair', age: 'Adult', photo: 'https://media.adoptapet.com/image/upload/a/f/1' },
+          {
+            name: 'Argus *Barn Cat*',
+            species: 'Cat',
+            breed: 'Domestic Shorthair',
+            age: 'Adult',
+            photo: 'https://media.adoptapet.com/image/upload/a/f/1',
+            url: 'https://www.adoptapet.com/pet/48430997-wausau-wisconsin-cat',
+          },
           { name: 'Breckie', species: 'Dog', photo: 'https://www.wausaubusinessdirectory.com/images/x' },
         ],
         lincoln: { 0: { name: 'Browse Adoptable Dogs', placeholder: true } },
       },
     })
     expect(out.total).toBe(2)
-    expect(out.pets).toEqual([{ name: 'Argus', species: 'Cat', breed: 'Domestic Shorthair', age: 'Adult', photo: 'https://media.adoptapet.com/image/upload/c_auto,g_auto,w_120,ar_1:1,dpr_2/f/1' }])
+    expect(out.pets).toEqual([
+      {
+        name: 'Argus',
+        species: 'Cat',
+        breed: 'Domestic Shorthair',
+        age: 'Adult',
+        photo: 'https://media.adoptapet.com/image/upload/c_auto,g_auto,w_120,ar_1:1,dpr_2/f/1',
+        id: 'aap-48430997',
+        url: 'https://www.adoptapet.com/pet/48430997-wausau-wisconsin-cat',
+      },
+    ])
+  })
+  it('keeps only a real Adopt-a-Pet listing as the pet link', () => {
+    expect(profile('https://www.adoptapet.com/pet/48430997-wausau-wisconsin-cat')).toEqual({
+      id: 'aap-48430997',
+      url: 'https://www.adoptapet.com/pet/48430997-wausau-wisconsin-cat',
+    })
+    expect(profile('https://evil.example/pet/1')).toBe(null)
+    expect(profile('javascript:alert(1)//www.adoptapet.com/pet/1')).toBe(null)
+    expect(profile(null)).toBe(null)
+  })
+  it('sends the pet to the adopt widget, else its listing, else nowhere', () => {
+    const page = 'https://rowanflynnpilot.github.io/wpr-adopt-widget/adopt-widget.html?utm_source=pet-contest'
+    const pet = { id: 'aap-48430997', url: 'https://www.adoptapet.com/pet/48430997-wausau-wisconsin-cat' }
+    expect(petHref(pet, page)).toBe(`${page}#pet/aap-48430997`)
+    expect(petHref(pet, null)).toBe(pet.url)
+    expect(petHref({ name: 'Featured' }, page)).toBe(null)
+    expect(petHref(null, page)).toBe(null)
   })
 })

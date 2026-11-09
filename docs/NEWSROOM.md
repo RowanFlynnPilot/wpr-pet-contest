@@ -50,7 +50,9 @@ own hue so a red brand never reads as an error.
 - Optionally an adoption page (`adoptUrl`), the JSON feed of its pets
   (`adoptablesFeed`, the shape of WPR's adopt widget's `pet-data.json`) and
   the area to name (`adoptRegion`): the "Meet a pet" button. Leave them null
-  and the button does not render.
+  and the button does not render. `adoptPetPage`, a page that opens one pet
+  from `#pet/aap-<id>` (WPR's adopt widget does), sends the pet's name and
+  photo to that pet; without it they go to the pet's own Adopt-a-Pet page.
 - `VITE_NEWSROOM=<key> npm run og-card` redraws the default share card in your
   name, region and colors (it reads `newsrooms.js` and `tokens.css`).
 - The contest itself (name, dates, split, packs, shelters) in the admin desk.
