@@ -6,8 +6,9 @@ import { APP_BASE } from '../lib/env.js'
 import { fmtInt } from '../lib/format.js'
 import { Arrow } from './Icons.jsx'
 
-// One of the newsroom's adoptable pets, picked at random, as the way into its
-// adoption page. The pets come from adoptables.json, built at deploy
+// One of the newsroom's adoptable pets, picked at random: its name and photo
+// open that pet, and a line under it opens the whole adoption page. The pets
+// come from adoptables.json, built at deploy
 // (scripts/adoptables.mjs); without it, the newsroom's featured pet; without
 // that, a plain invitation. Loaded only when the button nears the screen.
 const clean = (name) =>
@@ -29,6 +30,15 @@ async function pickPet() {
   }
   const featured = await fetchFeaturedAdoptable()
   return featured ? { name: clean(featured.name), species: featured.species, breed: featured.breed, age: featured.age, photo: null } : null
+}
+
+// Where the pet's name and photo go: the pet itself, in the newsroom's adopt
+// widget when it has one, else on its own Adopt-a-Pet page. Null when the
+// listing is unknown (the featured-pet fallback), so the card has one link.
+export function petHref(pet, page = NEWSROOM.adoptPetPage) {
+  if (!pet) return null
+  if (page && /^aap-\d+$/.test(pet.id || '')) return `${page}#pet/${pet.id}`
+  return /^https:\/\/www\.adoptapet\.com\/pet\//.test(pet.url || '') ? pet.url : null
 }
 
 export default function AdoptButton({ className = '' }) {
@@ -67,40 +77,61 @@ export default function AdoptButton({ className = '' }) {
   const facts = pet ? [pet.breed, pet.age].filter(Boolean).join(' · ') : ''
   const others = pet?.total > 1 ? pet.total - 1 : 0
   const region = NEWSROOM.adoptRegion || NEWSROOM.region
+  const profile = petHref(pet)
+  // With a pet's listing the card has two ways in: the pet, and every pet.
+  // Without one, the whole card opens the adoption page, as before.
   return (
-    <a
-      ref={ref}
-      className={`adopt-button${pet ? ' has-pet' : ''} ${className}`}
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() => track('Adopt Button', { pet: pet?.name || 'none' })}
-    >
-      <span className="adopt-button-photo">
-        {pet?.photo && !photoFailed ? (
-          <img src={pet.photo} alt="" width="64" height="64" decoding="async" onError={() => setPhotoFailed(true)} />
-        ) : (
-          <span className="adopt-button-paw" aria-hidden="true">
-            🐾
+    <div ref={ref} className={`adopt-card${pet ? ' has-pet' : ''}${profile ? ' has-profile' : ''} ${className}`}>
+      <a
+        className="adopt-button"
+        href={profile || url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => track('Adopt Button', { pet: pet?.name || 'none', to: profile ? 'pet' : 'all' })}
+      >
+        <span className="adopt-button-photo">
+          {pet?.photo && !photoFailed ? (
+            <img src={pet.photo} alt="" width="64" height="64" decoding="async" onError={() => setPhotoFailed(true)} />
+          ) : (
+            <span className="adopt-button-paw" aria-hidden="true">
+              🐾
+            </span>
+          )}
+          <span className="adopt-button-heart" aria-hidden="true">
+            ❤️
           </span>
-        )}
-        <span className="adopt-button-heart" aria-hidden="true">
-          ❤️
         </span>
-      </span>
-      <span className="adopt-button-text">
-        <span className="adopt-button-kicker">Adopt a pet</span>
-        <span className="adopt-button-title">{pet ? `Meet ${pet.name}` : 'Meet a pet who needs a home'}</span>
-        <span className="adopt-button-sub">
-          {pet
-            ? [facts, others ? `one of ${fmtInt(pet.total)} pets waiting` : 'waiting for a home'].filter(Boolean).join(' · ')
-            : `Adoptable pets from shelters across ${region}`}
+        <span className="adopt-button-text">
+          <span className="adopt-button-kicker">Adopt a pet</span>
+          <span className="adopt-button-title">{pet ? `Meet ${pet.name}` : 'Meet a pet who needs a home'}</span>
+          <span className="adopt-button-sub">
+            {!pet
+              ? `Adoptable pets from shelters across ${region}`
+              : profile
+                ? facts || 'Waiting for a home'
+                : [facts, others ? `one of ${fmtInt(pet.total)} pets waiting` : 'waiting for a home'].filter(Boolean).join(' · ')}
+          </span>
         </span>
-      </span>
-      <span className="adopt-button-go" aria-hidden="true">
-        <Arrow size={18} />
-      </span>
-      <span className="sr-only"> (opens in a new tab)</span>
-    </a>
+        <span className="adopt-button-go" aria-hidden="true">
+          <Arrow size={18} />
+        </span>
+        <span className="sr-only"> (opens in a new tab)</span>
+      </a>
+      {profile && (
+        <a
+          className="adopt-all"
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => track('Adopt Button', { pet: pet.name, to: 'all' })}
+        >
+          <span>
+            {others ? `Browse all ${fmtInt(pet.total)} adoptable pets` : `Browse adoptable pets in ${region}`}
+          </span>
+          <Arrow size={15} />
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      )}
+    </div>
   )
 }

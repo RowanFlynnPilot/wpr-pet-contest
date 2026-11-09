@@ -1,7 +1,8 @@
 // adoptables.json: the newsroom's adoptable pets, slimmed for the "Meet a
 // pet" button (src/components/AdoptButton.jsx). Built at deploy from the
 // newsroom's feed (WPR: the adopt widget's pet-data.json, about 480 KB) into
-// what a phone can afford: name, species, breed, age and a square thumbnail.
+// what a phone can afford: name, species, breed, age, a square thumbnail and
+// the pet's own listing.
 //
 //   node scripts/adoptables.mjs <outDir>      (npm run build runs it into dist/)
 //
@@ -29,6 +30,13 @@ export function thumb(url) {
     : url
 }
 
+// The pet's own Adopt-a-Pet page: the only listing address the button
+// follows, and the id the adopt widget opens it by.
+export function profile(url) {
+  const m = /^https:\/\/www\.adoptapet\.com\/pet\/(\d+)[\w-]*\/?$/.exec(String(url || ''))
+  return m ? { id: `aap-${m[1]}`, url: m[0] } : null
+}
+
 export function slim(data) {
   const pets = []
   let total = 0
@@ -40,7 +48,8 @@ export function slim(data) {
       if (!p.photo || !/media\.adoptapet\.com/.test(p.photo)) continue
       const name = cleanName(p.name)
       if (!name || name.length > 24) continue
-      pets.push({ name, species: p.species || null, breed: p.breed || null, age: p.age || null, photo: thumb(p.photo) })
+      const link = profile(p.url)
+      pets.push({ name, species: p.species || null, breed: p.breed || null, age: p.age || null, photo: thumb(p.photo), id: link?.id || null, url: link?.url || null })
     }
   }
   return { updated: data?.lastUpdated || null, total, pets }

@@ -28,8 +28,11 @@ export const NEWSROOMS = {
     wordmark: `${BASE}wpr-wordmark.png`,
     // The newsroom's adoption page (the "Meet a pet" button opens it), the
     // feed its pets come from (built into adoptables.json at deploy by
-    // scripts/adoptables.mjs) and the area the button names.
+    // scripts/adoptables.mjs) and the area the button names. adoptPetPage
+    // opens one pet from #pet/aap-<id>: the adopt widget's own address,
+    // because WordPress can't pass a #pet/ link into its iframe.
     adoptUrl: 'https://wausaupilotandreview.com/adopt-a-pet-central-wisconsin-pet-finder/?utm_source=pet-contest&utm_medium=adopt-button',
+    adoptPetPage: 'https://rowanflynnpilot.github.io/wpr-adopt-widget/adopt-widget.html?utm_source=pet-contest&utm_medium=adopt-button',
     adoptablesFeed: 'https://rowanflynnpilot.github.io/wpr-adopt-widget/pet-data.json',
     adoptRegion: 'Central Wisconsin',
     supportUrl: 'https://wausaupilotandreview.com/support-our-publication/?utm_source=pet-contest&utm_medium=widget&utm_campaign=post-purchase',
@@ -64,6 +67,7 @@ export const NEWSROOMS = {
     wordmark: null,
     // No adoption page: the button does not render.
     adoptUrl: null,
+    adoptPetPage: null,
     adoptablesFeed: null,
     adoptRegion: null,
     supportUrl: 'https://example.org/subscribe/',
