@@ -112,6 +112,15 @@ export default function Rounds() {
       setAfter({ round: r, next, late: late.rows.length, lateError: late.error, photos: photos.rows.length, mail })
     })
 
+  // The schedule only: when a round that has not opened is due to (0036).
+  // The public pages and the "voting opens" emails quote it. The round still
+  // opens only when someone presses Open.
+  const reschedule = (r) =>
+    run(async () => {
+      await q(admin.rpc('reschedule_round', { p_round_id: r.id, p_opens_at: fromLocalInput(closesAt) }))
+      say(`${roundLabel(r.seq, size)} is now scheduled to open ${stamp(fromLocalInput(closesAt))}.`)
+    })
+
   function startOpen(r) {
     setClosesAt(toLocalInput(r.closes_at))
     setAction({ kind: 'open', round: r })
@@ -219,6 +228,20 @@ export default function Rounds() {
                         Open…
                       </button>
                     )}
+                    {r.status === 'pending' && (
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        style={{ marginLeft: 6 }}
+                        onClick={() => {
+                          setClosesAt(toLocalInput(r.opens_at))
+                          setAction({ kind: 'move', round: r })
+                        }}
+                        disabled={busy}
+                      >
+                        Change start…
+                      </button>
+                    )}
                     {r.id === open?.id && lastChanceDue(r) && (
                       <>
                         <button
@@ -282,6 +305,32 @@ export default function Rounds() {
             <span className="hint">Prefilled from the schedule. Must be at least an hour from now.</span>
           </label>
         </TypedConfirm>
+      )}
+
+      {action?.kind === 'move' && (
+        <div className="card">
+          <h3>When the {roundLabel(action.round.seq, size)} opens</h3>
+          <p className="small">
+            The scheduled start, as the rules page, the countdowns and the &ldquo;voting opens&rdquo; emails quote it. Changing it opens
+            nothing: the round opens when you press Open.
+          </p>
+          <label className="field">
+            <span className="label">Opens at (your local time)</span>
+            <input type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+            <span className="hint">
+              {action.round.seq === 1 ? `Not before entries close (${stamp(contest.submissions_close_at)}). ` : ''}At least a day before it closes (
+              {stamp(action.round.closes_at)}).
+            </span>
+          </label>
+          <div className="tool-row">
+            <button type="button" className="btn btn-primary" onClick={() => reschedule(action.round)} disabled={busy || !closesAt}>
+              Save the start
+            </button>
+            <button type="button" className="btn" onClick={() => setAction(null)} disabled={busy}>
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
 
       {action?.kind === 'lastchance' && (

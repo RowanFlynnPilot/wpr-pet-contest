@@ -22,7 +22,9 @@ import { cancelStaleIntents, stripeClient } from "../_shared/stripe.ts";
 import { safeEqual } from "../_shared/validate.ts";
 
 // Restricted key: PaymentIntents write (list, and cancel unpaid checkouts), Charges read.
-const stripe = stripeClient("STRIPE_KEY_HEALTH");
+// Before Stripe is set up there is no key at all: the other checks still run,
+// and the missing key is itself a warning, rather than every check failing.
+const stripe = optionalEnv("STRIPE_KEY_HEALTH") || optionalEnv("STRIPE_SECRET_KEY") ? stripeClient("STRIPE_KEY_HEALTH") : null;
 const CRON_SECRET = optionalEnv("CRON_SECRET");
 const STAFF = (optionalEnv("STAFF_ALERT_EMAILS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 const WEBHOOK = optionalEnv("ALERT_WEBHOOK_URL");
@@ -57,7 +59,7 @@ serve(async (req) => {
   if (scheduled) {
     const { data: stale, error: staleError } = await service.rpc("stale_pending_intents", { p_limit: 50 });
     if (staleError) console.error("stale checkouts not read", staleError);
-    else canceled = (await cancelStaleIntents(stripe, service, ((stale ?? []) as { payment_intent: string }[]).map((r) => r.payment_intent))).canceled;
+    else if (stripe) canceled = (await cancelStaleIntents(stripe, service, ((stale ?? []) as { payment_intent: string }[]).map((r) => r.payment_intent))).canceled;
   }
 
   if (scheduled) {
@@ -82,6 +84,13 @@ serve(async (req) => {
 
 
 async function stripeCheck(): Promise<Problem[]> {
+  if (!stripe) {
+    return [{
+      check_name: "stripe_not_configured",
+      severity: "warn",
+      detail: "No Stripe key is set, so vote packs cannot be sold or checked. Set STRIPE_SECRET_KEY before voting opens (docs/LAUNCH.md, section 2).",
+    }];
+  }
   const now = Math.floor(Date.now() / 1000);
   let intents: IntentLike[];
   try {

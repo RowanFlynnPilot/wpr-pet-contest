@@ -14,7 +14,11 @@ export function renditionPath(path, width, renditions) {
   return w ? `${m[1]}.w${w}.${m[2]}` : path
 }
 
-export function buildPhotoUrl(base, path, { width, height, quality = 75, resize = 'cover', transforms = false, renditions = [] } = {}) {
+// Width only: `contain`, the whole photo scaled down. Supabase's `cover` with
+// no height keeps the original height and cuts a width-wide strip from the
+// middle (a 1536x2048 photo at width=600 came back 600x2048), so every card
+// showed a zoomed slice and lost the pet's head. The page crops with CSS.
+export function buildPhotoUrl(base, path, { width, height, quality = 75, resize = height ? 'cover' : 'contain', transforms = false, renditions = [] } = {}) {
   if (!path) return null
   if (/^https?:\/\//.test(path)) return path
   if (!transforms && renditions.length) path = renditionPath(path, width, renditions)

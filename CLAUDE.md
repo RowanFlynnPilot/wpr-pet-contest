@@ -238,7 +238,9 @@ the buttons call, for when the panel is not an option.
    announcement's links never land on an empty site (drafts are invisible to
    the public). One week of entries. It also stages round 1 (pending), scheduled to open when
    submissions close and to run a week; pass a second argument for a different
-   round 1 closing time.
+   round 1 closing time. Rounds tab → Change start… moves a pending round's
+   scheduled start (`reschedule_round`, 0036), which the rules page, the
+   countdowns and the "voting opens" emails quote. It opens nothing.
 3. Moderate. Approve or reject with a reason; rejection reasons are required.
    The moderators (`MODERATOR_EMAILS`) get one email when new entries reach
    the queue, at most every 15 minutes (0035, `moderation_alert_claim`).
@@ -296,7 +298,7 @@ the buttons call, for when the panel is not an option.
 Total elapsed: roughly two and a half weeks. Do not stretch it. Past three
 weeks everyone is exhausted, staff included. (2026 is the exception the
 newsroom chose: entries Nov. 10 to 20 (moved from Nov. 7 on Nov. 8), then a
-two-week Open Round to Dec. 4, Last Chance, and four-day bracket rounds to a
+two-week Open Round from Sat., Nov. 21 at 8 a.m. to Dec. 4, Last Chance, and four-day bracket rounds to a
 Dec. 21 champion (Nov. 5): 42 days in all. docs/campaign/calendar.md has the
 dates.)
 
@@ -305,7 +307,7 @@ dates.)
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, reschedule round, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after

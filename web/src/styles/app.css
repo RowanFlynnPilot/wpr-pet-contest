@@ -354,11 +354,13 @@ p { margin: 0 0 0.8em; }
 }
 .photo.square { aspect-ratio: 1; }
 /* Blur-up (PetPhoto): the tiny copy under, the photo fading in over it. */
-.photo > img.ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(12px); transform: scale(1.12); }
+.photo > img.ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; filter: blur(12px); transform: scale(1.12); }
 .photo.has-ph > img.main { opacity: 0; transition: opacity 320ms var(--ease); }
 .photo.has-ph.loaded > img.main { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .photo.has-ph > img.main { transition: none; } }
-.photo > img.main { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* A pet's face sits above the middle of most phone photos: crop a little
+   from the bottom rather than evenly (the share images' drawPhoto uses 0.4). */
+.photo > img.main { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
 .photo.contain > img.main { object-fit: contain; }
 .photo > img.backdrop { position: absolute; inset: -20px; width: calc(100% + 40px); height: calc(100% + 40px); object-fit: cover; filter: blur(22px) saturate(1.1); opacity: 0.7; }
 .photo-fallback { position: absolute; inset: 0; display: grid; place-items: center; background: var(--teal-wash); color: var(--teal); }

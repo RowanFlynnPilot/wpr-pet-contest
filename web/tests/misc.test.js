@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { attemptKey, nextRequestId, uuid } from '../src/lib/requestId.js'
-import { fitWithin } from '../src/lib/image.js'
+import { fitWithin, photoType, prepareUpload, sniffBytes } from '../src/lib/image.js'
 import { EMPTY_ENTRY, validateEntry } from '../src/lib/entryForm.js'
 import { parseHash } from '../src/lib/router.js'
 import { toCsv } from '../src/lib/csv.js'
@@ -154,5 +154,39 @@ describe('adoptables', () => {
     expect(petHref(pet, null)).toBe(pet.url)
     expect(petHref({ name: 'Featured' }, page)).toBe(null)
     expect(petHref(null, page)).toBe(null)
+  })
+})
+
+describe('photo type and preparation', () => {
+  const bytes = (...head) => new Uint8Array([...head, ...new Array(12).fill(0)].slice(0, 16))
+  const ascii = (s) => [...s].map((ch) => ch.charCodeAt(0))
+
+  it('reads the type from the bytes, not the label', () => {
+    expect(sniffBytes(bytes(0xff, 0xd8, 0xff, 0xe0))).toBe('image/jpeg')
+    expect(sniffBytes(bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))).toBe('image/png')
+    expect(sniffBytes(bytes(...ascii('RIFF'), 1, 2, 3, 4, ...ascii('WEBP')))).toBe('image/webp')
+    // HEIC: ....ftypheic
+    expect(sniffBytes(bytes(0, 0, 0, 0x18, ...ascii('ftypheic')))).toBe(null)
+    expect(sniffBytes(new Uint8Array([0xff, 0xd8]))).toBe(null)
+  })
+
+  it('accepts a JPEG whose label is empty or image/jpg', async () => {
+    const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe1, ...new Array(20).fill(0)])
+    expect(await photoType(new File([jpeg], 'IMG_0001', { type: '' }))).toBe('image/jpeg')
+    expect(await photoType(new File([jpeg], 'pet.jpg', { type: 'image/jpg' }))).toBe('image/jpeg')
+    expect(await photoType(new File([new Uint8Array(20)], 'pet.heic', { type: 'image/heic' }))).toBe(null)
+  })
+
+  it('never waits on a decode that does not finish', async () => {
+    const original = globalThis.createImageBitmap
+    globalThis.createImageBitmap = () => new Promise(() => {})
+    try {
+      const file = new File([new Uint8Array(4)], 'pet.jpg', { type: 'image/jpeg' })
+      const out = await prepareUpload(file, 20)
+      expect(out.photo).toBe(file)
+      expect(out.thumb).toBe(null)
+    } finally {
+      globalThis.createImageBitmap = original
+    }
   })
 })

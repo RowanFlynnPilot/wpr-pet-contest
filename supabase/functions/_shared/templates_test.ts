@@ -264,3 +264,12 @@ Deno.test("emails name the shelter and state the split as the rules do", () => {
   // Before the sweep has loaded them: the general wording, never a blank.
   assertStringIncludes(render({ ...base, kind: "entry_approved" }, LINKS).text, "goes to local animal shelters");
 });
+
+Deno.test("approval goes out before voting, so it never says a round is open", () => {
+  const msg = render(base, LINKS);
+  assert(!/round 1 is open|is open to every pet/i.test(msg.text), "no open round in the approval");
+  assertStringIncludes(msg.text, "Voting starts after entries close");
+  // The one button is the owner's page; the share link is there to paste.
+  assertEquals((msg.html.match(/<a /g) ?? []).length, 1);
+  assertStringIncludes(msg.text, "shows Biscuit's photo in the preview: https://rowanflynnpilot.github.io/wpr-pet-contest/p/");
+});

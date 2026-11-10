@@ -14,6 +14,33 @@ export const JPEG_QUALITY = 0.88
 export const THUMB_QUALITY = 0.8
 export const MAX_BYTES = 10 * 1024 * 1024
 export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+// A phone that has not decoded the photo in this long is not going to; the
+// original goes up instead (the server strips its metadata either way).
+export const PREPARE_TIMEOUT_MS = 15000
+
+// The type from the first bytes, the way submit-entry reads it. Some phones
+// and file pickers hand over a photo with an empty type, or "image/jpg", so
+// the label is a hint, not the answer. HEIC is not on the list (CLAUDE.md).
+export function sniffBytes(b) {
+  if (!b || b.length < 12) return null
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg'
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png'
+  const ascii = (from, to) => String.fromCharCode(...b.slice(from, to))
+  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'image/webp'
+  return null
+}
+
+// The photo's real type, or null when it is not one the web can show.
+export async function photoType(file) {
+  if (!file) return null
+  try {
+    return sniffBytes(new Uint8Array(await file.slice(0, 12).arrayBuffer()))
+  } catch {
+    // Unreadable here; trust a label we know, and let the server decide.
+    const label = file.type === 'image/jpg' ? 'image/jpeg' : file.type
+    return ACCEPTED_TYPES.includes(label) ? label : null
+  }
+}
 
 export function fitWithin(width, height, max = MAX_EDGE) {
   const long = Math.max(width, height)
@@ -36,8 +63,17 @@ async function toJpeg(bitmap, max, quality) {
   return blob && blob.size > 0 ? blob : null
 }
 
-// { photo: File, thumb: File | null }
-export async function prepareUpload(file) {
+// { photo: File, thumb: File | null }. Never hangs: past PREPARE_TIMEOUT_MS
+// the original goes up as it is.
+export function prepareUpload(file, timeoutMs = PREPARE_TIMEOUT_MS) {
+  let timer
+  const fallback = new Promise((resolve) => {
+    timer = setTimeout(() => resolve({ photo: file, thumb: null }), timeoutMs)
+  })
+  return Promise.race([reencode(file), fallback]).finally(() => clearTimeout(timer))
+}
+
+async function reencode(file) {
   try {
     if (typeof createImageBitmap !== 'function') return { photo: file, thumb: null }
     const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })

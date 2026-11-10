@@ -43,7 +43,7 @@ function ShareMenu({ id, open, entry, url, text, log, onDone }) {
   async function copy() {
     log('copy')
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(crawlerUrl)
       onDone(true)
     } catch {
       // No clipboard in this frame: show the link to copy by hand.
@@ -80,7 +80,7 @@ function ShareMenu({ id, open, entry, url, text, log, onDone }) {
           <label className="sr-only" htmlFor={`${id}-url`}>
             Link to {entry.pet_name}
           </label>
-          <input id={`${id}-url`} ref={input} type="text" readOnly value={url} onFocus={(e) => e.currentTarget.select()} />
+          <input id={`${id}-url`} ref={input} type="text" readOnly value={crawlerUrl} onFocus={(e) => e.currentTarget.select()} />
         </>
       )}
     </div>
@@ -103,6 +103,8 @@ export default function CardShare({ entry }) {
   const id = useId()
   const name = entry.pet_name
   const url = petPublicUrl(PUBLIC_URL, entry.id)
+  // The page with the pet's photo in its preview, once the build has one.
+  const sharePage = useSharePage(`p/${entry.id}/`)
   const text = shareText(name, contestName, packShareLine(ctx?.contest?.beneficiary_split_pct, ctx?.shelters))
   const log = (network) => track('Share', { network, pet: name, from: 'card' })
 
@@ -120,7 +122,7 @@ export default function CardShare({ entry }) {
   async function onClick() {
     if (!native) return show(!open)
     try {
-      await navigator.share({ title: `Vote for ${name}`, text, url })
+      await navigator.share({ title: `Vote for ${name}`, text, url: sharePage || url })
       log('native')
     } catch (err) {
       // Cancelled: nothing to do. Blocked in this frame: offer the menu.

@@ -9,8 +9,9 @@ import { useContest } from './ContestContext.jsx'
 // Share pages are built at deploy time, so a pet approved since the last build
 // has none yet. The build lists the pages it made (share-pages.json); one
 // fetch of that list answers every lookup, and nothing is probed, so a
-// missing page never logs a 404. Falls back to the plain link. The card
-// share menu (CardShare) uses it too, once it is opened. `path` is the page's
+// missing page never logs a 404. Falls back to the plain link. The pet cards
+// (CardShare) use it too, so the phone's share sheet gets the photo page:
+// still one fetch for the whole gallery. `path` is the page's
 // path under the app: a pet's own page or a matchup's (with its ?p=).
 let sharePages = null
 let sharePagesLoad = null
@@ -62,7 +63,9 @@ export default function ShareTools({ entry, contestName, title = 'Share and get 
 
   async function nativeShare() {
     try {
-      await navigator.share({ title: `Vote for ${entry.pet_name}`, text, url })
+      // The share sheet's apps (Messages, Facebook) build a preview, so they
+      // get the page that carries the pet's photo.
+      await navigator.share({ title: `Vote for ${entry.pet_name}`, text, url: crawlerUrl })
       log('native')
     } catch {
       // Cancelled, or blocked in this frame. Nothing to do.
@@ -76,7 +79,8 @@ export default function ShareTools({ entry, contestName, title = 'Share and get 
       setTimeout(() => setCopied(false), 2500)
     }
     if (!navigator.clipboard) return setFallback(true)
-    navigator.clipboard.writeText(url).then(done, () => setFallback(true))
+    // A pasted link is previewed wherever it lands: the photo page.
+    navigator.clipboard.writeText(crawlerUrl).then(done, () => setFallback(true))
   }
 
   return (
@@ -115,7 +119,7 @@ export default function ShareTools({ entry, contestName, title = 'Share and get 
           <label className="sr-only" htmlFor={`share-url-${entry.id}`}>
             Link to {entry.pet_name}
           </label>
-          <input id={`share-url-${entry.id}`} type="text" readOnly value={url} onFocus={(e) => e.currentTarget.select()} />
+          <input id={`share-url-${entry.id}`} type="text" readOnly value={crawlerUrl} onFocus={(e) => e.currentTarget.select()} />
         </div>
       )}
     </div>

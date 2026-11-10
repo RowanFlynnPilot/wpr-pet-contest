@@ -52,8 +52,9 @@ export function shareLinks({ url, crawlerUrl = url, text, subject }) {
   return {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${u(crawlerUrl)}`,
     x: `https://x.com/intent/tweet?text=${u(text)}&url=${u(crawlerUrl)}`,
-    // "?&body=" is the form both iOS and Android Messages accept.
-    sms: `sms:?&body=${u(`${text} ${url}`)}`,
+    // "?&body=" is the form both iOS and Android Messages accept. Messages
+    // builds a link preview too, so a text gets the page with the photo.
+    sms: `sms:?&body=${u(`${text} ${crawlerUrl}`)}`,
     email: `mailto:?subject=${u(subject || text)}&body=${u(`${text}\n\n${url}`)}`,
   }
 }

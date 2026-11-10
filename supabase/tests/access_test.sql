@@ -201,7 +201,7 @@ select results_eq(
   $$ select name from our_functions where has_function_privilege('authenticated', oid, 'EXECUTE') order by 1 $$,
   $$ values ('add_sprint'), ('cancel_sprint'), ('close_round'), ('create_contest'), ('delete_draft_contest'), ('disqualify_entry'),
             ('erase_personal_data'), ('hide_cheer'), ('is_admin'), ('moderate_entry'), ('open_round'),
-            ('open_submissions'), ('rebuild_round_tally'), ('round_label'), ('set_contest_finale'), ('set_free_vote_enabled'), ('set_free_vote_paused'),
+            ('open_submissions'), ('rebuild_round_tally'), ('reschedule_round'), ('round_label'), ('set_contest_finale'), ('set_free_vote_enabled'), ('set_free_vote_paused'),
             ('set_last_chance_enabled'), ('set_shelter_goal'), ('set_sprints_enabled'), ('settle_sprint'), ('sponsor_match_cents'), ('start_last_chance'), ('update_draft_contest'),
             ('void_free_voters'), ('withdraw_entry') $$,
   'signed-in sessions reach only the admin actions, each of which checks is_admin()');
