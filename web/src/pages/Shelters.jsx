@@ -5,7 +5,7 @@ import { Arrow, Facebook } from '../components/Icons.jsx'
 import Logo from '../components/ShelterLogo.jsx'
 import AdoptButton from '../components/AdoptButton.jsx'
 import { fetchFeaturedAdoptable } from '../lib/api.js'
-import { fmtMoney } from '../lib/format.js'
+import { fmtInt, fmtMoney } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
 import FairPlay from '../components/FairPlay.jsx'
 
@@ -77,20 +77,22 @@ function Adoptable() {
   if (!pet) return null
   const facts = [pet.breed, pet.age].filter(Boolean).join(' · ')
   return (
-    <section className="section" aria-labelledby="adopt-title">
+    <section className="adoptable-section" aria-labelledby="adopt-title">
       <div className="card sun adoptable">
         {pet.pngLatestUrl && <img src={pet.pngLatestUrl} alt={`${pet.name}, ${facts}`} loading="lazy" width="1200" height="1502" />}
-        <div>
-          <h2 id="adopt-title" style={{ fontSize: 30 }}>
-            Meet {pet.name}
-          </h2>
-          <p className="section-count">Looking for a home</p>
-          <p style={{ margin: '8px 0 0' }}>
+        <div className="adoptable-body">
+          <p className="adoptable-kicker">Looking for a home</p>
+          <h2 id="adopt-title">Meet {pet.name}</h2>
+          <p className="adoptable-facts">
             {facts}
             {pet.shelterName ? `, at ${pet.shelterName}` : ''}.
-            {pet.tenureDays > 30 ? ` ${pet.name} has been waiting ${pet.tenureDays} days for a family.` : ''}
           </p>
-          <a className="btn btn-primary" href={pet.petUrl} target="_blank" rel="noopener noreferrer" style={{ marginTop: 12 }}>
+          {pet.tenureDays > 30 && (
+            <p className="adoptable-wait">
+              Waiting <strong>{fmtInt(pet.tenureDays)}</strong> days for a family.
+            </p>
+          )}
+          <a className="btn btn-primary" href={pet.petUrl} target="_blank" rel="noopener noreferrer">
             See {pet.name}&rsquo;s profile
           </a>
           <p className="fine">From {NEWSROOM.name}&rsquo;s daily adoptable-pet feature.</p>
