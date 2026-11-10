@@ -694,6 +694,7 @@ html:not(.is-embedded) #main, html:not(.is-embedded) .shell-wait { min-height: 1
 .sb-solo { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .sb-solo-count { display: grid; gap: 6px; }
 .sb-unit { font-size: 13px; color: var(--board-label); }
+.sb-first { font-family: var(--display); font-size: clamp(30px, 8vw, 42px); font-weight: 800; line-height: 1; letter-spacing: -0.01em; color: var(--sun); }
 .sb-rank { display: grid; justify-items: end; font-size: 13px; color: var(--board-label); text-align: right; }
 .sb-rank b { font-family: var(--mono); font-size: 34px; line-height: 1; color: #fff; }
 

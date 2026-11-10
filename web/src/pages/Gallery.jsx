@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import PetCard from '../components/PetCard.jsx'
-import Sponsor from '../components/Sponsor.jsx'
+import Sponsor, { showsSlot } from '../components/Sponsor.jsx'
 import { Heart, Search } from '../components/Icons.jsx'
 import { useBracket, useContestTotals, useEntries, useMomentum, useRoundTotals } from '../lib/data.js'
 import { entryStates } from '../lib/bracketState.js'
@@ -15,6 +15,8 @@ import { roundLabel } from '../lib/rounds.js'
 import { canVoteNow } from '../lib/lastChance.js'
 
 const PAGE = 48
+// Below this many pets the gallery shows no search, filters or sort.
+const FEW_FOR_TOOLS = 12
 const fold = (s) =>
   (s || '')
     .normalize('NFD')
@@ -91,6 +93,9 @@ export default function Gallery() {
     setFavKept(favOnly ? null : favSet)
     setFavOnly(!favOnly)
   }
+  // Search, filters and sort wait until there are pets to sift; until then a
+  // handful of photos reads better without a toolbar over them.
+  const filtering = Boolean(q || town || favOnly || species !== 'all' || statusPick || sort)
   useDocumentTitle(`The pets — ${NEWSROOM.name}`)
 
   const towns = useMemo(() => [...new Set(entries.map((e) => e.town))].sort((a, b) => a.localeCompare(b)), [entries])
@@ -137,7 +142,7 @@ export default function Gallery() {
   const three = useMediaQuery('(min-width: 640px)')
   const cols = four ? 4 : three ? 3 : 2
   const sponsorAfter = (featureLeader ? cols - 1 : cols) - 1
-  const sponsor = <Sponsor sponsor={SPONSORS.gallery} slot="gallery" full />
+  const sponsor = showsSlot(SPONSORS.gallery) ? <Sponsor sponsor={SPONSORS.gallery} slot="gallery" full /> : null
   const cut = c.bracketSize
   const currentLabel = c.round ? roundLabel(c.round.seq, c.bracketSize) : null
 
@@ -188,7 +193,7 @@ export default function Gallery() {
           <p className="section-count">
             {c.phase === 'coming' ? (
               `Entries open ${apDate(c.contest.submissions_open_at)}`
-            ) : (
+            ) : !loading && entries.length === 0 ? null : (
               <>
                 {fmtInt(entries.length)} {entries.length === 1 ? 'pet' : 'pets'}
                 {openLive && ' · counts update live'}
@@ -208,7 +213,7 @@ export default function Gallery() {
         </div>
       </div>
 
-      {(loading || entries.length > 0) && (
+      {(loading || entries.length >= FEW_FOR_TOOLS || filtering) && (
         <>
         <div className="gallery-tools" role="search">
           <div className="search">
@@ -306,7 +311,7 @@ export default function Gallery() {
           <button type="button" className="btn btn-quiet" style={{ marginTop: 6 }} onClick={toggleFavOnly}>
             See every pet
           </button>
-          <div style={{ marginTop: 16 }}>{sponsor}</div>
+          {sponsor && <div style={{ marginTop: 16 }}>{sponsor}</div>}
         </div>
       ) : list.length === 0 ? (
         <div className="empty">
@@ -324,7 +329,7 @@ export default function Gallery() {
               'Check back soon.'
             )}
           </p>
-          {entries.length > 0 && <div style={{ marginTop: 16 }}>{sponsor}</div>}
+          {entries.length > 0 && sponsor && <div style={{ marginTop: 16 }}>{sponsor}</div>}
         </div>
       ) : (
         <>
@@ -342,7 +347,7 @@ export default function Gallery() {
                   club={milestone(contestTotals.get(e.id)).earned}
                   {...cardProps(e)}
                 />
-                {(i === sponsorAfter || (i === list.length - 1 && i < sponsorAfter)) && <div className="grid-break">{sponsor}</div>}
+                {sponsor && (i === sponsorAfter || (i === list.length - 1 && i < sponsorAfter)) && <div className="grid-break">{sponsor}</div>}
               </Fragment>
             ))}
           </div>

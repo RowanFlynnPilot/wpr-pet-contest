@@ -25,7 +25,7 @@ import ActivityTicker from '../components/ActivityTicker.jsx'
 import MatchupCard from '../components/MatchupCard.jsx'
 import PetCard from '../components/PetCard.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
-import Sponsor from '../components/Sponsor.jsx'
+import Sponsor, { showsSlot } from '../components/Sponsor.jsx'
 import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
 import { CountdownCells, Digits, GameClock, Scoreboard } from '../components/Scoreboard.jsx'
 import { ShelterList } from './Shelters.jsx'
@@ -61,6 +61,9 @@ function entryNote(c) {
   return `Entry is free, and ${pct ? `${pct}%` : 'a share'} of every vote pack goes to ${who}.`
 }
 
+// Below this many approved pets the entry board invites rather than counts.
+const FEW_ENTRIES = 5
+
 // Entry weeks: how many pets are in, and how long is left to join them.
 function EntryBoard({ c, entryCount }) {
   const { phase, contest, nextRound } = c
@@ -74,6 +77,9 @@ function EntryBoard({ c, entryCount }) {
   }
   const closed = phase === 'submissions_closed'
   const opens = nextRound?.opens_at
+  // The first hours, while entries wait for an editor: an invitation, not a
+  // board reading 0 (or 2) to everyone the launch story sends here.
+  const early = !closed && entryCount < FEW_ENTRIES
   return (
     <Scoreboard
       label={closed ? 'Entries closed' : 'Entries'}
@@ -81,12 +87,19 @@ function EntryBoard({ c, entryCount }) {
       clock={closed ? null : <GameClock to={contest.submissions_close_at} done="Closed" />}
     >
       <div className="sb-solo">
-        <div className="sb-solo-count">
-          <Digits value={entryCount} label={`${fmtInt(entryCount)} ${entryCount === 1 ? 'pet' : 'pets'} entered`} />
-          <span className="sb-unit">
-            {entryCount === 1 ? (closed ? 'pet in the field' : 'pet entered so far') : closed ? 'pets in the field' : 'pets entered so far'}
-          </span>
-        </div>
+        {early ? (
+          <div className="sb-solo-count">
+            <span className="sb-first">Entries are open</span>
+            <span className="sb-unit">Be one of the first. One phone photo is all it takes.</span>
+          </div>
+        ) : (
+          <div className="sb-solo-count">
+            <Digits value={entryCount} label={`${fmtInt(entryCount)} ${entryCount === 1 ? 'pet' : 'pets'} entered`} />
+            <span className="sb-unit">
+              {entryCount === 1 ? (closed ? 'pet in the field' : 'pet entered so far') : closed ? 'pets in the field' : 'pets entered so far'}
+            </span>
+          </div>
+        )}
       </div>
       {closed && opens && (
         <div className="sb-countdown-row">
@@ -262,9 +275,15 @@ function Arena({ c, entries, byId, totals }) {
           <a className="btn btn-primary btn-lg" href="#/enter">
             Enter your pet
           </a>
-          <a className="btn btn-ghost btn-lg" href="#/gallery">
-            Meet the entrants
-          </a>
+          {entries.length > 0 ? (
+            <a className="btn btn-ghost btn-lg" href="#/gallery">
+              Meet the entrants
+            </a>
+          ) : (
+            <a className="btn btn-ghost btn-lg" href="#/rules">
+              Read the rules
+            </a>
+          )}
         </>
       ) : phase === 'coming' ? (
         <>
@@ -594,7 +613,7 @@ export default function Home() {
             <AdoptButton className="adopt-button-home" />
           </section>
         )}
-        {!SPONSORS.presenting && (
+        {!SPONSORS.presenting && showsSlot(null) && (
           <section className="section" aria-label="Presenting sponsor">
             <Sponsor sponsor={null} slot="presenting" />
           </section>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NEWSROOM, SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSOR_UTM } from '../config.js'
+import { NEWSROOM, SHOW_OPEN_SLOTS, SPONSOR_INQUIRY, SPONSOR_SLOTS, SPONSOR_UTM } from '../config.js'
 import { track } from '../lib/analytics.js'
 import { Arrow, Check } from './Icons.jsx'
 
@@ -73,10 +73,14 @@ export function Upsell({ slot, dark = false, pitch, full = false, line = false }
 }
 
 // A sold slot renders the lockup; an open one renders the upsell, unless the
-// placement asks to stay quiet when empty (`quiet`).
+// placement asks to stay quiet when empty (`quiet`) or open slots are off.
+export function showsSlot(sponsor) {
+  return Boolean(sponsor) || SHOW_OPEN_SLOTS
+}
+
 export default function Sponsor({ sponsor, slot, full = false, dark = false, quiet = false, line = false, eyebrow = 'Presented by' }) {
   const [logoFailed, setLogoFailed] = useState(false)
-  if (!sponsor) return quiet ? null : <Upsell slot={slot} dark={dark} full={full} line={line} />
+  if (!sponsor) return quiet || !SHOW_OPEN_SLOTS ? null : <Upsell slot={slot} dark={dark} full={full} line={line} />
 
   const [what, where] = (sponsor.tagline || '').split('—').map((s) => s.trim())
   const Tag = sponsor.url ? 'a' : 'div'

@@ -82,6 +82,11 @@ export const SPONSOR_SLOTS = {
   },
 }
 
+// Whether an unsold slot shows readers a "Sponsorship available" box. Off for
+// the 2026 launch (Nov. 9): on a page with only a few pets it read as an
+// unfinished site. ?demo still shows "Your Brand Here" to prospects.
+export const SHOW_OPEN_SLOTS = false
+
 export const SPONSOR_INQUIRY = NEWSROOM.sponsorInquiry
 export const SPONSOR_UTM = `utm_source=${NEWSROOM.utmSource}&utm_medium=widget&utm_campaign=pet-contest`
 
