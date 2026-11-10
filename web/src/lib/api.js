@@ -313,7 +313,9 @@ export function fetchSideAwards(contestId) {
 }
 
 // Edge functions answer errors as { error: "message for the reader" }.
-export async function callFunction(name, { json, form, token } = {}) {
+// `timeoutMs` gives up on a request that has stalled (a weak signal), with
+// `timeoutMessage` for the reader; without it the browser waits forever.
+export async function callFunction(name, { json, form, token, timeoutMs, timeoutMessage } = {}) {
   if (!SUPABASE_URL) throw new Error('The contest is not connected yet. Please try again later.')
   const headers = {}
   let body = form
@@ -323,10 +325,19 @@ export async function callFunction(name, { json, form, token } = {}) {
   }
   if (token) headers.Authorization = `Bearer ${token}`
   let res
+  const ctrl = timeoutMs ? new AbortController() : null
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null
   try {
-    res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, { method: 'POST', headers, body })
+    res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, { method: 'POST', headers, body, signal: ctrl?.signal })
   } catch {
+    if (ctrl?.signal.aborted) {
+      const err = new Error(timeoutMessage || 'That took too long. Check your connection and try again.')
+      err.timeout = true
+      throw err
+    }
     throw new Error("We couldn't reach the contest server. Check your connection and try again.")
+  } finally {
+    clearTimeout(timer)
   }
   let payload = null
   try {
@@ -344,7 +355,14 @@ export async function callFunction(name, { json, form, token } = {}) {
   return payload
 }
 
-export const submitEntry = (form) => callFunction('submit-entry', { form })
+// A 2048px JPEG is about 600 KB; past 90 seconds the upload is stuck, not slow.
+export const submitEntry = (form) =>
+  callFunction('submit-entry', {
+    form,
+    timeoutMs: 90000,
+    timeoutMessage:
+      'The upload is taking too long, which usually means a weak signal. Please try again on Wi-Fi. If both tries go through, an editor will remove the extra one.',
+  })
 // Acting on a link from an email: an owner's goal or opt-out, a buyer's unsubscribe.
 export const callLinks = (action, json) => callFunction('links', { json: { action, ...json } })
 export const createCheckout = (json) => callFunction('create-checkout', { json })

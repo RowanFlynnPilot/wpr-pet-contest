@@ -12,7 +12,7 @@ import { entryShareLine } from '../lib/share.js'
 import PetAbout, { hasAbout } from '../components/PetAbout.jsx'
 import { apDate, apDateTime, period } from '../lib/format.js'
 import { useDocumentTitle } from '../lib/hooks.js'
-import { ACCEPTED_TYPES, MAX_BYTES, prepareUpload } from '../lib/image.js'
+import { MAX_BYTES, photoType, prepareUpload } from '../lib/image.js'
 import { OTHER_TOWN, TOWNS } from '../lib/towns.js'
 import { EMPTY_ENTRY as EMPTY, LIMITS, PROFILE_FIELDS, validateEntry } from '../lib/entryForm.js'
 import PhotoTips from '../components/PhotoTips.jsx'
@@ -157,14 +157,14 @@ function Closed({ c }) {
 // they can post today (there is no page to link until an editor approves
 // the entry, so it points at the front door), and a calendar note for the
 // day voting opens.
-function Success({ petName, photo, contest, onAnother }) {
+function Success({ petName, photo, contest, votingAt, onAnother }) {
   const ref = useRef(null)
   useEffect(() => {
     ref.current?.focus()
   }, [])
   const preview = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo])
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview])
-  const opensAt = contest?.submissions_close_at || null
+  const opensAt = votingAt || null
   const contestName = contest?.name || `Cutest Pet in ${NEWSROOM.region}`
   const line = entryShareLine({ petName, contestName, opensAt, url: PUBLIC_URL })
   const [copied, setCopied] = useState(false)
@@ -208,7 +208,7 @@ function Success({ petName, photo, contest, onAnother }) {
       <h1 style={{ fontSize: 'clamp(28px, 6vw, 40px)' }}>{petName} is entered!</h1>
       <p>
         An editor looks at every entry before it goes live, usually within a day. Once {petName} is approved you&rsquo;ll find them in the
-        gallery{opensAt ? `, and voting starts after entries close ${apDate(opensAt)}` : ''}.
+        gallery{opensAt ? `, and voting starts ${apDateTime(opensAt)}` : ''}.
       </p>
       <div className="youre-in-line">
         <div className="share-title">Tell people now</div>
@@ -241,6 +241,9 @@ function Success({ petName, photo, contest, onAnother }) {
   )
 }
 
+// Round 1's scheduled start (staff can move it, 0036), or when entries close.
+const votingOpensAt = (c) => c.nextRound?.opens_at || c.contest?.submissions_close_at || null
+
 export default function Enter() {
   const c = useContest()
   const [v, setV] = useState(EMPTY)
@@ -258,7 +261,8 @@ export default function Enter() {
   async function pick(file) {
     if (!file) return
     setServerError(null)
-    if (!ACCEPTED_TYPES.includes(file.type)) {
+    // Read from the bytes: some phones send a photo with no type at all.
+    if (!(await photoType(file))) {
       setErrors((e) => ({
         ...e,
         photo: 'That file type won’t display on the web. Please choose a JPEG, PNG or WebP photo. On an iPhone, pick it from your Photos library.',
@@ -332,6 +336,7 @@ export default function Enter() {
           petName={done}
           photo={photo}
           contest={c.contest}
+          votingAt={votingOpensAt(c)}
           onAnother={() => {
             setDone(null)
             setV((prev) => ({ ...EMPTY, owner_name: prev.owner_name, owner_email: prev.owner_email }))
@@ -498,7 +503,7 @@ export default function Enter() {
               id="hp-field"
               type="text"
               tabIndex={-1}
-              autoComplete="one-time-code"
+              autoComplete="off"
               data-1p-ignore="true"
               data-lpignore="true"
               data-bwignore="true"
@@ -562,7 +567,7 @@ export default function Enter() {
             <h2 style={{ fontSize: 19, marginBottom: 6 }}>What happens next</h2>
             <p className="small" style={{ margin: 0 }}>
               An editor reviews your entry, usually within a day. Once approved, your pet appears in the gallery with a page you can share.{' '}
-              {period(`Voting opens after entries close ${apDateTime(c.contest.submissions_close_at)}`)}
+              {period(`Voting opens ${apDateTime(votingOpensAt(c))}`)}
             </p>
           </div>
           <Countdown to={c.contest.submissions_close_at} label="Entries close in" />

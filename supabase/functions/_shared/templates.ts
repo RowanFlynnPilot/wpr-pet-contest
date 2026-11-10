@@ -166,13 +166,18 @@ export function render(row: QueueRow, links: Links): Message {
       ]);
 
     case "entry_approved":
+      // Sent before voting opens (open_round waits for every entry to be
+      // moderated), so it never says a round is open. The button is the
+      // owner's page, where the share tools are; the share link is printed
+      // for pasting, since it is the one whose preview shows the photo.
       return compose(`${pet} is in! Here is your share link`, first, [
         `${pet} is now live in ${row.contest_name}.`,
-        `Round 1 is open to every pet. The top vote-getters make the bracket, so the most useful thing you can do is share ${pet}'s page with friends, family and your local Facebook groups:`,
-      ], { label: `Share ${pet}'s page`, url: shareUrl }, [
+        `Voting starts after entries close, and every approved pet is in the Open Round. The top vote-getters make the bracket, so the most useful thing you can do now is tell friends, family and your local Facebook groups that ${pet} is in.`,
+        `${pet}'s owner page is just for you: make share images, set a vote goal, and see ${pet}'s milestone badges.`,
+      ], { label: `Open ${pet}'s owner page`, url: ownerUrl(links, row) }, [
+        `When you post a link, use this one, because it shows ${pet}'s photo in the preview: ${shareUrl}`,
         shareLine(links),
-        `${pet} also has an owner's page, just for you: set a vote goal, make share images, and see ${pet}'s milestone badges.`,
-      ], undefined, { photo, photoAlt: pet, secondary: { label: `Open ${pet}'s owner page`, url: ownerUrl(links, row) } });
+      ], undefined, { photo, photoAlt: pet });
 
     case "club_100":
     case "club_500":
