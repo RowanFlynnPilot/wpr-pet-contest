@@ -4,7 +4,8 @@
 --
 -- moderation_alerts records each alert: counts and times only, no person.
 -- moderation_alert_claim() decides, under a lock, whether one is owed: pending
--- entries submitted since the last alert for this contest. It records the
+-- entries submitted after the newest one the last alert covered (through_at,
+-- the entries' own clock, so no clock skew can alert twice). It records the
 -- alert before the email goes, so two overlapping sweeps send once; the sweep
 -- deletes the row again if the send fails, so the next sweep retries.
 
@@ -13,6 +14,8 @@ create table moderation_alerts (
   contest_id  uuid not null references contests(id) on delete cascade,
   new_count   int not null check (new_count > 0),
   pending     int not null check (pending >= new_count),
+  -- The newest entry this alert covered; the next counts only later ones.
+  through_at  timestamptz not null,
   sent_at     timestamptz not null default now()
 );
 create index moderation_alerts_contest on moderation_alerts (contest_id, sent_at desc);
@@ -28,13 +31,14 @@ create function moderation_alert_claim()
 returns table (alert_id bigint, contest_id uuid, contest_name text, new_count int, pending int, oldest_at timestamptz)
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   c        contests;
   last_at  timestamptz;
   n_new    int;
   n_all    int;
+  newest   timestamptz;
   oldest   timestamptz;
   new_id   bigint;
 begin
@@ -46,12 +50,13 @@ begin
 
   perform pg_advisory_xact_lock(hashtext('moderation_alert'), hashtext(c.id::text));
 
-  select max(a.sent_at) into last_at from moderation_alerts a where a.contest_id = c.id;
+  select max(a.through_at) into last_at from moderation_alerts a where a.contest_id = c.id;
 
   select count(*) filter (where e.created_at > coalesce(last_at, '-infinity'::timestamptz)),
          count(*),
-         min(e.created_at)
-    into n_new, n_all, oldest
+         min(e.created_at),
+         max(e.created_at)
+    into n_new, n_all, oldest, newest
   from entries e
   where e.contest_id = c.id and e.status = 'pending';
 
@@ -59,8 +64,8 @@ begin
     return;
   end if;
 
-  insert into moderation_alerts (contest_id, new_count, pending)
-  values (c.id, n_new, n_all)
+  insert into moderation_alerts (contest_id, new_count, pending, through_at)
+  values (c.id, n_new, n_all, newest)
   returning id into new_id;
 
   return query select new_id, c.id, c.name, n_new, n_all, oldest;

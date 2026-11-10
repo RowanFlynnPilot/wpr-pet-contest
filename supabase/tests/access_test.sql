@@ -213,10 +213,10 @@ select results_eq(
             ('free_vote_challenge'), ('free_vote_challenge_sent'), ('free_vote_device_status'),
             ('free_vote_preferences'), ('free_vote_reminder_queue'), ('free_vote_unsubscribe'),
             ('free_vote_verify'), ('hit_rate_limit'), ('insert_entry'), ('is_admin'), ('mark_dispute_won'),
-            ('mark_intent_canceled'), ('mark_vote_disputed'), ('notification_queue'), ('record_health'),
+            ('mark_intent_canceled'), ('mark_vote_disputed'), ('moderation_alert_claim'), ('notification_queue'), ('record_health'),
             ('record_partial_refund'), ('refund_vote'), ('round_label'), ('set_entry_goal'), ('sponsor_match_cents'),
             ('stale_pending_intents'), ('vote_quote') $$,
-  'the edge functions reach exactly the vote lifecycle, free-vote steps, entry insert, rate limiter, mail queue and health checks');
+  'the edge functions reach exactly the vote lifecycle, free-vote steps, entry insert, rate limiter, mail queue, moderator alert and health checks');
 
 
 -- ------------------------------------------------------------ anon probes --
