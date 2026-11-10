@@ -162,6 +162,10 @@ pet is what sells votes, so this is worth the setup.
       refusal. Unset, they are WPR's.
 - [ ] GitHub: variable `EMAIL_SWEEP=true`, secrets `NOTIFY_URL` and
       `CRON_SECRET` (same value). The sweep then runs every 15 minutes.
+- [ ] Moderator alerts: `supabase secrets set MODERATOR_EMAILS=editor@wausaupilotandreview.com`
+      (comma-separated for more). While entries are open, the sweep emails
+      them once when new entries reach the queue, at most every 15 minutes,
+      with a link to the Moderation tab. Unset, nobody is told.
 - [ ] Volume. The sweep also sends each owner six tips over the contest
       (approval, voting open, halfway, last day, matchup day, thanks), one
       "plays again" note per bracket round to each buyer who ticked the box

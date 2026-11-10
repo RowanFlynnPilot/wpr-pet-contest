@@ -9,6 +9,7 @@ import { emailEnabled, sendEmail } from "./email.ts";
 import { optionalEnv } from "./env.ts";
 import { NEWSROOM } from "./newsroom.ts";
 import { bytea, centralDay, newToken, sha256 } from "./freevote.ts";
+import { parseRecipients, renderModerationAlert } from "./moderation.ts";
 import { type BuyerNoteRow, type QueueRow, render, renderBuyerNote, renderCheckoutReminder, renderFreeVoteReminder } from "./templates.ts";
 
 const LINKS = {
@@ -315,4 +316,42 @@ export async function sweepReminders(limit = 50): Promise<SweepResult> {
   }
 
   return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+
+// The moderators' note when new entries reach the queue (0035). The database
+// claims the alert under a lock, so overlapping sweeps send once; a failed
+// send releases the claim and the next sweep tries again.
+const MODERATORS = parseRecipients(optionalEnv("MODERATOR_EMAILS"));
+
+export async function sweepModerationAlert(): Promise<{ enabled: boolean; sent: number; failed: number }> {
+  if (!emailEnabled || !MODERATORS.length) return { enabled: false, sent: 0, failed: 0 };
+
+  const { data, error } = await service.rpc("moderation_alert_claim");
+  if (error) throw error;
+  const row = (data ?? [])[0] as
+    | { alert_id: number; contest_name: string; new_count: number; pending: number; oldest_at: string | null }
+    | undefined;
+  if (!row) return { enabled: true, sent: 0, failed: 0 };
+
+  const msg = renderModerationAlert(
+    { contestName: row.contest_name, newCount: row.new_count, pending: row.pending, oldestAt: row.oldest_at },
+    `${LINKS.shareBase}#/admin/moderation`,
+  );
+  let sent = 0;
+  let failed = 0;
+  for (const [i, to] of MODERATORS.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, SPACING_MS));
+    const result = await sendEmail({ to, ...msg, idempotencyKey: `moderation:${row.alert_id}:${to}` });
+    if (result.ok) sent++;
+    else {
+      failed++;
+      console.error("moderation alert failed", to, result.error);
+    }
+  }
+  if (sent === 0) {
+    const { error: releaseError } = await service.from("moderation_alerts").delete().eq("id", row.alert_id);
+    if (releaseError) console.error("moderation alert not released", releaseError);
+  }
+  return { enabled: true, sent, failed };
 }

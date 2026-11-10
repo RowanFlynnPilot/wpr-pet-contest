@@ -7,7 +7,7 @@
 import { requireAdmin } from "../_shared/db.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { serve } from "../_shared/http.ts";
-import { sweep, sweepBuyerNotes, sweepCheckoutReminders, sweepReminders } from "../_shared/notify.ts";
+import { sweep, sweepBuyerNotes, sweepCheckoutReminders, sweepModerationAlert, sweepReminders } from "../_shared/notify.ts";
 import { safeEqual } from "../_shared/validate.ts";
 
 const CRON_SECRET = optionalEnv("CRON_SECRET");
@@ -25,5 +25,11 @@ serve(async (req) => {
   // The one checkout reminder, an hour after an opted-in checkout stalls;
   // the 15-minute schedule is what makes it timely.
   const checkouts = await sweepCheckoutReminders(50);
-  return { ...entrants, reminders, buyers, checkouts };
+  // One note to the moderators when new entries reach the queue.
+  // Never at the cost of the emails above: a failure is logged, not thrown.
+  const moderation = await sweepModerationAlert().catch((err) => {
+    console.error("moderation alert sweep failed", err);
+    return { enabled: true, sent: 0, failed: 1 };
+  });
+  return { ...entrants, reminders, buyers, checkouts, moderation };
 });
