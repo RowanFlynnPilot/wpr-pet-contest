@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { NEWSROOM, SPONSORS } from '../config.js'
 import { useContest } from '../components/ContestContext.jsx'
 import MatchupCard from '../components/MatchupCard.jsx'
-import Sponsor from '../components/Sponsor.jsx'
+import Sponsor, { showsSlot } from '../components/Sponsor.jsx'
 import Countdown from '../components/Countdown.jsx'
 import ActivityTicker from '../components/ActivityTicker.jsx'
 import { useBracket, useEntries, useRoundTotals } from '../lib/data.js'
@@ -161,9 +161,11 @@ export default function Bracket() {
         </div>
       )}
 
-      <div style={{ marginBottom: 16 }}>
-        <Sponsor sponsor={SPONSORS.bracket} slot="bracket" full line />
-      </div>
+      {showsSlot(SPONSORS.bracket) && (
+        <div style={{ marginBottom: 16 }}>
+          <Sponsor sponsor={SPONSORS.bracket} slot="bracket" full line />
+        </div>
+      )}
 
       {liveBracketRound && (
         <div style={{ marginBottom: 16 }}>
