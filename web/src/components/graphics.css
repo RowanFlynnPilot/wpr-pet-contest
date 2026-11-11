@@ -23,6 +23,12 @@
 .gfx-hint { margin: 8px 0 14px; }
 .gfx-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .gfx-actions .btn { flex: 1 1 160px; }
+/* The Story as a video (lib/graphics/video.js), under the image's buttons. */
+.gfx-video { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--rule); display: grid; gap: 10px; }
+.gfx-video h3 { margin: 0; font-size: 18px; }
+.gfx-video p { margin: 0; }
+.gfx-video-player { display: block; width: min(100%, calc(min(440px, 60vh) * 9 / 16)); aspect-ratio: 9 / 16; border-radius: 6px; background: var(--ink); box-shadow: var(--shadow); }
+.gfx-video-make { justify-self: start; min-width: 240px; font-variant-numeric: tabular-nums; }
 
 /* Social tab */
 .gfx-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }

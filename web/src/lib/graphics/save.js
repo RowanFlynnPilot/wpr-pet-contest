@@ -1,5 +1,5 @@
-// Getting a finished PNG off the page: a download, or the phone's share
-// sheet (which is how an image reaches Instagram from a browser).
+// Getting a finished PNG or MP4 off the page: a download, or the phone's
+// share sheet (which is how a file reaches Instagram from a browser).
 
 export function downloadBlob(blob, name) {
   const url = URL.createObjectURL(blob)
@@ -15,10 +15,10 @@ export function downloadBlob(blob, name) {
 }
 
 // A File the share sheet accepts, or null where files cannot be shared.
-export function shareableFile(blob, name) {
+export function shareableFile(blob, name, type = 'image/png') {
   if (typeof navigator === 'undefined' || typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return null
   try {
-    const file = new File([blob], name, { type: 'image/png' })
+    const file = new File([blob], name, { type })
     return navigator.canShare({ files: [file] }) ? file : null
   } catch {
     return null
