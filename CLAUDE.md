@@ -307,7 +307,7 @@ dates.)
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, reschedule round, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, email retry, reschedule round, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
