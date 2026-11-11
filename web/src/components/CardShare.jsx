@@ -1,7 +1,7 @@
 import { packShareLine } from '../lib/format.js'
 import { useEffect, useId, useRef, useState } from 'react'
 import { PUBLIC_URL } from '../lib/env.js'
-import { petPublicUrl, shareLinks, shareText } from '../lib/share.js'
+import { petPublicUrl, shareLinks, shareText, freeVoteOffered } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
 import { useContest } from './ContestContext.jsx'
 import { useSharePage } from './ShareTools.jsx'
@@ -105,7 +105,7 @@ export default function CardShare({ entry }) {
   const url = petPublicUrl(PUBLIC_URL, entry.id)
   // The page with the pet's photo in its preview, once the build has one.
   const sharePage = useSharePage(`p/${entry.id}/`)
-  const text = shareText(name, contestName, packShareLine(ctx?.contest?.beneficiary_split_pct, ctx?.shelters))
+  const text = shareText(name, contestName, packShareLine(ctx?.contest?.beneficiary_split_pct, ctx?.shelters), { freeVote: freeVoteOffered(ctx?.contest) })
   const log = (network) => track('Share', { network, pet: name, from: 'card' })
 
   function show(next) {

@@ -1,6 +1,8 @@
 // Per-pet share pages: dist/p/<id>/index.html, written after `vite build`.
 // Per-matchup share pages: dist/m/<id>/index.html, with a card drawn by
-// scripts/matchup-cards.py showing both pets and the deadline.
+// scripts/matchup-cards.py showing both pets and the deadline. A pet page
+// carries a card from scripts/pet-cards.py: the whole photo, never the crop
+// that cut tall phone photos' heads off.
 //
 // Facebook and X read Open Graph tags from the HTML they fetch and never run
 // JavaScript, so a hash route inside the app (#/pet/<id>) previews as the
@@ -76,11 +78,14 @@ async function allEntries() {
 
 const MONEY = 'Every vote pack helps local animal shelters.'
 
-export function sharePage({ entry, contestName, target, selfUrl, image, transforms, money = MONEY }) {
+export function sharePage({ entry, contestName, target, selfUrl, image, transforms, money = MONEY, card = null }) {
   const title = `Vote for ${entry.pet_name} in the ${contestName} contest`
   const kind = SPECIES[entry.species] || 'pet'
   const description = `${entry.pet_name}, a ${kind} from ${entry.town}, is in the running for ${contestName}. ${money}`
-  const dims = transforms ? '\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">' : ''
+  // The drawn card (scripts/pet-cards.py) when the build made one: it is
+  // 1200x630 and shows the whole photo. Otherwise the photo itself.
+  const preview = card || image
+  const dims = transforms || card ? '\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">' : ''
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -93,12 +98,12 @@ export function sharePage({ entry, contestName, target, selfUrl, image, transfor
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(selfUrl)}">
-<meta property="og:image" content="${esc(image)}">${dims}
+<meta property="og:image" content="${esc(preview)}">${dims}
 <meta property="og:image:alt" content="${esc(`${entry.pet_name}, a ${kind} from ${entry.town}`)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
-<meta name="twitter:image" content="${esc(image)}">
+<meta name="twitter:image" content="${esc(preview)}">
 <link rel="icon" href="../../wpr-typewriter-badge.png">
 <style>
 body{margin:0;background:#f6f2e9;color:#1a1a1a;font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center}
@@ -200,6 +205,35 @@ async function matchupCards(contests, entries) {
   return cards
 }
 
+// The pets' link-preview cards (scripts/pet-cards.py), drawn into
+// dist/p/<id>/card.jpg. A card that does not render leaves its page on the
+// plain photo.
+async function drawPetCards(entries, names, money) {
+  if (!entries.length || env.SHARE_CARDS !== 'true') return
+  const dir = join(DIST, 'p')
+  const manifest = join(dir, 'manifest.json')
+  await mkdir(dir, { recursive: true })
+  const label = { dog: 'Dog', cat: 'Cat', other: 'Pet' }
+  const clean = (path) => path.split('/').map(encodeURIComponent).join('/')
+  const specs = entries.map((e) => ({
+    id: e.id,
+    pet_name: e.pet_name,
+    town: e.town,
+    species: label[e.species] || 'Pet',
+    // The whole photo at card size: resize=contain keeps every pixel.
+    photo: TRANSFORMS
+      ? `${SUPABASE_URL}/storage/v1/render/image/public/pets/${clean(e.photo_path)}?width=900&resize=contain&quality=82`
+      : `${SUPABASE_URL}/storage/v1/object/public/pets/${clean(e.photo_path)}`,
+    contest: names.get(e.contest_id) || 'Cutest Pet in Marathon County',
+    money: money.get(e.contest_id) || MONEY,
+  }))
+  await writeFile(manifest, JSON.stringify(specs))
+  const python = process.platform === 'win32' ? 'python' : 'python3'
+  const run = spawnSync(python, [join(ROOT, 'scripts', 'pet-cards.py'), manifest, dir], { stdio: 'inherit' })
+  if (run.status !== 0) console.warn('[share-pages] pet cards did not all render; those pages carry the photo instead.')
+  await rm(manifest, { force: true })
+}
+
 async function writeMatchupPages(cards) {
   const dir = join(DIST, 'm')
   if (cards.length && env.SHARE_CARDS === 'true') {
@@ -286,6 +320,7 @@ async function main() {
   const names = new Map(contests.map((c) => [c.id, c.name]))
   const money = new Map(contests.map((c) => [c.id, packShareLine(c.beneficiary_split_pct, shelters.filter((s) => s.contest_id === c.id))]))
   const moneyByName = new Map(contests.map((c) => [c.name, money.get(c.id)]))
+  await drawPetCards(entries, names, money)
   for (const entry of entries) {
     const dir = join(DIST, 'p', entry.id)
     await mkdir(dir, { recursive: true })
@@ -297,6 +332,7 @@ async function main() {
       image: photoUrl(entry.photo_path),
       transforms: TRANSFORMS,
       money: money.get(entry.contest_id),
+      card: existsSync(join(dir, 'card.jpg')) ? `${SITE}p/${entry.id}/card.jpg` : null,
     })
     await writeFile(join(dir, 'index.html'), html)
   }

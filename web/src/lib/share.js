@@ -43,9 +43,14 @@ export const petSharePageUrl = (appBase, id) => sharePageUrl(appBase, `p/${id}/`
 export const matchupSharePageUrl = (appBase, id) => sharePageUrl(appBase, `m/${id}/`)
 
 // money: packShareLine(split, shelters) where the caller knows the contest.
-export function shareText(petName, contestName = `Cutest Pet in ${NEWSROOM.region}`, money = 'Every vote pack helps local animal shelters.') {
-  return `Vote for ${petName} in the ${contestName} contest! ${money}`
+// freeVote: the contest offers the free daily vote (freeVoteOffered), so a
+// friend who won't buy a pack still has something to do.
+export function shareText(petName, contestName = `Cutest Pet in ${NEWSROOM.region}`, money = 'Every vote pack helps local animal shelters.', { freeVote = false } = {}) {
+  return `Vote for ${petName} in the ${contestName} contest! ${freeVote ? 'Voting is free once a day. ' : ''}${money}`
 }
+
+// The free daily vote is part of this contest and not paused by staff.
+export const freeVoteOffered = (contest) => Boolean(contest?.free_vote_enabled && !contest?.free_vote_paused_at)
 
 export function shareLinks({ url, crawlerUrl = url, text, subject }) {
   const u = encodeURIComponent

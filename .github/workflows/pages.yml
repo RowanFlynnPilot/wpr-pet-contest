@@ -44,7 +44,7 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
-      # Matchup share cards (web/scripts/matchup-cards.py) are drawn with Pillow.
+      # Pet and matchup share cards (web/scripts/pet-cards.py, matchup-cards.py) are drawn with Pillow.
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

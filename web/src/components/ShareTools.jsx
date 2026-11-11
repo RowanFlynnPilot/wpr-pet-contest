@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APP_BASE, PUBLIC_URL } from '../lib/env.js'
-import { ownerLink, petPublicUrl, shareLinks, sharePageUrl, shareText } from '../lib/share.js'
+import { ownerLink, petPublicUrl, shareLinks, sharePageUrl, shareText, freeVoteOffered } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
 import { Chat, Facebook, LinkIcon, Mail, Share, XLogo } from './Icons.jsx'
 import { packShareLine } from '../lib/format.js'
@@ -53,7 +53,7 @@ export default function ShareTools({ entry, contestName, title = 'Share and get 
   const petPage = useSharePage(`p/${entry.id}/`)
   const crawlerUrl = tagged(matchupPage || petPage) || url
   const ctx = useContest()
-  const text = shareText(entry.pet_name, contestName, packShareLine(ctx?.contest?.beneficiary_split_pct, ctx?.shelters))
+  const text = shareText(entry.pet_name, contestName, packShareLine(ctx?.contest?.beneficiary_split_pct, ctx?.shelters), { freeVote: freeVoteOffered(ctx?.contest) })
   const links = shareLinks({ url, crawlerUrl, text, subject: `Vote for ${entry.pet_name}!` })
   const [copied, setCopied] = useState(false)
   const [fallback, setFallback] = useState(false)

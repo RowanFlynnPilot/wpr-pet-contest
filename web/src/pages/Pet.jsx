@@ -558,18 +558,44 @@ function BracketPanel({ c, entry, entries, byId, bracket, state }) {
   )
 }
 
-// Before voting: the board counts down to it, in its own cells.
+// Before voting: the board counts down to it, in its own cells. A visitor can
+// put the start on their calendar, and while entries are open, enter their
+// own pet: every share of this page brings people who have one.
 function WaitingPanel({ c, entry }) {
   const opens = c.nextRound?.opens_at || c.contest.submissions_close_at
+  const entering = c.phase === 'submissions'
+  const ics = opens
+    ? deadlineIcs({
+        uid: `voting-opens-${c.contest.id}`,
+        title: `Voting opens: ${c.contest?.name || 'pet contest'}`,
+        closesAt: opens,
+        url: `${PUBLIC_URL}#/pet/${entry.id}`,
+        description: `Vote for ${entry.pet_name} from the first hour. Totals reset every round.`,
+      })
+    : null
   return (
-    <Scoreboard label="Open Round" sub={opens ? `Voting opens ${apWhen(opens, c.now)}` : null}>
-      {opens && <CountdownCells to={opens} label="Voting opens in" />}
-      <p className="sb-note">
-        {c.phase === 'submissions'
-          ? `Entries close ${apDate(c.contest.submissions_close_at)}; then the whole field goes head to head. Share ${entry.pet_name}’s page now so friends are ready.`
-          : `Share ${entry.pet_name}’s page so friends are ready when voting opens.`}
-      </p>
-    </Scoreboard>
+    <>
+      <Scoreboard label="Open Round" sub={opens ? `Voting opens ${apWhen(opens, c.now)}` : null}>
+        {opens && <CountdownCells to={opens} label="Voting opens in" />}
+        <p className="sb-note">
+          {entering
+            ? `Entries close ${apDate(c.contest.submissions_close_at)}. Then every pet is in the Open Round, and the top vote-getters make the bracket. Share ${entry.pet_name}’s page now so friends are ready.`
+            : `Share ${entry.pet_name}’s page so friends are ready when voting opens.`}
+        </p>
+      </Scoreboard>
+      <div className="waiting-actions">
+        {ics && (
+          <a className="deadline-link" href={icsHref(ics)} download={`voting-opens-${entry.pet_name}.ics`} onClick={() => track('Calendar', { pet: entry.pet_name, kind: 'opens' })}>
+            <CalendarIcon size={16} /> Remind me when voting opens
+          </a>
+        )}
+        {entering && (
+          <a className="btn btn-quiet" href="#/enter" onClick={() => track('Enter Too', { from: 'pet' })}>
+            Enter your pet too <Arrow />
+          </a>
+        )}
+      </div>
+    </>
   )
 }
 

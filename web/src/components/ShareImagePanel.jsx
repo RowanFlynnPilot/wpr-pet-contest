@@ -2,7 +2,7 @@ import { packShareLine } from '../lib/format.js'
 import { useEffect, useRef, useState } from 'react'
 import { canMakeVideo, makeOwnerVideo, VIDEO } from '../lib/graphics/video.js'
 import { PUBLIC_URL } from '../lib/env.js'
-import { ownerLink, petPublicUrl, shareText } from '../lib/share.js'
+import { ownerLink, petPublicUrl, shareText, freeVoteOffered } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
 import { keepsakeCopy, ownerCopy } from '../lib/graphics/content.js'
 import { displayUrl, fileName } from '../lib/graphics/layout.js'
@@ -115,7 +115,7 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
   const [making, setMaking] = useState(null) // 0..1 while encoding
   const currentVideo = video?.key === key ? video : null
   useEffect(() => () => video && URL.revokeObjectURL(video.url), [video])
-  const shareMessage = `${shareText(entry.pet_name, contest?.name, packShareLine(contest?.beneficiary_split_pct, shelterNames.map((name) => ({ name }))))} ${url}`
+  const shareMessage = `${shareText(entry.pet_name, contest?.name, packShareLine(contest?.beneficiary_split_pct, shelterNames.map((name) => ({ name }))), { freeVote: freeVoteOffered(contest) })} ${url}`
 
   async function makeVideo() {
     setError(null)
