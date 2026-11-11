@@ -1,5 +1,6 @@
 import { packShareLine } from '../lib/format.js'
 import { useEffect, useRef, useState } from 'react'
+import { canMakeVideo, makeOwnerVideo, VIDEO } from '../lib/graphics/video.js'
 import { PUBLIC_URL } from '../lib/env.js'
 import { ownerLink, petPublicUrl, shareText } from '../lib/share.js'
 import { track } from '../lib/analytics.js'
@@ -107,6 +108,46 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
 
   const current = png?.key === key ? png : null
 
+  // The Story as a 7-second video (lib/graphics/video.js), made on the phone.
+  // Offered with the Story size only, and only where the browser can encode.
+  const [canVideo] = useState(canMakeVideo)
+  const [video, setVideo] = useState(null) // { key, blob, url, name, file }
+  const [making, setMaking] = useState(null) // 0..1 while encoding
+  const currentVideo = video?.key === key ? video : null
+  useEffect(() => () => video && URL.revokeObjectURL(video.url), [video])
+  const shareMessage = `${shareText(entry.pet_name, contest?.name, packShareLine(contest?.beneficiary_split_pct, shelterNames.map((name) => ({ name }))))} ${url}`
+
+  async function makeVideo() {
+    setError(null)
+    setMaking(0)
+    try {
+      const blob = await makeOwnerVideo(dataRef.current, { onProgress: setMaking })
+      const videoName = fileName(entry.pet_name, 'story-video').replace(/\.png$/, '.mp4')
+      setVideo({ key, blob, url: URL.createObjectURL(blob), name: videoName, file: shareableFile(blob, videoName, 'video/mp4') })
+      track('Share Video', { from: 'pet', method: 'made' })
+    } catch (e) {
+      setError(e?.message ? e : new Error('We couldn’t make the video. Please try again, or use the image.'))
+    } finally {
+      setMaking(null)
+    }
+  }
+
+  async function shareVideo() {
+    if (!currentVideo?.file) return
+    setError(null)
+    try {
+      if (await shareFile(currentVideo.file, { title: `Vote for ${entry.pet_name}`, text: shareMessage })) track('Share Video', { from: 'pet', method: 'share' })
+    } catch {
+      setError(new Error('Sharing isn’t available here. Download the video, then post it from your photos.'))
+    }
+  }
+
+  function downloadVideo() {
+    if (!currentVideo) return
+    downloadBlob(currentVideo.blob, currentVideo.name)
+    track('Share Video', { from: 'pet', method: 'download' })
+  }
+
   async function download() {
     setError(null)
     setBusy(true)
@@ -125,7 +166,7 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
     if (!current?.file) return
     setError(null)
     try {
-      const shared = await shareFile(current.file, { title: `Vote for ${entry.pet_name}`, text: `${shareText(entry.pet_name, contest?.name, packShareLine(contest?.beneficiary_split_pct, shelterNames.map((name) => ({ name }))))} ${url}` })
+      const shared = await shareFile(current.file, { title: `Vote for ${entry.pet_name}`, text: shareMessage })
       if (shared) track('Share Image', { format: format.id, from: 'pet', method: 'share' })
     } catch {
       setError(new Error('Sharing isn’t available here. Download the image, then post it from your photos.'))
@@ -184,6 +225,34 @@ export default function ShareImagePanel({ entry, onClose, ready, contest, phase,
           {busy ? 'Preparing…' : 'Download PNG'}
         </button>
       </div>
+      {canVideo && format.id === 'story' && (
+        <div className="gfx-video">
+          <h3>Make it a video</h3>
+          <p className="small muted">
+            A {VIDEO.seconds}-second Story: {entry.pet_name}&rsquo;s photo, then this card. It&rsquo;s made on your phone; nothing is uploaded. Add music in
+            Instagram or Facebook if you like.
+          </p>
+          {currentVideo ? (
+            <>
+              <video className="gfx-video-player" src={currentVideo.url} controls playsInline muted loop aria-label={`Video preview: vote for ${entry.pet_name}`} />
+              <div className="gfx-actions">
+                {currentVideo.file && (
+                  <button type="button" className="btn btn-primary" onClick={shareVideo}>
+                    Share video
+                  </button>
+                )}
+                <button type="button" className={`btn ${currentVideo.file ? 'btn-quiet' : 'btn-primary'}`} onClick={downloadVideo}>
+                  Download MP4
+                </button>
+              </div>
+            </>
+          ) : (
+            <button type="button" className="btn btn-quiet gfx-video-make" onClick={makeVideo} disabled={making !== null || !key} aria-live="polite">
+              {making === null ? `Make a ${VIDEO.seconds}-second video` : `Making the video… ${Math.round(making * 100)}%`}
+            </button>
+          )}
+        </div>
+      )}
     </section>
   )
 }
