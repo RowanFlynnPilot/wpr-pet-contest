@@ -1,0 +1,28 @@
+{
+  "contestUrl": "wausaupilotandreview.com/pet-contest",
+  "hook": "Walter Flatcoat",
+  "featured": [
+    "Fleetwood",
+    "Cash",
+    "Abby",
+    "Finn Diesel",
+    "Stella",
+    "Mandie"
+  ],
+  "cuts": {
+    "entries": {
+      "kicker": "Cutest Pet in Marathon County",
+      "countLine": "have entered.",
+      "ask": "Is yours next?",
+      "closesLabel": "Entries close",
+      "closes": "Friday, Nov. 20, at 8 p.m."
+    },
+    "lastdays": {
+      "kicker": "Two days left to enter",
+      "countLine": "are in.",
+      "ask": "Is yours?",
+      "closesLabel": "Entries close",
+      "closes": "Friday at 8 p.m."
+    }
+  }
+}

@@ -4,3 +4,6 @@ out/
 walkthrough*.html
 !walkthrough.src.html
 audio/
+entrants/photos/
+entrants/entrants-*.html
+openround/openround-*.html
