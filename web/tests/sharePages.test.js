@@ -32,6 +32,20 @@ describe('per-pet share page', () => {
   it('only claims 1200x630 when the image is transformed', () => {
     expect(html).not.toContain('og:image:width')
   })
+  it('previews the drawn card, which shows the whole photo, when the build made one', () => {
+    const withCard = sharePage({
+      entry,
+      contestName: 'Cutest Pet in Marathon County',
+      target: `https://wausaupilotandreview.com/pets/#/pet/${entry.id}`,
+      selfUrl: `https://gh.io/app/p/${entry.id}/`,
+      image: 'https://x.supabase.co/storage/v1/object/public/pets/c/x.jpg',
+      transforms: false,
+      card: `https://gh.io/app/p/${entry.id}/card.jpg`,
+    })
+    expect(withCard).toContain(`<meta property="og:image" content="https://gh.io/app/p/${entry.id}/card.jpg">`)
+    expect(withCard).toContain(`<meta name="twitter:image" content="https://gh.io/app/p/${entry.id}/card.jpg">`)
+    expect(withCard).toContain('<meta property="og:image:width" content="1200">')
+  })
 })
 
 const card = {

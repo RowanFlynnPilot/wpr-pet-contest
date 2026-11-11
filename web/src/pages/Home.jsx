@@ -108,7 +108,7 @@ function EntryBoard({ c, entryCount }) {
       )}
       <p className="sb-note">
         {closed
-          ? 'The field is set. Pick your favorite now; the whole field goes head to head when voting opens.'
+          ? 'The field is set. Pick your favorite now: every pet is in the Open Round when voting opens, and the top vote-getters make the bracket.'
           : `Entering is free. Then readers vote with vote packs, and ${packShareLine(contest.beneficiary_split_pct, c.shelters).replace(/^Half/, 'half')}`}
       </p>
     </Scoreboard>

@@ -248,7 +248,10 @@ export default function Rounds() {
                           type="button"
                           className="btn btn-primary btn-sm"
                           onClick={() => {
-                            setClosesAt('')
+                            // A day after the Open Round's own close (Saturday
+                            // 8 p.m. in 2026), unless that is under an hour away.
+                            const dayLater = new Date(r.closes_at).getTime() + 24 * 3600 * 1000
+                            setClosesAt(dayLater > Date.now() + 3600 * 1000 ? toLocalInput(new Date(dayLater).toISOString()) : '')
                             setAction({ kind: 'lastchance', round: r })
                           }}
                           disabled={busy || now < lastChanceFrom(r)}
@@ -342,7 +345,7 @@ export default function Rounds() {
           <label className="field">
             <span className="label">Last Chance closes at (your local time)</span>
             <input type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
-            <span className="hint">Leave empty for 24 hours from now. At least an hour away.</span>
+            <span className="hint">Prefilled a day after the Open Round closed; that time is in the published schedule. Leave empty for 24 hours from now. At least an hour away.</span>
           </label>
           <p className="small muted">The pool&rsquo;s owners get their Last Chance email straight away.</p>
         </TypedConfirm>

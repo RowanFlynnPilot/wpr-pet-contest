@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { entryShareLine, matchupSharePageUrl, petPublicUrl, petSharePageUrl, shareLinks, shareText } from '../src/lib/share.js'
+import { entryShareLine, freeVoteOffered, matchupSharePageUrl, petPublicUrl, petSharePageUrl, shareLinks, shareText } from '../src/lib/share.js'
 import { buildPhotoUrl } from '../src/lib/photos.js'
 
 const ID = '45d86334-7320-4238-bfd0-9bae59f0e115'
@@ -35,6 +35,13 @@ describe('share URLs', () => {
   })
   it('never calls it a donation', () => {
     expect(shareText('Biscuit').toLowerCase()).not.toContain('donat')
+  })
+  it('mentions the free daily vote only when the contest offers it', () => {
+    expect(shareText('Biscuit', 'X', 'Half goes to Moments.', { freeVote: true })).toBe('Vote for Biscuit in the X contest! Voting is free once a day. Half goes to Moments.')
+    expect(shareText('Biscuit', 'X', 'Half goes to Moments.')).not.toContain('free')
+    expect(freeVoteOffered({ free_vote_enabled: true })).toBe(true)
+    expect(freeVoteOffered({ free_vote_enabled: true, free_vote_paused_at: '2026-11-22T00:00:00Z' })).toBe(false)
+    expect(freeVoteOffered(null)).toBe(false)
   })
 })
 
