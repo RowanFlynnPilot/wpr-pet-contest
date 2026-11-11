@@ -71,8 +71,10 @@ export async function sweep(limit = 50): Promise<SweepResult> {
     });
 
     // A transient failure is left unrecorded so the next sweep retries it.
+    // A config failure (halt) stops the sweep: nothing else would send either.
     if (!result.ok && !result.permanent) {
       console.warn("email deferred", row.kind, row.entry_id, result.error);
+      if (result.halt) break;
       continue;
     }
 
@@ -141,6 +143,10 @@ export async function sweepBuyerNotes(limit = 50): Promise<SweepResult> {
         : { "List-Unsubscribe": `<${unsubscribe}>` },
     });
 
+    if (!result.ok && !result.permanent) {
+      if (await release("buyer_notices", { email: row.email, round_id: row.round_id, kind }, result)) break;
+      continue;
+    }
     const { error: settleError } = await service
       .from("buyer_notices")
       .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })
@@ -213,6 +219,10 @@ export async function sweepCheckoutReminders(limit = 50): Promise<SweepResult> {
     });
     const result = await sendEmail({ to: row.email, ...msg, idempotencyKey: `checkout-remind:${row.vote_id}` });
 
+    if (!result.ok && !result.permanent) {
+      if (await release("checkout_reminders", { vote_id: row.vote_id }, result)) break;
+      continue;
+    }
     const { error: settleError } = await service
       .from("checkout_reminders")
       .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })
@@ -224,6 +234,17 @@ export async function sweepCheckoutReminders(limit = 50): Promise<SweepResult> {
   }
 
   return { enabled: true, sent, failed, queued: queue.length - sent - failed, more: queue.length === limit };
+}
+
+// A send that failed for a reason that passes (a timeout, rate limiting, a
+// key or domain staff can fix): drop its claim row so the next sweep offers
+// it again. Resend's idempotency key keeps a retry inside 24 hours from
+// sending twice. Returns true when the sweep should stop (halt).
+async function release(table: string, match: Record<string, string>, result: { error: string; halt?: boolean }): Promise<boolean> {
+  console.warn("email deferred", table, result.error);
+  const { error } = await service.from(table).delete().match(match);
+  if (error) throw error;
+  return Boolean(result.halt);
 }
 
 // An idempotency key must not carry the address itself.
@@ -304,6 +325,10 @@ export async function sweepReminders(limit = 50): Promise<SweepResult> {
         : { "List-Unsubscribe": `<${unsubscribe}>` },
     });
 
+    if (!result.ok && !result.permanent) {
+      if (await release("free_vote_reminders", { voter_id: row.voter_id, reminder_day: day }, result)) break;
+      continue;
+    }
     const { error: settleError } = await service
       .from("free_vote_reminders")
       .update({ status: result.ok ? "sent" : "failed", provider_id: result.ok ? result.id : null, error: result.ok ? null : result.error })

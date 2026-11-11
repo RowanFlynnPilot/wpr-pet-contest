@@ -14,9 +14,24 @@ const REPLY_TO = optionalEnv("EMAIL_REPLY_TO");
 
 export const emailEnabled = Boolean(KEY);
 
+// permanent: this message will never send (a bad address); record it.
+// halt: our side is wrong (the API key, the sending domain): nothing will send
+// until staff fix it, so stop the sweep and retry everything later.
+// Neither: try again on the next sweep.
 export type SendResult =
   | { ok: true; id: string }
-  | { ok: false; permanent: boolean; error: string };
+  | { ok: false; permanent: boolean; halt?: boolean; error: string };
+
+// How a Resend error status should be treated. 401 and 403 are a missing or
+// revoked key or an unverified domain; 409 is the same idempotency key still
+// in flight; 429 and 5xx pass. Only the rest of 4xx (a malformed or refused
+// address) is final. A config error marked permanent would record every
+// queued email, approvals included, as failed for good.
+export function classifyFailure(status: number): { permanent: boolean; halt: boolean } {
+  if (status === 401 || status === 403) return { permanent: false, halt: true };
+  if (status === 409 || status === 429 || status >= 500) return { permanent: false, halt: false };
+  return { permanent: status >= 400 && status < 500, halt: false };
+}
 
 export async function sendEmail(msg: {
   to: string;
@@ -29,7 +44,7 @@ export async function sendEmail(msg: {
   // List-Unsubscribe and friends, for the free-vote reminders.
   headers?: Record<string, string>;
 }): Promise<SendResult> {
-  if (!KEY) return { ok: false, permanent: false, error: "email is not configured" };
+  if (!KEY) return { ok: false, permanent: false, halt: true, error: "email is not configured" };
 
   let res: Response;
   try {
@@ -59,10 +74,6 @@ export async function sendEmail(msg: {
     return { ok: true, id: String(body.id ?? "") };
   }
 
-  // 4xx other than rate limiting will not fix itself on retry (a bad address,
-  // an unverified domain). Record it and move on. 429 and 5xx are retried by
-  // the next sweep.
   const error = `${res.status} ${await res.text().catch(() => "")}`.slice(0, 500);
-  const permanent = res.status >= 400 && res.status < 500 && res.status !== 429;
-  return { ok: false, permanent, error };
+  return { ok: false, ...classifyFailure(res.status), error };
 }
