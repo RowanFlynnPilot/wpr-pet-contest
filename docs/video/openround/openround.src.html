@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Open Round</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@700;800;900&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* The Open Round Reels (build.mjs fills in the cut, the format and the data).
+   Every frame is a pure function of time (html-video). Text stays out of the
+   strips the apps cover: about 220px at the top and 420px at the bottom of a
+   Reel, 140px on the right. */
+:root {
+  --brand: #3a867c; --brand-ink: #2b655d; --brand-deep: #1f4b45; --brand-tint: #e1edea; --cream: #f6f2e9; --cream-deep: #ede6d6;
+  --ink: #1a1a1a; --muted: #5d625e; --sun: #f4b942; --sun-tint: #fcefd0; --danger: #b3261e;
+  --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+html, body { margin: 0; background: var(--brand-deep) }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--brand-deep); font-family: var(--sans); color: var(--ink) }
+#stage.square { height: 1080px }
+.scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; will-change: transform }
+.scene.turning { box-shadow: -30px 0 60px rgba(0, 0, 0, .3) }
+.abs { position: absolute; margin: 0 }
+.stack { display: flex; flex-direction: column }
+.stack > * { margin: 0 }
+.kicker { font: 700 30px/1.2 var(--sans); letter-spacing: .16em; text-transform: uppercase }
+.cream { background: var(--cream) }
+.deep { background: var(--brand-deep); color: #fff }
+.teal { background: var(--brand); color: #fff }
+
+/* Full-bleed openers */
+.bleed { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35% }
+.shade { position: absolute; left: 0; right: 0; top: 0; height: 1100px; background: linear-gradient(rgba(0,0,0,.74), rgba(0,0,0,.4) 60%, rgba(0,0,0,0)) }
+.veil { position: absolute; inset: 0; background: linear-gradient(rgba(18,45,41,.86), rgba(18,45,41,.5) 46%, rgba(18,45,41,.22)) }
+.opener { left: 72px; right: 150px; top: 250px; gap: 18px; color: #fff }
+.opener .kicker { color: var(--sun) }
+.big { font: 900 170px/.9 var(--display); letter-spacing: -.045em }
+.sub { font: 800 60px/1.08 var(--display); letter-spacing: -.02em }
+.num { font: 700 84px/1 var(--mono); color: var(--sun); letter-spacing: -.03em }
+#fieldwall, #strips { position: absolute; left: 0; top: 0 }
+.ft { position: absolute; overflow: hidden }
+.ft img, .strip img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; display: block }
+.strip { position: absolute; top: 0; overflow: hidden }
+
+/* Titles on the inner pages */
+.head { left: 72px; right: 150px; top: 236px; gap: 12px }
+.head .kicker { color: var(--brand-ink) }
+.deep .head .kicker { color: var(--sun) }
+.title { font: 900 78px/1 var(--display); letter-spacing: -.03em }
+.lede { font: 400 36px/1.35 var(--sans); color: var(--muted) }
+
+/* Every pet starts at zero */
+.zt { position: absolute; border-radius: 10px; overflow: hidden; background: var(--cream-deep); box-shadow: 0 14px 34px rgba(31,75,69,.22) }
+.zt img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; display: block }
+.zero { position: absolute; left: 14px; bottom: 14px; min-width: 64px; height: 64px; padding: 0 14px; box-sizing: border-box; border-radius: 32px; background: var(--sun);
+  font: 700 40px/64px var(--mono); text-align: center; color: var(--ink) }
+
+/* How to vote */
+.ways { left: 72px; right: 150px; top: 330px; gap: 56px }
+.way { display: flex; gap: 28px; align-items: baseline }
+.way b { font: 700 54px/1 var(--mono); color: var(--sun); flex: none }
+.way span { font: 900 88px/1 var(--display); letter-spacing: -.035em }
+
+/* Standings */
+#rows { position: absolute; left: 56px; right: 56px }
+.row { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 18px; padding: 0 18px; box-sizing: border-box; border-radius: 8px; overflow: hidden }
+.row .bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--brand-tint); transform-origin: 0 50% }
+.row > *:not(.bar) { position: relative }
+.row .pl { width: 74px; font: 700 30px/1 var(--mono); color: var(--brand-ink) }
+.row img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: 50% 40%; flex: none }
+.row .nm { flex: 1; min-width: 0; font: 700 32px/1.1 var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.row .ct { font: 700 32px/1 var(--mono); font-variant-numeric: tabular-nums }
+.row.lc .bar { background: var(--sun-tint) }
+.row.out { opacity: .55 }
+.gapmark { position: absolute; left: 0; right: 0; text-align: center; font: 700 34px/1 var(--mono); color: var(--muted) }
+.line { position: absolute; left: -16px; right: -16px; height: 0; border-top: 5px dashed var(--brand-deep) }
+.line span { position: absolute; right: 24px; top: -27px; background: var(--brand-deep); color: #fff; font: 700 24px/1 var(--sans); padding: 12px 18px; border-radius: 26px; letter-spacing: .04em; white-space: nowrap }
+.line.lcline { border-color: var(--sun) }
+.line.lcline span { background: var(--sun); color: var(--ink) }
+
+/* Last Chance pool */
+.pc { position: absolute; display: flex; align-items: center; gap: 30px; background: #fff; border-radius: 12px; box-shadow: 0 14px 34px rgba(31,75,69,.18); overflow: hidden }
+.pc img { height: 100%; aspect-ratio: 1; object-fit: cover; object-position: 50% 40%; flex: none }
+.pc .who { min-width: 0; display: flex; flex-direction: column; gap: 6px; padding-right: 20px }
+.pc .nm { font: 800 50px/1.05 var(--display); letter-spacing: -.02em; overflow-wrap: anywhere }
+.pc .tw { font: 600 30px/1.2 var(--sans); color: var(--muted) }
+.pc .st { font: 700 26px/1 var(--mono); color: var(--brand-ink) }
+
+/* End card */
+.end { left: 72px; right: 150px; top: 360px; gap: 44px }
+.e-brand { display: flex; align-items: center; gap: 20px; font: 700 34px/1.1 var(--sans) }
+.e-brand img { width: 92px; height: 92px; border-radius: 50%; background: #fff }
+.e-h { font: 900 132px/.92 var(--display); letter-spacing: -.04em }
+.e-p { font: 400 46px/1.35 var(--sans); color: #e7f1ee }
+.e-when { align-self: flex-start; background: var(--sun); color: var(--ink); font: 800 50px/1.1 var(--display); padding: 18px 28px 22px; border-radius: 10px; letter-spacing: -.015em }
+.e-when small { display: block; font: 700 26px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px }
+.e-url { font: 700 44px/1.2 var(--sans); text-decoration: underline; text-decoration-thickness: 4px; text-underline-offset: 10px; overflow-wrap: anywhere }
+.e-fine { font: 400 32px/1.4 var(--sans); color: #e2eeeb }
+
+/* Never post a frame of made-up numbers. */
+#sample { position: absolute; left: -200px; right: -200px; top: 50%; z-index: 50; transform: rotate(-24deg); text-align: center; font: 900 120px/1 var(--display);
+  color: rgba(179, 38, 30, .55); letter-spacing: .04em; pointer-events: none; text-shadow: 0 0 2px #fff }
+
+/* Square (1080x1080) */
+.square .opener { top: 70px; right: 72px }
+.square .big { font-size: 128px }
+.square .sub { font-size: 46px }
+.square .num { font-size: 64px }
+.square .shade { height: 700px }
+.square .head { top: 56px; right: 72px }
+.square .title { font-size: 58px }
+.square .lede { font-size: 28px }
+.square .ways { top: 150px; right: 72px; gap: 44px }
+.square .way b { font-size: 40px }
+.square .way span { font-size: 66px }
+.square .row .nm, .square .row .ct { font-size: 28px }
+.square .row .pl { font-size: 26px; width: 64px }
+.square .row img { width: 40px; height: 40px }
+.square .pc { flex-direction: column; gap: 10px; align-items: stretch }
+.square .pc img { width: 100%; height: auto }
+.square .pc .who { padding: 0 14px 16px; gap: 4px }
+.square .pc .nm { font-size: 30px }
+.square .pc .tw { font-size: 20px }
+.square .pc .st { font-size: 18px }
+.square .end { top: 150px; right: 72px; gap: 22px }
+.square .e-brand img { width: 72px; height: 72px }
+.square .e-h { font-size: 96px }
+.square .e-p { font-size: 34px }
+.square .e-when { font-size: 38px }
+.square .e-when small { font-size: 20px }
+.square .e-url { font-size: 36px }
+.square .e-fine { font-size: 26px }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const DATA = __DATA__;
+const CUT = '__CUT__';
+const SQUARE = '__FORMAT__' === 'square';
+const W = 1080, H = SQUARE ? 1080 : 1920;
+window.COMPOSITION = { width: W, height: H, fps: 30, duration: 15 };
+const stage = document.getElementById('stage');
+if (SQUARE) stage.classList.add('square');
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const fmt = (n) => Math.round(n).toLocaleString('en-US');
+const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many}`;
+const BADGE = '../../../web/public/wpr-typewriter-badge.png';
+
+function scene(cls, html) {
+  const el = document.createElement('section');
+  el.className = 'scene ' + cls;
+  el.id = 's' + stage.children.length;
+  el.innerHTML = html;
+  stage.appendChild(el);
+  return el;
+}
+function endCard({ h, p, label, when, fine }) {
+  scene('teal', `<div class="abs stack end">
+    <p class="e-brand fx" data-in="0"><img src="${BADGE}" alt="">Wausau Pilot &amp; Review</p>
+    <p class="e-h fx" data-in="1">${esc(h)}</p>
+    <p class="e-p fx" data-in="2">${esc(p)}</p>
+    <p class="e-when fx" data-in="3"><small>${esc(label)}</small>${esc(when)}</p>
+    <p class="e-url fx" data-in="4">${esc(DATA.url)}</p>
+    <p class="e-fine fx" data-in="5">${esc(fine)}</p></div>`);
+}
+
+// ---- Build the cut. Everything measured here, once; seek() only moves things. ----
+let PAGES = [];
+const moves = [];   // (t) => void, run by seek after the page turns
+const END_AT = { open: 10.6, race: 11.0, lastchance: 10.4 }[CUT];
+
+if (CUT === 'open') {
+  // 0. The whole field behind "Voting is open."
+  const s0 = scene('deep', `<div id="fieldwall"></div><div class="veil"></div>
+    <div class="abs stack opener"><p class="kicker">Cutest Pet in Marathon County</p><p class="big">Voting is open.</p>
+    <p class="sub">${plural(DATA.count, 'pet', 'pets')}. One Open Round.</p></div>`);
+  const cols = SQUARE ? 6 : 6, tile = W / cols, rows = Math.ceil((H + 240) / tile) ;
+  const wallEl = $('fieldwall');
+  for (let i = 0; i < cols * rows; i++) {
+    const pet = DATA.field[i % DATA.field.length];
+    const d = document.createElement('div'); d.className = 'ft';
+    Object.assign(d.style, { left: (i % cols) * tile + 'px', top: Math.floor(i / cols) * tile + 'px', width: tile + 'px', height: tile + 'px' });
+    d.innerHTML = `<img src="${pet.src}" alt="">`;
+    wallEl.appendChild(d);
+  }
+  moves.push((t) => { wallEl.style.transform = `translateY(${(-lerp(0, 220, p(t, 0, 2.7, LIN))).toFixed(1)}px)`; });
+
+  // 1. Every pet starts at zero.
+  const s1 = scene('cream', `<div class="abs stack head"><p class="kicker">Open Round</p><p class="title">Every pet starts at zero.</p></div>`);
+  const n = DATA.zeroes.length, zc = 3, gap = 20, area = SQUARE ? { y: 250, h: 790 } : { y: 520, h: 960 };
+  const zs = Math.min((W - 144 - gap * (zc - 1)) / zc, (area.h - gap * (Math.ceil(n / zc) - 1)) / Math.ceil(n / zc));
+  const left0 = (W - (zc * zs + (zc - 1) * gap)) / 2;
+  const zts = DATA.zeroes.map((pet, i) => {
+    const d = document.createElement('div'); d.className = 'zt';
+    Object.assign(d.style, { left: left0 + (i % zc) * (zs + gap) + 'px', top: area.y + Math.floor(i / zc) * (zs + gap) + 'px', width: zs + 'px', height: zs + 'px' });
+    d.innerHTML = `<img src="${pet.src}" alt=""><span class="zero">0</span>`;
+    s1.appendChild(d);
+    return { d, z: d.querySelector('.zero'), a: 2.55 + i * 0.08, b: 3.6 + i * 0.09 };
+  });
+  moves.push((t) => zts.forEach((z) => {
+    const k = p(t, z.a, z.a + 0.4, BACK);
+    z.d.style.opacity = clamp01(k * 2); z.d.style.transform = `scale(${lerp(0.6, 1, k).toFixed(4)})`;
+    const k2 = p(t, z.b, z.b + 0.35, BACK);
+    z.z.style.opacity = clamp01(k2 * 2); z.z.style.transform = `scale(${lerp(0.2, 1, k2).toFixed(4)})`;
+  }));
+
+  // 2. How to vote, a line at a time.
+  const ways = [
+    DATA.freeVote ? 'Vote free, once a day.' : null,
+    DATA.fromDollars ? `${DATA.freeVote ? 'Or back' : 'Back'} a pet with vote packs from ${DATA.fromDollars}.` : null,
+    `The top ${DATA.bracket} make the bracket.`,
+  ].filter(Boolean);
+  scene('deep', `<div class="abs stack ways">${ways.map((w, i) => `<p class="way fx" data-way="${i}"><b>${i + 1}</b><span>${esc(w)}</span></p>`).join('')}</div>`);
+  moves.push((t) => document.querySelectorAll('[data-way]').forEach((el) => arrive(el, p(t, 6.85 + Number(el.dataset.way) * 1.0, 7.55 + Number(el.dataset.way) * 1.0), 60)));
+
+  endCard({ h: 'Vote for your favorite.', p: 'Totals reset every round, so the bracket starts fresh.', label: 'Voting closes', when: DATA.closes,
+    fine: 'Half of vote pack sales goes to Moments Foster Care. Vote packs are not donations.' });
+  PAGES = [[null, 2.2], [2.2, 6.4], [6.4, 10.6], [10.6, null]];
+}
+
+if (CUT === 'race') {
+  const L = DATA.leader;
+  scene('', `<img class="bleed" id="lead" src="${L.src}" alt=""><div class="shade"></div>
+    <div class="abs stack opener"><p class="kicker">Open Round · as of ${esc(DATA.asOf)}</p><p class="sub">No. 1 right now</p>
+    <p class="big">${esc(L.name)}</p><p class="num">${plural(L.votes, 'vote', 'votes')}</p></div>`);
+  moves.push((t) => { $('lead').style.transform = `scale(${lerp(1, 1.07, p(t, 0, 2.5, LIN)).toFixed(4)})`; });
+
+  // 1. The standings, with the line(s) that matter.
+  const lc = DATA.lastChance, inN = lc ? DATA.bracket - 1 : DATA.bracket;
+  const title = lc ? `Top ${inN} are in. The next five get a Last Chance.` : `The top ${DATA.bracket} make the bracket.`;
+  const s1 = scene('cream', `<div class="abs stack head"><p class="kicker">As of ${esc(DATA.asOf)}</p><p class="title" style="font-size:${SQUARE ? 44 : 64}px">${esc(title)}</p></div><div id="rows"></div>`);
+  // Portrait shows every place to just past the lines; square keeps the top and the lines.
+  let show = DATA.rows.map((r, i) => i);
+  if (SQUARE && show.length > 12) show = [0, 1, 2, 'gap', ...show.slice(inN - 3)];
+  const area = SQUARE ? { y: 250, h: 790 } : { y: 470, h: 1060 };
+  const rowH = Math.min(70, area.h / show.length);
+  const rowsEl = $('rows');
+  Object.assign(rowsEl.style, { top: area.y + 'px', height: area.h + 'px' });
+  const max = Math.max(1, ...DATA.rows.map((r) => r.votes));
+  const rows = [];
+  show.forEach((idx, k) => {
+    const y = k * rowH;
+    if (idx === 'gap') { const g = document.createElement('div'); g.className = 'gapmark'; g.style.top = y + rowH / 2 - 17 + 'px'; g.textContent = '· · ·'; rowsEl.appendChild(g); return; }
+    const r = DATA.rows[idx], place = idx + 1;
+    const el = document.createElement('div');
+    el.className = 'row' + (lc && place > inN && place <= inN + 5 ? ' lc' : '') + (place > (lc ? inN + 5 : DATA.bracket) ? ' out' : '');
+    Object.assign(el.style, { top: y + 3 + 'px', height: rowH - 6 + 'px' });
+    el.innerHTML = `<span class="bar"></span><span class="pl">${place}</span><img src="${r.src}" alt=""><span class="nm">${esc(r.name)}</span><span class="ct">0</span>`;
+    rowsEl.appendChild(el);
+    rows.push({ el, bar: el.querySelector('.bar'), ct: el.querySelector('.ct'), v: r.votes, a: 2.6 + k * 0.07 });
+  });
+  const lineAt = (place) => { const k = show.indexOf(place - 1); return k < 0 ? null : (k + 1) * rowH; };
+  const lines = [];
+  const addLine = (place, text, cls) => {
+    const y = lineAt(place); if (y == null) return;
+    const ln = document.createElement('div'); ln.className = 'line ' + (cls || ''); ln.style.top = y - 2 + 'px';
+    ln.innerHTML = `<span>${esc(text)}</span>`; rowsEl.appendChild(ln); lines.push(ln);
+  };
+  const first = (pl) => DATA.rows[pl - 1];
+  if (lc) {
+    addLine(inN, `In the bracket`);
+    const p16 = first(inN + 1), p21 = first(inN + 6);
+    if (p16) addLine(inN + 5, p21 ? `Last Chance · No. ${inN + 6} is ${plural(Math.max(0, p16.votes - p21.votes) + 1, 'vote', 'votes')} short`.replace(/No\. \d+ is (\d)/, (m) => m) : 'Last Chance', 'lcline');
+  } else {
+    const last = first(DATA.bracket), next = first(DATA.bracket + 1);
+    addLine(DATA.bracket, next ? `Bracket line · No. ${DATA.bracket + 1} is ${plural(last.votes - next.votes + 1, 'vote', 'votes')} short` : 'Bracket line');
+  }
+  moves.push((t) => {
+    rows.forEach((r) => {
+      const k = p(t, r.a, r.a + 1.4, OUT);
+      r.bar.style.transform = `scaleX(${(k * r.v / max).toFixed(4)})`;
+      r.ct.textContent = fmt(r.v * k);
+      r.el.style.opacity = (r.el.classList.contains('out') ? 0.55 : 1) * clamp01(p(t, r.a - 0.2, r.a + 0.2, LIN));
+    });
+    lines.forEach((ln, i) => { const k = p(t, 5.6 + i * 0.6, 6.2 + i * 0.6, BACK); ln.style.opacity = clamp01(k * 2); ln.style.transform = `scaleX(${lerp(0.3, 1, clamp01(k)).toFixed(3)})`; });
+  });
+
+  endCard({ h: 'Every vote counts.', p: 'The Open Round is the only round where every pet can get votes. Then totals reset for the bracket.', label: 'Voting closes', when: DATA.closes,
+    fine: `Numbers as of ${DATA.asOf}. Half of vote pack sales goes to Moments Foster Care.` });
+  PAGES = [[null, 2.0], [2.0, 11.0], [11.0, null]];
+}
+
+if (CUT === 'lastchance') {
+  const pool = DATA.pool, seed = DATA.bracket;
+  scene('deep', `<div id="strips"></div><div class="shade" style="height:${SQUARE ? 760 : 1200}px"></div>
+    <div class="abs stack opener"><p class="kicker">Open Round overtime</p><p class="big">Last Chance.</p>
+    <p class="sub">${pool.length === 5 ? 'Five' : fmt(pool.length)} pets. One spot in the bracket.</p></div>`);
+  const sw = W / Math.max(1, pool.length), strips = $('strips');
+  const stripEls = pool.map((pet, i) => {
+    const d = document.createElement('div'); d.className = 'strip';
+    Object.assign(d.style, { left: i * sw + 'px', width: sw + 1 + 'px', height: H + 'px' });
+    d.innerHTML = `<img src="${pet.src}" alt="">`; strips.appendChild(d); return d;
+  });
+  moves.push((t) => stripEls.forEach((d, i) => { d.style.transform = `translateY(${((i % 2 ? -1 : 1) * lerp(0, 60, p(t, 0, 2.7, LIN))).toFixed(1)}px) scale(1.08)`; }));
+
+  const s1 = scene('cream', `<div class="abs stack head"><p class="kicker">Last Chance</p><p class="title">Who takes seed ${seed}?</p>
+    <p class="lede">Only these ${pool.length === 5 ? 'five' : fmt(pool.length)} can get votes now. The most Open Round votes when Last Chance ends wins it.</p></div>`);
+  const area = SQUARE ? { y: 330, h: 700 } : { y: 560, h: 940 };
+  const cards = pool.map((pet, i) => {
+    const d = document.createElement('div'); d.className = 'pc';
+    if (SQUARE) {
+      const cw = (W - 112 - 4 * 16) / 5;
+      Object.assign(d.style, { left: 56 + i * (cw + 16) + 'px', top: area.y + 'px', width: cw + 'px' });
+    } else {
+      const ch = (area.h - 4 * 22) / 5;
+      Object.assign(d.style, { left: '72px', right: '150px', top: area.y + i * (ch + 22) + 'px', height: ch + 'px' });
+    }
+    d.innerHTML = `<img src="${pet.src}" alt=""><div class="who"><span class="st">STARTED NO. ${pet.place}</span><span class="nm">${esc(pet.name)}</span><span class="tw">${esc(pet.town)}</span></div>`;
+    s1.appendChild(d);
+    return { d, a: 2.75 + i * 0.32 };
+  });
+  moves.push((t) => cards.forEach((c, i) => { const k = p(t, c.a, c.a + 0.45, BACK); c.d.style.opacity = clamp01(k * 2); c.d.style.transform = SQUARE ? `translateY(${((1 - k) * 160).toFixed(1)}px)` : `translateX(${((1 - k) * (i % 2 ? 1 : -1) * 260).toFixed(1)}px)`; }));
+
+  endCard({ h: 'Last Chance.', p: `${DATA.bracket - 1} pets are in the bracket. One spot is left.`, label: 'Last Chance closes', when: DATA.lastChanceCloses,
+    fine: 'Totals reset for the bracket. Half of vote pack sales goes to Moments Foster Care.' });
+  PAGES = [[null, 2.2], [2.2, 10.4], [10.4, null]];
+}
+
+if (DATA.sample && CUT !== 'open') {
+  const s = document.createElement('div'); s.id = 'sample'; s.textContent = 'SAMPLE NUMBERS · DO NOT POST'; stage.appendChild(s);
+}
+
+// ---- The engine (html-video). Nothing reads the clock. ----
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sx = (t) => ((ax * t + bx) * t + cx) * t, sy = (t) => ((ay * t + by) * t + cy) * t;
+  return (x) => {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 40; i++) { const v = sx(t); if (Math.abs(v - x) < 1e-7) break; if (v < x) lo = t; else hi = t; t = (lo + hi) / 2; }
+    return sy(t);
+  };
+}
+function OUT(k) { return OUT_.f(k); }
+const OUT_ = { f: bezier(.16, 1, .3, 1) };
+function INOUT(k) { return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+function BACK(k) { return 1 + 2.70158 * Math.pow(k - 1, 3) + 1.70158 * Math.pow(k - 1, 2); }
+function LIN(k) { return k; }
+function p(t, a, b, e = OUT) { return t <= a ? 0 : t >= b ? 1 : e((t - a) / (b - a)); }
+function lerp(a, b, k) { return a + (b - a) * k; }
+function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+function arrive(el, k, dy = 50) { el.style.opacity = clamp01(k); el.style.transform = 'translateY(' + ((1 - k) * dy).toFixed(1) + 'px)'; }
+
+const TURN = 0.5;
+function seek(t) {
+  PAGES.forEach(([tin, tout], i) => {
+    const el = $('s' + i);
+    const inK = tin === null ? 1 : p(t, tin, tin + TURN, INOUT);
+    const outK = tout === null ? 0 : p(t, tout, tout + TURN, INOUT);
+    el.style.visibility = (tin === null || t >= tin) && (tout === null || t < tout + TURN) ? 'visible' : 'hidden';
+    el.style.zIndex = i;
+    el.style.transform = 'translateX(' + (inK < 1 ? lerp(W, 0, inK) : -240 * outK).toFixed(2) + 'px)';
+    el.classList.toggle('turning', inK > 0 && inK < 1);
+  });
+  moves.forEach((m) => m(t));
+  document.querySelectorAll('[data-in]').forEach((el) => {
+    const i = Number(el.dataset.in), a = END_AT + 0.35 + i * 0.25;
+    arrive(el, i === 3 ? p(t, a, a + 0.65, BACK) : p(t, a, a + 0.6), i === 1 ? 60 : 36);
+  });
+}
+
+window.ready = (async () => {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((img) => img.decode().catch(() => null)));
+  seek(0);
+  return window.COMPOSITION;
+})();
+window.seek = seek;
+</script>
+</body>
+</html>

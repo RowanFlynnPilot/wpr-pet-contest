@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meet the entrants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@700;800;900&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* "Meet the entrants" (build.mjs fills in the data and format). Every frame is
+   a pure function of time: seek(t) sets every style from t alone (html-video).
+   Text stays out of the strips the apps cover: about 220px at the top and
+   420px at the bottom of a Reel, 140px on the right. */
+:root {
+  --brand: #3a867c; --brand-ink: #2b655d; --brand-deep: #1f4b45; --cream: #f6f2e9; --cream-deep: #ede6d6;
+  --ink: #1a1a1a; --muted: #5d625e; --sun: #f4b942;
+  --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+html, body { margin: 0; background: var(--brand-deep) }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--brand-deep); font-family: var(--sans); color: var(--ink) }
+.square#stage { height: 1080px }
+.scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; will-change: transform }
+.scene.turning { box-shadow: -30px 0 60px rgba(0, 0, 0, .3) }
+.abs { position: absolute; margin: 0 }
+.fx { will-change: transform, opacity }
+.h-stack > *, .e-stack > * { margin: 0 }
+.kicker { font: 700 30px/1.2 var(--sans); letter-spacing: .16em; text-transform: uppercase }
+
+/* 0. The hook: one face, full frame. Composed on frame 0: it is the cover. */
+#s0 { background: #111 }
+#hook { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; transform-origin: 50% 38% }
+.shade-top { left: 0; right: 0; top: 0; height: 980px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,.42) 55%, rgba(0,0,0,0)) }
+.shade-bot { left: 0; right: 0; bottom: 0; height: 760px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.62)) }
+.h-stack { left: 72px; right: 150px; top: 250px; display: flex; flex-direction: column; gap: 10px; color: #fff }
+.h-kicker { color: var(--sun) }
+.h-count { font: 900 240px/.86 var(--display); letter-spacing: -.045em; margin-top: 18px }
+.h-count span { font-size: 104px; letter-spacing: -.03em; display: block; margin-top: 14px }
+.h-ask { left: 72px; top: 1290px; font: 900 112px/1 var(--display); letter-spacing: -.035em; color: var(--ink) }
+.h-ask b { display: inline-block; background: var(--sun); padding: 14px 30px 20px; border-radius: 10px; font-weight: inherit }
+
+/* 1. The pile: six photo cards land one on another. */
+#s1 { background: var(--cream) }
+.p-kicker { left: 72px; top: 236px; color: var(--brand-ink) }
+.p-title { left: 72px; top: 284px; font: 900 76px/1 var(--display); letter-spacing: -.03em }
+.card { position: absolute; left: 0; top: 0; width: 720px; box-sizing: border-box; padding: 22px 22px 0; background: #fff; border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 24px 60px rgba(31,75,69,.28); transform-origin: 50% 60% }
+.card img { display: block; width: 676px; height: 845px; object-fit: cover; object-position: 50% 40%; border-radius: 4px; background: var(--cream-deep) }
+.card .cap { padding: 22px 6px 26px; display: flex; align-items: baseline; justify-content: space-between; gap: 20px }
+.card .nm { font: 800 60px/1.05 var(--display); letter-spacing: -.025em; min-width: 0; overflow-wrap: anywhere }
+.card .tw { font: 600 32px/1.2 var(--sans); color: var(--muted); white-space: nowrap }
+
+/* 2. The wall: every pet so far, and a place for the next one. */
+#s2 { background: var(--brand-deep); color: #fff }
+.w-head { left: 72px; top: 236px; display: flex; align-items: baseline; gap: 26px }
+.w-count { font: 700 168px/1 var(--mono); color: var(--sun); letter-spacing: -.04em }
+.w-label { font: 800 64px/1.05 var(--display); letter-spacing: -.02em }
+.tile { position: absolute; border-radius: 8px; overflow: hidden; background: #2a5a53 }
+.tile img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; display: block }
+.tile.you { background: transparent; border: 5px dashed var(--sun); box-sizing: border-box; display: grid; place-items: center; text-align: center;
+  color: var(--sun); font: 800 34px/1.05 var(--display) }
+.tile.you i { display: block; font: 900 64px/1 var(--display); font-style: normal }
+
+/* 3. The end card: the one thing to do. */
+#s3 { background: var(--brand); color: #fff }
+.e-stack { left: 72px; right: 150px; top: 360px; display: flex; flex-direction: column; gap: 44px }
+.e-brand { display: flex; align-items: center; gap: 20px; font: 700 34px/1.1 var(--sans) }
+.e-brand img { width: 92px; height: 92px; border-radius: 50%; background: #fff }
+.e-h { font: 900 132px/.92 var(--display); letter-spacing: -.04em }
+.e-p { font: 400 46px/1.35 var(--sans); color: #e7f1ee }
+.e-when { align-self: flex-start; background: var(--sun); color: var(--ink); font: 800 50px/1.1 var(--display); padding: 18px 28px 22px; border-radius: 10px; letter-spacing: -.015em }
+.e-when small { display: block; font: 700 26px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px }
+.e-url { font: 700 44px/1.2 var(--sans); text-decoration: underline; text-decoration-thickness: 4px; text-underline-offset: 10px; overflow-wrap: anywhere }
+.e-fine { font: 400 34px/1.4 var(--sans); color: #e2eeeb }
+
+/* Square (1080x1080): the same story, tighter. */
+.square .shade-top { height: 640px }
+.square .h-stack { top: 64px; right: 72px }
+.square .h-count { font-size: 170px; margin-top: 8px }
+.square .h-count span { font-size: 72px; margin-top: 8px }
+.square .h-ask { top: 880px; font-size: 80px }
+.square .p-kicker { top: 60px }
+.square .p-title { top: 100px; font-size: 56px }
+.square .w-head { top: 50px }
+.square .w-count { font-size: 120px }
+.square .w-label { font-size: 48px }
+.square .e-stack { top: 190px; right: 72px; gap: 22px }
+.square .e-brand img { width: 72px; height: 72px }
+.square .e-h { font-size: 96px }
+.square .e-p { font-size: 36px }
+.square .e-when { font-size: 38px }
+.square .e-when small { font-size: 20px }
+.square .e-url { font-size: 36px }
+.square .e-fine { font-size: 26px }
+</style>
+</head>
+<body>
+<div id="stage">
+  <section class="scene" id="s0">
+    <img id="hook" alt="">
+    <div class="abs shade-top"></div>
+    <div class="abs shade-bot"></div>
+    <div class="abs h-stack">
+      <p class="kicker h-kicker" id="h-kicker"></p>
+      <p class="h-count" id="h-count"></p>
+    </div>
+    <p class="abs h-ask fx" id="h-ask"><b></b></p>
+  </section>
+
+  <section class="scene" id="s1">
+    <p class="abs kicker p-kicker">Meet the entrants</p>
+    <p class="abs p-title">A few of them, so far</p>
+    <div id="pile"></div>
+  </section>
+
+  <section class="scene" id="s2">
+    <div class="abs w-head"><span class="w-count" id="w-count"></span><span class="w-label">pets so far</span></div>
+    <div class="abs" id="wall"></div>
+  </section>
+
+  <section class="scene" id="s3">
+    <div class="abs e-stack">
+      <p class="e-brand fx" id="e-brand"><img src="../../../web/public/wpr-typewriter-badge.png" alt="">Wausau Pilot &amp; Review</p>
+      <p class="e-h fx" id="e-h">Enter your pet free.</p>
+      <p class="e-p fx" id="e-p">One phone photo and a few minutes. An editor checks every entry.</p>
+      <p class="e-when fx" id="e-when"></p>
+      <p class="e-url fx" id="e-url"></p>
+      <p class="e-fine fx" id="e-fine">Voting starts Nov. 21. Half of vote pack sales goes to Moments Foster Care.</p>
+    </div>
+  </section>
+</div>
+<script>
+const DATA = __DATA__;
+const FORMAT = '__FORMAT__';
+const SQUARE = FORMAT === 'square';
+const W = 1080, H = SQUARE ? 1080 : 1920;
+window.COMPOSITION = { width: W, height: H, fps: 30, duration: 15 };
+const $ = (id) => document.getElementById(id);
+if (SQUARE) $('stage').classList.add('square');
+
+// ---- Fill the scenes from the data. Layout is measured once here, never in seek(). ----
+$('hook').src = DATA.hook.src;
+$('h-kicker').textContent = DATA.kicker;
+$('h-count').innerHTML = '';
+$('h-count').append(DATA.count + ' pets');
+const countLine = document.createElement('span'); countLine.textContent = DATA.countLine; $('h-count').append(countLine);
+$('h-ask').firstChild.textContent = DATA.ask;
+const closes = document.createElement('small'); closes.textContent = DATA.closesLabel;
+$('e-when').append(closes, DATA.closes);
+$('e-url').textContent = DATA.url;
+
+// The pile: rests near the middle of the free space, each card tilted its own way.
+const CARD = SQUARE ? { cx: 540, cy: 610, s: 0.66 } : { cx: 540, cy: 1000, s: 1 };
+const TILT = [-4, 3.2, -2.2, 4.4, -3.4, 2];
+const NUDGE = [[-26, 10], [22, -12], [-14, 18], [28, 4], [-20, -8], [8, 14]];
+const cards = DATA.featured.map((pet, i) => {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = '<img alt=""><div class="cap"><span class="nm"></span><span class="tw"></span></div>';
+  el.querySelector('img').src = pet.src;
+  el.querySelector('.nm').textContent = pet.name;
+  el.querySelector('.tw').textContent = pet.town;
+  $('pile').appendChild(el);
+  return { el, tilt: TILT[i % TILT.length], nudge: NUDGE[i % NUDGE.length], at: 2.35 + i * 0.72 };
+});
+
+// The wall: the biggest square tiles that fit every pet plus one empty place.
+const AREA = SQUARE ? { x: 48, y: 230, w: 984, h: 800 } : { x: 48, y: 500, w: 984, h: 1020 };
+const GAP = 12, n = DATA.wall.length + 1;
+let best = { tile: 0, cols: 1 };
+for (let cols = 2; cols <= 16; cols++) {
+  const rows = Math.ceil(n / cols);
+  const tile = Math.min((AREA.w - GAP * (cols - 1)) / cols, (AREA.h - GAP * (rows - 1)) / rows);
+  if (tile > best.tile) best = { tile, cols, rows };
+}
+const wall = $('wall');
+const gw = best.cols * best.tile + (best.cols - 1) * GAP, gh = best.rows * best.tile + (best.rows - 1) * GAP;
+Object.assign(wall.style, { left: AREA.x + (AREA.w - gw) / 2 + 'px', top: AREA.y + (AREA.h - gh) / 2 + 'px', width: gw + 'px', height: gh + 'px', transformOrigin: '50% 50%' });
+// A fixed shuffle from the index, so tiles pop all over the wall, not row by row.
+const order = DATA.wall.map((_, i) => i).sort((a, b) => ((a * 2654435761) >>> 0) % 997 - ((b * 2654435761) >>> 0) % 997);
+const rank = new Map(order.map((i, k) => [i, k]));
+const tiles = [...DATA.wall, null].map((pet, i) => {
+  const el = document.createElement('div');
+  el.className = pet ? 'tile' : 'tile you';
+  if (pet) { const img = document.createElement('img'); img.src = pet.src; img.alt = ''; el.appendChild(img); }
+  else el.innerHTML = '<span><i>+</i>Your pet?</span>';
+  Object.assign(el.style, { left: (i % best.cols) * (best.tile + GAP) + 'px', top: Math.floor(i / best.cols) * (best.tile + GAP) + 'px', width: best.tile + 'px', height: best.tile + 'px' });
+  if (!pet) el.style.fontSize = Math.max(18, best.tile * 0.17) + 'px';
+  wall.appendChild(el);
+  return { el, at: pet ? 7.2 + (rank.get(i) / Math.max(1, DATA.wall.length - 1)) * 1.5 : 8.95 };
+});
+
+// ---- The engine (html-video): easing and helpers. Nothing reads the clock. ----
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sx = (t) => ((ax * t + bx) * t + cx) * t, sy = (t) => ((ay * t + by) * t + cy) * t;
+  return (x) => {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 40; i++) { const v = sx(t); if (Math.abs(v - x) < 1e-7) break; if (v < x) lo = t; else hi = t; t = (lo + hi) / 2; }
+    return sy(t);
+  };
+}
+const OUT = bezier(.16, 1, .3, 1);
+const INOUT = (k) => (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const BACK = (k) => 1 + 2.70158 * Math.pow(k - 1, 3) + 1.70158 * Math.pow(k - 1, 2);
+const LIN = (k) => k;
+const p = (t, a, b, e = OUT) => (t <= a ? 0 : t >= b ? 1 : e((t - a) / (b - a)));
+const lerp = (a, b, k) => a + (b - a) * k;
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+function arrive(el, k, dy = 50) { el.style.opacity = clamp01(k); el.style.transform = 'translateY(' + ((1 - k) * dy).toFixed(1) + 'px)'; }
+
+// An odometer for the wall's count: each digit rolls a full turn plus its figure.
+const odo = { cols: [], h: 0 };
+function buildOdometer(el, value, h) {
+  odo.h = h;
+  Object.assign(el.style, { display: 'inline-flex', overflow: 'hidden', height: h + 'px', lineHeight: h + 'px', fontVariantNumeric: 'tabular-nums' });
+  for (const ch of String(value)) {
+    const c = document.createElement('span');
+    Object.assign(c.style, { display: 'block', height: h + 'px', overflow: 'hidden' });
+    const strip = document.createElement('span');
+    strip.style.display = 'block';
+    for (let i = 0; i < 20; i++) { const d = document.createElement('span'); d.style.display = 'block'; d.style.height = h + 'px'; d.textContent = String(i % 10); strip.appendChild(d); }
+    c.appendChild(strip); el.appendChild(c); odo.cols.push({ strip, d: Number(ch) });
+  }
+}
+function odoRoll(t, start, each = 0.09, dur = 1.2) {
+  odo.cols.forEach((c, j) => {
+    const a = start + (odo.cols.length - 1 - j) * each;
+    c.strip.style.transform = 'translateY(' + (-(10 + c.d) * p(t, a, a + dur, BACK) * odo.h).toFixed(1) + 'px)';
+  });
+}
+
+// ---- Scenes: [turn in, turn out], each turn lasting TURN seconds. ----
+const TURN = 0.5;
+const PAGES = [[null, 2.0], [2.0, 6.9], [6.9, 11.2], [11.2, null]];
+
+function seek(t) {
+  PAGES.forEach(([tin, tout], i) => {
+    const el = $('s' + i);
+    const inK = tin === null ? 1 : p(t, tin, tin + TURN, INOUT);
+    const outK = tout === null ? 0 : p(t, tout, tout + TURN, INOUT);
+    el.style.visibility = (tin === null || t >= tin) && (tout === null || t < tout + TURN) ? 'visible' : 'hidden';
+    el.style.zIndex = i;
+    el.style.transform = 'translateX(' + (inK < 1 ? lerp(W, 0, inK) : -240 * outK).toFixed(2) + 'px)';
+    el.classList.toggle('turning', inK > 0 && inK < 1);
+  });
+
+  // 0. A slow push on the face; the ask lands after the count has been read.
+  $('hook').style.transform = 'scale(' + lerp(1, 1.07, p(t, 0, 2.5, LIN)).toFixed(4) + ')';
+  const ask = p(t, 0.65, 1.15, BACK);
+  $('h-ask').style.opacity = clamp01(ask * 1.5);
+  $('h-ask').style.transform = 'translateY(' + ((1 - ask) * 70).toFixed(1) + 'px) rotate(' + lerp(-6, -1.5, ask).toFixed(2) + 'deg)';
+
+  // 1. Each card drops onto the pile from below and settles at its own tilt.
+  cards.forEach((c, i) => {
+    const k = p(t, c.at, c.at + 0.42, BACK);
+    const shown = t >= c.at;
+    const x = CARD.cx - 360 + c.nudge[0], y = CARD.cy - 498 + c.nudge[1];
+    c.el.style.visibility = shown ? 'visible' : 'hidden';
+    c.el.style.zIndex = i;
+    c.el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + lerp(y + H, y, k).toFixed(1) + 'px) rotate(' + lerp(c.tilt * 3, c.tilt, k).toFixed(2) + 'deg) scale(' + CARD.s + ')';
+  });
+
+  // 2. The count rolls up while the tiles pop in; the empty place arrives last and breathes.
+  odoRoll(t, 7.15);
+  tiles.forEach((tile) => {
+    const k = p(t, tile.at, tile.at + 0.36, BACK);
+    let s = lerp(0.4, 1, k);
+    if (tile.el.classList.contains('you') && t > 9.35) s *= 1 + 0.035 * Math.sin((t - 9.35) * 5.5);
+    tile.el.style.opacity = clamp01(k * 2).toFixed(3);
+    tile.el.style.transform = 'scale(' + s.toFixed(4) + ')';
+  });
+  wall.style.transform = 'scale(' + lerp(1, 1.035, p(t, 9.0, 11.7, LIN)).toFixed(4) + ')';
+
+  // 3. The end card, line by line.
+  arrive($('e-brand'), p(t, 11.55, 12.15), 30);
+  arrive($('e-h'), p(t, 11.65, 12.35), 60);
+  arrive($('e-p'), p(t, 11.95, 12.6), 40);
+  arrive($('e-when'), p(t, 12.3, 12.95, BACK), 50);
+  arrive($('e-url'), p(t, 12.6, 13.2), 30);
+  arrive($('e-fine'), p(t, 12.85, 13.4), 20);
+}
+
+window.ready = (async () => {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((img) => img.decode().catch(() => null)));
+  buildOdometer($('w-count'), DATA.count, SQUARE ? 120 : 168);
+  seek(0);
+  return window.COMPOSITION;
+})();
+window.seek = seek;
+</script>
+</body>
+</html>

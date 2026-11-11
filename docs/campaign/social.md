@@ -398,6 +398,101 @@ Before posting any of the three:
 - No house numbers, street signs or license plates in a shot.
 - Every count that can still change says "as of [time]."
 
+### Reel 0: meet the entrants (entries week)
+
+Goal: entries, and sends from owners to family. Length 15 seconds. Made, not
+shot: `docs/video/entrants/` builds it from the pets approved so far, so the
+count and the wall are real at the moment it is built. Rebuild right before
+posting:
+
+```
+SUPABASE_ANON_KEY=<the site's public anon key> node docs/video/entrants/build.mjs
+node ~/.claude/skills/html-video/scripts/render.mjs docs/video/entrants/entrants-entries.html --out docs/video/out/entrants-entries.mp4 --small
+```
+
+Two cuts, each portrait (Reels, Stories, TikTok) and square (Facebook feed):
+`entries` (post mid-week one) and `lastdays` (post two days before entries
+close). The hook pet, the six featured pets and the words are in
+`entrants.config.json`; change the featured pets between the two posts so the
+second one shows new faces.
+
+| Time | On screen |
+| --- | --- |
+| 0:00 to 0:02 | One pet's face, full frame: "[N] pets have entered." then "Is yours next?" |
+| 0:02 to 0:07 | Six photo cards land in a pile, each with the pet's name and town |
+| 0:07 to 0:11 | Every pet so far as a wall, the count rolling up, one empty "Your pet?" tile |
+| 0:11 to 0:15 | End card: "Enter your pet free," the deadline, the address, Moments |
+
+Audio: `node docs/video/score.mjs docs/video/out/<name>.mp4` adds the music
+(an ElevenLabs bed generated for these Reels) with a card slap and tile pops
+on the beats, at -16 LUFS, as `<name>-scored.mp4`. Post the scored file; don't
+add a second track in the app. Cover: frame 0 (the face and the count) is
+already composed.
+
+Facebook (no hashtags; the link goes in the first comment):
+
+> [N] pets have entered the Cutest Pet in Marathon County contest so far, as
+> of [day]. Is yours next?
+>
+> Entering is free: one phone photo, plus your pet's name and town. A Wausau
+> Pilot & Review editor checks every entry before it goes live. Entries close
+> Friday, Nov. 20, at 8 p.m., and voting opens Saturday, Nov. 21.
+>
+> Half of vote pack sales goes to Moments Foster Care.
+
+First comment: "Enter here: [contest page link]?utm_source=facebook&utm_medium=social&utm_campaign=pet-contest"
+
+Instagram:
+
+> [N] pets have entered so far. Is yours next? Enter free with one phone
+> photo by Friday, Nov. 20, at 8 p.m. Link in bio.
+> [contest hashtag] #Wausau #MarathonCounty #CentralWisconsin
+
+Post it as a Collab with Moments Foster Care where they agree, so it reaches
+both followings. The pets on screen are covered by the rules' photo release;
+the owners are never named.
+
+### Open Round Reels: voting is open, the race, Last Chance
+
+Made like Reel 0, from live data (`docs/video/openround/`). 15 seconds each,
+portrait and square. Rebuild minutes before posting; the race and Last Chance
+cuts print "as of" the build time on screen.
+
+```
+SUPABASE_ANON_KEY=<the site's public anon key> node docs/video/openround/build.mjs
+node ~/.claude/skills/html-video/scripts/render.mjs docs/video/openround/openround-race.html --out docs/video/out/openround-race.mp4 --small
+```
+
+`--sample` makes up numbers for a preview and stamps every frame "SAMPLE
+NUMBERS · DO NOT POST". Never post a sample render.
+
+Score each render with `docs/video/score.mjs` as for Reel 0.
+
+| Cut | When | What it says |
+| --- | --- | --- |
+| `open` | Sat., Nov. 21, once staff open the round | The whole field, "Every pet starts at zero," the ways to vote (the free daily vote only if it is switched on), the Dec. 4 close |
+| `race` | Mid-round (Nov. 27 or 28) and the morning of Dec. 4 | The leader, then places 1 to 20 with the bracket line under No. 15 and the Last Chance zone 16 to 20, "as of" the build |
+| `lastchance` | Fri., Dec. 4, right after staff start Last Chance | The five pets in the pool, their starting places, when Last Chance closes |
+
+Captions:
+
+> Voting is open in the Cutest Pet in Marathon County contest: [N] pets,
+> one Open Round, and every pet starts at zero. Vote free once a day, or back
+> a pet with vote packs from $5. The top 16 make the bracket. Voting closes
+> Friday, Dec. 4, at 8 p.m.
+
+> As of [time], [Pet] of [town] leads the Open Round. The top 15 are in the
+> bracket when it closes, and the next five get a Last Chance at the last
+> seed. Voting closes Friday, Dec. 4, at 8 p.m. Vote totals reset every round.
+
+> Last Chance: [Pet], [Pet], [Pet], [Pet] and [Pet] race for the last spot
+> in the bracket until [Saturday, Dec. 5, at 8 p.m.]. Only these five can get
+> votes now. Vote totals reset every round.
+
+Drop "Vote free once a day" from the caption if the free daily vote is not
+on. Facebook: link in the first comment. Instagram: link in bio, with the
+hashtags above.
+
 ### Reel 1: the bracket reveal
 
 Goal: sends, and taps through to the bracket. Length 30 to 35 seconds. Posted
