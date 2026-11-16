@@ -17,7 +17,7 @@ export type NurtureKind =
 export type ClubKind = "club_100" | "club_500" | "club_1000" | "club_5000";
 
 export type QueueRow = {
-  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion" | "last_chance" | NurtureKind | ClubKind;
+  kind: "entry_received" | "entry_approved" | "entry_rejected" | "advanced" | "eliminated" | "champion" | "last_chance" | "schedule_update" | NurtureKind | ClubKind;
   entry_id: string;
   round_id: string | null;
   to_email: string;
@@ -263,6 +263,19 @@ export function render(row: QueueRow, links: Links): Message {
     // Last Chance (0032): the pet finished just below the bracket line and
     // races four others for the last seed. rank is its place at the start,
     // field_size the pool's size, cut_margin the votes behind the leader.
+    // 0038: the Open Round's start moved after this owner was told the old
+    // one. About the entry itself, so no tips stop line.
+    case "schedule_update": {
+      const opens = row.opens_at ? formatWhen(row.opens_at) : "soon";
+      return compose(`New time: voting opens ${opens}`, first, [
+        `A correction about ${row.contest_name}: voting in the Open Round opens ${opens}${closes ? ` and runs until ${closes}` : ""}. We moved the start, so an earlier email or page from us may have shown a different time.`,
+        `Nothing else changes. ${pet} is in, every pet starts at zero, and the pets with the most votes make the bracket.`,
+        `Until then, ${pet}'s page is the place to start: share it so friends are ready when voting opens.`,
+      ], { label: `Open ${pet}'s page`, url: ownerUrl(links, row) }, [
+        `Sorry for the mix-up, and thank you for entering ${pet}.`,
+      ]);
+    }
+
     case "last_chance": {
       const others = Math.max(0, (row.field_size ?? 5) - 1);
       const votes = apNumber(row.my_votes ?? 0);

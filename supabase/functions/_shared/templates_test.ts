@@ -29,7 +29,7 @@ const base: QueueRow = {
 const KINDS: QueueRow["kind"][] = [
   "entry_received", "entry_approved", "entry_rejected", "advanced", "eliminated", "champion",
   "nurture_ready", "nurture_open", "nurture_halfway", "nurture_last_day", "nurture_matchup_last_day", "nurture_thanks",
-  "club_100", "club_500", "club_1000", "club_5000", "last_chance",
+  "club_100", "club_500", "club_1000", "club_5000", "last_chance", "schedule_update",
 ];
 
 Deno.test("the checkout reminder tells the truth and says it is the only one", () => {
@@ -272,4 +272,19 @@ Deno.test("approval goes out before voting, so it never says a round is open", (
   // The one button is the owner's page; the share link is there to paste.
   assertEquals((msg.html.match(/<a /g) ?? []).length, 1);
   assertStringIncludes(msg.text, "shows Biscuit's photo in the preview: https://rowanflynnpilot.github.io/wpr-pet-contest/p/");
+});
+
+Deno.test("the schedule correction gives the new time and the owner's page", () => {
+  const msg = render({
+    ...base,
+    kind: "schedule_update",
+    round_id: "r1",
+    owner_token: "t0ken",
+    opens_at: "2026-11-21T14:00:00Z",
+    closes_at: "2026-12-05T02:00:00Z",
+  }, LINKS);
+  assertEquals(msg.subject, "New time: voting opens Saturday, Nov. 21 at 8 a.m.");
+  assertStringIncludes(msg.text, "runs until Friday, Dec. 4 at 8 p.m.");
+  assertStringIncludes(msg.text, "?owner=t0ken");
+  assert(!msg.text.includes("stop them here"), "about the entry itself: no tips opt-out line");
 });
