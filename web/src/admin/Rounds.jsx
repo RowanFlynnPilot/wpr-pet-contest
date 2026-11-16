@@ -121,6 +121,23 @@ export default function Rounds() {
       say(`${roundLabel(r.seq, size)} is now scheduled to open ${stamp(fromLocalInput(closesAt))}.`)
     })
 
+  // After the start moved: one email to each owner approved so far, with the
+  // new time (0038). Once per round; the sweep runs right away so most go now.
+  const announce = (r) =>
+    run(async () => {
+      const owners = await q(admin.rpc('announce_schedule_change', { p_round_id: r.id }))
+      let mail = null
+      try {
+        mail = await callAdmin('notify', {})
+      } catch (err) {
+        if (err instanceof SessionError) throw err
+        mail = { error: err.message }
+      }
+      say(
+        `Schedule update queued for ${owners} owner${owners === 1 ? '' : 's'}.${mail?.error ? ` Email sweep failed: ${mail.error}; the 15-minute sweep will send them.` : mail?.sent != null ? ` Sent now: ${mail.sent}; any left go with the next 15-minute sweep.` : ''}`,
+      )
+    })
+
   function startOpen(r) {
     setClosesAt(toLocalInput(r.closes_at))
     setAction({ kind: 'open', round: r })
@@ -242,6 +259,22 @@ export default function Rounds() {
                         Change start…
                       </button>
                     )}
+                    {r.seq === 1 && r.status === 'pending' && contest.status === 'submissions_open' && !r.schedule_notice_at && (
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        style={{ marginLeft: 6 }}
+                        onClick={() => setAction({ kind: 'announce', round: r })}
+                        disabled={busy}
+                      >
+                        Email owners about the new time…
+                      </button>
+                    )}
+                    {r.schedule_notice_at && (
+                      <div className="small muted" style={{ marginTop: 4 }}>
+                        Owners emailed about the start {stamp(r.schedule_notice_at)}
+                      </div>
+                    )}
                     {r.id === open?.id && lastChanceDue(r) && (
                       <>
                         <button
@@ -334,6 +367,16 @@ export default function Rounds() {
             </button>
           </div>
         </div>
+      )}
+
+      {action?.kind === 'announce' && (
+        <TypedConfirm word="SEND" title="Email owners about the new time" busy={busy} danger={false} onCancel={() => setAction(null)} onConfirm={() => announce(action.round)}>
+          <p>
+            Sends one email to each owner approved so far: voting opens <strong>{stamp(action.round.opens_at)}</strong>, and an earlier email or
+            page may have shown a different time. Owners approved later already see the new time.
+          </p>
+          <p className="small muted">Check the start above is right first. It can be sent only once for this round.</p>
+        </TypedConfirm>
       )}
 
       {action?.kind === 'lastchance' && (

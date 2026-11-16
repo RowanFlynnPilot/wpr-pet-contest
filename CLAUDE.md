@@ -240,7 +240,10 @@ the buttons call, for when the panel is not an option.
    submissions close and to run a week; pass a second argument for a different
    round 1 closing time. Rounds tab → Change start… moves a pending round's
    scheduled start (`reschedule_round`, 0036), which the rules page, the
-   countdowns and the "voting opens" emails quote. It opens nothing.
+   countdowns and the "voting opens" emails quote. It opens nothing. If
+   owners were already told the old time, Email owners about the new
+   time… (`announce_schedule_change`, 0038) sends each one a correction,
+   once.
 3. Moderate. Approve or reject with a reason; rejection reasons are required.
    The moderators (`MODERATOR_EMAILS`) get one email when new entries reach
    the queue, at most every 15 minutes (0035, `moderation_alert_claim`).
@@ -307,7 +310,7 @@ dates.)
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, email retry, reschedule round, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, email retry, reschedule round, schedule notice, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
