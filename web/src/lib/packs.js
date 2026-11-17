@@ -48,3 +48,11 @@ export function cheapestPerVote(packs) {
   const best = bestValue(packs)
   return best ? formatPerVote(best).replace(' a vote', '') : null
 }
+
+// What a pack sends the shelters at the published split, in cents. Card fees
+// are WPR's, so the share is of the price itself; it is rounded down, so the
+// line never promises more than the payout statement will show.
+export function shelterCents(pack, splitPct) {
+  if (!pack || !(splitPct > 0)) return 0
+  return Math.floor((pack.cents * splitPct) / 100)
+}

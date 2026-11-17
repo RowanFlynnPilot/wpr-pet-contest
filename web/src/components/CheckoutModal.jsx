@@ -6,7 +6,7 @@ import { tokenColor, tokenFont } from '../lib/theme.js'
 import { createCheckout, fetchActivity, fetchTotals, mockPay } from '../lib/api.js'
 import { APP_BASE, MOCK_CHECKOUT, STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
 import { andList, apTime, fmtInt, fmtMoney, formatCountdown } from '../lib/format.js'
-import { defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, votesWithBonus } from '../lib/packs.js'
+import { defaultPack, formatPerVote, orderPacksForDisplay, savingsPct, shelterCents, votesWithBonus } from '../lib/packs.js'
 import { attemptKey, nextRequestId } from '../lib/requestId.js'
 import { roundLabel } from '../lib/rounds.js'
 import { boostLive, useLive } from '../lib/live.js'
@@ -305,6 +305,13 @@ export default function CheckoutModal({ entry, round, onClose, initialPack = nul
                           <span>{formatPerVote({ votes: votesWithBonus(p, multiplier), cents: p.cents })}</span>
                           {save > 0 && <span className="save">Save {save}%</span>}
                         </span>
+                        {/* What the buyer's money does, in dollars: the split is
+                            published, card fees are WPR's (never "donation"). */}
+                        {shelterCents(p, split) > 0 && (
+                          <span className="pack-shelter">
+                            {fmtMoney(shelterCents(p, split))} goes to {c.shelters.length === 1 ? who : 'the shelters'}
+                          </span>
+                        )}
                       </span>
                       <span className="pack-price">{fmtMoney(p.cents)}</span>
                     </label>
