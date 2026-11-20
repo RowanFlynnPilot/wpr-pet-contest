@@ -25,6 +25,7 @@ import ActivityTicker from '../components/ActivityTicker.jsx'
 import MatchupCard from '../components/MatchupCard.jsx'
 import PetCard from '../components/PetCard.jsx'
 import PetPhoto from '../components/PetPhoto.jsx'
+import { entryPhotoUrl } from '../lib/photos.js'
 import Sponsor, { showsSlot } from '../components/Sponsor.jsx'
 import { FaceOff, UpsetLamp } from '../components/FaceOff.jsx'
 import { CountdownCells, Digits, GameClock, Scoreboard } from '../components/Scoreboard.jsx'
@@ -51,6 +52,38 @@ function Polaroids({ entries }) {
           </a>
         ))}
     </div>
+  )
+}
+
+// Faces right under the headline, so a phone's first screen shows the pets,
+// not just the board: the newest while entries are open, the leaders while
+// the Open Round runs. One link to the gallery; the faces are decoration.
+const FACES = 9
+function FaceStrip({ entries, totals, entering }) {
+  const faces = useMemo(() => {
+    if (entering) return [...entries].reverse().slice(0, FACES)
+    return rankOpenRound(entries, totals || new Map())
+      .slice(0, FACES)
+      .map((row) => row.entry)
+  }, [entries, totals, entering])
+  if (entries.length < 4) return null
+  const n = entries.length
+  return (
+    <a className={`face-strip${entering ? ' entering' : ''}`} href="#/gallery">
+      <span className="faces" aria-hidden="true">
+        {faces.map((e) => (
+          <img key={e.id} src={entryPhotoUrl(e, { width: 96 })} alt="" loading="eager" decoding="async" />
+        ))}
+      </span>
+      <span className="face-text">
+        <span>
+          <strong>{fmtInt(n)} pets</strong> {entering ? 'have entered' : 'in the running'}
+        </span>
+        <span className="face-more">
+          See them all <Arrow size={13} />
+        </span>
+      </span>
+    </a>
   )
 }
 
@@ -359,6 +392,7 @@ function Arena({ c, entries, byId, totals }) {
     <section className="home-arena">
       <div className="wrap home-grid">
         <h1 className="home-title">{title}</h1>
+        {(entering || openRound) && <FaceStrip entries={entries} totals={totals} entering={entering} />}
         <div className="home-board">{board}</div>
         <div className="hero-actions home-actions">{actions}</div>
         {lede && <p className="hero-lede home-lede">{lede}</p>}

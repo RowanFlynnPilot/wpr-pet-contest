@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bestValue, cheapestPerVote, defaultPack, formatPerVote, orderPacksForDisplay, perVoteCents, savingsPct, votesWithBonus } from '../src/lib/packs.js'
+import { bestValue, cheapestPerVote, defaultPack, formatPerVote, orderPacksForDisplay, perVoteCents, savingsPct, shelterCents, votesWithBonus } from '../src/lib/packs.js'
 
 const PACKS = [
   { slug: 'starter', votes: 5, cents: 500, sort: 1, featured: false },
@@ -57,5 +57,17 @@ describe('bonus votes', () => {
     expect(votesWithBonus(by('fan'), 1)).toBe(25)
     expect(votesWithBonus(by('fan'), 0)).toBe(25)
     expect(votesWithBonus(by('fan'))).toBe(25)
+  })
+})
+
+describe('shelter share of a pack', () => {
+  it('is the published split of the price, rounded down, and nothing without a split', () => {
+    expect(shelterCents({ cents: 500 }, 50)).toBe(250)
+    expect(shelterCents({ cents: 2000 }, 50)).toBe(1000)
+    expect(shelterCents({ cents: 500 }, 33)).toBe(165)
+    expect(shelterCents({ cents: 999 }, 50)).toBe(499)
+    expect(shelterCents({ cents: 500 }, 0)).toBe(0)
+    expect(shelterCents({ cents: 500 }, null)).toBe(0)
+    expect(shelterCents(null, 50)).toBe(0)
   })
 })
