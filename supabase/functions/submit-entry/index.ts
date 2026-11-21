@@ -101,14 +101,27 @@ serve(async (req) => {
   // the original photo.
   const thumb = await readThumbnail(form.get("thumb"));
 
-  // Found here only to name the storage folder. Whether submissions are still
-  // open is decided again, under a lock, by insert_entry.
-  const { data: contest, error: contestError } = await db
-    .from("contests")
-    .select("id")
-    .eq("status", "submissions_open")
-    .maybeSingle();
-  if (contestError) throw contestError;
+  // A late-entry pass (0039): a staff-issued link that lets one entry in while
+  // the Open Round runs. Everything above still applies to it.
+  const latePass = typeof form.get("late_pass") === "string" ? String(form.get("late_pass")).trim() : "";
+
+  // Found here only to name the storage folder. Whether the entry may go in is
+  // decided again, under a lock, by insert_entry or insert_late_entry.
+  let contest: { id: string } | null;
+  if (latePass) {
+    const { data, error } = await db.rpc("late_entry_pass_contest", { p_token: latePass });
+    if (error) throw error;
+    if (!data) throw badRequest("This late-entry link has expired or was already used.");
+    contest = { id: data as string };
+  } else {
+    const { data, error: contestError } = await db
+      .from("contests")
+      .select("id")
+      .eq("status", "submissions_open")
+      .maybeSingle();
+    if (contestError) throw contestError;
+    contest = data;
+  }
   if (!contest) throw badRequest("Submissions are closed.");
 
   const id = crypto.randomUUID();
@@ -127,8 +140,7 @@ serve(async (req) => {
 
   // Rechecks the window and the per-email cap while holding the contest, so an
   // entry cannot slip in while open_round is setting the field.
-  const { error: insertError } = await db.rpc("insert_entry", {
-    p_contest_id: contest.id,
+  const fields = {
     p_pet_name: entry.pet_name,
     p_species: entry.species,
     p_owner_name: entry.owner_name,
@@ -142,7 +154,10 @@ serve(async (req) => {
     p_profile_nickname: entry.profile_nickname,
     p_profile_favorite: entry.profile_favorite,
     p_profile_trick: entry.profile_trick,
-  });
+  };
+  const { error: insertError } = latePass
+    ? await db.rpc("insert_late_entry", { p_token: latePass, ...fields })
+    : await db.rpc("insert_entry", { p_contest_id: contest.id, ...fields });
   if (insertError) {
     // The objects are already public at their URLs but would have no entry
     // row, so moderation could never find them to delete. Remove them first.

@@ -230,10 +230,12 @@ function Success({ petName, photo, contest, votingAt, onAnother }) {
         </div>
       </div>
       <div className="hero-actions" style={{ justifyContent: 'center' }}>
-        <button type="button" className="btn btn-primary" onClick={onAnother}>
-          Enter another pet
-        </button>
-        <a className="btn btn-ghost" href="#/gallery">
+        {onAnother && (
+          <button type="button" className="btn btn-primary" onClick={onAnother}>
+            Enter another pet
+          </button>
+        )}
+        <a className={`btn ${onAnother ? 'btn-ghost' : 'btn-primary'}`} href="#/gallery">
           See the entrants
         </a>
       </div>
@@ -244,8 +246,13 @@ function Success({ petName, photo, contest, votingAt, onAnother }) {
 // Round 1's scheduled start (staff can move it, 0036), or when entries close.
 const votingOpensAt = (c) => c.nextRound?.opens_at || c.contest?.submissions_close_at || null
 
-export default function Enter() {
+export default function Enter({ route }) {
   const c = useContest()
+  // A late-entry pass (0039): a link staff send one person, good while the
+  // Open Round runs and before Last Chance. The server decides whether it is
+  // still valid; this only opens the form for it.
+  const latePass = route?.params?.pass || ''
+  const late = Boolean(latePass) && c.phase === 'voting' && c.round?.seq === 1 && !c.overtime
   const [v, setV] = useState(EMPTY)
   const [photo, setPhoto] = useState(null)
   const [thumb, setThumb] = useState(null)
@@ -306,6 +313,7 @@ export default function Enter() {
     form.append('rights_accepted', 'true')
     if (v.newsletter) form.append('newsletter_opt_in', 'true')
     form.append('website', v.website)
+    if (late) form.append('late_pass', latePass)
 
     setBusy(true)
     try {
@@ -321,7 +329,7 @@ export default function Enter() {
   }
 
   if (c.loading) return <div className="wrap section" aria-busy="true" />
-  if (c.phase !== 'submissions') {
+  if (c.phase !== 'submissions' && !late) {
     return (
       <div className="wrap section">
         <Closed c={c} />
@@ -336,8 +344,9 @@ export default function Enter() {
           petName={done}
           photo={photo}
           contest={c.contest}
-          votingAt={votingOpensAt(c)}
-          onAnother={() => {
+          votingAt={late ? null : votingOpensAt(c)}
+          // A late-entry link is spent on its one entry.
+          onAnother={late ? null : () => {
             setDone(null)
             setV((prev) => ({ ...EMPTY, owner_name: prev.owner_name, owner_email: prev.owner_email }))
             setPhoto(null)
@@ -364,7 +373,16 @@ export default function Enter() {
           <h1 id="enter-title" style={{ fontSize: 'clamp(32px, 6vw, 48px)' }}>
             Enter your pet
           </h1>
-          <p className="section-count">Free to enter · closes {apDate(c.contest.submissions_close_at)}</p>
+          {late ? (
+            <p className="notice" role="note" style={{ marginBottom: 12 }}>
+              <span>
+                <strong>Late entry, approved by {NEWSROOM.name}.</strong> This link works once.{' '}
+                {period(`Once an editor approves your entry, your pet joins the Open Round, which is open now${c.round?.closes_at ? ` until ${apDateTime(c.round.closes_at)}` : ''}`)}
+              </span>
+            </p>
+          ) : (
+            <p className="section-count">Free to enter · closes {apDate(c.contest.submissions_close_at)}</p>
+          )}
           <p className="dek" style={{ marginBottom: 20 }}>
             One great photo and a few details. An editor reviews every entry before it goes live.
           </p>
@@ -567,10 +585,12 @@ export default function Enter() {
             <h2 style={{ fontSize: 19, marginBottom: 6 }}>What happens next</h2>
             <p className="small" style={{ margin: 0 }}>
               An editor reviews your entry, usually within a day. Once approved, your pet appears in the gallery with a page you can share.{' '}
-              {period(`Voting opens ${apDateTime(votingOpensAt(c))}`)}
+              {late
+                ? period(`Voting is open now${c.round?.closes_at ? ` and runs until ${apDateTime(c.round.closes_at)}` : ''}`)
+                : period(`Voting opens ${apDateTime(votingOpensAt(c))}`)}
             </p>
           </div>
-          <Countdown to={c.contest.submissions_close_at} label="Entries close in" />
+          {!late && <Countdown to={c.contest.submissions_close_at} label="Entries close in" />}
         </aside>
       </div>
     </div>

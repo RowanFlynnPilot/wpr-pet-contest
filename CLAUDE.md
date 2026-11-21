@@ -252,7 +252,11 @@ the buttons call, for when the panel is not an option.
    contest to `voting` in the same transaction. It refuses while anything is
    still pending, or with fewer approved entries than `bracket_size`. Never flip
    contest status by hand; that is how you end up accepting entries after the
-   field is set.
+   field is set. The one exception is a late-entry pass (0039, Moderation
+   tab → Late-entry passes): a staff member issues a one-use link with a
+   reason on record, the owner enters through the ordinary form while the
+   Open Round runs (never after Last Chance starts), and the pet waits for
+   approval like any other. Voting and the contest's status are untouched.
    If Last Chance is on: when the Open Round's clock runs out, Rounds tab →
    Start Last Chance (`start_last_chance`, from 10 minutes after the
    deadline). It emails the pool's owners straight away. Close the round
@@ -310,7 +314,7 @@ dates.)
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, email retry, reschedule round, schedule notice, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, email retry, reschedule round, schedule notice, late entry pass, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
