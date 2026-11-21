@@ -87,7 +87,7 @@ select lives_ok(
 select is(late_entry_pass_contest((select other from t)), null, 'a withdrawn link no longer works');
 
 -- Once Last Chance starts, the field below the line is fixed.
-update rounds set overtime_closes_at = now() + interval '1 day' where id = '00000000-0000-0000-0000-00000000d001';
+update rounds set overtime_closes_at = closes_at + interval '1 day' where id = '00000000-0000-0000-0000-00000000d001';
 select throws_like(
   $$ select issue_late_entry_pass('00000000-0000-0000-0000-0000000000c1', 'Too late', 24) $$,
   'Late entries can join only while the Open Round is running%', 'no pass once Last Chance starts');

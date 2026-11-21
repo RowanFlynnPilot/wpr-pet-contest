@@ -30,7 +30,7 @@ create table late_entry_passes (
 
 alter table late_entry_passes enable row level security;
 create policy late_entry_passes_admin_read on late_entry_passes
-  for select to authenticated using (is_admin());
+  for select to authenticated using ((select is_admin()));
 revoke all on late_entry_passes from public, anon, authenticated, service_role;
 grant select on late_entry_passes to authenticated;
 
