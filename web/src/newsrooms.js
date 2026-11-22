@@ -29,10 +29,12 @@ export const NEWSROOMS = {
     // The newsroom's adoption page (the "Meet a pet" button opens it), the
     // feed its pets come from (built into adoptables.json at deploy by
     // scripts/adoptables.mjs) and the area the button names. adoptPetPage
-    // opens one pet from #pet/aap-<id>: the adopt widget's own address,
-    // because WordPress can't pass a #pet/ link into its iframe.
+    // is where the featured pet's name and photo go, with #pet/aap-<id>
+    // appended. WPR wants every adopt link on its own page (Nov. 21, 2026),
+    // whose iframe can't take a #pet/ link, so the pet opens the whole pet
+    // finder there; the widget's own address would open the pet itself.
     adoptUrl: 'https://wausaupilotandreview.com/adopt-a-pet-central-wisconsin-pet-finder/?utm_source=pet-contest&utm_medium=adopt-button',
-    adoptPetPage: 'https://rowanflynnpilot.github.io/wpr-adopt-widget/adopt-widget.html?utm_source=pet-contest&utm_medium=adopt-button',
+    adoptPetPage: 'https://wausaupilotandreview.com/adopt-a-pet-central-wisconsin-pet-finder/?utm_source=pet-contest&utm_medium=adopt-pet',
     adoptablesFeed: 'https://rowanflynnpilot.github.io/wpr-adopt-widget/pet-data.json',
     adoptRegion: 'Central Wisconsin',
     supportUrl: 'https://wausaupilotandreview.com/support-our-publication/?utm_source=pet-contest&utm_medium=widget&utm_campaign=post-purchase',
