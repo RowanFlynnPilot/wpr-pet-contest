@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How the race unfolded</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@700;800;900&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* A bar-chart race of a round so far (build.mjs fills in the format and the
+   data). Every frame is a pure function of time (html-video). Text stays
+   out of the strips the apps cover. */
+:root {
+  --brand: #3a867c; --brand-ink: #2b655d; --brand-deep: #1f4b45; --cream: #f6f2e9; --cream-deep: #ede6d6;
+  --ink: #1a1a1a; --muted: #5d625e; --sun: #f4b942;
+  --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+html, body { margin: 0; background: var(--brand-deep) }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--brand-deep); font-family: var(--sans); color: #fff }
+#stage.square { height: 1080px }
+.scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; will-change: transform }
+.scene.turning { box-shadow: -30px 0 60px rgba(0, 0, 0, .3) }
+.abs { position: absolute; margin: 0 }
+.stack { display: flex; flex-direction: column }
+.stack > * { margin: 0 }
+.kicker { font: 700 30px/1.2 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--sun) }
+.deep { background: var(--brand-deep) }
+.teal { background: var(--brand) }
+
+.opener { left: 72px; right: 150px; top: 330px; gap: 22px }
+.big { font: 900 150px/.92 var(--display); letter-spacing: -.045em }
+.sub { font: 400 44px/1.3 var(--sans); color: #dbe9e5 }
+.num { font: 700 96px/1 var(--mono); color: var(--sun); letter-spacing: -.03em; margin-top: 16px }
+.num small { display: block; font: 700 28px/1.3 var(--sans); color: #dbe9e5; letter-spacing: .02em; margin-top: 8px }
+
+.head { left: 64px; right: 64px; top: 236px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px }
+.head > div { min-width: 0 }
+.head .kicker { font-size: 24px; white-space: nowrap }
+.head .t { font: 900 60px/1 var(--display); letter-spacing: -.03em; margin-top: 10px; white-space: nowrap }
+.clock { flex: none; font: 700 46px/1 var(--mono); color: var(--sun); white-space: nowrap; text-align: right }
+.clock small { display: block; font: 700 22px/1.4 var(--sans); color: #b9d3cd; letter-spacing: .1em; text-transform: uppercase }
+#rows { position: absolute; left: 64px; right: 64px }
+.row { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 16px }
+.row img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; object-position: 50% 40%; border: 3px solid rgba(255,255,255,.85); flex: none; background: #2a5a53 }
+.track { position: relative; flex: 1; min-width: 0; height: 58px }
+.bar { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; border-radius: 8px; background: var(--brand); transform-origin: 0 50% }
+.row.lead .bar { background: var(--sun) }
+.nm { flex: none; width: 250px; font: 700 30px/1.1 var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff }
+.row.lead .nm { color: var(--sun) }
+.ct { position: absolute; top: 50%; transform: translateY(-50%); font: 700 32px/1 var(--mono); color: #fff; white-space: nowrap }
+
+.end { left: 72px; right: 150px; top: 360px; gap: 44px }
+.e-brand { display: flex; align-items: center; gap: 20px; font: 700 34px/1.1 var(--sans) }
+.e-brand img { width: 92px; height: 92px; border-radius: 50%; background: #fff }
+.e-h { font: 900 132px/.92 var(--display); letter-spacing: -.04em }
+.e-p { font: 400 46px/1.35 var(--sans); color: #e7f1ee }
+.e-when { align-self: flex-start; background: var(--sun); color: var(--ink); font: 800 50px/1.1 var(--display); padding: 18px 28px 22px; border-radius: 10px; letter-spacing: -.015em }
+.e-when small { display: block; font: 700 26px/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px }
+.e-url { font: 700 44px/1.2 var(--sans); text-decoration: underline; text-decoration-thickness: 4px; text-underline-offset: 10px; overflow-wrap: anywhere }
+.e-fine { font: 400 32px/1.4 var(--sans); color: #e2eeeb }
+
+#sample { position: absolute; left: -200px; right: -200px; top: 50%; z-index: 50; transform: rotate(-24deg); text-align: center; font: 900 120px/1 var(--display);
+  color: rgba(179, 38, 30, .55); letter-spacing: .04em; pointer-events: none }
+
+.square .opener { top: 120px; right: 72px }
+.square .big { font-size: 112px }
+.square .sub { font-size: 34px }
+.square .num { font-size: 72px }
+.square .head { top: 54px }
+.square .head .t { font-size: 46px }
+.square .clock { font-size: 36px }
+.square .row img { width: 56px; height: 56px }
+.square .track { height: 46px }
+.square .nm { font-size: 24px; width: 210px }
+.square .ct { font-size: 26px }
+.square .end { top: 150px; right: 72px; gap: 22px }
+.square .e-brand img { width: 72px; height: 72px }
+.square .e-h { font-size: 96px }
+.square .e-p { font-size: 34px }
+.square .e-when { font-size: 38px }
+.square .e-when small { font-size: 20px }
+.square .e-url { font-size: 36px }
+.square .e-fine { font-size: 26px }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const DATA = __DATA__;
+const SQUARE = '__FORMAT__' === 'square';
+const W = 1080, H = SQUARE ? 1080 : 1920;
+window.COMPOSITION = { width: W, height: H, fps: 30, duration: 16 };
+const stage = document.getElementById('stage');
+if (SQUARE) stage.classList.add('square');
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const fmt = (n) => Math.round(n).toLocaleString('en-US');
+
+function scene(cls, html) {
+  const el = document.createElement('section');
+  el.className = 'scene ' + cls;
+  el.id = 's' + stage.children.length;
+  el.innerHTML = html;
+  stage.appendChild(el);
+  return el;
+}
+
+// 0. The title.
+scene('deep', `<div class="abs stack opener"><p class="kicker">${esc(DATA.contest)}</p><p class="big">How the race unfolded.</p>
+  <p class="sub">Every vote in the Open Round since ${esc(DATA.startLabel.replace(/\.$/, ''))}.</p>
+  <p class="num" id="total">0<small>votes so far</small></p></div>`);
+
+// 1. The race.
+const s1 = scene('deep', `<div class="abs head"><div><p class="kicker">Open Round · the race so far</p><p class="t">Top 10, hour by hour</p></div>
+  <p class="clock"><small>Votes as of</small><span id="clock"></span></p></div><div id="rows"></div>`);
+const AREA = SQUARE ? { y: 210, h: 830 } : { y: 470, h: 980 };
+const SLOTS = 10, rowH = AREA.h / SLOTS;
+const rowsEl = $('rows');
+Object.assign(rowsEl.style, { top: AREA.y + 'px', height: AREA.h + 'px' });
+const rows = DATA.pets.map((p) => {
+  const el = document.createElement('div');
+  el.className = 'row';
+  el.style.height = rowH + 'px';
+  el.innerHTML = `<img src="${p.src}" alt=""><span class="nm">${esc(p.name)}</span><div class="track"><span class="bar"></span><span class="ct">0</span></div>`;
+  rowsEl.appendChild(el);
+  return { p, el, bar: el.querySelector('.bar'), ct: el.querySelector('.ct'), nm: el.querySelector('.nm'), track: el.querySelector('.track') };
+});
+let trackW = 0;
+
+// 2. The end card.
+const BADGE = '../../../web/public/wpr-typewriter-badge.png';
+scene('teal', `<div class="abs stack end">
+  <p class="e-brand fx" data-in="0"><img src="${BADGE}" alt="">Wausau Pilot &amp; Review</p>
+  <p class="e-h fx" data-in="1">Who's next to climb?</p>
+  <p class="e-p fx" data-in="2">The top vote-getters make the bracket. Vote free once a day, or with vote packs from $5.</p>
+  <p class="e-when fx" data-in="3"><small>Voting closes</small>${esc(DATA.closes)}</p>
+  <p class="e-url fx" data-in="4">${esc(DATA.url)}</p>
+  <p class="e-fine fx" data-in="5">Counts as of ${esc(DATA.asOf)}. Half of vote pack sales goes to Moments Foster Care.</p></div>`);
+
+if (DATA.sample) { const s = document.createElement('div'); s.id = 'sample'; s.textContent = 'SAMPLE NUMBERS · DO NOT POST'; stage.appendChild(s); }
+
+// ---- The engine (html-video). Nothing reads the clock. ----
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sx = (t) => ((ax * t + bx) * t + cx) * t, sy = (t) => ((ay * t + by) * t + cy) * t;
+  return (x) => {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 40; i++) { const v = sx(t); if (Math.abs(v - x) < 1e-7) break; if (v < x) lo = t; else hi = t; t = (lo + hi) / 2; }
+    return sy(t);
+  };
+}
+const OUT_ = bezier(.16, 1, .3, 1);
+function OUT(k) { return OUT_(k); }
+function INOUT(k) { return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+function BACK(k) { return 1 + 2.70158 * Math.pow(k - 1, 3) + 1.70158 * Math.pow(k - 1, 2); }
+function LIN(k) { return k; }
+function p(t, a, b, e = OUT) { return t <= a ? 0 : t >= b ? 1 : e((t - a) / (b - a)); }
+function lerp(a, b, k) { return a + (b - a) * k; }
+function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+function arrive(el, k, dy = 50) { el.style.opacity = clamp01(k); el.style.transform = 'translateY(' + ((1 - k) * dy).toFixed(1) + 'px)'; }
+
+// The race's own clock: f runs over the hours, 0 to steps - 1.
+const RACE = [2.4, 12.2];
+const last = DATA.steps;
+const valueAt = (cum, f) => { const i = Math.floor(f), j = Math.min(last, i + 1); return lerp(cum[i], cum[j], f - i); };
+function slotsAt(f) {
+  const order = rows.map((r, i) => [i, valueAt(r.p.cum, f)]).sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+  const slot = new Array(rows.length);
+  order.forEach(([i], k) => (slot[i] = k));
+  return slot;
+}
+// Smooth overtakes: a pet's place is its average slot over a short window of
+// race time, so a pass slides instead of jumping.
+const WINDOW = [-0.5, -0.25, 0, 0.25, 0.5].map((d) => d * Math.max(0.6, last / 60));
+const fmtClock = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', weekday: 'short', hour: 'numeric', hour12: true });
+// The race's pace: half real time, half votes, so busy hours get the screen
+// time and quiet ones pass quickly. u (0..1) -> f, by bisection.
+const tot = Array.from({ length: last + 1 }, (_, i) => rows.reduce((sum, r) => sum + r.p.cum[i], 0));
+const paceAt = (f) => 0.5 * (f / last) + 0.5 * (valueAt(tot, f) / Math.max(1, tot[last]));
+function hourFor(u) {
+  let lo = 0, hi = last;
+  for (let i = 0; i < 30; i++) { const mid = (lo + hi) / 2; if (paceAt(mid) < u) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+function clockLabel(f) {
+  // The hour on screen never passes the moment the counts were taken.
+  const ms = Math.min(DATA.start + Math.floor(f) * DATA.stepMs, DATA.nowMs - (DATA.nowMs % DATA.stepMs));
+  const parts = Object.fromEntries(fmtClock.formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  const h = Number(parts.hour), pm = parts.dayPeriod === 'PM';
+  const time = h === 12 ? (pm ? 'noon' : 'midnight') : `${h} ${pm ? 'p.m.' : 'a.m.'}`;
+  return `${parts.weekday}. ${time}`;
+}
+
+const PAGES = [[null, 2.0], [2.0, 12.8], [12.8, null]];
+const TURN = 0.5;
+function seek(t) {
+  PAGES.forEach(([tin, tout], i) => {
+    const el = $('s' + i);
+    const inK = tin === null ? 1 : p(t, tin, tin + TURN, INOUT);
+    const outK = tout === null ? 0 : p(t, tout, tout + TURN, INOUT);
+    el.style.visibility = (tin === null || t >= tin) && (tout === null || t < tout + TURN) ? 'visible' : 'hidden';
+    el.style.zIndex = i;
+    el.style.transform = 'translateX(' + (inK < 1 ? lerp(W, 0, inK) : -240 * outK).toFixed(2) + 'px)';
+    el.classList.toggle('turning', inK > 0 && inK < 1);
+  });
+
+  // 0. The total counts up.
+  $('total').firstChild.nodeValue = fmt(DATA.total * p(t, 0.3, 1.6, OUT));
+
+  // 1. The race.
+  const f = hourFor(p(t, RACE[0], RACE[1], INOUT));
+  const values = rows.map((r) => valueAt(r.p.cum, f));
+  const max = Math.max(1, ...values);
+  const avg = new Array(rows.length).fill(0);
+  WINDOW.forEach((d) => slotsAt(Math.max(0, Math.min(last, f + d))).forEach((s, i) => (avg[i] += s / WINDOW.length)));
+  const leader = values.indexOf(max);
+  rows.forEach((r, i) => {
+    const slot = avg[i];
+    r.el.style.transform = `translateY(${(slot * rowH).toFixed(1)}px)`;
+    // Off the chart until a pet has votes, so the opening frames aren't a pile of zeros.
+    r.el.style.opacity = (clamp01(SLOTS - 0.15 - slot) * clamp01(values[i] / 3)).toFixed(3);
+    r.el.style.zIndex = String(100 - Math.round(slot));
+    r.el.classList.toggle('lead', i === leader && values[i] > 0);
+    const k = values[i] / max;
+    r.bar.style.transform = `scaleX(${Math.max(0.012, k * 0.8).toFixed(4)})`;
+    r.ct.textContent = fmt(values[i]);
+    r.ct.style.left = `calc(${(Math.max(0.012, k * 0.8) * 100).toFixed(2)}% + 12px)`;
+  });
+  $('clock').textContent = clockLabel(f);
+
+  document.querySelectorAll('[data-in]').forEach((el) => {
+    const i = Number(el.dataset.in), a = 12.8 + 0.35 + i * 0.25;
+    arrive(el, i === 3 ? p(t, a, a + 0.65, BACK) : p(t, a, a + 0.6), i === 1 ? 60 : 36);
+  });
+}
+
+window.ready = (async () => {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((img) => img.decode().catch(() => null)));
+  seek(0);
+  return window.COMPOSITION;
+})();
+window.seek = seek;
+</script>
+</body>
+</html>

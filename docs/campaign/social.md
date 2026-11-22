@@ -493,6 +493,26 @@ Drop "Vote free once a day" from the caption if the free daily vote is not
 on. Facebook: link in the first comment. Instagram: link in bio, with the
 hashtags above.
 
+### "How the race unfolded": the round so far, hour by hour
+
+A 16-second bar-chart race of the top 10, built from the public hour-by-hour
+counts (`entry_round_hourly`, 0040). The clock is paced half by real time and
+half by votes, so busy hours get the screen time. Good mid-round (Nov. 27 or
+28) and the morning of Dec. 4, and after the Open Round closes as a recap.
+
+```
+SUPABASE_ANON_KEY=<the site's public anon key> node docs/video/history/build.mjs
+node ~/.claude/skills/html-video/scripts/render.mjs docs/video/history/history.html --out docs/video/out/history.mp4 --small
+node docs/video/score.mjs docs/video/out/history.mp4
+```
+
+`--round 2` (and so on) builds a bracket round's race; `--sample` makes up a
+history stamped SAMPLE for a preview. Caption:
+
+> How the Cutest Pet in Marathon County race has gone so far, hour by hour:
+> [N] votes since [Saturday at 8 a.m.]. Who climbs next? Vote free once a
+> day, or with vote packs from $5. Voting closes Friday, Dec. 4, at 8 p.m.
+
 ### Reel 1: the bracket reveal
 
 Goal: sends, and taps through to the bracket. Length 30 to 35 seconds. Posted

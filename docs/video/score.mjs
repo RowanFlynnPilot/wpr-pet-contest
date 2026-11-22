@@ -41,6 +41,14 @@ const CUES = {
     cards: [],
     pops: [5.8, 6.4],
   },
+  history: {
+    // 16 seconds: skip less of the bed so it still fills the length.
+    seconds: 16,
+    bed: ['bed-openround.mp3', 1.0, 1],
+    turns: [2.0, 12.8],
+    cards: [],
+    pops: [],
+  },
   'openround-lastchance': {
     bed: ['bed-openround.mp3', 1.5, 1],
     turns: [2.2, 10.4],
@@ -72,7 +80,7 @@ for (const video of process.argv.slice(2)) {
     chains.push(`[${i + 1}:a]adelay=${ms}|${ms},volume=${gain}[f${i}]`)
   })
   const labels = ['[b]', ...fx.map((_, i) => `[f${i}]`)].join('')
-  const graph = `${chains.join(';')};${labels}amix=inputs=${fx.length + 1}:normalize=0:duration=first,atrim=end=15,apad=whole_dur=15[out]`
+  const graph = `${chains.join(';')};${labels}amix=inputs=${fx.length + 1}:normalize=0:duration=first,atrim=end=${c.seconds ?? 15},apad=whole_dur=${c.seconds ?? 15}[out]`
   const premix = join(dirname(video), `${name}-score.wav`)
   execFileSync('ffmpeg', ['-v', 'error', '-y', ...inputs, '-filter_complex', graph, '-map', '[out]', '-ar', '48000', '-ac', '2', premix], { stdio: 'inherit' })
 

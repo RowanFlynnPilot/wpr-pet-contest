@@ -7,3 +7,5 @@ audio/
 entrants/photos/
 entrants/entrants-*.html
 openround/openround-*.html
+history/history*.html
+!history/history.src.html
