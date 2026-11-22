@@ -27,10 +27,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { loadEnv } from 'vite'
 import { apDateTime, packShareLine, period } from '../src/lib/format.js'
 import { roundLabel } from '../src/lib/rounds.js'
+import { DEFAULT_NEWSROOM, NEWSROOMS } from '../src/newsrooms.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const DIST = join(ROOT, 'dist')
 const env = { ...loadEnv(process.env.MODE || 'production', ROOT, ''), ...process.env }
+// The names a page falls back on, in the newsroom's own (VITE_NEWSROOM).
+const NEWSROOM = NEWSROOMS[env.VITE_NEWSROOM] || NEWSROOMS[DEFAULT_NEWSROOM]
+const NEWSROOM_NAME = NEWSROOM.name.replaceAll('&', '&amp;')
+const CONTEST_FALLBACK = `Cutest Pet in ${NEWSROOM.region}`
 
 const SUPABASE_URL = (env.VITE_SUPABASE_URL || '').replace(/\/+$/, '')
 const KEY = env.VITE_SUPABASE_ANON_KEY || ''
@@ -94,7 +99,7 @@ export function sharePage({ entry, contestName, target, selfUrl, image, transfor
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Wausau Pilot &amp; Review">
+<meta property="og:site_name" content="${NEWSROOM_NAME}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(selfUrl)}">
@@ -117,7 +122,7 @@ a{display:inline-block;margin-top:10px;background:#2b655d;color:#fff;padding:12p
 <main>
 <img src="${esc(image)}" alt="">
 <h1>Vote for ${esc(entry.pet_name)}</h1>
-<p>${esc(contestName)} · Wausau Pilot &amp; Review</p>
+<p>${esc(contestName)} · ${NEWSROOM_NAME}</p>
 <a href="${esc(target)}">Go to ${esc(entry.pet_name)}&rsquo;s page</a>
 </main>
 <script>location.replace(${jsString(target)} + (new URLSearchParams(location.search).get('via') === 'o' ? '?via=o' : ''))</script>
@@ -143,7 +148,7 @@ export function matchupPage({ card, selfUrl, image, cardImage }) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Wausau Pilot &amp; Review">
+<meta property="og:site_name" content="${NEWSROOM_NAME}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(selfUrl)}">
@@ -224,7 +229,8 @@ async function drawPetCards(entries, names, money) {
     photo: TRANSFORMS
       ? `${SUPABASE_URL}/storage/v1/render/image/public/pets/${clean(e.photo_path)}?width=900&resize=contain&quality=82`
       : `${SUPABASE_URL}/storage/v1/object/public/pets/${clean(e.photo_path)}`,
-    contest: names.get(e.contest_id) || 'Cutest Pet in Marathon County',
+    contest: names.get(e.contest_id) || CONTEST_FALLBACK,
+    newsroom: NEWSROOM.name,
     money: money.get(e.contest_id) || MONEY,
   }))
   await writeFile(manifest, JSON.stringify(specs))
@@ -269,7 +275,7 @@ function notFoundPage() {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cutest Pet in Marathon County — Wausau Pilot &amp; Review</title>
+<title>${esc(CONTEST_FALLBACK)} — ${NEWSROOM_NAME}</title>
 <meta name="robots" content="noindex">
 </head>
 <body style="font:17px/1.5 -apple-system,sans-serif;text-align:center;padding:48px 16px;background:#f6f2e9">
@@ -326,7 +332,7 @@ async function main() {
     await mkdir(dir, { recursive: true })
     const html = sharePage({
       entry,
-      contestName: names.get(entry.contest_id) || 'Cutest Pet in Marathon County',
+      contestName: names.get(entry.contest_id) || CONTEST_FALLBACK,
       target: `${PUBLIC}#/pet/${entry.id}`,
       selfUrl: `${SITE}p/${entry.id}/`,
       image: photoUrl(entry.photo_path),
