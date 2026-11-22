@@ -59,6 +59,29 @@ own hue so a red brand never reads as an error.
 - Email copy is already neutral; the sender address and the newsroom's
   name in the templates come from the function secrets (see LAUNCH.md).
 
+## 4. Setting up the copy
+
+One copy per newsroom: its own repository (a fork), Supabase project, Stripe
+account and Resend account. With the entry and theme above committed to the
+fork and an empty Supabase project created:
+
+```bash
+node scripts/setup.mjs --newsroom <key> --ref <project-ref> --repo owner/name \n  --admin editor@paper.com            # dry run: prints the plan
+node scripts/setup.mjs ... --apply    # does it
+```
+
+It sets the function secrets that follow from the entry (name, phone,
+colors, addresses), makes the random ones, sets the repository's variables
+and deploy secrets, fixes the Auth settings, and invites the staff. It needs
+`SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` in the shell and prints
+names, never values. The migrations and functions go in with the fork's
+first push to main; run the script once more after that to add the staff.
+It ends with the list only people can do (Stripe, Resend, the embed,
+counsel); `node scripts/preflight.mjs` then checks the whole thing.
+
+Safe to run again, and it leaves alone a sender address, alert address or
+free-vote key that is already set.
+
 ## What stays the same
 
 The format, the rules' structure, the money invariants in `CLAUDE.md`, the

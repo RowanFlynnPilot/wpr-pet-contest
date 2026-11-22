@@ -54,6 +54,8 @@ jobs:
           SHARE_CARDS: 'true'
           # All public by design: the anon key and the Stripe publishable key
           # are meant for browsers. Row level security is the boundary.
+          # Which newsroom this copy is (web/src/newsrooms.js); unset, the default.
+          VITE_NEWSROOM: ${{ vars.VITE_NEWSROOM }}
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY }}
