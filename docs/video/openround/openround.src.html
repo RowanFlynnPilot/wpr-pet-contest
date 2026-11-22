@@ -238,13 +238,17 @@ if (CUT === 'race') {
   let show = DATA.rows.map((r, i) => i);
   if (SQUARE && show.length > 12) show = [0, 1, 2, 'gap', ...show.slice(inN - 3)];
   const area = SQUARE ? { y: 250, h: 790 } : { y: 470, h: 1060 };
-  const rowH = Math.min(70, area.h / show.length);
+  // Each line gets its own gap between rows, so its label never covers a count.
+  const linePlaces = (lc ? [inN, inN + 5] : [DATA.bracket]).filter((pl) => show.indexOf(pl - 1) >= 0);
+  const GAP = SQUARE ? 30 : 40;
+  const rowH = Math.min(70, (area.h - GAP * linePlaces.length) / show.length);
+  const gapsBefore = (k) => linePlaces.filter((pl) => show.indexOf(pl - 1) < k).length * GAP;
   const rowsEl = $('rows');
   Object.assign(rowsEl.style, { top: area.y + 'px', height: area.h + 'px' });
   const max = Math.max(1, ...DATA.rows.map((r) => r.votes));
   const rows = [];
   show.forEach((idx, k) => {
-    const y = k * rowH;
+    const y = k * rowH + gapsBefore(k);
     if (idx === 'gap') { const g = document.createElement('div'); g.className = 'gapmark'; g.style.top = y + rowH / 2 - 17 + 'px'; g.textContent = '· · ·'; rowsEl.appendChild(g); return; }
     const r = DATA.rows[idx], place = idx + 1;
     const el = document.createElement('div');
@@ -254,7 +258,7 @@ if (CUT === 'race') {
     rowsEl.appendChild(el);
     rows.push({ el, bar: el.querySelector('.bar'), ct: el.querySelector('.ct'), v: r.votes, a: 2.6 + k * 0.07 });
   });
-  const lineAt = (place) => { const k = show.indexOf(place - 1); return k < 0 ? null : (k + 1) * rowH; };
+  const lineAt = (place) => { const k = show.indexOf(place - 1); return k < 0 ? null : (k + 1) * rowH + gapsBefore(k) + GAP / 2; };
   const lines = [];
   const addLine = (place, text, cls) => {
     const y = lineAt(place); if (y == null) return;
@@ -265,7 +269,7 @@ if (CUT === 'race') {
   if (lc) {
     addLine(inN, `In the bracket`);
     const p16 = first(inN + 1), p21 = first(inN + 6);
-    if (p16) addLine(inN + 5, p21 ? `Last Chance · No. ${inN + 6} is ${plural(Math.max(0, p16.votes - p21.votes) + 1, 'vote', 'votes')} short`.replace(/No\. \d+ is (\d)/, (m) => m) : 'Last Chance', 'lcline');
+    if (p16) addLine(inN + 5, p21 ? `Last Chance · No. ${inN + 6} is ${plural(Math.max(0, p16.votes - p21.votes) + 1, 'vote', 'votes')} short` : 'Last Chance', 'lcline');
   } else {
     const last = first(DATA.bracket), next = first(DATA.bracket + 1);
     addLine(DATA.bracket, next ? `Bracket line · No. ${DATA.bracket + 1} is ${plural(last.votes - next.votes + 1, 'vote', 'votes')} short` : 'Bracket line');
