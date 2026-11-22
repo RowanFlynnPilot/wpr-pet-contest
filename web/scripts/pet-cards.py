@@ -125,7 +125,7 @@ def card(spec, display, sans, badge):
         ImageDraw.Draw(mask).ellipse([0, 0, seal, seal], fill=255)
         img.paste(disc, (COL, bottom - seal), mask)
     d.text((COL + seal + 16, bottom - seal / 2 - 14), contest, font=cf, fill="white", anchor="lm")
-    d.text((COL + seal + 16, bottom - seal / 2 + 18), "Wausau Pilot & Review", font=og.font(sans, 20, {"wght": 600}), fill=og.MINT, anchor="lm")
+    d.text((COL + seal + 16, bottom - seal / 2 + 18), spec.get("newsroom") or "Wausau Pilot & Review", font=og.font(sans, 20, {"wght": 600}), fill=og.MINT, anchor="lm")
     d.line([COL, bottom - seal - 22, W - 64, bottom - seal - 22], fill=(255, 255, 255, 60), width=2)
     return img
 

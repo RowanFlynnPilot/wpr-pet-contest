@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { DEFAULT_NEWSROOM, NEWSROOMS } from './src/newsrooms.js'
 
 const DEFAULT_SITE = 'https://rowanflynnpilot.github.io/wpr-pet-contest/'
 
@@ -19,6 +20,21 @@ export default defineConfig(({ mode }) => ({
   base: './',
   plugins: [
     react(),
+    {
+      // The static head carries the newsroom's name and the contest's title
+      // (crawlers and the no-JavaScript note read them); index.html holds
+      // placeholders and VITE_NEWSROOM picks the newsroom, as in config.js.
+      name: 'newsroom-head',
+      transformIndexHtml: (html) => {
+        const env = loadEnv(mode, process.cwd(), '')
+        const n = NEWSROOMS[env.VITE_NEWSROOM] || NEWSROOMS[DEFAULT_NEWSROOM]
+        const esc = (s) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;')
+        return html
+          .replaceAll('%NEWSROOM_NAME%', esc(n.name))
+          .replaceAll('%NEWSROOM_URL%', esc(n.url))
+          .replaceAll('%CONTEST_TITLE%', esc(`Cutest Pet in ${n.region}`))
+      },
+    },
     {
       name: 'wpr-site-url',
       transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl(mode)),

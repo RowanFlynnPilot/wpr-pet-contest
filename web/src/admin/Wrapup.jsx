@@ -1,6 +1,7 @@
 // After the final: what the shelters are owed (printable), the contest's
 // permanent record, and keeping the published privacy promise.
 import { useState } from 'react'
+import { NEWSROOM } from '../config.js'
 import { bracketRows, openRoundRows, summary } from '../lib/archive.js'
 import { downloadCsv, toCsv } from '../lib/csv.js'
 import { apDate, fmtMoney, plural } from '../lib/format.js'
@@ -31,7 +32,7 @@ function Statement({ contest, payout, shelters }) {
     <section className="card plain print-area">
       {!final && <p className="notice warn no-break">PRELIMINARY: the contest is still running and these figures will change.</p>}
       <p className="kicker" style={{ margin: 0 }}>
-        Wausau Pilot &amp; Review
+        {NEWSROOM.name}
       </p>
       <h3 style={{ margin: '4px 0 2px' }}>Shelter payout statement</h3>
       <p className="small" style={{ marginTop: 0 }}>
@@ -72,8 +73,8 @@ function Statement({ contest, payout, shelters }) {
       </table>
       <p className="small">
         Per the published rules, the shelters receive {payout.beneficiary_split_pct}% of vote pack sales after refunds. Card processing fees are
-        paid by Wausau Pilot &amp; Review and are not deducted from the shelter share.
-        {payout.disputed_cents > 0 && ` ${exact(payout.disputed_cents)} under chargeback is excluded unless the dispute is resolved in WPR’s favor.`}{' '}
+        paid by {NEWSROOM.name} and are not deducted from the shelter share.
+        {payout.disputed_cents > 0 && ` ${exact(payout.disputed_cents)} under chargeback is excluded unless the dispute is resolved in ${NEWSROOM.shortName}’s favor.`}{' '}
         {plural(payout.purchases, 'purchase')}.
       </p>
       <div className="signatures">

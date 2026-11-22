@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { STRIPE_DASHBOARD, WPR_BADGE } from '../config.js'
+import { NEWSROOM, STRIPE_DASHBOARD, WPR_BADGE } from '../config.js'
 import { STRIPE_PUBLISHABLE_KEY } from '../lib/env.js'
 import { parseHash } from '../lib/router.js'
 import { admin, q } from './adminClient.js'
@@ -63,7 +63,7 @@ function SignIn({ notice }) {
       <form className="card signin" onSubmit={submit}>
         <img src={WPR_BADGE} alt="" width="56" height="56" />
         <p className="kicker" style={{ marginTop: 10 }}>
-          Wausau Pilot &amp; Review
+          {NEWSROOM.name}
         </p>
         <h1 style={{ fontSize: 28, marginBottom: 14 }}>Pet contest desk</h1>
         {notice && (
@@ -171,7 +171,7 @@ function Desk({ session, onSessionLost }) {
           <img src={WPR_BADGE} alt="" width="40" height="40" />
           <div className="desk-title">
             <span className="kicker" style={{ margin: 0 }}>
-              Wausau Pilot &amp; Review
+              {NEWSROOM.name}
             </span>
             <h1 className="desk-name">Pet contest desk</h1>
           </div>
