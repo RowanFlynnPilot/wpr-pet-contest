@@ -149,7 +149,10 @@ These are load-bearing. Do not soften them.
   know" columns (0026) are public like the caption and about the pet, never
   the owner; moderators may correct or clear one (column UPDATE grant), and
   `entry_round_momentum` (0027) publishes 24-hour counts per pet for open
-  rounds only, never a voter.
+  rounds only, never a voter. `entry_round_hourly` (0040) publishes each
+  pet's counts hour by hour for rounds that have opened, for the "race so
+  far" visuals: counts only, and a refund, a void or a pet no longer
+  approved drops out.
 - **Last Chance is overtime, not a round** (0032). Off unless switched on
   while the contest is a draft (`set_last_chance_enabled`). Staff start it
   by hand after the Open Round's clock and settle time (`start_last_chance`):
@@ -314,7 +317,7 @@ dates.)
 ```
 supabase start
 supabase db reset          # applies migrations/ in order, then seed.sql
-supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, email retry, reschedule round, schedule notice, late entry pass, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
+supabase test db           # pgTAP: access, bracket, contest admin, disqualify, engagement, free vote, hardening, health, lifecycle, moderation, moderation alerts, email retry, reschedule round, schedule notice, late entry pass, round hourly, cheers and reminders, last chance, profile, referrals, sprints, finale, tally, withdrawal
 supabase functions serve --env-file supabase/tests/integration/functions.env
 deno test --allow-env --allow-read supabase/functions/_shared
 npm --prefix web run e2e   # browser tests; mutate the DB, so reset after
