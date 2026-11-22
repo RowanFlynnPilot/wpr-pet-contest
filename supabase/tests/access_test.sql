@@ -64,7 +64,7 @@ grant select on our_functions, our_relations to anon, authenticated;
 -- ------------------------------------------------------------- privileges --
 select results_eq(
   $$ select name from our_relations where has_table_privilege('anon', oid, 'SELECT') order by 1 $$,
-  $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_cheers'), ('entry_referrals'), ('entry_round_momentum'), ('entry_round_totals'),
+  $$ values ('bonus_windows'), ('contest_stats'), ('contests'), ('entry_cheers'), ('entry_referrals'), ('entry_round_hourly'), ('entry_round_momentum'), ('entry_round_totals'),
             ('last_chance_field'), ('matchups'), ('recent_activity'), ('rounds'), ('shelters'), ('side_awards'),
             ('sponsor_matches'), ('sprint_standings'), ('sprints'), ('vote_packs') $$,
   'anon can read exactly the public tables and views');
