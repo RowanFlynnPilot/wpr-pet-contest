@@ -57,6 +57,7 @@ jobs:
       # The launch preflight's verdicts. Plain Node, nothing to install; the
       # preflight itself only runs by hand, against production.
       - run: node --test scripts/preflight.test.mjs
+        working-directory: .
       # What the newsroom setup script would do, decided without touching anything.
       - run: node --test scripts/setup.test.mjs
         working-directory: .
